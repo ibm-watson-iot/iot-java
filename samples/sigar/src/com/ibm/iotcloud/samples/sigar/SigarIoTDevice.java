@@ -1,6 +1,5 @@
 package com.ibm.iotcloud.samples.sigar;
 
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.hyperic.sigar.NetInterfaceConfig;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
@@ -8,15 +7,15 @@ import org.hyperic.sigar.SigarException;
 import com.ibm.iotcloud.client.Device;
 
 public class SigarIoTDevice implements Runnable {
-
+	
 	private boolean quit = false;
 	private Sigar sigar = null;
 	
-	private final String deviceId;	
+	private final String deviceId;
 	private final String account;
 	private final String username;
 	private final String password;
-
+	
 	public SigarIoTDevice(String account, String username, String password) {
 		sigar = new Sigar();
 		
@@ -40,9 +39,9 @@ public class SigarIoTDevice implements Runnable {
 		} else {
 			deviceId = macAddress.toLowerCase().replaceAll(":", "");
 		}
-
+		
 	}
-
+	
 	public void quit() {
 		this.quit = true;
 	}
@@ -56,12 +55,11 @@ public class SigarIoTDevice implements Runnable {
 				Device device;
 				if (account != null) {
 					device = new Device(deviceId, account, username, password);
-				}
-				else {
+				} else {
 					device = new Device(deviceId);
 				}
 				
-				// Send a dataset every 1 second, until we are told to quit 
+				// Send a dataset every 1 second, until we are told to quit
 				while (!quit) {
 					device.send("sigar", SigarData.create(sigar));
 					Thread.sleep(1000);
