@@ -69,8 +69,6 @@ public class SigarIoTDevice implements Runnable {
 				
 				// Once told to stop, cleanly disconnect from the service
 				device.disconnect();
-			} catch (MqttException e) {
-				e.printStackTrace();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
