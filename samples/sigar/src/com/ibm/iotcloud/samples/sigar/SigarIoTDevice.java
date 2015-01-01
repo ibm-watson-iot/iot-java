@@ -1,31 +1,47 @@
 package com.ibm.iotcloud.samples.sigar;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+import java.util.Scanner;
+import java.util.logging.LogManager;
+
 import org.hyperic.sigar.NetInterfaceConfig;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
 
 import com.ibm.iotcloud.client.Device;
+import com.ibm.iotcloud.samples.sigar.Launcher.LauncherOptions;
 
 public class SigarIoTDevice implements Runnable {
 	
 	private boolean quit = false;
 	private Sigar sigar = null;
+	private Properties options = new Properties();
+	protected Device client;
 	
-	private final String deviceId;
-	private final String account;
-	private final String username;
-	private final String password;
+	public SigarIoTDevice(String configFilePath) throws Exception {
+		this.sigar = new Sigar();
+		this.options = Device.parsePropertiesFile(new File(configFilePath));
+		this.client = new Device(this.options);
+	}
+
+	public SigarIoTDevice() throws Exception {
+		this.sigar = new Sigar();
+		this.options.put("org", "quickstart");
+		this.options.put("type", "sigar");
+		this.options.put("id", generateIdFromMacAddress());
+		this.client = new Device(this.options);
+	}
 	
-	public SigarIoTDevice(String account, String username, String password) {
-		sigar = new Sigar();
-		
-		this.account = account;
-		this.username = username;
-		this.password = password;
-		
+	private String generateIdFromMacAddress() {
 		// Try to obtain a(ny) MAC Address on this system
 		NetInterfaceConfig config = null;
 		String macAddress = null;
+		String deviceId;
 		try {
 			config = sigar.getNetInterfaceConfig(null);
 			macAddress = config.getHwaddr();
@@ -40,40 +56,79 @@ public class SigarIoTDevice implements Runnable {
 			deviceId = macAddress.toLowerCase().replaceAll(":", "");
 		}
 		
+		return deviceId;
 	}
-	
+
 	public void quit() {
 		this.quit = true;
 	}
 	
 	public void run() {
-		if (deviceId == null) {
-			System.out.println("Unable to run without a device ID");
-		} else {
-			try {
-				// Instantiate the device
-				Device device;
-				if (account != null) {
-					device = new Device(deviceId, account, username, password);
-				} else {
-					device = new Device(deviceId);
-				}
-				
-				// Send a dataset every 1 second, until we are told to quit
-				while (!quit) {
-					device.send("sigar", SigarData.create(sigar));
-					Thread.sleep(1000);
-				}
-				
-				// Once told to stop, cleanly disconnect from the service
-				device.disconnect();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		try {
+			client.connect();
+			// Send a dataset every 1 second, until we are told to quit
+			while (!quit) {
+				client.publishEvent("sigar", SigarData.create(sigar));
+				Thread.sleep(1000);
 			}
+			
+			// Once told to stop, cleanly disconnect from the service
+			client.disconnect();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	
-	public String getDeviceId() {
-		return deviceId;
+	
+	public static void main(String[] args) throws Exception {
+		// Load custom logging properties file
+	    try {
+			FileInputStream fis =  new FileInputStream("logging.properties");
+			LogManager.getLogManager().readConfiguration(fis);
+		} catch (SecurityException e) {
+		} catch (IOException e) {
+		}
+	    
+	    LauncherOptions opts = new LauncherOptions();
+        CmdLineParser parser = new CmdLineParser(opts);
+        try {
+        	parser.parseArgument(args);
+        } catch (CmdLineException e) {
+            // Handling of wrong arguments
+            System.err.println(e.getMessage());
+            parser.printUsage(System.err);
+            System.exit(1);
+        }
+		
+	    // Start the device thread
+		SigarIoTDevice d;
+
+		if (opts.configFilePath != null) {
+			d = new SigarIoTDevice(opts.configFilePath);
+			Thread t1 = new Thread(d);
+			t1.start();
+
+			System.out.println("Connected successfully - Your device ID is " + d.client.getDeviceId());
+			System.out.println(" * Account: " + d.client.getOrgId() + " (" + d.client.getAuthToken() + ")");			
+		} else {
+			d = new SigarIoTDevice();
+			Thread t1 = new Thread(d);
+			t1.start();
+			
+			System.out.println("Connected successfully - Your device ID is " + d.client.getDeviceId());
+			System.out.println(" * http://quickstart.internetofthings.ibmcloud.com/?deviceId=" + d.client.getDeviceId());
+			System.out.println("Visit the QuickStart portal to see this device's data visualized in real time and learn more about the IBM Internet of Things Cloud");
+			System.out.println("");
+			System.out.println("(Press <enter> to disconnect)");
+		}
+		// Wait for <enter>
+		Scanner sc = new Scanner(System.in);
+		sc.nextLine();
+		sc.close();
+		
+		System.out.println("Closing connection to the IBM Internet of Things Cloud service");
+		// Let the device thread know it can terminate
+		d.quit();
 	}
+	
 }

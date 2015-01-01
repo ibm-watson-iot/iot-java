@@ -27,74 +27,65 @@ import com.google.gson.JsonObject;
  * A client that handles connections with the IBM Internet of Things Cloud
  * Service.
  */
-public class Device extends AbstractClient{
+public class Application extends AbstractClient implements MqttCallback{
 	
-	private static final String CLASS_NAME = Device.class.getName();
+	private static final String CLASS_NAME = Application.class.getName();
 	private static final Logger LOG = Logger.getLogger(CLASS_NAME);
 	
 	private Properties options;
+	private DeviceEventCallback deviceEventCallback = null;
 	
 	/**
 	 * Create a device client for the IBM Internet of Things Cloud service. Connecting to
 	 * a specific account on the service.
 	 * @throws Exception 
 	 */
-	public Device(Properties options) throws Exception {
+	public Application(Properties options) throws Exception {
 		this.options = options;
 		this.serverURI = "tcp://" + options.getProperty("org") + "." + HOSTNAME + ":" + PORT;
-		this.clientId = "d" + CLIENT_ID_DELIMITER + getOrgId() + CLIENT_ID_DELIMITER + getDeviceType() + CLIENT_ID_DELIMITER + getDeviceId();
+		this.clientId = "a" + CLIENT_ID_DELIMITER + getOrgId() + CLIENT_ID_DELIMITER + getAppId();
 		
 		if (getAuthMethod() == null) {
 			this.clientUsername = null;
 			this.clientPassword = null;
 		}
-		else if (!getAuthMethod().equals("token")) {
+		else if (!getAuthMethod().equals("apikey")) {
 			throw new Exception("Unsupported Authentication Method: " + getAuthMethod());
 		}
 		else {
 			// use-token-auth is the only authentication method currently supported
-			this.clientUsername = "use-token-auth";
+			this.clientUsername = getAuthKey();
 			this.clientPassword = getAuthToken();
 		}
-		createClient(new DeviceCallback());
+		createClient(this);
 	}
 	
 	public String getOrgId() {
 		return options.getProperty("org");
 	}
 
-	public String getDeviceId() {
+	public String getAppId() {
 		return options.getProperty("id");
-	}
-
-	public String getDeviceType() {
-		return options.getProperty("type");
 	}
 
 	public String getAuthMethod() {
 		return options.getProperty("auth-method");
 	}
 
+	public String getAuthKey() {
+		return options.getProperty("auth-key");
+	}
+
 	public String getAuthToken() {
 		return options.getProperty("auth-token");
 	}
 
-
+	
 	@Override
 	public void connect() {
 		super.connect();
-		if (!getOrgId().equals("quickstart")) {
-			subscribeToCommands();
-		}
 	}
 	
-	private void subscribeToCommands() {
-		try {
-			client.subscribe("iot-2/cmd/+/fmt/json", 2);
-		} catch (MqttException e) {
-			e.printStackTrace();
-		}
-	}
 	/**
 	 * Publish data to the IBM Internet of Things Cloud service. Note that data is published
 	 * at Quality of Service (QoS) 0, which means that a successful send does not guarantee
@@ -106,11 +97,11 @@ public class Device extends AbstractClient{
 	 *            Object to be added to the payload as the dataset
 	 * @return Whether the send was successful.
 	 */
-	public boolean publishEvent(String event, Object data) {
-		return publishEvent(event, data, 0);
+	public boolean publishEvent(String deviceType, String deviceId, String event, Object data) {
+		return publishEvent(deviceType, deviceId, event, data, 0);
 	}
 	
-	public boolean publishEvent(String event, Object data, int qos) {
+	public boolean publishEvent(String deviceType, String deviceId, String event, Object data, int qos) {
 		if (!isConnected()) {
 			return false;
 		}
@@ -122,7 +113,7 @@ public class Device extends AbstractClient{
 		JsonElement dataElement = gson.toJsonTree(data);
 		payload.add("d", dataElement);
 		
-		String topic = "iot-2/evt/" + event + "/fmt/json";
+		String topic = "iot-2/type/" + deviceType + "/id/" + deviceId + "/evt/" + event + "/fmt/json";
 		
 		LOG.fine("Topic   = " + topic);
 		LOG.fine("Payload = " + payload.toString());
@@ -144,32 +135,67 @@ public class Device extends AbstractClient{
 	}
 	
 	
-	private class DeviceCallback implements MqttCallback {
-		/**
-		 * If we lose connection trigger the connect logic to attempt to
-		 * reconnect to the IBM Internet of Things Cloud.
-		 */
-		public void connectionLost(Throwable e) {
-			LOG.info("Connection lost: " + e.getMessage());
-			connect();
+	public void subscribeToDeviceEvents() {
+		subscribeToDeviceEvents("+", "+", "+", 0);
+	}
+
+	public void subscribeToDeviceEvents(String deviceType) {
+		subscribeToDeviceEvents(deviceType, "+", "+", 0);
+	}
+
+	public void subscribeToDeviceEvents(String deviceType, String deviceId) {
+		subscribeToDeviceEvents(deviceType, deviceId, "+", 0);
+	}
+	
+	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event) {
+		subscribeToDeviceEvents(deviceType, deviceId, event, 0);
+	}
+	
+	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, int qos) {
+		try {
+			client.subscribe("iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/json", qos);
+		} catch (MqttException e) {
+			e.printStackTrace();
 		}
-		
-		/**
-		 * A completed deliver does not guarantee that the message is recieved by the service
-		 * because devices send messages with Quality of Service (QoS) 0. The message count
-		 * represents the number of messages that were sent by the device without an error on
-		 * from the perspective of the device.
-		 */
-		public void deliveryComplete(IMqttDeliveryToken token) {
-			LOG.fine("Delivery Complete!");
-			messageCount++;
+	}
+	
+	
+	/**
+	 * If we lose connection trigger the connect logic to attempt to
+	 * reconnect to the IBM Internet of Things Cloud.
+	 */
+	public void connectionLost(Throwable e) {
+		LOG.info("Connection lost: " + e.getMessage());
+		connect();
+	}
+	
+	/**
+	 * A completed deliver does not guarantee that the message is recieved by the service
+	 * because devices send messages with Quality of Service (QoS) 0. The message count
+	 * represents the number of messages that were sent by the device without an error on
+	 * from the perspective of the device.
+	 */
+	public void deliveryComplete(IMqttDeliveryToken token) {
+		LOG.fine("Delivery Complete!");
+		messageCount++;
+	}
+	
+	/**
+	 * The Application client does not currently support subscriptions.
+	 */
+	public void messageArrived(String topic, MqttMessage msg) throws Exception {
+		Event evt = new Event(topic, msg);
+		LOG.info("Message received: " + evt.getTopic() + " -- " + evt.getPayload());
+		if (deviceEventCallback != null) {
+			deviceEventCallback.processEvent(evt);
+		} else {
+			LOG.fine("No callback defined for device events");
 		}
-		
-		/**
-		 * The Device client does not currently support subscriptions.
-		 */
-		public void messageArrived(String topic, MqttMessage msg) throws Exception {
-		}
+	}
+
+
+	public void setDeviceEventCallback(DeviceEventCallback callback) {
+		this.deviceEventCallback  = callback;
 	}
 	
 }

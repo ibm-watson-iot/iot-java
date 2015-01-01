@@ -5,35 +5,24 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.logging.LogManager;
 
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.hyperic.sigar.NetInterfaceConfig;
-import org.hyperic.sigar.Sigar;
-import org.hyperic.sigar.SigarException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-import com.ibm.iotcloud.client.Device;
 
 public class Launcher {
 
 	private String deviceId = null;
 	
 	public static class LauncherOptions {
-		@Option(name="-a", aliases={"--account"}, usage="Connect to an account in the IBM Internet of Things Cloud")
-		public String account = null;
-	
-		@Option(name="-u", aliases={"--username"}, usage="Username used to authenticate this device to the IBM Internet of Things Cloud")
-		public String username = null;
-	
-		@Option(name="-p", aliases={"--password"}, usage="Password used to authenticate this device to the IBM Internet of Things Cloud")
-		public String password = null;
+		@Option(name="-c", aliases={"--config"}, usage="The path to a device configuration file")
+		public String configFilePath = null;
 		
 		public LauncherOptions() {} 
 	}
 	
 	
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws Exception {
 		// Load custom logging properties file
 	    try {
 			FileInputStream fis =  new FileInputStream("logging.properties");
@@ -54,16 +43,22 @@ public class Launcher {
         }
 		
 	    // Start the device thread
-		SigarIoTDevice d = new SigarIoTDevice(opts.account, opts.username, opts.password);
-		Thread t1 = new Thread(d);
-		t1.start();
+		SigarIoTDevice d;
 
-		if (opts.account != null) {
-			System.out.println("Connected successfully - Your device ID is " + d.getDeviceId());
-			System.out.println(" * Account: " + opts.account + " (" + opts.username + "/" + opts.password + ")");			
+		if (opts.configFilePath != null) {
+			d = new SigarIoTDevice(opts.configFilePath);
+			Thread t1 = new Thread(d);
+			t1.start();
+
+			System.out.println("Connected successfully - Your device ID is " + d.client.getDeviceId());
+			System.out.println(" * Account: " + d.client.getOrgId() + " (" + d.client.getAuthToken() + ")");			
 		} else {
-			System.out.println("Connected successfully - Your device ID is " + d.getDeviceId());
-			System.out.println(" * http://quickstart.internetofthings.ibmcloud.com/?deviceId=" + d.getDeviceId());
+			d = new SigarIoTDevice();
+			Thread t1 = new Thread(d);
+			t1.start();
+			
+			System.out.println("Connected successfully - Your device ID is " + d.client.getDeviceId());
+			System.out.println(" * http://quickstart.internetofthings.ibmcloud.com/?deviceId=" + d.client.getDeviceId());
 			System.out.println("Visit the QuickStart portal to see this device's data visualized in real time and learn more about the IBM Internet of Things Cloud");
 			System.out.println("");
 			System.out.println("(Press <enter> to disconnect)");
