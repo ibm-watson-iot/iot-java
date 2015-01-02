@@ -1,12 +1,3 @@
-/*
- * IBM Confidential
- * OCO Source Materials
- * 5725-Q07
- * (c) Copyright IBM Corp. 2014
- * The source code for this program is not published or otherwise divested of
- * its trade secrets, irrespective of what has been deposited with the U.S.
- * Copyright Office.
- */
 package com.ibm.iotf.client;
 
 import java.io.File;
