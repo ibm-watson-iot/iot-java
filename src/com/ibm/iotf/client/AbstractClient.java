@@ -47,20 +47,20 @@ public abstract class AbstractClient {
 	protected static final int MQTT_PORT = 1883;
 	protected static final int MQTTS_PORT = 8883;
 	
-	/* For 1 minute wait for 1 second after each attempt */
+	/* Wait for 1 second after each attempt for the first 10 attempts*/
 	private static final long RATE_0 = TimeUnit.SECONDS.toMillis(1);
 	
-	/* After 1 minute throttle the rate of connection attempts to 1 per 10 second */
-	private static final long THROTTLE_1 = TimeUnit.MINUTES.toMillis(1);
+	/* After 5 attempts throttle the rate of connection attempts to 1 per 10 second */
+	private static final int THROTTLE_1 = 5;
 	private static final long RATE_1 = TimeUnit.SECONDS.toMillis(10);
 	
-	/* After 10 minutes throttle the rate of connection attempts to 1 per minute */
-	private static final long THROTTLE_2 = TimeUnit.MINUTES.toMillis(10);
+	/* After 10 attempts throttle the rate of connection attempts to 1 per minute */
+	private static final int THROTTLE_2 = 10;
 	private static final long RATE_2 = TimeUnit.MINUTES.toMillis(1);
 	
-	/* After 1 hour throttle the rate of connection attempts to 1 per 10 minutes */
-	private static final long THROTTLE_3 = TimeUnit.HOURS.toMillis(1);
-	private static final long RATE_3 = TimeUnit.MINUTES.toMillis(10);
+	/* After 20 attempts throttle the rate of connection attempts to 1 per 5 minutes */
+	private static final int THROTTLE_3 = 20;
+	private static final long RATE_3 = TimeUnit.MINUTES.toMillis(5);
 	
 	protected final Gson gson = new Gson();
 	
@@ -104,7 +104,6 @@ public abstract class AbstractClient {
 	public void connect() {
 		boolean tryAgain = true;
 		int connectAttempts = 0;
-		Date startedConnectAttempt = new Date();
 
 		if (getOrgId() == "quickstart") {
 			configureMqtt();
@@ -130,23 +129,14 @@ public abstract class AbstractClient {
 				e.printStackTrace();
 			}
 			
-			Date now = new Date();
-			long timeElapsed = startedConnectAttempt.getTime() - now.getTime();
-			
 			if (mqttClient.isConnected()) {
 				LOG.info("Successfully connected to the IBM Internet of Things Cloud");
 				if (LOG.isLoggable(Level.FINEST)) {
-					long second = (timeElapsed / 1000) % 60;
-					long minute = (timeElapsed / (1000 * 60)) % 60;
-					long hour = (timeElapsed / (1000 * 60 * 60)) % 24;
-					
-					String time = String.format("%02d:%02d:%02d", hour, minute, second);
 					LOG.finest(" * Connection attempts: " + connectAttempts);
-					LOG.finest(" * Time to connect: " + time);
 				}
 				tryAgain = false;
 			} else {
-				waitBeforeNextConnectAttempt(timeElapsed);
+				waitBeforeNextConnectAttempt(connectAttempts);
 			}
 		}
 	}
@@ -194,8 +184,8 @@ public abstract class AbstractClient {
 			 */
 			 
 			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-	        sslContext.init(null, null, null);
-	        mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
+			sslContext.init(null, null, null);
+			mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
 		} catch (MqttException | GeneralSecurityException e) {
 			LOG.warning("Unable to configure TLSv1.2 connection: " + e.getMessage());
 			e.printStackTrace();
@@ -205,20 +195,31 @@ public abstract class AbstractClient {
 	/**
 	 * Sleep for a variable period of time between connect attempts.
 	 * 
-	 * @param timeElapsed
-	 *            How long (in milliseconds) since the first connection attempt was made.
+	 * @param attempts
+	 *               How many times have we tried (and failed) to connect
 	 */
-	private void waitBeforeNextConnectAttempt(final long timeElapsed) {
+	private void waitBeforeNextConnectAttempt(final int attempts) {
+		// Log when throttle boundaries are reached
+		if (attempts == THROTTLE_3) {
+			LOG.warning(String.valueOf(attempts) + " consecutive failed attempts to connect.  Retry delay increased to " + String.valueOf(RATE_3) + "ms");
+		}
+		else if (attempts == THROTTLE_2) {
+			LOG.warning(String.valueOf(attempts) + " consecutive failed attempts to connect.  Retry delay increased to " + String.valueOf(RATE_2) + "ms");
+		}
+		else if (attempts == THROTTLE_1) {
+			LOG.info(String.valueOf(attempts) + " consecutive failed attempts to connect.  Retry delay set to " + String.valueOf(RATE_1) + "ms");
+		}
+
 		try {
-			if (timeElapsed > THROTTLE_3) {
-				Thread.sleep(RATE_3);
-			} else if (timeElapsed > THROTTLE_2) {
-				Thread.sleep(RATE_2);
-			} else if (timeElapsed > THROTTLE_1) {
-				Thread.sleep(RATE_1);
-			} else {
-				Thread.sleep(RATE_0);
+			long delay = RATE_0;
+			if (attempts >= THROTTLE_3) {
+				delay = RATE_3;
+			} else if (attempts >= THROTTLE_2) {
+				delay = RATE_2;
+			} else if (attempts >= THROTTLE_1) {
+				delay = RATE_1;
 			}
+			Thread.sleep(delay);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
