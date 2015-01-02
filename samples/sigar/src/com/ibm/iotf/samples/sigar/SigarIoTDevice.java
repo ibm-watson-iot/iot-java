@@ -1,4 +1,4 @@
-package com.ibm.iotcloud.samples.sigar;
+package com.ibm.iotf.samples.sigar;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,21 +12,21 @@ import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 
-import com.ibm.iotcloud.client.Device;
-import com.ibm.iotcloud.samples.sigar.Launcher.LauncherOptions;
+import com.ibm.iotf.client.device.DeviceClient;
 
 public class SigarIoTDevice implements Runnable {
 	
 	private boolean quit = false;
 	private Sigar sigar = null;
 	private Properties options = new Properties();
-	protected Device client;
+	protected DeviceClient client;
 	
 	public SigarIoTDevice(String configFilePath) throws Exception {
 		this.sigar = new Sigar();
-		this.options = Device.parsePropertiesFile(new File(configFilePath));
-		this.client = new Device(this.options);
+		this.options = DeviceClient.parsePropertiesFile(new File(configFilePath));
+		this.client = new DeviceClient(this.options);
 	}
 
 	public SigarIoTDevice() throws Exception {
@@ -34,7 +34,7 @@ public class SigarIoTDevice implements Runnable {
 		this.options.put("org", "quickstart");
 		this.options.put("type", "sigar");
 		this.options.put("id", generateIdFromMacAddress());
-		this.client = new Device(this.options);
+		this.client = new DeviceClient(this.options);
 	}
 	
 	private String generateIdFromMacAddress() {
@@ -79,6 +79,12 @@ public class SigarIoTDevice implements Runnable {
 		}
 	}
 	
+	public static class LauncherOptions {
+		@Option(name="-c", aliases={"--config"}, usage="The path to a device configuration file")
+		public String configFilePath = null;
+		
+		public LauncherOptions() {} 
+	}
 	
 	public static void main(String[] args) throws Exception {
 		// Load custom logging properties file

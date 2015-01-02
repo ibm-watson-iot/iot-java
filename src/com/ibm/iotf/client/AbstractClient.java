@@ -7,12 +7,13 @@
  * its trade secrets, irrespective of what has been deposited with the U.S.
  * Copyright Office.
  */
-package com.ibm.iotcloud.client;
+package com.ibm.iotf.client;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,6 +21,8 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.net.ssl.SSLContext;
 
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -40,12 +43,9 @@ public abstract class AbstractClient {
 	
 	protected static final String CLIENT_ID_DELIMITER = ":";
 	
-	protected static final String QUICKSTART_HOSTNAME = "messaging.quickstart.internetofthings.ibmcloud.com";
-	protected static final int QUICKSTART_PORT = 1883;
-	protected static final String QUICKSTART_ACCOUNT = "quickstart";
-	
-	protected static final String HOSTNAME = "messaging.internetofthings.ibmcloud.com";
-	protected static final int PORT = 1883;
+	protected static final String DOMAIN = "messaging.internetofthings.ibmcloud.com";
+	protected static final int MQTT_PORT = 1883;
+	protected static final int MQTTS_PORT = 8883;
 	
 	/* For 1 minute wait for 1 second after each attempt */
 	private static final long RATE_0 = TimeUnit.SECONDS.toMillis(1);
@@ -69,36 +69,33 @@ public abstract class AbstractClient {
 	 */
 	protected final DateFormat ISO8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 	
-	protected String serverURI;
+	protected Properties options;
 	protected String clientId;
 	protected String clientUsername;
 	protected String clientPassword;
 	
 	protected int messageCount = 0;
 	
-	protected MqttClient client;
+	protected MqttClient mqttClient;
+	protected MqttConnectOptions mqttClientOptions;
+	protected MqttCallback mqttCallback;
 	
+	public AbstractClient(Properties options) {
+		this.options = options;
+		LOG.fine(options.toString());
+	}
 	
 	/**
 	 * Create the Paho MQTT Client that will underpin the Device client.
 	 */
 	protected void createClient(MqttCallback callback) {
-		System.out.println("Server URI      = " + serverURI);
+		System.out.println("Org ID          = " + getOrgId());
 		System.out.println("Client ID       = " + clientId);
 		System.out.println("Client Username = " + clientUsername);
 		System.out.println("Client Password = " + clientPassword);
-		
-		client = null;
-		try {
-			client = new MqttClient(serverURI, clientId, null);
-		} catch (MqttException e) {
-			e.printStackTrace();
-		}
-		
-		if (client != null) {
-			client.setCallback(callback);
-			//connect();
-		}
+		this.mqttClient = null;
+		this.mqttClientOptions = new MqttConnectOptions();
+		this.mqttCallback = callback;
 	}
 	
 	/**
@@ -108,27 +105,25 @@ public abstract class AbstractClient {
 		boolean tryAgain = true;
 		int connectAttempts = 0;
 		Date startedConnectAttempt = new Date();
-		
-		MqttConnectOptions connectOptions = new MqttConnectOptions();
-		if (clientUsername != null) {
-			connectOptions.setUserName(clientUsername);
+
+		if (getOrgId() == "quickstart") {
+			configureMqtt();
 		}
-		if (clientPassword != null) {
-			connectOptions.setPassword(clientPassword.toCharArray());
+		else {
+			configureMqtts();
 		}
-		
 		while (tryAgain) {
 			connectAttempts++;
 			
-			LOG.fine("Connecting to " + serverURI + " (attempt #" + connectAttempts + ")...");
+			LOG.fine("Connecting to " + mqttClient.getServerURI() + " (attempt #" + connectAttempts + ")...");
 			if (clientUsername != null) {
-				LOG.fine(" * Username: " + connectOptions.getUserName());
+				LOG.fine(" * Username: " + mqttClientOptions.getUserName());
 			}
 			if (clientPassword != null) {
-				LOG.fine(" * Passowrd: " + String.valueOf(connectOptions.getPassword()));
+				LOG.fine(" * Passowrd: " + String.valueOf(mqttClientOptions.getPassword()));
 			}
 			try {
-				client.connect(connectOptions);
+				mqttClient.connect(mqttClientOptions);
 			} catch (MqttSecurityException e) {
 				e.printStackTrace();
 			} catch (MqttException e) {
@@ -138,7 +133,7 @@ public abstract class AbstractClient {
 			Date now = new Date();
 			long timeElapsed = startedConnectAttempt.getTime() - now.getTime();
 			
-			if (client.isConnected()) {
+			if (mqttClient.isConnected()) {
 				LOG.info("Successfully connected to the IBM Internet of Things Cloud");
 				if (LOG.isLoggable(Level.FINEST)) {
 					long second = (timeElapsed / 1000) % 60;
@@ -153,6 +148,57 @@ public abstract class AbstractClient {
 			} else {
 				waitBeforeNextConnectAttempt(timeElapsed);
 			}
+		}
+	}
+	
+	private void configureMqtt() {
+		String serverURI = "tcp://" + getOrgId() + "." + DOMAIN + ":" + MQTT_PORT;
+		try {
+			mqttClient = new MqttClient(serverURI, clientId, null);
+			mqttClient.setCallback(mqttCallback);
+			mqttClientOptions = new MqttConnectOptions();
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void configureMqtts() {
+		String serverURI = "ssl://" + getOrgId() + "." + DOMAIN + ":" + MQTTS_PORT;
+		try {
+			mqttClient = new MqttClient(serverURI, clientId, null);
+			mqttClient.setCallback(mqttCallback);
+			
+			mqttClientOptions = new MqttConnectOptions();
+			mqttClientOptions.setUserName(clientUsername);
+			mqttClientOptions.setPassword(clientPassword.toCharArray());
+			
+			/* This isn't needed as the production messaging.internetofthings.ibmcloud.com 
+			 * certificate should already be in trust chain.
+			 * 
+			 * See: 
+			 *   http://stackoverflow.com/questions/859111/how-do-i-accept-a-self-signed-certificate-with-a-java-httpsurlconnection
+			 *   https://gerrydevstory.com/2014/05/01/trusting-x509-base64-pem-ssl-certificate-in-java/
+			 *   http://stackoverflow.com/questions/12501117/programmatically-obtain-keystore-from-pem
+			 *   https://gist.github.com/sharonbn/4104301
+			 * 
+			 * CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			 * InputStream certFile = AbstractClient.class.getResourceAsStream("messaging.pem");
+			 * Certificate ca = cf.generateCertificate(certFile);
+			 *
+			 * KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+			 * keyStore.load(null, null);
+			 * keyStore.setCertificateEntry("ca", ca);
+			 * TrustManager trustManager = TrustManagerUtils.getDefaultTrustManager(keyStore);
+			 * SSLContext sslContext = SSLContextUtils.createSSLContext("TLSv1.2", null, trustManager);
+			 * 
+			 */
+			 
+			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+	        sslContext.init(null, null, null);
+	        mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
+		} catch (MqttException | GeneralSecurityException e) {
+			LOG.warning("Unable to configure TLSv1.2 connection: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 	
@@ -184,7 +230,7 @@ public abstract class AbstractClient {
 	public void disconnect() {
 		LOG.fine("Disconnecting from the IBM Internet of Things Cloud ...");
 		try {
-			client.disconnect();
+			mqttClient.disconnect();
 			LOG.info("Successfully disconnected from from the IBM Internet of Things Cloud");
 		} catch (MqttException e) {
 			e.printStackTrace();
@@ -199,7 +245,7 @@ public abstract class AbstractClient {
 	 * @return Whether the device is connected to the IBM Internet of Things Cloud
 	 */
 	public boolean isConnected() {
-		return client.isConnected();
+		return mqttClient.isConnected();
 	}
 	
 	/**
@@ -229,5 +275,9 @@ public abstract class AbstractClient {
 		return clientProperties;
 	}
 
-	
+	public String getOrgId() {
+		return options.getProperty("org");
+	}
+
+
 }

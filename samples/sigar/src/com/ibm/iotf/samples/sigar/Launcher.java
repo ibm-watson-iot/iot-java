@@ -1,4 +1,4 @@
-package com.ibm.iotcloud.samples.sigar;
+package com.ibm.iotf.samples.sigar;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,7 +11,7 @@ import org.kohsuke.args4j.Option;
 
 
 public class Launcher {
-
+/*
 	private String deviceId = null;
 	
 	public static class LauncherOptions {
@@ -72,4 +72,5 @@ public class Launcher {
 		// Let the device thread know it can terminate
 		d.quit();
 	}
+	*/
 }

@@ -1,4 +1,4 @@
-package com.ibm.iotcloud.samples.sigar;
+package com.ibm.iotf.samples.sigar;
 
 import java.text.DecimalFormat;
 
