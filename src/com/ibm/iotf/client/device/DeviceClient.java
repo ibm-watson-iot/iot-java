@@ -24,9 +24,9 @@ import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.ibm.iotcloud.client.app.Event;
-import com.ibm.iotcloud.client.app.EventCallback;
 import com.ibm.iotf.client.AbstractClient;
+import com.ibm.iotf.client.app.Event;
+import com.ibm.iotf.client.app.EventCallback;
 
 /**
  * A client that handles connections with the IBM Internet of Things Cloud

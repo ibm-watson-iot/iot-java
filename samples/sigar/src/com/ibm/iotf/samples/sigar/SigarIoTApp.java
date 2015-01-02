@@ -14,12 +14,12 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-import com.ibm.iotcloud.client.app.ApplicationClient;
-import com.ibm.iotcloud.client.app.ApplicationStatus;
-import com.ibm.iotcloud.client.app.DeviceStatus;
-import com.ibm.iotcloud.client.app.EventCallback;
-import com.ibm.iotcloud.client.app.Event;
-import com.ibm.iotcloud.client.app.StatusCallback;
+import com.ibm.iotf.client.app.ApplicationClient;
+import com.ibm.iotf.client.app.ApplicationStatus;
+import com.ibm.iotf.client.app.DeviceStatus;
+import com.ibm.iotf.client.app.Event;
+import com.ibm.iotf.client.app.EventCallback;
+import com.ibm.iotf.client.app.StatusCallback;
 
 
 public class SigarIoTApp implements Runnable {

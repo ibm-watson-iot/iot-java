@@ -1,4 +1,4 @@
-package com.ibm.iotcloud.client.app;
+package com.ibm.iotf.client.app;
 
 
 public interface EventCallback {

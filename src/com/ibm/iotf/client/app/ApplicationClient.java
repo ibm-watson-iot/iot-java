@@ -7,7 +7,7 @@
  * its trade secrets, irrespective of what has been deposited with the U.S.
  * Copyright Office.
  */
-package com.ibm.iotcloud.client.app;
+package com.ibm.iotf.client.app;
 
 import java.nio.charset.Charset;
 import java.util.Date;
