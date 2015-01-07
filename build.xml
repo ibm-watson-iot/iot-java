@@ -1,0 +1,41 @@
+<project name="iotcloud-client" default="build" basedir=".">
+	
+	<property name="version" value="1.0.0" />
+	<path id="clientClasspath">
+		<fileset dir="lib" includes="*.jar" />
+		<fileset dir="samples/sigar/lib" includes="sigar.jar" />
+		<fileset dir="samples/common/lib" includes="args4j-2.0.21.jar" />
+	</path>
+
+	<target name="clean">
+		<delete file="com.ibm.iotcloud-${version}.zip" />
+		<delete dir="output"/>
+	</target>
+	
+	<target name="build" depends="clean">
+		<mkdir dir="output" />
+		
+		<javac classpathref="clientClasspath" encoding="UTF-8" destdir="output">
+			<src path="src" />
+			<src path="samples/common/src" />
+			<src path="samples/sigar/src" />
+		</javac>
+		
+		<jar basedir="output" destfile="lib/com.ibm.iotcloud.client-${version}.jar" includes="com/ibm/iotcloud/client/**">
+		</jar>
+		
+		<jar basedir="output" destfile="lib/com.ibm.iotcloud.samples-${version}.jar" includes="com/ibm/iotcloud/samples/**">
+		</jar>
+		
+		<zip destfile="com.ibm.iotcloud-${version}.zip">
+			<zipfileset dir="lib" prefix="lib">
+				<include name="*.jar" />
+			</zipfileset>
+			<zipfileset dir="samples" prefix="samples">
+				<include name="**" />
+			</zipfileset>
+		</zip>
+	</target>
+	
+	
+</project>
