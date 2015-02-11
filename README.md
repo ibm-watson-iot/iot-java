@@ -1,5 +1,5 @@
-iot-java
-========
+iot-java (This is a pre-release version and its still a work in progress)
+=========================================================================
 
 All samples are based on common client code.  This client uses google-gson to convert Java objects to a
 JSON, which is supports the sending 
@@ -22,8 +22,8 @@ Client Usage
 * org - Your organization ID
 * type - The type of your device
 * id - The ID of your device
-* auth-method - Method of authentication (the only value currently supported is ìtokenî)
-* auth-token - API key token (required if auth-method is ìtokenî)
+* auth-method - Method of authentication (the only value currently supported is ‚Äútoken‚Äù)
+* auth-token - API key token (required if auth-method is ‚Äútoken‚Äù)
 
 ```java
         Properties options = new Properties();
@@ -31,7 +31,7 @@ Client Usage
 		options.put("org", "organization");
 		options.put("type", "deviceType");
 		options.put("id", "deviceId");
-		options.put("auth-method", "token"); // the only value currently supported is ìtokenî
+		options.put("auth-method", "token"); // the only value currently supported is ‚Äútoken‚Äù
 		options.put("auth-token", "authToken");
 
 		try {
@@ -127,9 +127,9 @@ When the device client connects it automatically subscribes to any command for t
 
 * org - Your organization ID
 * id - The unique ID of your application within your organization
-* auth-method - Method of authentication (the only value currently supported is ìapikeyî)
-* auth-key - API key (required if auth-method is ìapikeyî)
-* auth-token -  API key token (required if auth-method is ìapikeyî)
+* auth-method - Method of authentication (the only value currently supported is ‚Äúapikey‚Äù)
+* auth-key - API key (required if auth-method is ‚Äúapikey‚Äù)
+* auth-token -  API key token (required if auth-method is ‚Äúapikey‚Äù)
 
 ```java
         Properties options = new Properties();
@@ -137,7 +137,7 @@ When the device client connects it automatically subscribes to any command for t
         
 		options.put("org", "organization");
 		options.put("id", "uniqueAppId");
-		options.put("auth-method", "apikey"); // the only value currently supported is ìapikeyî
+		options.put("auth-method", "apikey"); // the only value currently supported is ‚Äúapikey‚Äù
 		options.put("auth-key", "authKey");
 		options.put("auth-token", "authToken");
 
@@ -262,7 +262,7 @@ To process the events received by your subscriptions you need to register an eve
 
 To process the status updates received by your subscriptions you need to register an event callback method. The messages are returned as an instance of the Status class:
 
-The following properties are set for both ìConnectî and ìDisconnectî status events:
+The following properties are set for both ‚ÄúConnect‚Äù and ‚ÄúDisconnect‚Äù status events:
 
 * status.clientAddr - string
 * status.protocol - string
@@ -273,7 +273,7 @@ The following properties are set for both ìConnectî and ìDisconnectî status even
 * status.connectTime - datetime
 * status.port - int
 
-The following properties are only set when the action is ìDisconnectî:
+The following properties are only set when the action is ‚ÄúDisconnect‚Äù:
 
 * status.writeMsg - int
 * status.readMsg - int
