@@ -2,6 +2,10 @@ package com.ibm.iotf.client.app;
 
 import java.nio.charset.Charset;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -34,6 +38,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
 	private EventCallback eventCallback = null;
 	private StatusCallback statusCallback = null;
+	
+	private HashMap<String, Integer> subscriptions = new HashMap<String, Integer>();
 	
 	/**
 	 * Create a device client for the IBM Internet of Things Cloud service. Connecting to
@@ -148,12 +154,89 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
 	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, int qos) {
 		try {
-			mqttClient.subscribe("iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/json", qos);
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/json";
+			subscriptions.put(newTopic, new Integer(qos));
+			mqttClient.subscribe(newTopic, qos);
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
 	}
 
+//	Added by Amit	
+	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, String format) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/" + format;
+			subscriptions.put(newTopic, new Integer(0));
+			mqttClient.subscribe(newTopic, 0);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+
+//	Added by Amit	
+	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, String format, int qos) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/" + format;
+			subscriptions.put(newTopic, new Integer(qos));
+			mqttClient.subscribe(newTopic, qos);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+
+//	Added by Amit		
+	public void subscribeToDeviceCommands() {
+		subscribeToDeviceCommands("+", "+", "+", 0);
+	}
+
+//	Added by Amit		
+	public void subscribeToDeviceCommands(String deviceType) {
+		subscribeToDeviceCommands(deviceType, "+", "+", 0);
+	}
+
+//	Added by Amit		
+	public void subscribeToDeviceCommands(String deviceType, String deviceId) {
+		subscribeToDeviceCommands(deviceType, deviceId, "+", 0);
+	}
+	
+//	Added by Amit		
+	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command) {
+		subscribeToDeviceCommands(deviceType, deviceId, command, 0);
+	}
+	
+//	Added by Amit	
+	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command, int qos) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/json";
+			subscriptions.put(newTopic, new Integer(qos));
+			mqttClient.subscribe(newTopic, qos);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+
+//	Added by Amit	
+	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command, String format) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/" + format;
+			subscriptions.put(newTopic, new Integer(0));
+			mqttClient.subscribe(newTopic, 0);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+
+//	Added by Amit	
+	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command, String format, int qos) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/"+ command +"/fmt/" + format;
+			subscriptions.put(newTopic, new Integer(qos));			
+			mqttClient.subscribe(newTopic, qos);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	
 	public void subscribeToDeviceStatus() {
 		subscribeToDeviceStatus("+", "+");
@@ -165,7 +248,9 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
 	public void subscribeToDeviceStatus(String deviceType, String deviceId) {
 		try {
-			mqttClient.subscribe("iot-2/type/"+deviceType+"/id/"+deviceId+"/mon", 0);
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/mon";
+			subscriptions.put(newTopic, new Integer(0));			
+			mqttClient.subscribe(newTopic, 0);
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
@@ -179,6 +264,19 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	public void connectionLost(Throwable e) {
 		LOG.info("Connection lost: " + e.getMessage());
 		connect();
+	    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
+	    LOG.info("Resubscribing....");
+	    while (iterator.hasNext()) {
+	        Map.Entry pairs = (Map.Entry)iterator.next();
+	        LOG.info(pairs.getKey() + " = " + pairs.getValue());
+	        try {
+				mqttClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
+			} catch (NumberFormatException | MqttException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+//	        iterator.remove(); // avoids a ConcurrentModificationException
+	    }
 	}
 	
 	/**
@@ -209,10 +307,38 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 				String event = matcher.group(3);
 				String format = matcher.group(4);
 				Event evt = new Event(type, id, event, format, msg);
-				LOG.fine("Event received: " + evt.toString());
-				eventCallback.processEvent(evt);
+
+				if(evt.getTimestamp() != null) {
+					LOG.fine("Event received: " + evt.toString());
+					eventCallback.processEvent(evt);					
+				} else {
+					LOG.warning("Event is not formatted properly, so not processing");						
+				}
+
 				return;
 		    }
+//			Added by Amit
+			matcher = DEVICE_COMMAND_PATTERN.matcher(topic);
+			if (matcher.matches()) {
+				String type = matcher.group(1);
+				String id = matcher.group(2);
+				String command = matcher.group(3);
+				String format = matcher.group(4);
+//				Event evt = new Event(type, id, command, format, msg);
+				Command cmd = new Command(type, id, command, format, msg);
+//				LOG.fine("Command received: " + evt.toString());
+			
+//				eventCallback.processEvent(evt);
+				if(cmd.getTimestamp() != null ) {
+					LOG.fine("Command received: " + cmd.toString());	
+					eventCallback.processCommand(cmd);					
+				} else {
+					LOG.warning("Command is not formatted properly, so not processing");					
+				}
+
+				return;
+		    }
+
 		}
 		
 		if (statusCallback != null) {

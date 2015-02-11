@@ -268,7 +268,14 @@ public abstract class AbstractClient {
 	}
 
 	public String getOrgId() {
-		return options.getProperty("org");
+//		return options.getProperty("org");
+		String authKeyPassed = options.getProperty("auth-key");
+		if(authKeyPassed != null && ! authKeyPassed.trim().equals("") && ! authKeyPassed.equals("quickstart")) {
+			return authKeyPassed.substring(2, 8);			
+		} else {
+			return "quickstart";
+		}
+
 	}
 
 

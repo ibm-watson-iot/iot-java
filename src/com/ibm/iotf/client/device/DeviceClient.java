@@ -78,6 +78,14 @@ public class DeviceClient extends AbstractClient implements MqttCallback{
 	}
 
 
+	public String getFormat() {
+		String format = options.getProperty("format");
+		if(format != null && ! format.equals(""))
+			return format;
+		else
+			return "json";
+		
+	}
 	@Override
 	public void connect() {
 		super.connect();
@@ -88,7 +96,7 @@ public class DeviceClient extends AbstractClient implements MqttCallback{
 	
 	private void subscribeToCommands() {
 		try {
-			mqttClient.subscribe("iot-2/cmd/+/fmt/json", 2);
+			mqttClient.subscribe("iot-2/cmd/+/fmt/" + getFormat(), 2);
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
@@ -126,7 +134,7 @@ public class DeviceClient extends AbstractClient implements MqttCallback{
 		LOG.fine("Payload = " + payload.toString());
 		
 		MqttMessage msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
-		msg.setQos(0);
+		msg.setQos(qos);
 		msg.setRetained(false);
 		
 		try {

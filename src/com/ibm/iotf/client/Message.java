@@ -1,6 +1,7 @@
 package com.ibm.iotf.client;
 
 import java.io.UnsupportedEncodingException;
+import java.util.logging.Logger;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.joda.time.DateTime;
@@ -8,35 +9,87 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import com.ibm.iotf.client.app.ApplicationClient;
 
 public class Message {
+	
+	private static final String CLASS_NAME = ApplicationClient.class.getName();
+	private static final Logger LOG = Logger.getLogger(CLASS_NAME);
 
 	protected final static JsonParser JSON_PARSER = new JsonParser();
 	protected final static DateTimeFormatter DT_PARSER = ISODateTimeFormat.dateTimeParser();
 	
 	protected String payload;
-	protected JsonObject data = null;
+	protected String data = null;
 	protected DateTime timestamp = null;
 	
 	public Message(MqttMessage msg) throws UnsupportedEncodingException{
 		this.payload = new String(msg.getPayload(), "UTF8");
 		
-		JsonObject payloadJson = JSON_PARSER.parse(payload).getAsJsonObject();
-		if (payloadJson.has("d")) {
-			data = payloadJson.get("d").getAsJsonObject();
-		}
-		if (payloadJson.has("ts")) {
-			try {
-				timestamp = DT_PARSER.parseDateTime(payloadJson.get("ts").getAsString());
-			} catch (IllegalArgumentException e) {
+		try {
+			JsonObject payloadJson = JSON_PARSER.parse(payload).getAsJsonObject();
+			if (payloadJson.has("d")) {
+				data = payloadJson.get("d").getAsJsonObject().toString();
+	
+	//Added by Amit
+			} else {
+				data = payloadJson.toString();
+			}
+	/////		
+			if (payloadJson.has("ts")) {
+				try {
+					timestamp = DT_PARSER.parseDateTime(payloadJson.get("ts").getAsString());
+				} catch (IllegalArgumentException e) {
+					timestamp = DateTime.now();
+				}
+			} else {
 				timestamp = DateTime.now();
 			}
-		} else {
-			timestamp = DateTime.now();
+		} catch (JsonSyntaxException e) {
+			LOG.warning("JsonSyntaxException thrown");
+		} catch (JsonParseException jpe) {
+			LOG.warning("JsonParseException thrown");							
 		}
 	}
+
+// Added by Amit	
+	public Message(MqttMessage msg, String format) throws UnsupportedEncodingException{
+		this.payload = new String(msg.getPayload(), "UTF8");
+		
+		if(format.equalsIgnoreCase("json")) {
+
+			try {
+				JsonObject payloadJson = JSON_PARSER.parse(payload).getAsJsonObject();
+				if (payloadJson.has("d")) {
+					data = payloadJson.get("d").getAsJsonObject().toString();
+				} else {
+					data = payloadJson.toString();
+				}
+				if (payloadJson.has("ts")) {
+					try {
+						timestamp = DT_PARSER.parseDateTime(payloadJson.get("ts").getAsString());
+					} catch (IllegalArgumentException e) {
+						timestamp = DateTime.now();
+					}
+				} else {
+					timestamp = DateTime.now();
+				}
+			} catch (JsonSyntaxException e) {
+				LOG.warning("JsonSyntaxException thrown");
+			} catch (JsonParseException jpe) {
+				LOG.warning("JsonParseException thrown");							
+			}			
+		} else {
+			data = this.payload;
+			timestamp = DateTime.now();			
+		}
+		
+	}
 	
+/////	
 	public String getPayload() {
 		return payload;
 	}

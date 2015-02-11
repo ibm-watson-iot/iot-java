@@ -16,6 +16,7 @@ import org.kohsuke.args4j.Option;
 
 import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.client.app.ApplicationStatus;
+import com.ibm.iotf.client.app.Command;
 import com.ibm.iotf.client.app.DeviceStatus;
 import com.ibm.iotf.client.app.Event;
 import com.ibm.iotf.client.app.EventCallback;
@@ -92,6 +93,12 @@ public class SigarIoTApp implements Runnable {
 		@Override
 		public void processEvent(Event e) {
 			//System.out.println(e.getTopic() + "--" + e.getPayload());
+		}
+		
+		@Override
+		public void processCommand(Command cmd) {
+			
+			
 		}
 		
 	}

@@ -8,7 +8,7 @@
 	</path>
 
 	<target name="clean">
-		<delete file="com.ibm.iotcloud-${version}.zip" />
+		<delete file="com.ibm.iotf-${version}.zip" />
 		<delete dir="output"/>
 	</target>
 	
@@ -21,13 +21,13 @@
 			<src path="samples/sigar/src" />
 		</javac>
 		
-		<jar basedir="output" destfile="lib/com.ibm.iotcloud.client-${version}.jar" includes="com/ibm/iotcloud/client/**">
+		<jar basedir="output" destfile="lib/com.ibm.iotf.client-${version}.jar" includes="com/ibm/iotf/client/**, com/ibm/iotf/client/app/**, com/ibm/iotf/client/device/**, com/ibm/iotf/factories/**">
 		</jar>
 		
-		<jar basedir="output" destfile="lib/com.ibm.iotcloud.samples-${version}.jar" includes="com/ibm/iotcloud/samples/**">
+		<jar basedir="output" destfile="lib/com.ibm.iotf.samples-${version}.jar" includes="com/ibm/iotf/samples/**">
 		</jar>
 		
-		<zip destfile="com.ibm.iotcloud-${version}.zip">
+		<zip destfile="com.ibm.iotf-${version}.zip">
 			<zipfileset dir="lib" prefix="lib">
 				<include name="*.jar" />
 			</zipfileset>

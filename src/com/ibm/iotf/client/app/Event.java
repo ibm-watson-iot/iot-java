@@ -11,7 +11,7 @@ public class Event extends Message{
 	private String type, id, event, format;
 	
 	public Event(String type, String id, String event, String format, MqttMessage msg) throws UnsupportedEncodingException{
-		super(msg);
+		super(msg, format);
 		this.type = type;
 		this.id = id;
 		this.event = event;
@@ -35,7 +35,12 @@ public class Event extends Message{
 	}
 	
 	public String toString() {
-		return "Event [" + timestamp.toString() + "] " + type + ":" + id + " - " + event + ": " + data.toString(); 
+		if(format.equalsIgnoreCase("json")) {
+			return "Event [" + timestamp.toString() + "] " + type + ":" + id + " - " + event + ": " + data.toString();			
+		} else {
+			return "Event [" + timestamp.toString() + "] " + type + ":" + id + " - " + event + ": " + payload.toString();			
+		}
+ 
 	}
 
 }

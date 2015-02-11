@@ -11,7 +11,7 @@ public class Command extends Message{
 	private String type, id, command, format;
 	
 	public Command(String type, String id, String command, String format, MqttMessage msg) throws UnsupportedEncodingException{
-		super(msg);
+		super(msg, format);
 		this.type = type;
 		this.id = id;
 		this.command = command;
@@ -35,7 +35,11 @@ public class Command extends Message{
 	}
 	
 	public String toString() {
-		return "[" + timestamp.toString() + "] " + type + ":" + id + " - " + command + ": " + data.toString(); 
+		if(format.equalsIgnoreCase("json")) {
+			return "Command [" + timestamp.toString() + "] " + type + ":" + id + " - " + command + ": " + data.toString();			
+		} else {
+			return "Command [" + timestamp.toString() + "] " + type + ":" + id + " - " + command + ": " + payload.toString();			
+		}
+ 
 	}
-
 }
