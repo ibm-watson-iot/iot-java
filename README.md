@@ -1,5 +1,10 @@
-iot-java
+iot-java (This is a pre-release version and its still a work in progress)
 ========
+The Java Client Library cab be used to connect to the [IBM Internet of Things (IoT) Foundation](https://internetofthings.ibmcloud.com/). Use the Java Client Library for the following activities:  
+
+* Subscribe to device events, device status, application status
+* Register Devices, de-register devices and retrieve information about devices 
+* Retrieve Historian Information
 
 All samples are based on common client code.  This client uses google-gson to convert Java objects to a
 JSON, which is supports the sending 
@@ -22,16 +27,18 @@ Client Usage
 * org - Your organization ID
 * type - The type of your device
 * id - The ID of your device
-* auth-method - Method of authentication (the only value currently supported is ìtokenî)
-* auth-token - API key token (required if auth-method is ìtokenî)
+* auth-method - Method of authentication (the only value currently supported is ‚Äútoken‚Äù)
+* auth-token - API key token (required if auth-method is ‚Äútoken‚Äù)
 
 ```java
-        Properties options = new Properties();
+      
         
+		Properties options = new Properties();
+		DeviceClient client = null;
 		options.put("org", "organization");
 		options.put("type", "deviceType");
 		options.put("id", "deviceId");
-		options.put("auth-method", "token"); // the only value currently supported is ìtokenî
+		options.put("auth-method", "token"); // the only value currently supported is ‚Äútoken‚Äù
 		options.put("auth-token", "authToken");
 
 		try {
@@ -44,16 +51,15 @@ Client Usage
 ```DeviceClient``` constructor also accepts configuration file in the following format
 
     org=$orgId
-    typ=$myDeviceType
+    type=$myDeviceType
     id=$myDeviceId
     auth-method=token
     auth-token=$token
 
 ```java
-        Properties options = new Properties();
-        DeviceClient client;
         
-        options = DeviceClient.parsePropertiesFile(configFilePath);
+      DeviceClient client;
+      Properties options = DeviceClient.parsePropertiesFile(configFilePath);
         try {
 			client = new DeviceClient(options);
 		} catch (Exception e) {
@@ -66,21 +72,23 @@ Client Usage
 
 #### Publish events using default quality of service
 ```java
-        client.connect();
-        HashMap<String, String> dataMap = new HashMap<String, String>();
-        dataMap.put("temp", "30");
-        dataMap.put("pressure", "289");
         
-        client.publishEvent("status",dataMap); //QoS = 0
+		client.connect();
+		HashMap<String, String> dataMap = new HashMap<String, String>();
+		dataMap.put("temp", "30");
+		dataMap.put("pressure", "289");
+
+      client.publishEvent("status",dataMap); //QoS = 0
 ```
 
 #### Publish events using user-defined quality of service
 ```java
+        
         client.connect();
         HashMap<String, String> dataMap = new HashMap<String, String>();
         dataMap.put("temp", "30");
         dataMap.put("pressure", "289");
-        
+
         int qos = 2;
         client.publishEvent("status",dataMap, qos); //QoS = 2
 ```
@@ -98,27 +106,28 @@ When the device client connects it automatically subscribes to any command for t
 * timestamp - Timestamp of the command
 
 ```java
-    class MyCommandCallback implements CommandCallback {
-		@Override
-		public void processCommand(Command cmd) {
-			System.out.println("Received Command :: " + cmd.getCommand());
 			
+	class MyCommandCallback implements EventCallback {	
+		@Override
+		public void processCommand(Command cmd) {	
+			System.out.println("Received Command :: " + cmd.getCommand());
 			if("print".equals(cmd.getCommand()) ) {
-			    if(data == null) {
-			        System.out.println("ERROR - command is missing required information");
-			    } else {
-			        System.out.println(data);
-			    }
-            } else {
-                System.out.println("Command : "+cmd.getCommand()+" , is currently not supported");
-            }
+				String data = cmd.getPayload().toString();
+			   if(data == null) {
+			       System.out.println("ERROR - command is missing required information");
+			   } else {
+			       System.out.println(data);
+			   }
+          } else {
+              System.out.println("Command : "+cmd.getCommand()+" , is currently not supported");
+          }
 		}
 	}
 	
 	....
 	....
 	 client.connect();
-	 client.setCommandCallback(new MyCommandCallback());
+	 client.setEventCallback(new MyCommandCallback());
 ```
 
 ## Application
@@ -127,17 +136,18 @@ When the device client connects it automatically subscribes to any command for t
 
 * org - Your organization ID
 * id - The unique ID of your application within your organization
-* auth-method - Method of authentication (the only value currently supported is ìapikeyî)
-* auth-key - API key (required if auth-method is ìapikeyî)
-* auth-token -  API key token (required if auth-method is ìapikeyî)
+* auth-method - Method of authentication (the only value currently supported is ‚Äúapikey‚Äù)
+* auth-key - API key (required if auth-method is ‚Äúapikey‚Äù)
+* auth-token -  API key token (required if auth-method is ‚Äúapikey‚Äù)
 
 ```java
-        Properties options = new Properties();
-        ApplicationClient appClient = null;
         
+		Properties options = new Properties();
+    	ApplicationClient appClient = null;
+
 		options.put("org", "organization");
 		options.put("id", "uniqueAppId");
-		options.put("auth-method", "apikey"); // the only value currently supported is ìapikeyî
+		options.put("auth-method", "apikey"); // the only value currently supported is ‚Äúapikey‚Äù
 		options.put("auth-key", "authKey");
 		options.put("auth-token", "authToken");
 
@@ -149,7 +159,6 @@ When the device client connects it automatically subscribes to any command for t
 ```
 
 ```ApplicationClient``` constructor also accepts configuration file in the following format
-
     org=$orgId
     id=$myApplication
     auth-method=apikey
@@ -157,11 +166,12 @@ When the device client connects it automatically subscribes to any command for t
     auth-token=$token
 
 ```java
-        Properties options = new Properties();
-        ApplicationClient appClient;
         
-        options = ApplicationClient.parsePropertiesFile(configFilePath);
-        try {
+		Properties options = new Properties();
+    	ApplicationClient appClient;
+
+      options = ApplicationClient.parsePropertiesFile(configFilePath);
+      try {
 			appClient = new ApplicationClient(options);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -174,6 +184,7 @@ When the device client connects it automatically subscribes to any command for t
 ##### Subscribe to all events from all devices
 
 ```java
+
     client.connect();
     client.subscribeToDeviceEvents();
 ```
@@ -181,6 +192,7 @@ When the device client connects it automatically subscribes to any command for t
 ##### Subscribe to all events from all devices of a specific type
 
 ```java
+
     client.connect();
     client.subscribeToDeviceEvents("myDeviceType");
 ```
@@ -188,6 +200,7 @@ When the device client connects it automatically subscribes to any command for t
 ##### Subscribe to all events from a specfic device
 
 ```java
+
     client.connect();
     client.subscribeToDeviceEvents("myDeviceType", "myDeviceId");
 ```
@@ -195,6 +208,7 @@ When the device client connects it automatically subscribes to any command for t
 ##### Subscribe to specfic events from a specfic device
 
 ```java
+
     client.connect();
     client.subscribeToDeviceEvents("myDeviceType", "myDeviceId", "status");
 ```
@@ -202,6 +216,7 @@ When the device client connects it automatically subscribes to any command for t
 ##### Subscribe to a specific event from two different devices
 
 ```java
+
     client.connect();
     client.subscribeToDeviceEvents("myDeviceType", "myDeviceId1", "status");
     client.subscribeToDeviceEvents("myOtherDeviceType", "myDeviceId2", "status");
@@ -220,6 +235,7 @@ To process the events received by your subscriptions you need to register an eve
 * event.getTimestamp() - DateTime
  
 ```java
+
     class MyEventCallback implements EventCallback {
 		@Override
 		public void processEvent(Event e) {
@@ -233,36 +249,13 @@ To process the events received by your subscriptions you need to register an eve
 	}
 ```
 
-### Subscribing to device status
-```subscribeToDeviceStatus``` will subscribe to status updates for all connected devices. Use the type and id parameters to control the scope of the subscription. A single client can support multiple subscriptions.
 
-##### Subscribe to status updates for all devices
-
-```java
-    client.connect();
-    client.subscribeToDeviceStatus();
-```
-
-##### Subscribe to status updates for all devices of a specific type
-
-```java
-    client.connect();
-    client.subscribeToDeviceStatus("myDeviceType");
-```
-
-##### Subscribe to status updates for two different devices
-
-```java
-    client.connect();
-    client.subscribeToDeviceStatus("myDeviceType", "myDeviceId1", "status");
-    client.subscribeToDeviceStatus("myOtherDeviceType", "myDeviceId2", "status");
-```
 
 ### Handling status updates from devices
 
 To process the status updates received by your subscriptions you need to register an event callback method. The messages are returned as an instance of the Status class:
 
-The following properties are set for both ìConnectî and ìDisconnectî status events:
+The following properties are set for both ‚ÄúConnect‚Äù and ‚ÄúDisconnect‚Äù status events:
 
 * status.clientAddr - string
 * status.protocol - string
@@ -273,7 +266,7 @@ The following properties are set for both ìConnectî and ìDisconnectî status even
 * status.connectTime - datetime
 * status.port - int
 
-The following properties are only set when the action is ìDisconnectî:
+The following properties are only set when the action is ‚ÄúDisconnect‚Äù:
 
 * status.writeMsg - int
 * status.readMsg - int
@@ -283,7 +276,13 @@ The following properties are only set when the action is ìDisconnectî:
 
  
 ```java
+
     private class MyStatusCallback implements StatusCallback {
+
+		@Override
+		public void processApplicationStatus(ApplicationStatus status) {
+			System.out.println("Application Status = " + status.getPayload());
+		}
 
 		@Override
 		public void processDeviceStatus(DeviceStatus status) {
@@ -292,10 +291,40 @@ The following properties are only set when the action is ìDisconnectî:
 	}
 ```
 
+#### Subscribe to status updates for two different devices
+
+
+```java
+
+
+	private class MyStatusCallback implements StatusCallback {
+
+		@Override
+		public void processApplicationStatus(ApplicationStatus status) {
+			System.out.println("Application Status = " + status.getPayload());
+		}
+
+		@Override
+		public void processDeviceStatus(DeviceStatus status) {
+			System.out.println("Device Status = " + status.getPayload());
+		}
+	}
+	
+	....
+	....
+	client.connect();
+	client.setStatusCallback(new MyStatusCallback());	
+	client.subscribeToDeviceStatus("myDeviceType", "myDeviceId1", "status");
+	client.subscribeToDeviceStatus("myDeviceType", "myDeviceId2", "status");
+	
+```
+
 ### Publishing commands to devices
 
 Applications can publish commands to connected devices
+
 ```java
+
         client.connect();
         HashMap<String, String> commandData = new HashMap<String, String>();
         dataMap.put("reboot", "3");
@@ -306,7 +335,7 @@ Applications can publish commands to connected devices
 
 The IoT Foundation client library can also be used for device registration, deletion and device information  retrieval
 
-```DeviceFactory``` is used register devices, retrieve information about existing device(s) and delete an existing device. 
+```DeviceFactory``` is used to register devices, retrieve information about existing device(s) and delete an existing device. 
 
 ### Device Registration
 
@@ -320,7 +349,8 @@ The IoT Foundation client library can also be used for device registration, dele
 * metadata - String which contains metadata
 
 ```java
-        Properties options = new Properties();
+
+	Properties options = new Properties();
         
 	options.put("authKey", "auth key for the app");
 	options.put("authToken", "auth token");
@@ -351,7 +381,8 @@ The IoT Foundation client library can also be used for device registration, dele
 * deviceId - String which contains a deviceId
 
 ```java
-        Properties options = new Properties();
+
+	Properties options = new Properties();
         
 	options.put("authKey", "auth key for the app");
 	options.put("authToken", "auth token");
@@ -361,9 +392,9 @@ The IoT Foundation client library can also be used for device registration, dele
 
 	String deviceType = new String("device type");
 	String deviceId = new String("device id");
-	String metadata = new String("metadata information");
+
 	boolean deviceDeleted = factory.deleteDevice(deviceType, deviceId);
-	System.out.println("Operation was successful? " + deletion);
+	System.out.println("Operation was successful? " + deviceDeleted);
 ```
 
 ### Device Information Retrieval
@@ -375,7 +406,8 @@ The IoT Foundation client library can also be used for device registration, dele
 ```getDevices``` method doesn't take any parameters and returns a list of devices registered with the given organization
 
 ```java
-        Properties options = new Properties();
+
+	Properties options = new Properties();
         
 	options.put("authKey", "auth key for the app");
 	options.put("authToken", "auth token");
@@ -392,7 +424,7 @@ The IoT Foundation client library can also be used for device registration, dele
 
 ```HistoricalEvent``` constructor is a default constructor
 
-```getHistoricalEvents``` method of the class DeviceFactory returns an array of Historian events (atmost last 100) and is overloaded and accepts 
+```getHistoricalEvents``` method of the class DeviceFactory returns an array of Historian events (atmost last 100). It is overloaded and accepts varying number of arguments
 #### 2 arguments
 * deviceType which is of String type
 * deviceId which is of String type
@@ -403,7 +435,8 @@ The IoT Foundation client library can also be used for device registration, dele
 #### no arguments
 
 ```java
-        Properties options = new Properties();
+    
+	Properties options = new Properties();
         
 	options.put("authKey", "auth key for the app");
 	options.put("authToken", "auth token");
