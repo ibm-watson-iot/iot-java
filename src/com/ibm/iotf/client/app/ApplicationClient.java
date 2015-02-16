@@ -135,6 +135,43 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		return true;
 	}
 	
+	public boolean publishCommand(String deviceType, String deviceId, String command, Object data) {
+		return publishCommand(deviceType, deviceId, command, data, 0);
+	}
+	
+	public boolean publishCommand(String deviceType, String deviceId, String command, Object data, int qos) {
+		if (!isConnected()) {
+			return false;
+		}
+		JsonObject payload = new JsonObject();
+		
+		String timestamp = ISO8601_DATE_FORMAT.format(new Date());
+		payload.addProperty("ts", timestamp);
+		
+		JsonElement dataElement = gson.toJsonTree(data);
+		payload.add("d", dataElement);
+		
+		String topic = "iot-2/type/" + deviceType + "/id/" + deviceId + "/cmd/" + command + "/fmt/json";
+		
+		LOG.fine("Topic   = " + topic);
+		LOG.fine("Payload = " + payload.toString());
+		
+		MqttMessage msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
+		msg.setQos(0);
+		msg.setRetained(false);
+		
+		try {
+			mqttClient.publish(topic, msg);
+		} catch (MqttPersistenceException e) {
+			e.printStackTrace();
+			return false;
+		} catch (MqttException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
 	
 	public void subscribeToDeviceEvents() {
 		subscribeToDeviceEvents("+", "+", "+", 0);
@@ -162,7 +199,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		}
 	}
 
-//	Added by Amit	
 	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, String format) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/" + format;
@@ -173,7 +209,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		}
 	}
 
-//	Added by Amit	
 	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, String format, int qos) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/" + format;
@@ -183,28 +218,37 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 			e.printStackTrace();
 		}
 	}
+	
+	public void unsubscribeFromDeviceEvents(String deviceType, String deviceId, String event, String format, int qos) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/" + format;
+			subscriptions.remove(newTopic);
+			mqttClient.unsubscribe(newTopic);
 
-//	Added by Amit		
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
+
 	public void subscribeToDeviceCommands() {
 		subscribeToDeviceCommands("+", "+", "+", 0);
 	}
 
-//	Added by Amit		
+	
 	public void subscribeToDeviceCommands(String deviceType) {
 		subscribeToDeviceCommands(deviceType, "+", "+", 0);
 	}
 
-//	Added by Amit		
+		
 	public void subscribeToDeviceCommands(String deviceType, String deviceId) {
 		subscribeToDeviceCommands(deviceType, deviceId, "+", 0);
 	}
-	
-//	Added by Amit		
+		
 	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command) {
 		subscribeToDeviceCommands(deviceType, deviceId, command, 0);
 	}
 	
-//	Added by Amit	
 	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command, int qos) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/json";
@@ -214,8 +258,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 			e.printStackTrace();
 		}
 	}
-
-//	Added by Amit	
+	
 	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command, String format) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/" + format;
@@ -226,7 +269,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		}
 	}
 
-//	Added by Amit	
 	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command, String format, int qos) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/"+ command +"/fmt/" + format;
@@ -317,18 +359,15 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 
 				return;
 		    }
-//			Added by Amit
+
 			matcher = DEVICE_COMMAND_PATTERN.matcher(topic);
 			if (matcher.matches()) {
 				String type = matcher.group(1);
 				String id = matcher.group(2);
 				String command = matcher.group(3);
 				String format = matcher.group(4);
-//				Event evt = new Event(type, id, command, format, msg);
 				Command cmd = new Command(type, id, command, format, msg);
-//				LOG.fine("Command received: " + evt.toString());
 			
-//				eventCallback.processEvent(evt);
 				if(cmd.getTimestamp() != null ) {
 					LOG.fine("Command received: " + cmd.toString());	
 					eventCallback.processCommand(cmd);					
@@ -374,5 +413,4 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	public void setStatusCallback(StatusCallback callback) {
 		this.statusCallback  = callback;
 	}
-
 }
