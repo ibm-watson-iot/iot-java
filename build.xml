@@ -21,7 +21,7 @@
 			<src path="samples/sigar/src" />
 		</javac>
 		
-		<jar basedir="output" destfile="lib/com.ibm.iotf.client-${version}.jar" includes="com/ibm/iotf/client/**, com/ibm/iotf/client/app/**, com/ibm/iotf/client/device/**, com/ibm/iotf/factories/**">
+		<jar basedir="output" destfile="lib/com.ibm.iotf.client-${version}.jar" includes="com/ibm/iotf/client/**, com/ibm/iotf/client/app/**, com/ibm/iotf/client/device/**, com/ibm/iotf/client/api/**">
 		</jar>
 		
 		<jar basedir="output" destfile="lib/com.ibm.iotf.samples-${version}.jar" includes="com/ibm/iotf/samples/**">

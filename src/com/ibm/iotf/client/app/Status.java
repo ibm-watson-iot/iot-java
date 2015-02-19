@@ -10,7 +10,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class Status {
+public abstract class Status {
 	protected final static JsonParser JSON_PARSER = new JsonParser();
 	protected final static DateTimeFormatter DT_PARSER = ISODateTimeFormat.dateTimeParser();
 

@@ -80,4 +80,9 @@ public class HistoricalEvent {
 	public void setEvt(String evt) {
 		this.evt = evt;
 	}
+	
+	public String toString() {
+		return "HistoricalEvent : evt = " + evt + " evt_type = " + evt_type + " org_id = " + org_id + " device_type = " + device_type + " device_id = " + device_id +
+				" timestamp = " + timestamp;
+	}	
 }

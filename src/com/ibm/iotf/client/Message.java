@@ -34,11 +34,10 @@ public class Message {
 			if (payloadJson.has("d")) {
 				data = payloadJson.get("d").getAsJsonObject().toString();
 	
-	//Added by Amit
 			} else {
 				data = payloadJson.toString();
 			}
-	/////		
+		
 			if (payloadJson.has("ts")) {
 				try {
 					timestamp = DT_PARSER.parseDateTime(payloadJson.get("ts").getAsString());
@@ -55,7 +54,6 @@ public class Message {
 		}
 	}
 
-// Added by Amit	
 	public Message(MqttMessage msg, String format) throws UnsupportedEncodingException{
 		this.payload = new String(msg.getPayload(), "UTF8");
 		
