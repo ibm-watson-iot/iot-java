@@ -15,17 +15,8 @@ import junit.framework.TestCase;
 public class TestGetDevices extends TestCase {
 	
 	public void testGetDevices(){
-		/*String deviceType = "iotsample-arduino";
-		String deviceId = "00aaaaaaaa02";
-		Properties opt = new Properties();
-		//opt.setProperty("authKey", "a-uguhsp-t54ipe1bk7");
-		//opt.setProperty("authToken", "y1Viw)kxmbXeLXMo!m");
-		opt.put("authKey", "a-uguhsp-8ya0dmsjh9");
-		opt.put("authToken", ")2lMPstbsqkOTs@s&M");*/
 		try{
 			Properties opt = new Properties();
-			//opt.setProperty("authKey", "a-uguhsp-t54ipe1bk7");
-			//opt.setProperty("authToken", "y1Viw)kxmbXeLXMo!m");
 			String deviceType = "";
 			String deviceId = "";
 			String authKey = "";
@@ -44,35 +35,20 @@ public class TestGetDevices extends TestCase {
 				String key = (String) enuKeys.nextElement();
 				System.out.println(key + ": " );
 				if(key.equals("deviceType") ){
-					
 					deviceType = properties.getProperty(key);
-					
 				}
 				if(key.equals("deviceId")){
 					deviceId = properties.getProperty(key);
-					
 				}
 				if(key.equals("authKey")){
 					authKey = properties.getProperty(key);
-					
 				}
 				if(key.equals("authToken")){
 					authToken = properties.getProperty(key);
-					
 				}
-				//System.out.println(key + ": " + value);
 			}
-		
-			
-			
-			
-			//opt.put("authKey", "a-uguhsp-8ya0dmsjh9");
-			//opt.put("authToken", ")2lMPstbsqkOTs@s&M");
-			
 			opt.put("authKey", authKey);
 			opt.put("authToken", authToken);
-
-
 		DeviceFactory factory = new DeviceFactory(opt);
 		//String metadata = "";
 		Device[] device = factory.getDevices();
@@ -88,9 +64,5 @@ public class TestGetDevices extends TestCase {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		}
-
-
-
+	}
 }
