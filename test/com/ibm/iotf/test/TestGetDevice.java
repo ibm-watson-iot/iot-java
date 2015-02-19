@@ -15,12 +15,8 @@ import junit.framework.TestCase;
 public class TestGetDevice extends TestCase {
 	
 	public void testGetDevice(){
-		
-		
 		try{
 		Properties opt = new Properties();
-		//opt.setProperty("authKey", "a-uguhsp-t54ipe1bk7");
-		//opt.setProperty("authToken", "y1Viw)kxmbXeLXMo!m");
 		String deviceType = "";
 		String deviceId = "";
 		String authKey = "";
@@ -39,7 +35,6 @@ public class TestGetDevice extends TestCase {
 			String key = (String) enuKeys.nextElement();
 			System.out.println(key + ": " );
 			if(key.equals("deviceType") ){
-				
 				deviceType = properties.getProperty(key);
 				
 			}
@@ -55,26 +50,11 @@ public class TestGetDevice extends TestCase {
 				authToken = properties.getProperty(key);
 				
 			}
-			//System.out.println(key + ": " + value);
 		}
-	
-		
-		
-		
-		//opt.put("authKey", "a-uguhsp-8ya0dmsjh9");
-		//opt.put("authToken", ")2lMPstbsqkOTs@s&M");
-		
+
 		opt.put("authKey", authKey);
 		opt.put("authToken", authToken);
-		/*
-		String deviceType = "iotsample-arduino";
-		String deviceId = "00aaaaaaaa02";
-		Properties opt = new Properties();
-		//opt.setProperty("authKey", "a-uguhsp-t54ipe1bk7");
-		//opt.setProperty("authToken", "y1Viw)kxmbXeLXMo!m");
-		opt.put("authKey", "a-uguhsp-8ya0dmsjh9");
-		opt.put("authToken", ")2lMPstbsqkOTs@s&M");
-*/
+
 		DeviceFactory factory = new DeviceFactory(opt);
 		//String metadata = "";
 		Device device = factory.getDevice(deviceType, deviceId);
@@ -85,8 +65,7 @@ public class TestGetDevice extends TestCase {
 		
 		assertEquals("Getdevices", 0, factory.getDevices());
 		//assertEquals("A test for Hello World String", "Hello World", hello.sayHello());
-		
-		
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -94,8 +73,6 @@ public class TestGetDevice extends TestCase {
 		}
 		
 
-		}
-
-
+	}
 
 }
