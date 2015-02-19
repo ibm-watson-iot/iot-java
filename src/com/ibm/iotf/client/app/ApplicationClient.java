@@ -4,7 +4,6 @@ import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -22,8 +21,9 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.AbstractClient;
 
 /**
- * A client that handles connections with the IBM Internet of Things Cloud
- * Service.
+ * A client, used by application, that handles connections with the IBM Internet of Things Foundation. <br>
+ * 
+ * This is a derived class from AbstractClient and can be used by end-applications to handle connections with IBM Internet of Things Foundation.
  */
 public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
@@ -42,8 +42,10 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	private HashMap<String, Integer> subscriptions = new HashMap<String, Integer>();
 	
 	/**
-	 * Create a device client for the IBM Internet of Things Cloud service. Connecting to
-	 * a specific account on the service.
+	 * Create an application client for the IBM Internet of Things Foundation. 
+	 * Connecting to specific org on IBM Internet of Things Foundation
+	 * @param options
+	 * 					An object of the class Properties
 	 * @throws Exception 
 	 */
 	public ApplicationClient(Properties options) throws Exception {
@@ -65,18 +67,38 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		createClient(this);
 	}
 	
+	/**
+	 * Accessor method to retrieve app id
+	 * @return appId
+	 * 					String appId
+	 */
 	public String getAppId() {
 		return options.getProperty("id");
 	}
 
+	/**
+	 * Accessor method to retrieve auth method
+	 * @return authMethod
+	 * 					String authMethod
+	 */
 	public String getAuthMethod() {
 		return options.getProperty("auth-method");
 	}
-
+	
+	/**
+	 * Accessor method to retrieve auth key
+	 * @return authKey
+	 * 					String authKey
+	 */
 	public String getAuthKey() {
 		return options.getProperty("auth-key");
 	}
 
+	/**
+	 * Accessor method to retrieve auth token
+	 * @return authToken
+	 * 					String authToken
+	 */
 	public String getAuthToken() {
 		return options.getProperty("auth-token");
 	}
@@ -88,20 +110,41 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Publish data to the IBM Internet of Things Cloud service. Note that data is published
+	 * Publish event, on the behalf of a device, to the IBM Internet of Things Foundation. <br> 
+	 * Note that data is published
 	 * at Quality of Service (QoS) 0, which means that a successful send does not guarantee
-	 * receipt even if the publich is successful.
+	 * receipt even if the publish is successful.
 	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
 	 * @param event
-	 *            Name of the dataset under which to publish the data
+	 *            object of String which denotes event
 	 * @param data
-	 *            Object to be added to the payload as the dataset
+	 *            Payload data
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishEvent(String deviceType, String deviceId, String event, Object data) {
 		return publishEvent(deviceType, deviceId, event, data, 0);
 	}
 	
+	/**
+	 * Publish event, on the behalf of a device, to the IBM Internet of Things Foundation. <br>
+	 * This method will attempt to create a JSON obejct out of the payload
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param event
+	 *            object of String which denotes event
+	 * @param data
+	 *            Payload data
+	 * @param qos
+	 *            Quality of Service, in int - can have values 0,1,2
+	 * @return Whether the send was successful.
+	 */
 	public boolean publishEvent(String deviceType, String deviceId, String event, Object data, int qos) {
 		if (!isConnected()) {
 			return false;
@@ -134,24 +177,136 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		}
 		return true;
 	}
-	
-	
+
+	/**
+	 * Publish command to the IBM Internet of Things Foundation. <br>
+	 * Note that data is published
+	 * at Quality of Service (QoS) 0, which means that a successful send does not guarantee
+	 * receipt even if the publish is successful.
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param command
+	 *            object of String which denotes command
+	 * @param data
+	 *            Payload data
+	 * @return Whether the send was successful.
+	 */
+	public boolean publishCommand(String deviceType, String deviceId, String command, Object data) {
+		return publishCommand(deviceType, deviceId, command, data, 0);
+	}
+
+	/**
+	 * Publish command to the IBM Internet of Things Foundation. <br>
+	 * This method will attempt to create a JSON obejct out of the payload
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param command
+	 *            object of String which denotes command
+	 * @param data
+	 *            Payload data
+	 * @param qos
+	 *            Quality of Service, in int - can have values 0,1,2
+	 * @return Whether the send was successful.
+	 */
+	public boolean publishCommand(String deviceType, String deviceId, String command, Object data, int qos) {
+		if (!isConnected()) {
+			return false;
+		}
+		JsonObject payload = new JsonObject();
+		
+		String timestamp = ISO8601_DATE_FORMAT.format(new Date());
+		payload.addProperty("ts", timestamp);
+		
+		JsonElement dataElement = gson.toJsonTree(data);
+		payload.add("d", dataElement);
+		
+		String topic = "iot-2/type/" + deviceType + "/id/" + deviceId + "/cmd/" + command + "/fmt/json";
+		
+		LOG.fine("Topic   = " + topic);
+		LOG.fine("Payload = " + payload.toString());
+		
+		MqttMessage msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
+		msg.setQos(0);
+		msg.setRetained(false);
+		
+		try {
+			mqttClient.publish(topic, msg);
+		} catch (MqttPersistenceException e) {
+			e.printStackTrace();
+			return false;
+		} catch (MqttException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Quality of Service is set to 0
+	 * All events, for the given org are subscribed to
+	 */
 	public void subscribeToDeviceEvents() {
 		subscribeToDeviceEvents("+", "+", "+", 0);
 	}
 
+	/**
+	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Quality of Service is set to 0 <br>
+	 * All events, for a given device type, are subscribed to
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 */
 	public void subscribeToDeviceEvents(String deviceType) {
 		subscribeToDeviceEvents(deviceType, "+", "+", 0);
 	}
 
+	/**
+	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Quality of Service is set to 0 <br>
+	 * All events, of a given device type and device id , are subscribed to
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 */
 	public void subscribeToDeviceEvents(String deviceType, String deviceId) {
 		subscribeToDeviceEvents(deviceType, deviceId, "+", 0);
 	}
-	
+
+	/**
+	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Quality of Service is set to 0
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param event
+	 *            object of String which denotes event
+	 */
 	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event) {
 		subscribeToDeviceEvents(deviceType, deviceId, event, 0);
 	}
-	
+
+	/**
+	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param event
+	 *            object of String which denotes event
+	 * @param qos
+	 *            Quality of Service, in int - can have values 0,1,2
+	 */
 	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, int qos) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/json";
@@ -162,7 +317,19 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		}
 	}
 
-//	Added by Amit	
+	/**
+	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Quality of Service is set to 0
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param event
+	 *            object of String which denotes event
+	 * @param format
+	 *            object of String which denotes format, typical example of format could be json
+	 */
+
 	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, String format) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/" + format;
@@ -172,8 +339,22 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 			e.printStackTrace();
 		}
 	}
-
-//	Added by Amit	
+	
+	/**
+	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param event
+	 *            object of String which denotes event
+	 * @param format
+	 *            object of String which denotes format, typical example of format could be json
+	 * @param qos
+	 *            Quality of Service, in int - can have values 0,1,2
+	 */
+	
 	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, String format, int qos) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/" + format;
@@ -184,27 +365,94 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		}
 	}
 
-//	Added by Amit		
+	/**
+	 * Unsubscribe from device events of the IBM Internet of Things Foundation. <br>
+	 * This command is not tested completely and so is deprecated till testing is over
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param event
+	 *            object of String which denotes event
+	 * @param format
+	 *            object of String which denotes format, typical example of format could be json
+	 * @param qos
+	 *            Quality of Service, in int - can have values 0,1,2
+	 */
+	@Deprecated
+	public void unsubscribeFromDeviceEvents(String deviceType, String deviceId, String event, String format, int qos) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/" + format;
+			subscriptions.remove(newTopic);
+			mqttClient.unsubscribe(newTopic);
+
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Subscribe to device commands, on the behalf of a device, from the IBM Internet of Things Foundation. <br>
+	 * Quality of Service is set to 0
+	 * All commands, for the given org are subscribed to
+	 */
 	public void subscribeToDeviceCommands() {
 		subscribeToDeviceCommands("+", "+", "+", 0);
 	}
 
-//	Added by Amit		
+	/**
+	 * Subscribe to device commands, on the behalf of a device, from the IBM Internet of Things Foundation. <br>
+	 * Quality of Service is set to 0 <br>
+	 * All commands, for a given device type, are subscribed to
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 */
 	public void subscribeToDeviceCommands(String deviceType) {
 		subscribeToDeviceCommands(deviceType, "+", "+", 0);
 	}
 
-//	Added by Amit		
+		
+	/**
+	 * Subscribe to device commands, on the behalf of a device, from the IBM Internet of Things Foundation. <br>
+	 * Quality of Service is set to 0 <br>
+	 * All commands, for a given device type and device id , are subscribed to
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 */
 	public void subscribeToDeviceCommands(String deviceType, String deviceId) {
 		subscribeToDeviceCommands(deviceType, deviceId, "+", 0);
 	}
-	
-//	Added by Amit		
+		
+	/**
+	 * Subscribe to device commands, on the behalf ofa device, for the IBM Internet of Things Foundation. <br>
+	 * Quality of Service is set to 0
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param command
+	 *            object of String which denotes command
+	 */
 	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command) {
 		subscribeToDeviceCommands(deviceType, deviceId, command, 0);
 	}
 	
-//	Added by Amit	
+	/**
+	 * Subscribe to device commands, on the behalf of a device, of the IBM Internet of Things Foundation. <br>
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param command
+	 *            object of String which denotes command
+	 * @param qos
+	 *            Quality of Service, in int - can have values 0,1,2
+	 */
 	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command, int qos) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/json";
@@ -215,7 +463,19 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		}
 	}
 
-//	Added by Amit	
+	/**
+	 * Subscribe to device commands, on the behalf of a device, for the IBM Internet of Things Foundation. <br>
+	 * Quality of Service is set to 0
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param command
+	 *            object of String which denotes command
+	 * @param format
+	 *            object of String which denotes format, typical example of format could be json
+	 */
+
 	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command, String format) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/" + format;
@@ -226,7 +486,20 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		}
 	}
 
-//	Added by Amit	
+	/**
+	 * Subscribe to device commands, on the behalf of a device, of the IBM Internet of Things Foundation. <br>
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param command
+	 *            object of String which denotes command
+	 * @param format
+	 *            object of String which denotes format, typical example of format could be json
+	 * @param qos
+	 *            Quality of Service, in int - can have values 0,1,2
+	 */
 	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command, String format, int qos) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/"+ command +"/fmt/" + format;
@@ -237,15 +510,32 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		}
 	}
 	
-	
+	/**
+	 * Subscribe to device status of the IBM Internet of Things Foundation. <br>
+	 * All the devices, for an org, are monitored
+	 */
 	public void subscribeToDeviceStatus() {
 		subscribeToDeviceStatus("+", "+");
 	}
 
+	/**
+	 * Subscribe to device status of the IBM Internet of Things Foundation. <br>
+	 * All the devices of a given device type are subscribed to
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 */
 	public void subscribeToDeviceStatus(String deviceType) {
 		subscribeToDeviceStatus(deviceType, "+");
 	}
 	
+	/**
+	 * Subscribe to device status of the IBM Internet of Things Foundation. <br>
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 */
 	public void subscribeToDeviceStatus(String deviceType, String deviceId) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/mon";
@@ -259,7 +549,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
 	/**
 	 * If we lose connection trigger the connect logic to attempt to
-	 * reconnect to the IBM Internet of Things Cloud.
+	 * reconnect to the IBM Internet of Things Foundation.
 	 */
 	public void connectionLost(Throwable e) {
 		LOG.info("Connection lost: " + e.getMessage());
@@ -267,7 +557,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
 	    LOG.info("Resubscribing....");
 	    while (iterator.hasNext()) {
-	        Map.Entry pairs = (Map.Entry)iterator.next();
+	        //Map.Entry pairs = (Map.Entry)iterator.next();
+	        Entry<String, Integer> pairs = iterator.next();
 	        LOG.info(pairs.getKey() + " = " + pairs.getValue());
 	        try {
 				mqttClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
@@ -317,18 +608,15 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 
 				return;
 		    }
-//			Added by Amit
+
 			matcher = DEVICE_COMMAND_PATTERN.matcher(topic);
 			if (matcher.matches()) {
 				String type = matcher.group(1);
 				String id = matcher.group(2);
 				String command = matcher.group(3);
 				String format = matcher.group(4);
-//				Event evt = new Event(type, id, command, format, msg);
 				Command cmd = new Command(type, id, command, format, msg);
-//				LOG.fine("Command received: " + evt.toString());
 			
-//				eventCallback.processEvent(evt);
 				if(cmd.getTimestamp() != null ) {
 					LOG.fine("Command received: " + cmd.toString());	
 					eventCallback.processCommand(cmd);					
@@ -374,5 +662,4 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	public void setStatusCallback(StatusCallback callback) {
 		this.statusCallback  = callback;
 	}
-
 }

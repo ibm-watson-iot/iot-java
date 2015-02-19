@@ -16,12 +16,12 @@ import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.AbstractClient;
-import com.ibm.iotf.client.app.Event;
-import com.ibm.iotf.client.app.EventCallback;
+
 
 /**
- * A client that handles connections with the IBM Internet of Things Cloud
- * Service.
+ * A client, used by device, that handles connections with the IBM Internet of Things Foundation. <br>
+ * 
+ * This is a derived class from AbstractClient and can be used by embedded devices to handle connections with IBM Internet of Things Foundation.
  */
 public class DeviceClient extends AbstractClient implements MqttCallback{
 	
@@ -33,8 +33,9 @@ public class DeviceClient extends AbstractClient implements MqttCallback{
 	private CommandCallback commandCallback = null;
 	
 	/**
-	 * Create a device client for the IBM Internet of Things Cloud service. Connecting to
-	 * a specific account on the service.
+	 * Create a device client for the IBM Internet of Things Foundation. <br>
+	 * 
+	 * Connecting to a specific account on the IoTF.
 	 * @throws Exception 
 	 */
 	public DeviceClient(Properties options) throws Exception {
@@ -86,6 +87,11 @@ public class DeviceClient extends AbstractClient implements MqttCallback{
 			return "json";
 		
 	}
+	
+	/**
+	 * Connect to the IBM Internet of Things Foundation
+	 * 
+	 */	
 	@Override
 	public void connect() {
 		super.connect();
@@ -101,10 +107,12 @@ public class DeviceClient extends AbstractClient implements MqttCallback{
 			e.printStackTrace();
 		}
 	}
+	
 	/**
-	 * Publish data to the IBM Internet of Things Cloud service. Note that data is published
+	 * Publish data to the IBM Internet of Things Foundation.<br>
+	 * Note that data is published
 	 * at Quality of Service (QoS) 0, which means that a successful send does not guarantee
-	 * receipt even if the publich is successful.
+	 * receipt even if the publish has been successful.
 	 * 
 	 * @param event
 	 *            Name of the dataset under which to publish the data
@@ -115,7 +123,20 @@ public class DeviceClient extends AbstractClient implements MqttCallback{
 	public boolean publishEvent(String event, Object data) {
 		return publishEvent(event, data, 0);
 	}
-	
+
+	/**
+	 * Publish data to the IBM Internet of Things Foundation.<br>
+	 * 
+	 * This method allows QoS to be passed as an argument
+	 * 
+	 * @param event
+	 *            Name of the dataset under which to publish the data
+	 * @param data
+	 *            Object to be added to the payload as the dataset
+	 * @param qos
+	 *            Quality of Service - should be 0, 1 or 2
+	 * @return Whether the send was successful.
+	 */	
 	public boolean publishEvent(String event, Object data, int qos) {
 		if (!isConnected()) {
 			return false;
@@ -152,18 +173,25 @@ public class DeviceClient extends AbstractClient implements MqttCallback{
 	
 	/**
 	 * If we lose connection trigger the connect logic to attempt to
-	 * reconnect to the IBM Internet of Things Cloud.
+	 * reconnect to the IBM Internet of Things Foundation.
+	 * 
+	 * @param exception
+	 *            Throwable which caused the connection to get lost
 	 */
-	public void connectionLost(Throwable e) {
-		LOG.info("Connection lost: " + e.getMessage());
+	public void connectionLost(Throwable exception) {
+		LOG.info("Connection lost: " + exception.getMessage());
 		connect();
 	}
 	
 	/**
-	 * A completed deliver does not guarantee that the message is recieved by the service
-	 * because devices send messages with Quality of Service (QoS) 0. The message count
+	 * A completed deliver does not guarantee that the message is received by the service
+	 * because devices send messages with Quality of Service (QoS) 0. <br>
+	 * 
+	 * The message count
 	 * represents the number of messages that were sent by the device without an error on
 	 * from the perspective of the device.
+	 * @param token
+	 *            MQTT delivery token
 	 */
 	public void deliveryComplete(IMqttDeliveryToken token) {
 		LOG.fine("Delivery Complete!");
