@@ -19,8 +19,6 @@ public class TestAddDevice extends TestCase {
 	public void testAddDevice(){
 		try{
 		Properties opt = new Properties();
-		//opt.setProperty("authKey", "a-uguhsp-t54ipe1bk7");
-		//opt.setProperty("authToken", "y1Viw)kxmbXeLXMo!m");
 		String deviceType = "";
 		String deviceId = "";
 		String authKey = "";
@@ -55,20 +53,12 @@ public class TestAddDevice extends TestCase {
 				authToken = properties.getProperty(key);
 				
 			}
-			//System.out.println(key + ": " + value);
 		}
 	
-		
-		
-		
-		//opt.put("authKey", "a-uguhsp-8ya0dmsjh9");
-		//opt.put("authToken", ")2lMPstbsqkOTs@s&M");
-		
+
 		opt.put("authKey", authKey);
 		opt.put("authToken", authToken);
 		
-	
-		//System.out.println( "device Type: " + deviceType);
 		DeviceFactory factory = new DeviceFactory(opt);
 		String metadata = "";
 		Device device = factory.registerDevice(deviceType, deviceId, metadata);
@@ -85,8 +75,6 @@ public class TestAddDevice extends TestCase {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		}
-
-
+	}
 
 }
