@@ -25,6 +25,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.iotf.client.device.DeviceClient;
 
+/**
+ * Class to register, delete and retrieve information about devices <br>
+ * This class can also be used to retrieve historian information
+ */
+
 public class DeviceFactory {
 
 	private static final String CLASS_NAME = DeviceClient.class.getName();
@@ -260,13 +265,14 @@ public class DeviceFactory {
 		}
 	}
 
+/*
 	public static void main(String[] args) {
 
 		String deviceType = "iotsample-arduino";
 		String deviceId = "00aaaaaaaa02";
 
 		Properties opt = new Properties();
-		opt.setProperty("authKey", "some key");
+		opt.setProperty("authKey", "some auth");
 		opt.setProperty("authToken", "some token");
 		DeviceFactory factory = new DeviceFactory(opt);
 		
@@ -290,7 +296,7 @@ public class DeviceFactory {
 		System.out.println("Devices obtained = " + listDevices.length);		
 
 //		Historian retrieval		
-/*		
+		
 		HistoricalEvent [] listHistory = factory.getHistoricalEvents(deviceType, "00aabbccde03");
 		System.out.println("Events obtained = " + listHistory.length);
 		
@@ -300,8 +306,9 @@ public class DeviceFactory {
 		listHistory = factory.getHistoricalEvents();
 		System.out.println("Events obtained = " + listHistory.length);
 		
-*/		System.out.println("Devices obtained = " + listDevices.length);
+		System.out.println("Devices obtained = " + listDevices.length);
 		boolean deletion = factory.deleteDevice(deviceType, deviceId);
 		System.out.println("Operation was successful? " + deletion);
 	}
+*/
 }

@@ -1,5 +1,10 @@
 package com.ibm.iotf.client.api;
 
+
+/**
+ * A bean class which represents a device registered (or to be registered) with the IBM Internet of Things Foundation. <br>
+ * This class has only accessors and mutators
+ */
 public class Device {
 	private String uuid = null;
 	private String type = null;
@@ -56,7 +61,11 @@ public class Device {
 	public void setRegistration(String registration) {
 		this.registration = registration;
 	}
-		
+	
+	/**
+	 * 
+	 * Provides a human readable String representation of this device, including the id, type, metadata and registration.
+	 */		
 	public String toString() {
 		return "Device : uuid = " + uuid + " id = " + id + " type = " + type + " metadata = " + metadata +
 				" password = " + password + " registration = " + registration;
