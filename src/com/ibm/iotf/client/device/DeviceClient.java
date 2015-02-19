@@ -176,10 +176,10 @@ public class DeviceClient extends AbstractClient implements MqttCallback{
 	 * reconnect to the IBM Internet of Things Foundation.
 	 * 
 	 * @param exception
-	 *            Exception which caused the connection to get lost
+	 *            Throwable which caused the connection to get lost
 	 */
-	public void connectionLost(Throwable e) {
-		LOG.info("Connection lost: " + e.getMessage());
+	public void connectionLost(Throwable exception) {
+		LOG.info("Connection lost: " + exception.getMessage());
 		connect();
 	}
 	

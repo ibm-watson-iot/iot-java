@@ -141,7 +141,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 *            object of String which denotes event
 	 * @param data
 	 *            Payload data
-	 * @param int
+	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
 	 * @return Whether the send was successful.
 	 */

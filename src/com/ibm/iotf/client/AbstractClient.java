@@ -257,7 +257,7 @@ public abstract class AbstractClient {
 	 * Provides a human readable String representation of this Device, including the number
 	 * of messages sent and the current connect status.
 	 * 
-	 * @Return String representation of the Device.
+	 * @return String representation of the Device.
 	 */
 	public String toString() {
 		return "[" + clientId + "] " + messageCount + " messages sent - Connected = " + String.valueOf(isConnected());
