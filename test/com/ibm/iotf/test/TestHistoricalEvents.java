@@ -18,17 +18,8 @@ import junit.framework.TestCase;
 public class TestHistoricalEvents extends TestCase {
 	
 	public void testHistoricalEvent(){
-	/*	String deviceType = "iotsample-arduino";
-		String deviceId = "00aaaaaaaa02";
-		Properties opt = new Properties();
-		//opt.setProperty("authKey", "a-uguhsp-t54ipe1bk7");
-		//opt.setProperty("authToken", "y1Viw)kxmbXeLXMo!m");
-		opt.put("authKey", "a-uguhsp-8ya0dmsjh9");
-		opt.put("authToken", ")2lMPstbsqkOTs@s&M");*/
 		try{
 			Properties opt = new Properties();
-			//opt.setProperty("authKey", "a-uguhsp-t54ipe1bk7");
-			//opt.setProperty("authToken", "y1Viw)kxmbXeLXMo!m");
 			String deviceType = "";
 			String deviceId = "";
 			String authKey = "";
@@ -63,18 +54,13 @@ public class TestHistoricalEvents extends TestCase {
 					authToken = properties.getProperty(key);
 					
 				}
-				
 			}
-		
-			
-			
-			
 			opt.put("authKey", authKey);
 			opt.put("authToken", authToken);
-		DeviceFactory factory = new DeviceFactory(opt);
+			DeviceFactory factory = new DeviceFactory(opt);
 		
-		HistoricalEvent[] event = factory.getHistoricalEvents(deviceType, "00aabbccde03");
-		//List<HistoricalEvent> messageList = new ArrayList<HistoricalEvent>();
+			HistoricalEvent[] event = factory.getHistoricalEvents(deviceType, "00aabbccde03");
+			//List<HistoricalEvent> messageList = new ArrayList<HistoricalEvent>();
 		
 		
 			assertEquals("HistoricalEvents received", event.length >0, factory.getHistoricalEvents(deviceType, "00aabbccde03"));
@@ -82,15 +68,12 @@ public class TestHistoricalEvents extends TestCase {
 			//assertEquals("Device deregistered", true, factory.deleteDevice(deviceType, deviceId));
 			
 		
-		//assertEquals("A test for Hello World String", "Hello World", hello.sayHello());
+			//assertEquals("A test for Hello World String", "Hello World", hello.sayHello());
 			
-	} catch (FileNotFoundException e) {
-		e.printStackTrace();
-	} catch (IOException e) {
-		e.printStackTrace();
-	}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-
-
-
+	}
 }
