@@ -1,5 +1,6 @@
 package com.ibm.iotf.test;
 
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -9,7 +10,6 @@ import java.util.Properties;
 
 import org.junit.Test;
 
-import com.ibm.iotf.client.api.Device;
 import com.ibm.iotf.client.api.DeviceFactory;
 
 import junit.framework.TestCase;
@@ -17,7 +17,6 @@ import junit.framework.TestCase;
 public class TestDeleteDevices extends TestCase {
 	@Test
 	public void testDeleteDevice(){
-
 		try{
 			Properties opt = new Properties();
 			String deviceType = "";
@@ -38,31 +37,39 @@ public class TestDeleteDevices extends TestCase {
 				String key = (String) enuKeys.nextElement();
 				System.out.println(key + ": " );
 				if(key.equals("deviceType") ){
+					
 					deviceType = properties.getProperty(key);
+					
 				}
 				if(key.equals("deviceId")){
 					deviceId = properties.getProperty(key);
+					
 				}
 				if(key.equals("authKey")){
 					authKey = properties.getProperty(key);
+					
 				}
 				if(key.equals("authToken")){
 					authToken = properties.getProperty(key);
 				}
+				//System.out.println(key + ": " + value);
 			}
-
 			opt.put("authKey", authKey);
 			opt.put("authToken", authToken);
 
-		DeviceFactory factory = new DeviceFactory(opt);
-		assertEquals("Device didn't exist...", false, factory.deleteDevice(deviceType, deviceId));
-		assertEquals("Device deregistered....", true, factory.deleteDevice(deviceType, deviceId));
-		//assertEquals("A test for Hello World String", "Hello World", hello.sayHello());
-
+			DeviceFactory factory = new DeviceFactory(opt);
+			//String metadata = "";
+			//boolean device = factory.deleteDevice(deviceType, deviceId);
+		
+			assertEquals("Device didn't exist...", false, factory.deleteDevice(deviceType, deviceId));
+			assertEquals("Device deregistered....", true, factory.deleteDevice(deviceType, deviceId));
+			
+			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+
 }

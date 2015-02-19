@@ -35,20 +35,30 @@ public class TestGetDevices extends TestCase {
 				String key = (String) enuKeys.nextElement();
 				System.out.println(key + ": " );
 				if(key.equals("deviceType") ){
+					
 					deviceType = properties.getProperty(key);
+					
 				}
 				if(key.equals("deviceId")){
 					deviceId = properties.getProperty(key);
+					
 				}
 				if(key.equals("authKey")){
 					authKey = properties.getProperty(key);
+					
 				}
 				if(key.equals("authToken")){
 					authToken = properties.getProperty(key);
+					
 				}
+				//System.out.println(key + ": " + value);
 			}
+		
+			
 			opt.put("authKey", authKey);
 			opt.put("authToken", authToken);
+
+
 		DeviceFactory factory = new DeviceFactory(opt);
 		//String metadata = "";
 		Device[] device = factory.getDevices();
@@ -64,5 +74,7 @@ public class TestGetDevices extends TestCase {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 	}
+
 }

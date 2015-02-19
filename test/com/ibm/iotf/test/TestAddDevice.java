@@ -19,6 +19,7 @@ public class TestAddDevice extends TestCase {
 	public void testAddDevice(){
 		try{
 		Properties opt = new Properties();
+
 		String deviceType = "";
 		String deviceId = "";
 		String authKey = "";
@@ -53,9 +54,9 @@ public class TestAddDevice extends TestCase {
 				authToken = properties.getProperty(key);
 				
 			}
+			//System.out.println(key + ": " + value);
 		}
 	
-
 		opt.put("authKey", authKey);
 		opt.put("authToken", authToken);
 		

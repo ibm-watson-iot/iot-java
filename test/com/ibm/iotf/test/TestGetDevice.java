@@ -15,6 +15,8 @@ import junit.framework.TestCase;
 public class TestGetDevice extends TestCase {
 	
 	public void testGetDevice(){
+		
+		
 		try{
 		Properties opt = new Properties();
 		String deviceType = "";
@@ -35,6 +37,7 @@ public class TestGetDevice extends TestCase {
 			String key = (String) enuKeys.nextElement();
 			System.out.println(key + ": " );
 			if(key.equals("deviceType") ){
+				
 				deviceType = properties.getProperty(key);
 				
 			}
@@ -50,11 +53,11 @@ public class TestGetDevice extends TestCase {
 				authToken = properties.getProperty(key);
 				
 			}
+			//System.out.println(key + ": " + value);
 		}
-
+	
 		opt.put("authKey", authKey);
 		opt.put("authToken", authToken);
-
 		DeviceFactory factory = new DeviceFactory(opt);
 		//String metadata = "";
 		Device device = factory.getDevice(deviceType, deviceId);
@@ -65,7 +68,8 @@ public class TestGetDevice extends TestCase {
 		
 		assertEquals("Getdevices", 0, factory.getDevices());
 		//assertEquals("A test for Hello World String", "Hello World", hello.sayHello());
-
+		
+		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -74,5 +78,4 @@ public class TestGetDevice extends TestCase {
 		
 
 	}
-
 }
