@@ -2,7 +2,7 @@ package com.ibm.iotf.client.app;
 
 
 /**
- * @deprecated This would be eventually replaced by com.ibm.iotf.client.device.CommandCallback <br>
+ * @deprecated This interface would be eventually replaced by com.ibm.iotf.client.device.CommandCallback <br>
  * Currently retained for command subscription by application
  * Interface to provide callback methods for command subscription <br>
  * This can be used by applications to subscribe to commands

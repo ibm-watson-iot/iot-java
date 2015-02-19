@@ -21,8 +21,18 @@ public class Command extends Message{
 	
 	/**
 	 * Note that this class does not have a default constructor
-	 * However, currently it is retained for command subscription by application
-	 * This class has only accessors and no mutators and later on might be made final
+	 * @param type
+	 * 			Object of String which denotes command type
+	 * @param id
+	 * 			Object of String which denotes command id
+	 * @param command
+	 * 			Object of String which denotes actual command type
+	 * @param format
+	 * 			Object of String which denotes command format, say json
+	 * @param msg
+	 * 			MqttMessage
+	 * @see <a href="Paho Client Library">http://www.eclipse.org/paho/files/javadoc/index.html</a> 
+	 * @throws UnsupportedEncodingException 
 	 * 
 	 */	
 	public Command(String type, String id, String command, String format, MqttMessage msg) throws UnsupportedEncodingException{

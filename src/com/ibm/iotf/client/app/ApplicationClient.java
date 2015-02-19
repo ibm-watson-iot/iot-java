@@ -4,7 +4,6 @@ import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -22,8 +21,9 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.AbstractClient;
 
 /**
- * A client that handles connections with the IBM Internet of Things Foundation
- * Service.
+ * A client, used by application, that handles connections with the IBM Internet of Things Foundation. <br>
+ * 
+ * This is a derived class from AbstractClient and can be used by end-applications to handle connections with IBM Internet of Things Foundation.
  */
 public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
@@ -42,8 +42,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	private HashMap<String, Integer> subscriptions = new HashMap<String, Integer>();
 	
 	/**
-	 * Create a device client for the IBM Internet of Things Foundation. Connecting to
-	 * a specific account on the service.
+	 * Create an application client for the IBM Internet of Things Foundation. 
+	 * Connecting to specific org on IBM Internet of Things Foundation
 	 * @param options
 	 * 					An object of the class Properties
 	 * @throws Exception 
@@ -250,7 +250,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	/**
 	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
 	 * Quality of Service is set to 0
-	 * All events, for the gievn org are subscribed to
+	 * All events, for the given org are subscribed to
 	 */
 	public void subscribeToDeviceEvents() {
 		subscribeToDeviceEvents("+", "+", "+", 0);

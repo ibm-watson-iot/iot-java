@@ -1,7 +1,7 @@
 package com.ibm.iotf.client.device;
 
-/*
- * Interface to provide callback methods for command subscription
+/**
+ * Interface to provide callback methods for command subscription  <br>
  * This can be used by devices to subscribe to commands
  * 
  */

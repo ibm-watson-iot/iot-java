@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -24,7 +23,7 @@ import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import com.google.gson.Gson;
 
 /**
- * A client that handles connections with the IBM Internet of Things Foundation.
+ * A client that handles connections with the IBM Internet of Things Foundation. <br>
  * This is an abstract class which has to be extended
  */
 public abstract class AbstractClient {

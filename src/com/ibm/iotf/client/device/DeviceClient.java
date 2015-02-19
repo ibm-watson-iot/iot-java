@@ -19,7 +19,7 @@ import com.ibm.iotf.client.AbstractClient;
 
 
 /**
- * A client that handles connections with the IBM Internet of Things Foundation. <br>
+ * A client, used by device, that handles connections with the IBM Internet of Things Foundation. <br>
  * 
  * This is a derived class from AbstractClient and can be used by embedded devices to handle connections with IBM Internet of Things Foundation.
  */

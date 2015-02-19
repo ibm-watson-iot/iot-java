@@ -6,6 +6,11 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import com.ibm.iotf.client.Message;
 
+/**
+ * The objects of this class hold the command and the format of the command sent to a device <br>
+ * This class has only accessors and no mutators and later on might be made final
+ * 
+ */
 
 
 public class Command extends Message{
