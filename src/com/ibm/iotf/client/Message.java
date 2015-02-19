@@ -14,6 +14,12 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.ibm.iotf.client.app.ApplicationClient;
 
+
+/**
+ * This class encapsulates the Message and is inherited by Event and Command <br>
+ * This class may e made abstract later on
+ *
+ */
 public class Message {
 	
 	private static final String CLASS_NAME = ApplicationClient.class.getName();
@@ -26,6 +32,12 @@ public class Message {
 	protected String data = null;
 	protected DateTime timestamp = null;
 	
+	/**
+	 * 
+	 * @param msg
+	 * 				MqttMessage
+	 * @throws UnsupportedEncodingException
+	 */
 	public Message(MqttMessage msg) throws UnsupportedEncodingException{
 		this.payload = new String(msg.getPayload(), "UTF8");
 		
@@ -54,6 +66,14 @@ public class Message {
 		}
 	}
 
+	/**
+	 * 
+	 * @param msg
+	 * 				MqttMessage
+	 * @param format
+	 * 				an object of String which comtains format such as json
+	 * @throws UnsupportedEncodingException
+	 */
 	public Message(MqttMessage msg, String format) throws UnsupportedEncodingException{
 		this.payload = new String(msg.getPayload(), "UTF8");
 		
@@ -96,6 +116,10 @@ public class Message {
 		return timestamp;
 	}
 
+	/**
+	 * 
+	 * Provides a human readable String representation of message, including timestamp and data.
+	 */
 	public String toString() {
 		return "[" + timestamp.toString() + "] " + data.toString(); 
 	}

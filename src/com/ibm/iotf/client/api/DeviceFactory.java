@@ -138,6 +138,14 @@ public class DeviceFactory {
 		return line;
 	}
 
+	/**
+	 * This method retrieves a device in the org whose authkey and token were passed previously
+	 * @param deviceType
+	 * 				an object of String which contains device type
+	 * @param deviceId
+	 * 				an object of String which contains device id
+	 * @return Device
+	 */
 	public Device getDevice(String deviceType, String deviceId) {
 		String orgid = this.authKey.substring(2, 8);
 		String url = "https://internetofthings.ibmcloud.com/api/v0001/organizations/" + orgid + "/devices/" + deviceType + "/" + deviceId;
@@ -157,6 +165,12 @@ public class DeviceFactory {
 		return device;		
 	}
 
+	
+	/**
+	 * This method returns an array of all the devices belonging to the organization
+	 * @return devices
+	 * 			An array of devices
+	 */
 	public Device[] getDevices() {
 		String orgid = this.authKey.substring(2, 8);
 		String url = "https://internetofthings.ibmcloud.com/api/v0001/organizations/" + orgid + "/devices";
@@ -182,6 +196,16 @@ public class DeviceFactory {
 		return deviceList.toArray(new Device[0]);
 	}
 
+	
+	/**
+	 * This method accepts variable number of arguments and returns a list of historical events <br>
+	 * If only one argument is passed, it contains the device type <br>
+	 * If 2 arguments are passed the 2nd argument represents deviceId
+	 * @param deviceInfo
+	 * 			
+	 * @return array of historical events
+	 */
+	
 	public HistoricalEvent[] getHistoricalEvents(String ... deviceInfo) {
 		String orgid = this.authKey.substring(2, 8);
 		String deviceType = deviceInfo.length > 0 ? deviceInfo[0] : null;
@@ -218,6 +242,16 @@ public class DeviceFactory {
 		return messageList.toArray(new HistoricalEvent[0]);
 	}
 	
+	/**
+	 * This method registers a device
+	 * @param deviceType
+	 * 				object of String representing device type
+	 * @param deviceId
+	 * 				object of String representing device id
+	 * @param metadata
+	 * 				object of String representing metadata. This value can be null
+	 * @return device
+	 */
 	public Device registerDevice(String deviceType, String deviceId, String metadata) {
 		String orgid = authKey.substring(2, 8);
 		String url = "https://internetofthings.ibmcloud.com/api/v0001/organizations/" + orgid + "/devices";
@@ -243,6 +277,15 @@ public class DeviceFactory {
 		return device;		
 	}
 	
+	
+	/**
+	 * This method deletes the device which matches the device id and type of the organization
+	 * @param deviceType
+	 * 				object of String which represents device Type
+	 * @param deviceId
+	 * 				object of String which represents device id
+	 * @return boolean to denote success or failure of operation
+	 */
 	public boolean deleteDevice(String deviceType, String deviceId) {
 
 		String orgid = authKey.substring(2, 8);
