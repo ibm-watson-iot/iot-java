@@ -1,13 +1,13 @@
 iot-java (This is a pre-release version and its still a work in progress)
 ========
-The Java Client Library cab be used to connect to the [IBM Internet of Things (IoT) Foundation](https://internetofthings.ibmcloud.com/). Use the Java Client Library for the following activities:  
+The Java Client Library can be used to connect to the [IBM Internet of Things (IoT) Foundation](https://internetofthings.ibmcloud.com/). Use the Java Client Library for the following activities:  
 
 * Subscribe to device events, device status, application status
 * Register Devices, de-register devices and retrieve information about devices 
 * Retrieve Historian Information
 
 All samples are based on common client code.  This client uses google-gson to convert Java objects to a
-JSON, which is supports the sending 
+JSON object. 
 
 Apache Ant is required if you wish to build the project locally.
  
@@ -327,13 +327,13 @@ Applications can publish commands to connected devices
 
         client.connect();
         HashMap<String, String> commandData = new HashMap<String, String>();
-        dataMap.put("reboot", "3");
+        commandData.put("reboot", "3");
         client.publishCommand("myDeviceType", "myDeviceId", "reboot", commandData)
 ```
 
 ## Device Registration, Information Retrieval and Device Deletion
 
-The IoT Foundation client library can also be used for device registration, deletion and device information  retrieval
+The IoT Foundation client library can also be used for device registration, deletion and device information  retrieval.
 
 ```DeviceFactory``` is used to register devices, retrieve information about existing device(s) and delete an existing device. 
 
@@ -374,7 +374,7 @@ The IoT Foundation client library can also be used for device registration, dele
 
 ```DeviceFactory``` constructor accepts an `options(java.util.Properties)` as follows
 * authKey - The API Key for external device development
-* authToken - The Auth Token for the API Key
+* authToken - The Auth Token for the API Key.
 
 ```deleteDevice``` method accepts deviceType and deviceId as follows
 * deviceType - String which contains a deviceType
@@ -401,9 +401,9 @@ The IoT Foundation client library can also be used for device registration, dele
 
 ```DeviceFactory``` constructor accepts an `options(java.util.Properties)` as follows
 * authKey - The API Key for external device development
-* authToken - The Auth Token for the API Key
+* authToken - The Auth Token for the API Key.
 
-```getDevices``` method doesn't take any parameters and returns a list of devices registered with the given organization
+```getDevices``` method doesn't take any parameters and returns a list of devices registered with the given organization.
 
 ```java
 
@@ -422,9 +422,9 @@ The IoT Foundation client library can also be used for device registration, dele
 
 ### Historian Information Retrieval
 
-```HistoricalEvent``` constructor is a default constructor
+```HistoricalEvent``` constructor is a default constructor.
 
-```getHistoricalEvents``` method of the class DeviceFactory returns an array of Historian events (atmost last 100). It is overloaded and accepts varying number of arguments
+```getHistoricalEvents``` method of the class DeviceFactory returns an array of Historian events (at most last 100). It is overloaded and accepts varying number of arguments.
 #### 2 arguments
 * deviceType which is of String type
 * deviceId which is of String type
