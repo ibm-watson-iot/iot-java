@@ -20,6 +20,10 @@ public class IoTFAgent {
 	public Properties options = new Properties();
 	public ApplicationClient client = null;
 	public BlockingQueue<String> messages =  new LinkedBlockingQueue<String>();
+	public String deviceType = "iotsample-arduino";
+	public String deviceId = "000000000001";
+	public String eventType = "status";
+	public String formatType = "json";
 	
 	public IoTFAgent(BlockingQueue<String> messages) {
 		this.messages = messages;
@@ -49,10 +53,7 @@ public class IoTFAgent {
 		} catch(Exception ex) {
 		
 		}
-			
-	//	options.put("auth-key", "a-uguhsp-8ya0dmsjh9");
-	//	options.put("auth-token", ")2lMPstbsqkOTs@s&M");
-		
+
 		try {
 			client = new ApplicationClient(options);
 		} catch (Exception e) {
@@ -62,7 +63,7 @@ public class IoTFAgent {
 		client.connect();
 		client.setEventCallback(new MyEventCallback(messages));
 		client.setStatusCallback(new MyStatusCallback());
-		client.subscribeToDeviceEvents("iotsample-arduino", "00aabbccde03", "status", "nonjson", 0);
+		client.subscribeToDeviceEvents(deviceType, deviceId, eventType, formatType, 0);
 				
 	}
 	
@@ -93,6 +94,62 @@ public class IoTFAgent {
 		public void processDeviceStatus(DeviceStatus status) {
 	//		System.out.println("Device Status = " + status.getPayload());
 		}
+	}
+
+	public Properties getOptions() {
+		return options;
+	}
+
+	public void setOptions(Properties options) {
+		this.options = options;
+	}
+
+	public ApplicationClient getClient() {
+		return client;
+	}
+
+	public void setClient(ApplicationClient client) {
+		this.client = client;
+	}
+
+	public BlockingQueue<String> getMessages() {
+		return messages;
+	}
+
+	public void setMessages(BlockingQueue<String> messages) {
+		this.messages = messages;
+	}
+
+	public String getDeviceType() {
+		return deviceType;
+	}
+
+	public void setDeviceType(String deviceType) {
+		this.deviceType = deviceType;
+	}
+
+	public String getDeviceId() {
+		return deviceId;
+	}
+
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
+	}
+
+	public String getEventType() {
+		return eventType;
+	}
+
+	public void setEventType(String eventType) {
+		this.eventType = eventType;
+	}
+
+	public String getFormatType() {
+		return formatType;
+	}
+
+	public void setFormatType(String formatType) {
+		this.formatType = formatType;
 	}
 	
 }
