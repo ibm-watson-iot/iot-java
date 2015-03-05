@@ -8,8 +8,8 @@
 </head>
 <body>
 <frameset cols="20%,80%">
-	<frame name = "leftside" src="/index.jsp">
-	<frame name = "rightside" src="/frame2.jsp">
+	<frame name = "leftside" src="/index.html">
+	<frame name = "rightside" src="/frame.jsp">
 </frameset>
 
 </body>
