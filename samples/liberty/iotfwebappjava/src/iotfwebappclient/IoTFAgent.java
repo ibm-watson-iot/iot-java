@@ -53,10 +53,7 @@ public class IoTFAgent {
 		} catch(Exception ex) {
 		
 		}
-			
-	//	options.put("auth-key", "a-uguhsp-8ya0dmsjh9");
-	//	options.put("auth-token", ")2lMPstbsqkOTs@s&M");
-		
+
 		try {
 			client = new ApplicationClient(options);
 		} catch (Exception e) {
