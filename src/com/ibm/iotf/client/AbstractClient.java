@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -24,8 +23,8 @@ import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import com.google.gson.Gson;
 
 /**
- * A client that handles connections with the IBM Internet of Things Cloud
- * Service.
+ * A client that handles connections with the IBM Internet of Things Foundation. <br>
+ * This is an abstract class which has to be extended
  */
 public abstract class AbstractClient {
 	
@@ -71,6 +70,14 @@ public abstract class AbstractClient {
 	protected MqttConnectOptions mqttClientOptions;
 	protected MqttCallback mqttCallback;
 	
+
+	/**
+	 * Note that this class does not have a default constructor <br>
+	 * @param options
+	 * 			Properties object which contains different artifacts such as auth-key
+	 * 
+	 */		
+	
 	public AbstractClient(Properties options) {
 		this.options = options;
 		LOG.fine(options.toString());
@@ -78,7 +85,12 @@ public abstract class AbstractClient {
 	
 	/**
 	 * Create the Paho MQTT Client that will underpin the Device client.
-	 */
+	 * @param callback
+	 * 			MqttCallback 
+	 * @see <a href="Paho Client Library">http://www.eclipse.org/paho/files/javadoc/index.html</a> 
+	 * 
+	 */	
+
 	protected void createClient(MqttCallback callback) {
 		System.out.println("Org ID          = " + getOrgId());
 		System.out.println("Client ID       = " + clientId);
@@ -90,7 +102,7 @@ public abstract class AbstractClient {
 	}
 	
 	/**
-	 * Connect to the IBM Internet of Things Cloud service.
+	 * Connect to the IBM Internet of Things Foundation
 	 */
 	public void connect() {
 		boolean tryAgain = true;
@@ -121,7 +133,7 @@ public abstract class AbstractClient {
 			}
 			
 			if (mqttClient.isConnected()) {
-				LOG.info("Successfully connected to the IBM Internet of Things Cloud");
+				LOG.info("Successfully connected to the IBM Internet of Things Foundation");
 				if (LOG.isLoggable(Level.FINEST)) {
 					LOG.finest(" * Connection attempts: " + connectAttempts);
 				}
@@ -217,13 +229,13 @@ public abstract class AbstractClient {
 	}
 	
 	/**
-	 * Disconnect the device from the IBM Internet of Things Cloud Service
+	 * Disconnect the device from the IBM Internet of Things Foundation
 	 */
 	public void disconnect() {
-		LOG.fine("Disconnecting from the IBM Internet of Things Cloud ...");
+		LOG.fine("Disconnecting from the IBM Internet of Things Foundation ...");
 		try {
 			mqttClient.disconnect();
-			LOG.info("Successfully disconnected from from the IBM Internet of Things Cloud");
+			LOG.info("Successfully disconnected from from the IBM Internet of Things Foundation");
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
@@ -232,9 +244,9 @@ public abstract class AbstractClient {
 	
 	/**
 	 * Determine whether this device is currently connected to the IBM Internet
-	 * of Things Cloud service.
+	 * of Things Foundation.
 	 * 
-	 * @return Whether the device is connected to the IBM Internet of Things Cloud
+	 * @return Whether the device is connected to the IBM Internet of Things Foundation
 	 */
 	public boolean isConnected() {
 		return mqttClient.isConnected();
@@ -244,12 +256,20 @@ public abstract class AbstractClient {
 	 * Provides a human readable String representation of this Device, including the number
 	 * of messages sent and the current connect status.
 	 * 
-	 * @Return String representation of the Device.
+	 * @return String representation of the Device.
 	 */
 	public String toString() {
 		return "[" + clientId + "] " + messageCount + " messages sent - Connected = " + String.valueOf(isConnected());
 	}
-	
+
+	/**
+	 * Parses properties file and returns back an object of Properties class
+	 * 
+	 * @param propertiesFile
+	 * 						File object
+	 * @return properties
+	 * 						Properties object
+	 */	
 	public static Properties parsePropertiesFile(File propertiesFile) {
 		Properties clientProperties = new Properties();
 		FileInputStream in;
@@ -266,7 +286,13 @@ public abstract class AbstractClient {
 		}
 		return clientProperties;
 	}
-
+	
+	/**
+	 * Returns the orgid for this client
+	 * 
+	 * @return orgid
+	 * 						String orgid
+	 */
 	public String getOrgId() {
 //		return options.getProperty("org");
 		String authKeyPassed = options.getProperty("auth-key");

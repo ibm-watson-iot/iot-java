@@ -10,7 +10,12 @@ import org.joda.time.format.ISODateTimeFormat;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class Status {
+
+/**
+ * This is an abstract class which is inherited by application status and device status
+ *
+ */
+public abstract class Status {
 	protected final static JsonParser JSON_PARSER = new JsonParser();
 	protected final static DateTimeFormatter DT_PARSER = ISODateTimeFormat.dateTimeParser();
 
@@ -25,6 +30,11 @@ public class Status {
 	
 	public String payload;
 	
+	/**
+	 * This class does not have a default constructor and has a single argument constructor
+	 * @param msg
+	 * @throws UnsupportedEncodingException
+	 */
 	public Status(MqttMessage msg) throws UnsupportedEncodingException{
 		this.payload = new String(msg.getPayload(), "UTF8");
 		
@@ -54,7 +64,10 @@ public class Status {
 		return payload;
 	}
 
-	
+	/**
+	 * 
+	 * Provides a human readable String representation of status, including timestamp, client id, action and (possibly) reason.
+	 */		
 	public String toString() {
 		if (action.equals("Disconnect")) {
 			return "Status [" + time.toString() + "] " + clientId + ":" + action + " (" + reason + ")";

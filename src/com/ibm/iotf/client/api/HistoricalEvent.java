@@ -1,12 +1,11 @@
 package com.ibm.iotf.client.api;
 
-
-/*
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-*/
+/**
+ * 
+ * A bean which represents Historical event <br>
+ * This class has accessors and mutators
+ *
+ */
 
 public class HistoricalEvent {
 
@@ -22,17 +21,6 @@ public class HistoricalEvent {
 		
 	}
 
-/*	
-	public HistoricalEvent(JsonElement messageElement) {
-		JsonObject responseJson = messageElement.getAsJsonObject();
-		org_id = responseJson.get("org_id").toString();
-		device_type = responseJson.get("device_type").toString();
-		device_id = responseJson.get("device_id").toString();
-		evt_type = responseJson.get("evt_type").toString();
-		evt = responseJson.get("evt").toString();
-		timestamp = responseJson.get("timestamp").toString();
-	}
-*/	
 	public String getOrg_id() {
 		return org_id;
 	}
@@ -80,4 +68,13 @@ public class HistoricalEvent {
 	public void setEvt(String evt) {
 		this.evt = evt;
 	}
+	
+	/**
+	 * 
+	 * Provides a human readable String representation of this HistoricalEvent, including the event, event type, org id, device type, device id and timestamp.
+	 */		
+	public String toString() {
+		return "HistoricalEvent : evt = " + evt + " evt_type = " + evt_type + " org_id = " + org_id + " device_type = " + device_type + " device_id = " + device_id +
+				" timestamp = " + timestamp;
+	}	
 }
