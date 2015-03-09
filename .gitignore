@@ -6,3 +6,5 @@ lib/com.ibm.iotcloud.samples-1.0.0.jar
 .settings/org.eclipse.jdt.core.prefs
 .classpath
 *.cfg
+/tmp
+/output

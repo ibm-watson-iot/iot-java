@@ -7,14 +7,6 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import com.ibm.iotf.client.Message;
 
 
-/**
- * @deprecated This would be eventually replaced by com.ibm.iotf.client.device.Command <br>
- * However, currently it is retained for command subscription by application
- * This class has only accessors and no mutators and later on might be made final
- * 
- */
-
-@Deprecated
 public class Command extends Message{
 
 	private String type, id, command, format;
