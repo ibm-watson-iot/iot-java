@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="samples/common/src"/>
+	<classpathentry kind="src" path="samples/sigar/src"/>
+	<classpathentry kind="src" path="samples/simpleLibertyApp/src"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.paho.client.mqttv3.jar"/>
+	<classpathentry kind="lib" path="lib/gson-2.2.4.jar"/>
+	<classpathentry kind="lib" path="lib/joda-time-2.6.jar"/>
+	<classpathentry kind="lib" path="lib/httpcore-4.3.3.jar"/>
+	<classpathentry kind="lib" path="lib/httpclient-4.3.6.jar"/>
+	<classpathentry kind="lib" path="lib/commons-net-3.3.jar"/>
+	<classpathentry kind="lib" path="samples/sigar/lib/log4j.jar"/>
+	<classpathentry kind="lib" path="samples/sigar/lib/sigar.jar"/>
+	<classpathentry kind="lib" path="samples/common/lib/args4j-2.0.21.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/com.ibm.ws.st.core.runtimeClasspathProvider/WebSphere Application Server V8.5 Liberty Profile"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
