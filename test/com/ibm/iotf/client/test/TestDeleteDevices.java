@@ -1,4 +1,4 @@
-package com.ibm.iotf.client.device.test;
+package com.ibm.iotf.client.test;
 
 
 

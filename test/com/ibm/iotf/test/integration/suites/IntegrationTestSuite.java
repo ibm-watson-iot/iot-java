@@ -1,4 +1,4 @@
-package com.ibm.iotf.client.device.test.integration.suites;
+package com.ibm.iotf.test.integration.suites;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
