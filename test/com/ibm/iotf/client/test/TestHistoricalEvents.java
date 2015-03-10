@@ -1,4 +1,4 @@
-package com.ibm.iotf.client.test;
+package com.ibm.iotf.client.device.test;
 
 
 
@@ -23,7 +23,7 @@ public class TestHistoricalEvents extends TestCase {
 			Properties opt = new Properties();
 		
 			
-			File file = new File("src/com/ibm/iotf/client/device/test/test.properties");
+			File file = new File("test/test.properties");
 			FileInputStream fileInput = new FileInputStream(file);
 			Properties properties = new Properties();
 			properties.load(fileInput);
