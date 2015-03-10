@@ -9,7 +9,7 @@ import org.junit.Test;
 import com.ibm.iotf.client.app.ApplicationClient;
 import junit.framework.TestCase;
 
-public class TestPublish extends TestCase{
+public class TestPublishInvalidAuthToken extends TestCase{
 	
 	@Test
 	public void testPublish(){
@@ -28,7 +28,7 @@ public class TestPublish extends TestCase{
 
 		
 		opt.put("auth-key", properties.getProperty("authKey"));
-		opt.put("auth-token", properties.getProperty("authToken"));
+		opt.put("auth-token", "authToken");
 		opt.put("id", properties.getProperty("id"));
 		opt.put("auth-method", properties.getProperty("auth-method"));
 		
@@ -36,7 +36,7 @@ public class TestPublish extends TestCase{
 	
 		client = new ApplicationClient(opt);
 		client.connect();
-		client.publishEvent(properties.getProperty("deviceType"), properties.getProperty("deviceId"), properties.getProperty("event"), 0);
+		client.publishEvent("deviceType", properties.getProperty("deviceId"), properties.getProperty("event"), 0);
 		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

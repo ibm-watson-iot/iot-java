@@ -1,4 +1,4 @@
-package com.ibm.iotf.client.test;
+package com.ibm.iotf.client.device.test;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,7 +29,7 @@ public class TestSubscriptionToDeviceCommand extends TestCase{
 
 		
 		
-		File file = new File("src/com/ibm/iotf/client/device/test/test.properties");
+		File file = new File("test/test.properties");
 		FileInputStream fileInput = new FileInputStream(file);
 		Properties properties = new Properties();
 		properties.load(fileInput);

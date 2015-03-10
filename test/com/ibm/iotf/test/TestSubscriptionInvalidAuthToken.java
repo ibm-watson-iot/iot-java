@@ -6,9 +6,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
-import junit.framework.TestCase;
-
 import org.junit.Test;
+
+
+
 
 import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.client.app.ApplicationStatus;
@@ -18,17 +19,19 @@ import com.ibm.iotf.client.app.Event;
 import com.ibm.iotf.client.app.EventCallback;
 import com.ibm.iotf.client.app.StatusCallback;
 
+import junit.framework.TestCase;
 
-public class TestSubscriptionToDeviceEvents extends TestCase{
+public class TestSubscriptionInvalidAuthToken extends TestCase{
 	
 	@Test
 	public void testSubscribe(){
 		try{
 		Properties opt = new Properties();
 		ApplicationClient client = null;
-
 		
 		
+		
+			
 		File file = new File("test/test.properties");
 		FileInputStream fileInput = new FileInputStream(file);
 		Properties properties = new Properties();
@@ -37,14 +40,11 @@ public class TestSubscriptionToDeviceEvents extends TestCase{
 
 		
 		
-		
-		
-		
+
 		opt.put("auth-key", properties.getProperty("authKey"));
-		opt.put("auth-token", properties.getProperty("authToken"));
+		opt.put("auth-token", "authToken");
 		opt.put("id", properties.getProperty("id"));
 		opt.put("auth-method", properties.getProperty("auth-method"));
-		
 	
 	
 		client = new ApplicationClient(opt);
@@ -53,8 +53,7 @@ public class TestSubscriptionToDeviceEvents extends TestCase{
 		
 		client.setEventCallback(new MyEventCallback());
 		client.setStatusCallback(new MyStatusCallback());
-		
-		client.subscribeToDeviceEvents(properties.getProperty("deviceType"), properties.getProperty("deviceId"), "status", "nonjson", 0);
+		client.subscribeToDeviceStatus();
 		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
