@@ -50,6 +50,10 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 */
 	public ApplicationClient(Properties options) throws Exception {
 		super(options);
+		if(getOrgId()==null){
+			
+			throw new Exception("Invalid Auth Key");
+		}
 		this.clientId = "a" + CLIENT_ID_DELIMITER + getOrgId() + CLIENT_ID_DELIMITER + getAppId();
 		
 		if (getAuthMethod() == null) {
@@ -367,7 +371,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 
 	/**
 	 * Unsubscribe from device events of the IBM Internet of Things Foundation. <br>
-	 * This command is not tested completely and so is deprecated till testing is over
 	 * 
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -380,7 +383,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
 	 */
-	@Deprecated
 	public void unsubscribeFromDeviceEvents(String deviceType, String deviceId, String event, String format, int qos) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/" + format;
