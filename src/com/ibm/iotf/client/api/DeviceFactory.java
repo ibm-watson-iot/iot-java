@@ -148,7 +148,7 @@ public class DeviceFactory {
 	 */
 	public Device getDevice(String deviceType, String deviceId) {
 		String orgid = this.authKey.substring(2, 8);
-		String url = "https://internetofthings.ibmcloud.com/api/v0001/organizations/" + orgid + "/devices/" + deviceType + "/" + deviceId;
+		String url = "https://"+ orgid +".internetofthings.ibmcloud.com/api/v0001" + "/devices/" + deviceType + "/" + deviceId;
 		String jsonPacket = "{\"type\": \"" + deviceType + "\",\"id\": \"" + deviceId+ "\"}";
 
 		String response = connect("get", url, jsonPacket);
@@ -173,7 +173,7 @@ public class DeviceFactory {
 	 */
 	public Device[] getDevices() {
 		String orgid = this.authKey.substring(2, 8);
-		String url = "https://internetofthings.ibmcloud.com/api/v0001/organizations/" + orgid + "/devices";
+		String url = "https://"+ orgid +".internetofthings.ibmcloud.com/api/v0001/devices";
 
 		String response = connect("get", url, null);
 		JsonArray responseJsonArray = new JsonParser().parse(response).getAsJsonArray();
@@ -213,11 +213,11 @@ public class DeviceFactory {
 		
 		String url = new String();
 		if(deviceType != null && deviceId != null) {
-			url = "https://internetofthings.ibmcloud.com/api/v0001/historian/" + orgid + "/" + deviceType + "/" + deviceId;
+			url = "https://"+ orgid +".internetofthings.ibmcloud.com/api/v0001/historian/" + deviceType + "/" + deviceId;
 		} else if( deviceType != null ) {
-			url = "https://internetofthings.ibmcloud.com/api/v0001/historian/" + orgid + "/" + deviceType;
+			url = "https://"+ orgid +".internetofthings.ibmcloud.com/api/v0001/historian/" + deviceType;
 		} else {
-			url = "https://internetofthings.ibmcloud.com/api/v0001/historian/" + orgid;
+			url = "https://"+ orgid +".internetofthings.ibmcloud.com/api/v0001/historian";
 		}
 		
 		String response = connect("get", url, null);		
@@ -254,7 +254,7 @@ public class DeviceFactory {
 	 */
 	public Device registerDevice(String deviceType, String deviceId, String metadata) {
 		String orgid = authKey.substring(2, 8);
-		String url = "https://internetofthings.ibmcloud.com/api/v0001/organizations/" + orgid + "/devices";
+		String url = "https://"+ orgid +".internetofthings.ibmcloud.com/api/v0001" + "/devices";
 		String jsonPacket = "{\"type\": \"" + deviceType + "\",\"id\": \"" + deviceId+ "\"}";
 
 		String response = connect("post", url, jsonPacket);
@@ -289,7 +289,7 @@ public class DeviceFactory {
 	public boolean deleteDevice(String deviceType, String deviceId) {
 
 		String orgid = authKey.substring(2, 8);
-		String url = "https://internetofthings.ibmcloud.com/api/v0001/organizations/" + orgid + "/devices/" + deviceType + "/" + deviceId;
+		String url = "https://"+ orgid +".internetofthings.ibmcloud.com/api/v0001/devices/" + deviceType + "/" + deviceId;
 		String jsonPacket = "{\"type\": \"" + deviceType + "\",\"id\": \"" + deviceId+ "\"}";
 
 		String response = connect("delete", url, jsonPacket);
@@ -315,8 +315,8 @@ public class DeviceFactory {
 		String deviceId = "00aaaaaaaa02";
 
 		Properties opt = new Properties();
-		opt.setProperty("authKey", "some auth");
-		opt.setProperty("authToken", "some token");
+		opt.setProperty("authKey", "xxx");
+		opt.setProperty("authToken", "yyy");
 		DeviceFactory factory = new DeviceFactory(opt);
 		
 		String metadata = "";
@@ -341,17 +341,29 @@ public class DeviceFactory {
 //		Historian retrieval		
 		
 		HistoricalEvent [] listHistory = factory.getHistoricalEvents(deviceType, "00aabbccde03");
-		System.out.println("Events obtained = " + listHistory.length);
+		System.out.println("Events obtained 00 = " + listHistory.length);
+		
+		HistoricalEvent [] listHistory1 = factory.getHistoricalEvents(deviceType, deviceId);
+		System.out.println("Events obtained 00 = " + listHistory1.length);
+		
+		HistoricalEvent [] listHistory2 = factory.getHistoricalEvents("mbed", "bed01");
+		System.out.println("Events obtained 11 = " + listHistory2.length);
+		
+		HistoricalEvent [] listHistory3 = factory.getHistoricalEvents("mbed");
+		System.out.println("Events obtained 12 = " + listHistory3.length);
 		
 		listHistory = factory.getHistoricalEvents(deviceType);
-		System.out.println("Events obtained = " + listHistory.length);
+		System.out.println("Events obtained 00= " + listHistory.length);
 		
 		listHistory = factory.getHistoricalEvents();
-		System.out.println("Events obtained = " + listHistory.length);
+		System.out.println("Events obtained 22 = " + listHistory.length);
 		
 		System.out.println("Devices obtained = " + listDevices.length);
 		boolean deletion = factory.deleteDevice(deviceType, deviceId);
 		System.out.println("Operation was successful? " + deletion);
+		
+		Device [] listDevices1 = factory.getDevices();
+		System.out.println("Devices obtained = " + listDevices1.length);	
 	}
 */
 }
