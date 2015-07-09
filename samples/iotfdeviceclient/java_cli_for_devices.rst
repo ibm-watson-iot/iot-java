@@ -275,7 +275,7 @@ When the device client connects it automatically subscribes to any command for t
 			options.setProperty("type", "iotsample-arduino");
 			options.setProperty("id", "00aabbccde03");
 			options.setProperty("auth-method", "token");
-			options.setProperty("auth-token", "t*sf0tR@UxJ8emDrqP");
+			options.setProperty("auth-token", "API TOKEN");
 			
 			DeviceClient myClient = null;
 			try {
