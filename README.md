@@ -3,7 +3,7 @@ iot-java
 The Java Client Library can be used to connect to the [IBM Internet of Things (IoT) Foundation](https://internetofthings.ibmcloud.com/). The library has both 
 
 * Application APIs, as well as,
-* Device APIs. 
+* Device APIs. (Refer to https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/java_cli_for_devices.rst for more documentation) 
 
 Use the Java Client Library for the following activities:  
 
