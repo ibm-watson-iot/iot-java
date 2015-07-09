@@ -7,7 +7,8 @@ Use the Java client library for interacting with the `IBM Internet of Things Fou
 -  `Java 7 <http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html>`__
 -  `Java 8 <https://java.com/en/download/>`__
 
-This client library is divided into three sections, all included within the library. 
+This client library is divided into three sections, all included within the library.  
+
 -  The Devices section contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
 -  The Applications section contains information on how applications can use the Java ibmiotf Client Library to interact with devices. 
 -  The Historian section contains information on how applications can use the Java ibmiotf Client Library to retrieve the historical information.
