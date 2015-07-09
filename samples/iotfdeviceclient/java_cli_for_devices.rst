@@ -100,7 +100,7 @@ The following program shows a device publishing events in a registered flow
 			options.setProperty("type", "iotsample-arduino");
 			options.setProperty("id", "00aabbccde03");
 			options.setProperty("auth-method", "token");
-			options.setProperty("auth-token", "ATUTH TOKEN FOR DEVICE");
+			options.setProperty("auth-token", "AUTH TOKEN FOR DEVICE");
 			
 			DeviceClient myClient = null;
 			try {
@@ -236,6 +236,12 @@ Events can be published at higher MQTT quality of servive levels, but these even
 Handling commands
 -------------------------------------------------------------------------------
 When the device client connects it automatically subscribes to any command for this device. To process specific commands you need to register a command callback method. 
+The messages are returned as an instance of the Command class which has the following properties:
+
+* payload - java.lang.String
+* format - java.lang.String
+* command - java.lang.String
+* timestamp - org.joda.time.DateTime
 
 .. code:: java
 
@@ -275,7 +281,7 @@ When the device client connects it automatically subscribes to any command for t
 			options.setProperty("type", "iotsample-arduino");
 			options.setProperty("id", "00aabbccde03");
 			options.setProperty("auth-method", "token");
-			options.setProperty("auth-token", "API TOKEN");
+			options.setProperty("auth-token", "AUTH TOKEN FOR DEVICE");
 			
 			DeviceClient myClient = null;
 			try {

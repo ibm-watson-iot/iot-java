@@ -32,14 +32,10 @@ import com.ibm.iotf.client.device.DeviceClient;
 //Implement the CommandCallback class to provide the way in which you want the command to be handled
 class MyNewCommandCallback implements CommandCallback{
 	
-	public MyNewCommandCallback() {
-	}
-
 	//In this sample, we are just displaying the command the moment the device recieves it
 	@Override
 	public void processCommand(Command command) {
-		System.out.println("COMMAND RECEIVED...." + command.getPayload());
-		
+		System.out.println("COMMAND RECEIVED = '" + command.getCommand() + "'\twith Payload = '" + command.getPayload() + "'");		
 	}
 }
 
