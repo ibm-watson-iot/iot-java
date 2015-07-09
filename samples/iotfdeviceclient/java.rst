@@ -7,6 +7,11 @@ Use the Java client library for interacting with the `IBM Internet of Things Fou
 -  `Java 7 <http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html>`__
 -  `Java 8 <https://java.com/en/download/>`__
 
+This client library is divided into three sections, all included within the library. 
+-  The Devices section contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
+-  The Applications section contains information on how applications can use the Java ibmiotf Client Library to interact with devices. 
+-  The Historian section contains information on how applications can use the Java ibmiotf Client Library to retrieve the historical information.
+
 
 
 Dependencies
@@ -15,11 +20,11 @@ Dependencies
 -  `Paho MQTT Java Client <http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt.java.git/>`__   - provides a client class which enable applications to connect to an MQTT broker
 -  `google-gson <https://code.google.com/p/google-gson/>`__   - library for interacting with JSON objects
 -  `Apache Commons Logging <http://commons.apache.org/proper/commons-logging/download_logging.cgi>`__   - library for logging various informations
--  `Apache Commons Codec <http://commons.apache.org/proper/commons-logging/download_logging.cgi>`__ (http://commons.apache.org/proper/commons-logging/download_logging.cgi%3E%60__)  - provides common encoder and decoder functionalities such as Base64
--  `Apache Ant <http://ant.apache.org/>`__ (http://ant.apache.org/%3E%60__)  - build tool for automated builds
--  `Apache HttpClient <https://hc.apache.org/downloads.cgi>`__ (https://hc.apache.org/downloads.cgi%3E%60__)  - A HTTP Client library
--  `Apache HttpCore <https://hc.apache.org/downloads.cgi>`__ (https://hc.apache.org/downloads.cgi%3E%60__)  - A HTTP Core library
--  `Joda-Time <http://www.joda.org/joda-time/download.html>`__ (http://www.joda.org/joda-time/download.html%3E%60__)  - The date and time library for Java 
+-  `Apache Commons Codec <http://commons.apache.org/proper/commons-logging/download_logging.cgi>`__  - provides common encoder and decoder functionalities such as Base64
+-  `Apache Ant <http://ant.apache.org/>`__   - build tool for automated builds
+-  `Apache HttpClient <https://hc.apache.org/downloads.cgi>`__   - A HTTP Client library
+-  `Apache HttpCore <https://hc.apache.org/downloads.cgi>`__   - A HTTP Core library
+-  `Joda-Time <http://www.joda.org/joda-time/download.html>`__ - The date and time library for Java 
 
 ----
 
