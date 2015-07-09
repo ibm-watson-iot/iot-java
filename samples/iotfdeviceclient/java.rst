@@ -12,9 +12,9 @@ Use the Java client library for interacting with the `IBM Internet of Things Fou
 Dependencies
 -------------------------------------------------------------------------------
 
--  `Paho MQTT Java Client <http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt.java.git/>`__ (http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt.java.git/%3E%60__)  - provides a client class which enable applications to connect to an MQTT broker
--  `google-gson <https://code.google.com/p/google-gson/>`__ (https://code.google.com/p/google-gson/%3E%60__)  - library for interacting with JSON objects
--  `Apache Commons Logging <http://commons.apache.org/proper/commons-logging/download_logging.cgi>`__ (http://commons.apache.org/proper/commons-logging/download_logging.cgi%3E%60__)  - library for logging various informations
+-  `Paho MQTT Java Client <http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt.java.git/>`__   - provides a client class which enable applications to connect to an MQTT broker
+-  `google-gson <https://code.google.com/p/google-gson/>`__   - library for interacting with JSON objects
+-  `Apache Commons Logging <http://commons.apache.org/proper/commons-logging/download_logging.cgi>`__   - library for logging various informations
 -  `Apache Commons Codec <http://commons.apache.org/proper/commons-logging/download_logging.cgi>`__ (http://commons.apache.org/proper/commons-logging/download_logging.cgi%3E%60__)  - provides common encoder and decoder functionalities such as Base64
 -  `Apache Ant <http://ant.apache.org/>`__ (http://ant.apache.org/%3E%60__)  - build tool for automated builds
 -  `Apache HttpClient <https://hc.apache.org/downloads.cgi>`__ (https://hc.apache.org/downloads.cgi%3E%60__)  - A HTTP Client library
