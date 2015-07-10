@@ -34,5 +34,5 @@ Dependencies
 Documentation
 -------------
 * `Device Client <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/java_cli_for_devices.rst>`__
-* `Application Client <https://docs.internetofthings.ibmcloud.com/libraries/java_cli_for_apps.html>`__
-* `Historian Client <https://docs.internetofthings.ibmcloud.com/libraries/historian_cli_for_devices.html>`__
+* `Application Client <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/java_cli_for_applications.rst>`__
+* `Historian Client <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/java_cli_for_historian.rst>`__
