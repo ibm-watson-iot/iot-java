@@ -24,6 +24,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.iotf.client.device.DeviceClient;
+import com.ibm.iotf.util.LoggerUtility;
 
 /**
  * Class to register, delete and retrieve information about devices <br>
@@ -33,7 +34,6 @@ import com.ibm.iotf.client.device.DeviceClient;
 public class DeviceFactory {
 
 	private static final String CLASS_NAME = DeviceClient.class.getName();
-	private static final Logger LOG = Logger.getLogger(CLASS_NAME);
 	
 	private static final String SUCCESSFULLY_DELETED = "SUCCESSFULLY DELETED";
 	private static final String RESOURCE_NOT_FOUND = "RESOURCE NOT FOUND";
@@ -48,7 +48,7 @@ public class DeviceFactory {
 	}
 	
 	private String connect(String httpOperation, String url, String jsonPacket) {
-
+		final String METHOD = "connect";
 		BufferedReader br = null;
 		br = new BufferedReader(new InputStreamReader(System.in));
 		
@@ -58,7 +58,7 @@ public class DeviceFactory {
 				input = new StringEntity(jsonPacket);
 			}
 		} catch (UnsupportedEncodingException e) {
-			LOG.warning("Unable to carry out the ReST request");
+			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to carry out the ReST request");
 			return null;
 		}
 		byte[] encoding = Base64.encodeBase64(new String(authKey + ":" + authToken).getBytes() );			
@@ -75,7 +75,7 @@ public class DeviceFactory {
 					HttpResponse response = client.execute(post);
 					br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));			
 				} catch (IOException e) {
-					LOG.warning(e.getMessage());
+					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
 					return null;
 				} finally {
 
@@ -92,7 +92,7 @@ public class DeviceFactory {
 					HttpResponse response = client.execute(get);
 					br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));			
 				} catch (IOException e) {
-					LOG.warning(e.getMessage());
+					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
 					return null;
 				}			
 				break;
@@ -112,7 +112,7 @@ public class DeviceFactory {
 					}
 						
 				} catch (IOException e) {
-					LOG.warning(e.getMessage());
+					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
 					return UNKNOWN_ERROR;
 				} finally {
 
@@ -124,10 +124,10 @@ public class DeviceFactory {
 		try {
 			line = br.readLine();
 		} catch (IOException e) {
-			LOG.warning(e.getMessage());
+			LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
 			return null;
 		}
-		LOG.info(line);
+		LoggerUtility.info(CLASS_NAME, METHOD, line);
 		try {
 			if(br != null)
 				br.close();
@@ -253,6 +253,7 @@ public class DeviceFactory {
 	 * @return device
 	 */
 	public Device registerDevice(String deviceType, String deviceId, String metadata) {
+		final String METHOD = "registerDevice";
 		String orgid = authKey.substring(2, 8);
 		String url = "https://"+ orgid +".internetofthings.ibmcloud.com/api/v0001" + "/devices";
 		String jsonPacket = "{\"type\": \"" + deviceType + "\",\"id\": \"" + deviceId+ "\"}";
@@ -261,7 +262,7 @@ public class DeviceFactory {
 		JsonObject responseJson = new JsonParser().parse(response).getAsJsonObject();
 		
 		if(responseJson.get("message") != null) {
-			LOG.warning("Device already exists ");
+			LoggerUtility.warn(CLASS_NAME, METHOD, "Device already exists ");
 			return null;
 		}
 		
@@ -288,6 +289,7 @@ public class DeviceFactory {
 	 */
 	public boolean deleteDevice(String deviceType, String deviceId) {
 
+		final String METHOD = "deleteDevice";
 		String orgid = authKey.substring(2, 8);
 		String url = "https://"+ orgid +".internetofthings.ibmcloud.com/api/v0001/devices/" + deviceType + "/" + deviceId;
 		String jsonPacket = "{\"type\": \"" + deviceType + "\",\"id\": \"" + deviceId+ "\"}";
@@ -297,13 +299,13 @@ public class DeviceFactory {
 		System.out.println(response);
 
 		if(response.equals(RESOURCE_NOT_FOUND)) {
-			LOG.warning("Device didn't exist ");
+			LoggerUtility.warn(CLASS_NAME, METHOD, "Device didn't exist ");
 			return false;
 		} else if(response.equals(SUCCESSFULLY_DELETED)) {
-			LOG.info("Device deregistered");
+			LoggerUtility.info(CLASS_NAME, METHOD, "Device deregistered");
 			return true;
 		} else {
-			LOG.warning(UNKNOWN_ERROR);
+			LoggerUtility.warn(CLASS_NAME, METHOD, UNKNOWN_ERROR);
 			return false;			
 		}
 	}

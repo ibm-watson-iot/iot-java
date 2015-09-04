@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
 
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -21,6 +22,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 
 import com.google.gson.Gson;
+import com.ibm.iotf.util.LoggerUtility;
 
 /**
  * A client that handles connections with the IBM Internet of Things Foundation. <br>
@@ -29,10 +31,9 @@ import com.google.gson.Gson;
 public abstract class AbstractClient {
 	
 	private static final String CLASS_NAME = AbstractClient.class.getName();
-	private static final Logger LOG = Logger.getLogger(CLASS_NAME);
-	
 	protected static final String CLIENT_ID_DELIMITER = ":";
 	
+	//protected static final String DOMAIN = "messaging.staging.internetofthings.ibmcloud.com";
 	protected static final String DOMAIN = "messaging.internetofthings.ibmcloud.com";
 	protected static final int MQTT_PORT = 1883;
 	protected static final int MQTTS_PORT = 8883;
@@ -66,7 +67,7 @@ public abstract class AbstractClient {
 	
 	protected int messageCount = 0;
 	
-	protected MqttClient mqttClient;
+	protected MqttAsyncClient mqttAsyncClient = null;
 	protected MqttConnectOptions mqttClientOptions;
 	protected MqttCallback mqttCallback;
 	
@@ -79,8 +80,9 @@ public abstract class AbstractClient {
 	 */		
 	
 	public AbstractClient(Properties options) {
+		final String METHOD = "Constructor";
 		this.options = options;
-		LOG.fine(options.toString());
+		LoggerUtility.fine(CLASS_NAME, METHOD, options.toString());
 	}
 	
 	/**
@@ -96,7 +98,7 @@ public abstract class AbstractClient {
 		System.out.println("Client ID       = " + clientId);
 		System.out.println("Client Username = " + clientUsername);
 		System.out.println("Client Password = " + clientPassword);
-		this.mqttClient = null;
+		this.mqttAsyncClient = null;
 		this.mqttClientOptions = new MqttConnectOptions();
 		this.mqttCallback = callback;
 	}
@@ -105,6 +107,7 @@ public abstract class AbstractClient {
 	 * Connect to the IBM Internet of Things Foundation
 	 */
 	public void connect() {
+		final String METHOD = "connect";
 		boolean tryAgain = true;
 		int connectAttempts = 0;
 
@@ -114,29 +117,50 @@ public abstract class AbstractClient {
 		else {
 			configureMqtts();
 		}
+		
+		//configureMqtt();
+		
 		while (tryAgain) {
 			connectAttempts++;
 			
-			LOG.fine("Connecting to " + mqttClient.getServerURI() + " (attempt #" + connectAttempts + ")...");
+			LoggerUtility.info(CLASS_NAME, METHOD, "Connecting to " + mqttAsyncClient.getServerURI() + 
+					" (attempt #" + connectAttempts + ")...");
+			
 			if (clientUsername != null) {
-				LOG.fine(" * Username: " + mqttClientOptions.getUserName());
+				LoggerUtility.fine(CLASS_NAME, METHOD, " * Username: " + mqttClientOptions.getUserName());
 			}
 			if (clientPassword != null) {
-				LOG.fine(" * Passowrd: " + String.valueOf(mqttClientOptions.getPassword()));
+				LoggerUtility.fine(CLASS_NAME, METHOD, " * Passowrd: " + 
+							String.valueOf(mqttClientOptions.getPassword()));
 			}
 			try {
-				mqttClient.connect(mqttClientOptions);
+				mqttAsyncClient.connect(mqttClientOptions);
+				boolean connected = false;
+				// Wait up to 10 seconds for Mqtt connection is made
+				for (int i=0; i<10; i++) {
+					connected = mqttAsyncClient.isConnected();	
+					if (connected) {
+						break;
+					}
+					Thread.sleep(1000);
+				}
 			} catch (MqttSecurityException e) {
 				e.printStackTrace();
 			} catch (MqttException e) {
 				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 			
-			if (mqttClient.isConnected()) {
-				LOG.info("Successfully connected to the IBM Internet of Things Foundation");
-				if (LOG.isLoggable(Level.FINEST)) {
-					LOG.finest(" * Connection attempts: " + connectAttempts);
+			if (mqttAsyncClient.isConnected()) {
+				LoggerUtility.info(CLASS_NAME, METHOD, "Successfully connected "
+						+ "to the IBM Internet of Things Foundation");
+				
+				if (LoggerUtility.isLoggable(Level.FINEST)) {
+					LoggerUtility.log(Level.FINEST, CLASS_NAME, METHOD, 
+							" * Connection attempts: " + connectAttempts);
 				}
+				
 				tryAgain = false;
 			} else {
 				waitBeforeNextConnectAttempt(connectAttempts);
@@ -147,8 +171,8 @@ public abstract class AbstractClient {
 	private void configureMqtt() {
 		String serverURI = "tcp://" + getOrgId() + "." + DOMAIN + ":" + MQTT_PORT;
 		try {
-			mqttClient = new MqttClient(serverURI, clientId, null);
-			mqttClient.setCallback(mqttCallback);
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
+			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
 		} catch (MqttException e) {
 			e.printStackTrace();
@@ -156,14 +180,16 @@ public abstract class AbstractClient {
 	}
 	
 	private void configureMqtts() {
+		final String METHOD = "configureMqtts";
 		String serverURI = "ssl://" + getOrgId() + "." + DOMAIN + ":" + MQTTS_PORT;
 		try {
-			mqttClient = new MqttClient(serverURI, clientId, null);
-			mqttClient.setCallback(mqttCallback);
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
+			mqttAsyncClient.setCallback(mqttCallback);
 			
 			mqttClientOptions = new MqttConnectOptions();
 			mqttClientOptions.setUserName(clientUsername);
 			mqttClientOptions.setPassword(clientPassword.toCharArray());
+			mqttClientOptions.setCleanSession(false);
 			
 			/* This isn't needed as the production messaging.internetofthings.ibmcloud.com 
 			 * certificate should already be in trust chain.
@@ -190,7 +216,7 @@ public abstract class AbstractClient {
 			sslContext.init(null, null, null);
 			mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
 		} catch (MqttException | GeneralSecurityException e) {
-			LOG.warning("Unable to configure TLSv1.2 connection: " + e.getMessage());
+			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to configure TLSv1.2 connection: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -202,15 +228,19 @@ public abstract class AbstractClient {
 	 *               How many times have we tried (and failed) to connect
 	 */
 	private void waitBeforeNextConnectAttempt(final int attempts) {
+		final String METHOD = "waitBeforeNextConnectAttempt";
 		// Log when throttle boundaries are reached
 		if (attempts == THROTTLE_3) {
-			LOG.warning(String.valueOf(attempts) + " consecutive failed attempts to connect.  Retry delay increased to " + String.valueOf(RATE_3) + "ms");
+			LoggerUtility.warn(CLASS_NAME, METHOD, String.valueOf(attempts) + 
+					" consecutive failed attempts to connect.  Retry delay increased to " + String.valueOf(RATE_3) + "ms");
 		}
 		else if (attempts == THROTTLE_2) {
-			LOG.warning(String.valueOf(attempts) + " consecutive failed attempts to connect.  Retry delay increased to " + String.valueOf(RATE_2) + "ms");
+			LoggerUtility.warn(CLASS_NAME, METHOD, String.valueOf(attempts) + 
+					" consecutive failed attempts to connect.  Retry delay increased to " + String.valueOf(RATE_2) + "ms");
 		}
 		else if (attempts == THROTTLE_1) {
-			LOG.info(String.valueOf(attempts) + " consecutive failed attempts to connect.  Retry delay set to " + String.valueOf(RATE_1) + "ms");
+			LoggerUtility.info(CLASS_NAME, METHOD, String.valueOf(attempts) + 
+					" consecutive failed attempts to connect.  Retry delay set to " + String.valueOf(RATE_1) + "ms");
 		}
 
 		try {
@@ -232,10 +262,12 @@ public abstract class AbstractClient {
 	 * Disconnect the device from the IBM Internet of Things Foundation
 	 */
 	public void disconnect() {
-		LOG.fine("Disconnecting from the IBM Internet of Things Foundation ...");
+		final String METHOD = "disconnect";
+		LoggerUtility.fine(CLASS_NAME, METHOD, "Disconnecting from the IBM Internet of Things Foundation ...");
 		try {
-			mqttClient.disconnect();
-			LOG.info("Successfully disconnected from from the IBM Internet of Things Foundation");
+			mqttAsyncClient.disconnect();
+			LoggerUtility.info(CLASS_NAME, METHOD, "Successfully disconnected "
+					+ "from from the IBM Internet of Things Foundation");
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
@@ -249,7 +281,7 @@ public abstract class AbstractClient {
 	 * @return Whether the device is connected to the IBM Internet of Things Foundation
 	 */
 	public boolean isConnected() {
-		return mqttClient.isConnected();
+		return mqttAsyncClient.isConnected();
 	}
 	
 	/**

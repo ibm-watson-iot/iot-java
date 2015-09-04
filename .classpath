@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="samples/iotfmanagedclient/src"/>
+	<classpathentry kind="src" path="samples/iotfdeviceclient/src"/>
 	<classpathentry kind="src" path="samples/common/src"/>
 	<classpathentry kind="src" path="samples/sigar/src"/>
 	<classpathentry kind="src" path="samples/simpleLibertyApp/src"/>
 	<classpathentry kind="src" path="test"/>
-	<classpathentry kind="lib" path="lib/org.eclipse.paho.client.mqttv3.jar"/>
 	<classpathentry kind="lib" path="lib/gson-2.2.4.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-2.6.jar"/>
 	<classpathentry kind="lib" path="lib/httpcore-4.3.3.jar"/>
@@ -17,5 +18,11 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/com.ibm.ws.st.core.runtimeClasspathProvider/WebSphere Application Server V8.5 Liberty Profile"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="lib/com.ibm.json4j_1.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/common-lang3.jar"/>
+	<classpathentry kind="lib" path="lib/commons-codec-1.10.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.paho.client.mqttv3-1.0.3-20150818.040635-202.jar"/>
+	<classpathentry kind="lib" path="lib/javax.servlet_3.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

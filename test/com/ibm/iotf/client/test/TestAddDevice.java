@@ -48,7 +48,7 @@ public class TestAddDevice extends TestCase {
 		else 
 			System.out.println("Device not created....");
 		
-		assertEquals("Adddevices", device, factory.registerDevice(deviceType, deviceId, metadata));
+		assertEquals("Adddevices", device, factory.registerDevice(properties.getProperty("deviceType"), properties.getProperty("deviceId"), metadata));
 		
 		
 		} catch (FileNotFoundException e) {

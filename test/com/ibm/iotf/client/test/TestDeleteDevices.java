@@ -39,8 +39,8 @@ public class TestDeleteDevices extends TestCase {
 		DeviceFactory factory = new DeviceFactory(opt);
 		
 		
-			assertEquals("Device didn't exist...", false, factory.deleteDevice(properties.getProperty("deviceType"), properties.getProperty("deviceId")));
-			assertEquals("Device deregistered....", true, factory.deleteDevice(properties.getProperty("deviceType"), properties.getProperty("deviceId")));
+			assertEquals("Device didn't exist...", true, factory.deleteDevice(properties.getProperty("deviceType"), properties.getProperty("deviceId")));
+			assertEquals("Device deregistered....", false, factory.deleteDevice(properties.getProperty("deviceType"), properties.getProperty("deviceId")));
 			
 		
 		

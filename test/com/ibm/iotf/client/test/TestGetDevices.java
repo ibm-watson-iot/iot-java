@@ -41,7 +41,7 @@ public class TestGetDevices extends TestCase {
 		else 
 			System.out.println("Not able to get Device ");
 		
-		assertEquals("Getdevices", device != null, factory.getDevices());
+		assertEquals("Get Devices", true, factory.getDevices() != null);
 		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

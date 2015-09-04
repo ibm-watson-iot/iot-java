@@ -1,6 +1,7 @@
 package com.ibm.iotf.client;
 
 import java.io.UnsupportedEncodingException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -13,6 +14,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.ibm.iotf.client.app.ApplicationClient;
+import com.ibm.iotf.util.LoggerUtility;
 
 
 /**
@@ -23,7 +25,6 @@ import com.ibm.iotf.client.app.ApplicationClient;
 public class Message {
 	
 	private static final String CLASS_NAME = ApplicationClient.class.getName();
-	private static final Logger LOG = Logger.getLogger(CLASS_NAME);
 
 	protected final static JsonParser JSON_PARSER = new JsonParser();
 	protected final static DateTimeFormatter DT_PARSER = ISODateTimeFormat.dateTimeParser();
@@ -39,6 +40,7 @@ public class Message {
 	 * @throws UnsupportedEncodingException
 	 */
 	public Message(MqttMessage msg) throws UnsupportedEncodingException{
+		final String METHOD = "Message(1)";
 		this.payload = new String(msg.getPayload(), "UTF8");
 		
 		try {
@@ -60,9 +62,9 @@ public class Message {
 				timestamp = DateTime.now();
 			}
 		} catch (JsonSyntaxException e) {
-			LOG.warning("JsonSyntaxException thrown");
+			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "JsonSyntaxException thrown", e);
 		} catch (JsonParseException jpe) {
-			LOG.warning("JsonParseException thrown");							
+			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "JsonParseException thrown", jpe);							
 		}
 	}
 
@@ -75,6 +77,7 @@ public class Message {
 	 * @throws UnsupportedEncodingException
 	 */
 	public Message(MqttMessage msg, String format) throws UnsupportedEncodingException{
+		final String METHOD = "Message(2)";
 		this.payload = new String(msg.getPayload(), "UTF8");
 		
 		if(format.equalsIgnoreCase("json")) {
@@ -96,9 +99,9 @@ public class Message {
 					timestamp = DateTime.now();
 				}
 			} catch (JsonSyntaxException e) {
-				LOG.warning("JsonSyntaxException thrown");
+				LoggerUtility.warn(CLASS_NAME, METHOD, "JsonSyntaxException thrown");
 			} catch (JsonParseException jpe) {
-				LOG.warning("JsonParseException thrown");							
+				LoggerUtility.warn(CLASS_NAME, METHOD, "JsonParseException thrown");							
 			}			
 		} else {
 			data = this.payload;
