@@ -1,6 +1,6 @@
 <project name="iotf-client" default="build" basedir=".">
 	
-	<property name="version" value="0.0.1" />
+	<property name="version" value="0.0.2" />
 	
 	<!-- Ensure you set this to the path to your WLP install if you want to build the liberty sample application -->
 	
@@ -26,7 +26,7 @@
 			<src path="src" />
 			<src path="src" />
 			<src path="samples/iotfdeviceclient/src" />
-			<src path="samples/iotfmanagedclient/src" />
+			<src path="samples/iotfdevicemanagement/src" />
 			<src path="samples/common/src" />
 			<src path="samples/sigar/src" />
 		</javac>
@@ -42,7 +42,7 @@
 						lib/common-lang3.jar" 
 			destdir="${outputDir}/doc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" 
 			packagenames="com.ibm.iotf.client.app,com.ibm.iotf.client.device,com.ibm.iotf.client.api,
-						  com.ibm.iotf.client,com.ibm.iotf.devicemgmt.device,com.ibm.iotf.devicemgmt.device.resource" 
+						  com.ibm.iotf.client,com.ibm.iotf.devicemgmt.device" 
 			source="1.7" sourcepath="src" splitindex="true" use="true" version="true"
 		/>
 	</target>
@@ -62,7 +62,7 @@
 		
 	    <copy todir="${dist.dir}/WebContent/WEB-INF/lib">
     		<fileset dir="lib" includes="*.jar" />
-    		<fileset dir="output/lib" includes="*.jar" />
+    		<fileset dir="output" includes="*.jar" />
 	    </copy>
 	    
 		<delete dir="${dist.dir}/WebContent/WEB-INF/classes" />
@@ -72,7 +72,7 @@
         	<pathelement location="${wlp.home}/dev/api/ibm/com.ibm.websphere.appserver.api.json_1.0.1.jar"/>
         	<pathelement location="${wlp.home}/dev/api/spec/com.ibm.ws.javaee.servlet.3.0_1.0.1.jar"/>
     		<fileset dir="lib" includes="*.jar" />
-    		<fileset dir="output/lib" includes="*.jar" />
+    		<fileset dir="output" includes="*.jar" />
 		</path>
 		
 		<javac destdir="${dist.dir}/WebContent/WEB-INF/classes" srcdir="samples/simpleLibertyApp/src">
@@ -99,16 +99,20 @@
 	
 	<target name="package">
 		<!-- Build the client jar -->
-		<jar basedir="${tmpDir}" destfile="${outputDir}/lib/com.ibm.iotf.client-${version}.jar" 
-			includes="com/ibm/iotf/client/**, 
+		<jar basedir="${tmpDir}" destfile="${outputDir}/com.ibm.iotf.client-${version}.jar" 
+			includes="com/ibm/iotf/client/**,
+					  com/ibm/iotf/util/**,
 					  com/ibm/iotf/devicemgmt/**, 
 					  com/ibm/iotf/client/app/**, 
 					  com/ibm/iotf/client/device/**, 
 					  com/ibm/iotf/client/api/**">
 		</jar>
 		
+		<copy file="samples/iotfdeviceclient/src/device.prop" todir="${outputDir}"/>
+		<copy file="samples/iotfdevicemanagement/src/DMDeviceSample.properties" todir="${outputDir}"/>
+		
 		<!-- Build the accompanying samples jar -->
-		<jar basedir="${tmpDir}" destfile="${outputDir}/lib/com.ibm.iotf.samples-${version}.jar" includes="com/ibm/iotf/samples/**, com/ibm/iotf/sample/**">
+		<jar basedir="${tmpDir}" destfile="${outputDir}/com.ibm.iotf.samples-${version}.jar" includes="com/ibm/iotf/samples/**, com/ibm/iotf/sample/**">
 		</jar>
 		
 		<zip destfile="${outputDir}/com.ibm.iotf-${version}.zip">
@@ -118,19 +122,26 @@
 			<zipfileset dir="lib" prefix="lib">
 				<include name="*.jar" />
 			</zipfileset>
-			<zipfileset dir="src" prefix="src">
-				<include name="**/*" />
-			</zipfileset>
-			<zipfileset dir="${outputDir}/lib" prefix="lib">
+			<zipfileset dir="${outputDir}">
 				<include name="*.jar" />
-			</zipfileset>
-			<zipfileset dir="samples" prefix="samples">
-				<include name="**" />
+				<include name="*.prop" />
+				<include name="*.properties" />
 			</zipfileset>
 		</zip>
 	</target>
 	
-	<target name="build" depends="clean, compile, javadoc, package, buildwar">
+	<target name="teardown" depends="clean, compile, javadoc, package, buildwar">
+		<!-- Cleanup the temp directories created by this ant build -->
+		<delete>
+		    <fileset dir="${outputDir}" includes="*.jar" />
+			<fileset dir="${outputDir}" includes="*.prop" />
+		    <fileset dir="${outputDir}" includes="*.properties" />
+		</delete>
+		<delete dir="${basedir}/tmp" />			
+		<delete dir="${outputDir}/doc" />
+	</target>
+	
+	<target name="build" depends="clean, compile, javadoc, package, buildwar, teardown">
 	</target>
 	
 	

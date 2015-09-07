@@ -21,6 +21,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 
@@ -33,22 +35,26 @@ import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
 
 /**
- * A sample device code that shows how to make a device managed and then unmanaged
- *  
+ * A sample device code that shows how to register the device with a lifetime parameter,
+ * and send a subsequent manage request before the lifetime expires to maintain the 
+ * device in manage state 
+ * 
  * This sample takes a properties file where the device informations and Firmware
  * informations are present. There is a default properties file in the sample folder, this
  * class takes the default properties file if one not specified by user.
  */
-public class ManageToUnmanageSample {
+public class ManagedDeviceWithLifetimeSample {
 	private final static String PROPERTIES_FILE_NAME = "DMDeviceSample.properties";
 	private final static String DEFAULT_PATH = "samples/iotfmanagedclient/src";
 	
 	private DeviceData deviceData;
 	private ManagedDevice dmClient;
+	private int lifetime;
+	private Timer timer;
 	
 	public static void main(String[] args) throws Exception {
 		
-		System.out.println("Starting Device Management sample test...");
+		System.out.println("Starting a sample managed device application...");
 		String fileName = null;
 		if (args.length == 1) {
 			fileName = args[0];
@@ -56,15 +62,11 @@ public class ManageToUnmanageSample {
 			fileName = getDefaultFilePath();
 		}
 		
-		ManageToUnmanageSample sample = new ManageToUnmanageSample();
+		ManagedDeviceWithLifetimeSample sample = new ManagedDeviceWithLifetimeSample();
 		try {
 			sample.createManagedClient(fileName);
 			sample.connect();
-			sample.publishDeviceEvent();
-			sample.sendUnManageRequest();
-			sample.publishDeviceEvent();
-			sample.sendManageRequest();
-			sample.publishDeviceEvent();
+			sample.publishDeviceEvents();	
 			sample.disConnect();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -87,6 +89,15 @@ public class ManageToUnmanageSample {
 		 */
 		Properties deviceProps = loadPropertiesFile(propertiesFile);
 		
+		try {
+			this.lifetime = Integer.parseInt(deviceProps.getProperty("lifetime"));
+		} catch(Exception e) {}
+		
+		// The minimum lifetime should be 1 hour
+		if(lifetime != 0 && lifetime < 3600) {
+			System.err.println("Lifetime "+lifetime + " is less than minimum value (1 hour), so setting it to 1 hour");
+			lifetime = 3600;
+		}
 		/**
 		 * To create a DeviceData object, we will need the following objects:
 		 *   - DeviceInfo
@@ -124,12 +135,42 @@ public class ManageToUnmanageSample {
 	/**
 	 * This method connects the device to the IoT Foundation and sends
 	 * a manage request, so that this device becomes a managed device.
+	 * 
+	 * Use the overloaded connect method that takes the lifetime parameter
 	 */
-	private void connect() throws Exception {		
-		dmClient.connect();
+	private void connect() throws Exception {
+		dmClient.connect(lifetime);
+		if(lifetime > 0) {
+			ManageTask task = this.new ManageTask();
+			this.timer = new Timer(true);
+			int twoMinutes = 1000 * 60 * 2;
+			timer.scheduleAtFixedRate(task, (lifetime *1000) - twoMinutes, 
+											(lifetime *1000) - twoMinutes);
+		}
+	}
+	
+	/**
+	 * 
+	 * Timer task that sends the manage command before the lifetime
+	 * expires, otherwise the device will become dormant and can't 
+	 * participate in device management actions
+	 *
+	 */
+	private class ManageTask extends TimerTask {
+		
+		@Override
+		public void run() {
+			try {
+				sendManageRequest();
+			} catch (MqttException e) {
+				e.printStackTrace();
+			}
+		}
+		
 	}
 	
 	private void disConnect() throws Exception {
+		timer.cancel();
 		dmClient.disconnect();
 	}
 	
@@ -148,34 +189,43 @@ public class ManageToUnmanageSample {
 	 * @throws MqttException
 	 */
 	private void sendManageRequest() throws MqttException {
-		if (dmClient.manage(0)) {
+		if (dmClient.manage(lifetime)) {
 			System.out.println("Device connected as Managed device now!");
 		} else {
 			System.err.println("Managed request failed!");
 		}
 	}
 	
-	private void sendUnManageRequest() throws MqttException {
-		dmClient.unmanage();
-	}
-	
 	/**
-	 * This method publishes a sample device event 
+	 * This method publishes a sample device event for every 10 seconds
+	 * for 1000 times.
+	 * 
+	 *  This sample shows that one can publish events while carrying out
+	 *  the device management operations.
 	 */
-	private void publishDeviceEvent() {
+	private void publishDeviceEvents() {
 		
-		//Generate a JSON object of the event to be published
-		JsonObject event = new JsonObject();
-		event.addProperty("name", "foo");
-		event.addProperty("cpu",  80);
-		event.addProperty("mem",  90);
+		Random random = new Random();
+		//Lets publish an event for every 5 seconds for 1000 times
+		for(int i = 0; i < 1000; i++) {
+			//Generate a JSON object of the event to be published
+			JsonObject event = new JsonObject();
+			event.addProperty("name", "foo");
+			event.addProperty("cpu",  random.nextInt(100));
+			event.addProperty("mem",  random.nextInt(100));
 		
-		System.out.println("Publishing device event:: "+event);
-		//Registered flow allows 0, 1 and 2 QoS	
-		dmClient.publishEvent("status", event);
+			System.out.println("Publishing device event:: "+event);
+			//Registered flow allows 0, 1 and 2 QoS	
+			dmClient.publishEvent("status", event);
+			
+			try {
+				Thread.sleep(5000 * 2);
+			} catch(InterruptedException ie) {
+				
+			}
+		}
 	}
 	
-
 	private static Properties loadPropertiesFile(String propertiesFilePath) {
 		File propertiesFile = new File(propertiesFilePath);
 		Properties clientProperties = new Properties();
@@ -210,7 +260,14 @@ public class ManageToUnmanageSample {
 		System.out.println("Trying to look for the default properties file :: " + PROPERTIES_FILE_NAME);
 		
 		// look for the file in current directory
-		File f = new File(DEFAULT_PATH + File.separatorChar + PROPERTIES_FILE_NAME);
+		File f = new File(PROPERTIES_FILE_NAME);
+		if(f.isFile()) {
+			System.out.println("Found one in - "+ f.getAbsolutePath());
+			return f.getAbsolutePath();
+		}
+		
+		// look for the file in default path
+		f = new File(DEFAULT_PATH + File.separatorChar + PROPERTIES_FILE_NAME);
 		if(f.isFile()) {
 			System.out.println("Found one in - "+ f.getAbsolutePath());
 			return f.getAbsolutePath();

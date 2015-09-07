@@ -42,6 +42,7 @@ import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
 import com.ibm.iotf.devicemgmt.device.DiagnosticLog;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
+import com.ibm.iotf.sample.devicemgmt.device.RasPiFirmwareUpdateSample;
 
 /**
  * A sample device management agent code that shows the following core DM capabilities,
@@ -107,6 +108,7 @@ public class SampleRasPiDMAgent {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
+			System.err.flush();
 		} finally {
 			sample.terminate();
 		}
@@ -408,9 +410,12 @@ public class SampleRasPiDMAgent {
 	
 	
 	private void terminate() throws Exception {
-		scheduledThreadPool.shutdown();
-		dmClient.disconnect();
-		System.exit(-1);
+		if(this.dmClient != null) {
+			if(scheduledThreadPool != null)
+				scheduledThreadPool.shutdown();
+			dmClient.disconnect();
+			System.exit(-1);
+		}
 	}
 	
 	/**
@@ -537,7 +542,14 @@ public class SampleRasPiDMAgent {
 		System.out.println("Trying to look for the default properties file :: " + PROPERTIES_FILE_NAME);
 		
 		// look for the file in current directory
-		File f = new File(DEFAULT_PATH + File.separatorChar + PROPERTIES_FILE_NAME);
+		File f = new File(PROPERTIES_FILE_NAME);
+		if(f.isFile()) {
+			System.out.println("Found one in - "+ f.getAbsolutePath());
+			return f.getAbsolutePath();
+		}
+		
+		// look for the file in default path
+		f = new File(DEFAULT_PATH + File.separatorChar + PROPERTIES_FILE_NAME);
 		if(f.isFile()) {
 			System.out.println("Found one in - "+ f.getAbsolutePath());
 			return f.getAbsolutePath();

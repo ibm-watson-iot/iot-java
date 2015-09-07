@@ -6,6 +6,7 @@
  which accompanies this distribution, and is available at
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
+ Mike Tran - Initial Contribution
  Sathiskumar Palaniappan - Initial Contribution
  *****************************************************************************
  *
@@ -19,53 +20,49 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
 
+import org.eclipse.paho.client.mqttv3.MqttException;
+
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
-import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
+import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.device.DeviceInfo;
-import com.ibm.iotf.devicemgmt.device.DeviceLocation;
-import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
-import com.ibm.iotf.devicemgmt.device.DiagnosticLog;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
 
 /**
- * A sample device code that updates the Log for every 5 seconds to IoT Foundation
- * and clears the Log information randomly.
+ * A sample device code that does the Device Reboot while sending device events.
  * 
- * This sample takes a properties file where the device informations and location
+ * This sample takes a properties file where the device informations and Firmware
  * informations are present. There is a default properties file in the sample folder, this
  * class takes the default properties file if one not specified by user.
  */
-public class DiagnosticsLogUpdateSample {
+public class RebootSample {
 	private final static String PROPERTIES_FILE_NAME = "DMDeviceSample.properties";
 	private final static String DEFAULT_PATH = "samples/iotfmanagedclient/src";
 	
 	private DeviceData deviceData;
 	private ManagedDevice dmClient;
-	private LogUpdaterThread logUpdaterThread;
 	
 	public static void main(String[] args) throws Exception {
 		
-		System.out.println("Starting DM Java Client sample Location Update test...");
-
+		System.out.println("Starting sample Firmware Update test...");
 		String fileName = null;
 		if (args.length == 1) {
 			fileName = args[0];
 		} else {
 			fileName = getDefaultFilePath();
 		}
-
-		DiagnosticsLogUpdateSample sample = new DiagnosticsLogUpdateSample();
+		
+		RebootSample sample = new RebootSample();
 		try {
 			sample.createManagedClient(fileName);
+			sample.addDeviceActionHandler();
 			sample.connect();
-			sample.startLogUpdaterThread();
-			sample.publishDeviceEvents();
+			sample.publishDeviceEvents();	
 			sample.disConnect();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -75,10 +72,6 @@ public class DiagnosticsLogUpdateSample {
 		System.out.println(" Exiting...");
 	}
 	
-	private void startLogUpdaterThread() {
-		this.logUpdaterThread.start();
-	}
-
 	/**
 	 * This method builds the device objects required to create the
 	 * ManagedClient
@@ -91,7 +84,7 @@ public class DiagnosticsLogUpdateSample {
 		 * Load device properties
 		 */
 		Properties deviceProps = loadPropertiesFile(propertiesFile);
-
+		
 		/**
 		 * To create a DeviceData object, we will need the following objects:
 		 *   - DeviceInfo
@@ -110,26 +103,10 @@ public class DiagnosticsLogUpdateSample {
 				descriptiveLocation(deviceProps.getProperty("DeviceInfo.descriptiveLocation")).
 				build();
 		
-		/**
-		 * Build the ErrorCode & DeviceDiagnostic Object
-		 */
-		
-		DiagnosticLog log = new DiagnosticLog(
-				"Creating Managed Client", 
-				new Date(),
-				DiagnosticLog.LogSeverity.informational);
-		
-		DeviceDiagnostic diag = new DeviceDiagnostic(log);
-		
 		this.deviceData = new DeviceData.Builder().
 						 deviceInfo(deviceInfo).
-						 deviceDiag(diag).
 						 metadata(new JsonObject()).
 						 build();
-		
-		// create the location updater thread 
-		this.logUpdaterThread = new LogUpdaterThread();
-		this.logUpdaterThread.diag = diag;
 		
 		// Options to connect to IoT Foundation
 		Properties options = new Properties();
@@ -155,42 +132,19 @@ public class DiagnosticsLogUpdateSample {
 		dmClient.disconnect();
 	}
 	
-	
 	/**
-	 * Thread class that updates the Error code to IoT Foundation 
-	 * for every 5 seconds
+	 * This method does two things.
+	 * 
+	 * 1. Informs the Device management server that this device supports Firmware actions
+	 * 
+	 * 2. Adds a Firmware handler where the device agent will get notified
+	 *    when there is a firmware action from the server. 
 	 */
-	private static class LogUpdaterThread extends Thread {
-		private DeviceDiagnostic diag;
-	
-		public void run() {
-			
-			for (int i = 0; i < 1000; i++) {
-				int rc = diag.append("Sending device Event " + i, new Date(), 
-						DiagnosticLog.LogSeverity.informational);
-				
-				if(rc == 200) {
-					System.out.println("Current Log (" + diag.getLog() + ")");
-				} else {
-					System.out.println("Log Addition failed");
-				}
-				
-				if(i % 25 == 0) {
-					rc = diag.clearLog();
-					if(rc == 200) {
-						System.out.println("Logs are cleared successfully");
-					} else {
-						System.out.println("Failed to clear the Logs");
-					}	
-				}
-
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+	private void addDeviceActionHandler() throws Exception {
+		if(this.dmClient != null) {
+			DeviceActionHandlerSample actionHandler = new DeviceActionHandlerSample();
+			deviceData.addDeviceActionHandler(actionHandler);
+			dmClient.supportsDeviceActions(true);
 		}
 	}
 	
@@ -224,6 +178,10 @@ public class DiagnosticsLogUpdateSample {
 		}
 	}
 	
+	private void sendUnManageRequest() throws MqttException {
+		dmClient.unmanage();
+	}
+
 	private static Properties loadPropertiesFile(String propertiesFilePath) {
 		File propertiesFile = new File(propertiesFilePath);
 		Properties clientProperties = new Properties();
@@ -258,7 +216,14 @@ public class DiagnosticsLogUpdateSample {
 		System.out.println("Trying to look for the default properties file :: " + PROPERTIES_FILE_NAME);
 		
 		// look for the file in current directory
-		File f = new File(DEFAULT_PATH + File.separatorChar + PROPERTIES_FILE_NAME);
+		File f = new File(PROPERTIES_FILE_NAME);
+		if(f.isFile()) {
+			System.out.println("Found one in - "+ f.getAbsolutePath());
+			return f.getAbsolutePath();
+		}
+		
+		// look for the file in default path
+		f = new File(DEFAULT_PATH + File.separatorChar + PROPERTIES_FILE_NAME);
 		if(f.isFile()) {
 			System.out.println("Found one in - "+ f.getAbsolutePath());
 			return f.getAbsolutePath();

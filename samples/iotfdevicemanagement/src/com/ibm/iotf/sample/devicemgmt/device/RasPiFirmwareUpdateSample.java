@@ -7,7 +7,7 @@
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Mike Tran - Initial Contribution
- Sathiskumar Palaniappan - Initial Contribution
+ Sathiskumar Palaniappan - Added debian package download & update support
  *****************************************************************************
  *
  */
@@ -20,52 +20,53 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
-import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
+import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.device.DeviceInfo;
-import com.ibm.iotf.devicemgmt.device.DeviceLocation;
-import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
 
 /**
- * A sample device code that updates the Error code for every 5 seconds to IoT Foundation
- * and clears the error codes randomly.
+ * A sample device code that does the firmware update while sending device events.
  * 
- * This sample takes a properties file where the device informations and location
+ * This sample takes a properties file where the device informations and Firmware
  * informations are present. There is a default properties file in the sample folder, this
  * class takes the default properties file if one not specified by user.
  */
-public class DiagnosticsErrorCodeUpdateSample {
+public class RasPiFirmwareUpdateSample {
 	private final static String PROPERTIES_FILE_NAME = "DMDeviceSample.properties";
 	private final static String DEFAULT_PATH = "samples/iotfmanagedclient/src";
 	
 	private DeviceData deviceData;
 	private ManagedDevice dmClient;
-	private ErrorCodeUpdaterThread ecUpdaterThread;
+	private int lifetime;
+	private Timer timer;
 	
 	public static void main(String[] args) throws Exception {
 		
-		System.out.println("Starting DM Java Client sample Location Update test...");
-
+		System.out.println("Starting sample Firmware Update test...");
 		String fileName = null;
 		if (args.length == 1) {
 			fileName = args[0];
 		} else {
 			fileName = getDefaultFilePath();
 		}
-
-		DiagnosticsErrorCodeUpdateSample sample = new DiagnosticsErrorCodeUpdateSample();
+		
+		RasPiFirmwareUpdateSample sample = new RasPiFirmwareUpdateSample();
 		try {
 			sample.createManagedClient(fileName);
+			sample.addFirmwareHandler();
 			sample.connect();
-			sample.startErrorCodeUpdaterThread();
-			sample.publishDeviceEvents();
+			sample.publishDeviceEvents();	
 			sample.disConnect();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -75,10 +76,6 @@ public class DiagnosticsErrorCodeUpdateSample {
 		System.out.println(" Exiting...");
 	}
 	
-	private void startErrorCodeUpdaterThread() {
-		this.ecUpdaterThread.start();
-	}
-
 	/**
 	 * This method builds the device objects required to create the
 	 * ManagedClient
@@ -91,7 +88,16 @@ public class DiagnosticsErrorCodeUpdateSample {
 		 * Load device properties
 		 */
 		Properties deviceProps = loadPropertiesFile(propertiesFile);
-
+		
+		try {
+			this.lifetime = Integer.parseInt(deviceProps.getProperty("lifetime"));
+		} catch(Exception e) {}
+		
+		// The minimum lifetime should be 1 hour
+		if(lifetime != 0 && lifetime < 3600) {
+			System.err.println("Lifetime "+lifetime + " is less than minimum value (1 hour), so setting it to 1 hour");
+			lifetime = 3600;
+		}
 		/**
 		 * To create a DeviceData object, we will need the following objects:
 		 *   - DeviceInfo
@@ -110,23 +116,19 @@ public class DiagnosticsErrorCodeUpdateSample {
 				descriptiveLocation(deviceProps.getProperty("DeviceInfo.descriptiveLocation")).
 				build();
 		
-		/**
-		 * Build the ErrorCode & DeviceDiagnostic Object
-		 */
-		
-		DiagnosticErrorCode errorCode = new DiagnosticErrorCode(0);
-		
-		DeviceDiagnostic diag = new DeviceDiagnostic(errorCode);
+		DeviceFirmware firmware = new DeviceFirmware.Builder().
+				version(deviceProps.getProperty("DeviceFirmware.version")).
+				name(deviceProps.getProperty("DeviceFirmware.name")).
+				url(deviceProps.getProperty("DeviceFirmware.url")).
+				verifier(deviceProps.getProperty("DeviceFirmware.verifier")).
+				state(FirmwareState.IDLE).				
+				build();
 		
 		this.deviceData = new DeviceData.Builder().
 						 deviceInfo(deviceInfo).
-						 deviceDiag(diag).
+						 deviceFirmware(firmware).
 						 metadata(new JsonObject()).
 						 build();
-		
-		// create the location updater thread 
-		this.ecUpdaterThread = new ErrorCodeUpdaterThread();
-		this.ecUpdaterThread.diag = diag;
 		
 		// Options to connect to IoT Foundation
 		Properties options = new Properties();
@@ -135,58 +137,88 @@ public class DiagnosticsErrorCodeUpdateSample {
 		options.setProperty("id", deviceProps.getProperty("id"));
 		options.setProperty("auth-method", deviceProps.getProperty("auth-method"));
 		options.setProperty("auth-token", deviceProps.getProperty("auth-token"));
-
-
+				
 		dmClient = new ManagedDevice(options, deviceData);
 	}
 	
 	/**
 	 * This method connects the device to the IoT Foundation and sends
 	 * a manage request, so that this device becomes a managed device.
+	 * 
+	 * Use the overloaded connect method that takes the lifetime parameter
 	 */
-	private void connect() throws Exception {		
-		dmClient.connect();
+	private void connect() throws Exception {
+		dmClient.connect(lifetime);
+		if(lifetime > 0) {
+			ManageTask task = this.new ManageTask();
+			this.timer = new Timer(true);
+			int twoMinutes = 1000 * 60 * 2;
+			timer.scheduleAtFixedRate(task, (lifetime *1000) - twoMinutes, 
+											(lifetime *1000) - twoMinutes);
+		}
+	}
+	
+	/**
+	 * 
+	 * Timer task that sends the manage command before the lifetime
+	 * expires, otherwise the device will become dormant and can't 
+	 * participate in device management actions
+	 *
+	 */
+	private class ManageTask extends TimerTask {
+		
+		@Override
+		public void run() {
+			try {
+				sendManageRequest();
+			} catch (MqttException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 	}
 	
 	private void disConnect() throws Exception {
+		timer.cancel();
 		dmClient.disconnect();
 	}
 	
+	/**
+	 * This method does two things.
+	 * 
+	 * 1. Informs the Device management server that this device supports Firmware actions
+	 * 
+	 * 2. Adds a Firmware handler where the device agent will get notified
+	 *    when there is a firmware action from the server. 
+	 */
+	private void addFirmwareHandler() throws Exception {
+		if(this.dmClient != null) {
+			RasPiFirmwareHandlerSample fwHandler = new RasPiFirmwareHandlerSample();
+			deviceData.addFirmwareHandler(fwHandler);
+			dmClient.supportsFirmwareActions(true);
+		}
+	}
 	
 	/**
-	 * Thread class that updates the Error code to IoT Foundation 
-	 * for every 5 seconds
+	 * Send a device manage request to IoT Foundation
+	 * 
+	 * A device uses this request to become a managed device. 
+	 * It should be the first device management request sent by the 
+	 * device after connecting to the Internet of Things Foundation. 
+	 * It would be usual for a device management agent to send this 
+	 * whenever is starts or restarts.
+	 * 
+	 * @param lifetime The length of time in seconds within 
+	 *        which the device must send another Manage device request 
+	 * @return True if successful
+	 * @throws MqttException
 	 */
-	private static class ErrorCodeUpdaterThread extends Thread {
-		private DeviceDiagnostic diag;
-		Random random = new Random();
-		
-		public void run() {
-			
-			for (int i=0; i<1000; i++) {
-				int rc = diag.append(random.nextInt(500));
-				if(rc == 200) {
-					System.out.println("Current Errorcode (" + diag.getErrorCode() + ")");
-				} else {
-					System.out.println("Errorcode addition failed");
-				}
-				
-				if(i % 25 == 0) {
-					
-					rc = diag.clearErrorCode();
-					if(rc == 200) {
-						System.out.println("ErrorCodes are cleared successfully");
-					} else {
-						System.out.println("Failed to clear the ErrorCodes");
-					}	
-				}
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+	private void sendManageRequest() throws MqttException {
+		if (dmClient.manage(lifetime)) {
+			System.out.println("Device connected as Managed device now!");
+		} else {
+			System.err.println("Managed request failed!");
 		}
 	}
 	
@@ -220,6 +252,10 @@ public class DiagnosticsErrorCodeUpdateSample {
 		}
 	}
 	
+	private void sendUnManageRequest() throws MqttException {
+		dmClient.unmanage();
+	}
+
 	private static Properties loadPropertiesFile(String propertiesFilePath) {
 		File propertiesFile = new File(propertiesFilePath);
 		Properties clientProperties = new Properties();
@@ -254,7 +290,14 @@ public class DiagnosticsErrorCodeUpdateSample {
 		System.out.println("Trying to look for the default properties file :: " + PROPERTIES_FILE_NAME);
 		
 		// look for the file in current directory
-		File f = new File(DEFAULT_PATH + File.separatorChar + PROPERTIES_FILE_NAME);
+		File f = new File(PROPERTIES_FILE_NAME);
+		if(f.isFile()) {
+			System.out.println("Found one in - "+ f.getAbsolutePath());
+			return f.getAbsolutePath();
+		}
+		
+		// look for the file in default path
+		f = new File(DEFAULT_PATH + File.separatorChar + PROPERTIES_FILE_NAME);
 		if(f.isFile()) {
 			System.out.println("Found one in - "+ f.getAbsolutePath());
 			return f.getAbsolutePath();
