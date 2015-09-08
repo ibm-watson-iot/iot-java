@@ -103,7 +103,7 @@ public class SampleRasPiDMAgent {
 		try {
 			sample.createManagedClient(fileName);
 			sample.connect();
-			sample.scheduleDeviceEventPublishTask();
+			//sample.scheduleDeviceEventPublishTask();
 			sample.userAction();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -236,11 +236,12 @@ public class SampleRasPiDMAgent {
 		
 		// Options to connect to IoT Foundation
 		Properties options = new Properties();
-		options.setProperty("org", deviceProps.getProperty("org"));
-		options.setProperty("type", deviceProps.getProperty("type"));
-		options.setProperty("id", deviceProps.getProperty("id"));
-		options.setProperty("auth-method", deviceProps.getProperty("auth-method"));
-		options.setProperty("auth-token", deviceProps.getProperty("auth-token"));
+		
+		options.setProperty("Organization-ID", deviceProps.getProperty("Organization-ID"));
+		options.setProperty("Device-Type", deviceProps.getProperty("Device-Type"));
+		options.setProperty("Device-ID", deviceProps.getProperty("Device-ID"));
+		options.setProperty("Authentication-Method", deviceProps.getProperty("Authentication-Method"));
+		options.setProperty("Authentication-Token", deviceProps.getProperty("Authentication-Token"));
 				
 		dmClient = new ManagedDevice(options, deviceData);
 	}
@@ -568,15 +569,15 @@ public class SampleRasPiDMAgent {
 	private void userAction() {
     	Scanner in = new Scanner(System.in);
     	
-    	System.out.println("List of available commands");
-		System.out.println(" manage [lifetime in seconds] :: Request to make the device as Managed device in IoTF");
-		System.out.println(" unmanage :: Request to make the device unmanaged ");
-		System.out.println(" firmware :: Adds a Firmware Handler that listens for the firmware actions from IoTF");
-		System.out.println(" reboot :: Adds a Device action Handler that listens for reboot from IoTF");
-		System.out.println(" location :: Starts a task that updates a random location at every 30 seconds");
-		System.out.println(" errorcode :: Starts a task that appends/clears a ErrorCode at every 30 seconds");
-		System.out.println(" log :: Starts a task that appends/clears a Log message at every 30 seconds");
-		System.out.println(" quit :: quit this program)");
+    	System.out.println("List of device management operations that this agent can perform are:");
+		System.out.println("manage [lifetime in seconds] :: Request to make the device as Managed device in IoTF");
+		System.out.println("unmanage   :: Request to make the device unmanaged ");
+		System.out.println("firmware   :: Adds a Firmware Handler that listens for the firmware requests from IoTF");
+		System.out.println("reboot     :: Adds a Device action Handler that listens for reboot request from IoTF");
+		System.out.println("location   :: Starts a task that updates a random location at every 30 seconds");
+		System.out.println("errorcode  :: Starts a task that appends/clears a simulated ErrorCode at every 30 seconds");
+		System.out.println("log        :: Starts a task that appends/clears a simulated Log message at every 30 seconds");
+		System.out.println("quit       :: quit this sample agent");
 		
     	while(true) {
     		try {
@@ -643,14 +644,16 @@ public class SampleRasPiDMAgent {
 	
 	            	default:
 	            		System.out.println("Unknown command received :: "+input);
-	            		System.out.println(" manage [lifetime in seconds] :: Request to make the device as Managed device in IoTF");
-	            		System.out.println(" unmanage :: Request to make the device unmanaged ");
-	            		System.out.println(" firmware :: Adds a Firmware Handler that listens for the firmware actions from IoTF)");
-	            		System.out.println(" reboot :: Adds a Device action Handler that listens for reboot from IoTF");
-	            		System.out.println(" location :: Starts a task that updates a random location at every 30 seconds");
-	            		System.out.println(" errorcode :: Starts a task that appends/clears a ErrorCode at every 30 seconds");
-	            		System.out.println(" log :: Starts a task that appends/clears a Log message at every 30 seconds");
-	            		System.out.println(" quit :: quit this program");
+	            		System.out.println("List of device management operations that this agent can perform are:");
+	            		System.out.println("manage [lifetime in seconds] :: Request to make the device as Managed device in IoTF");
+	            		System.out.println("unmanage   :: Request to make the device unmanaged ");
+	            		System.out.println("firmware   :: Adds a Firmware Handler that listens for the firmware requests from IoTF");
+	            		System.out.println("reboot     :: Adds a Device action Handler that listens for reboot request from IoTF");
+	            		System.out.println("location   :: Starts a task that updates a random location at every 30 seconds");
+	            		System.out.println("errorcode  :: Starts a task that appends/clears a simulated ErrorCode at every 30 seconds");
+	            		System.out.println("log        :: Starts a task that appends/clears a simulated Log message at every 30 seconds");
+	            		System.out.println("quit       :: quit this sample agent");
+	            		
 	            }
     		} catch(Exception e) {
     			System.out.println("Operation failed with exception "+e.getMessage());

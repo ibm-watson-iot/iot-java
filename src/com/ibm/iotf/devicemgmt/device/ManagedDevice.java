@@ -93,8 +93,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener{
 					+ "without DeviceInformations !");
 			throw new Exception("Could not create Managed Client without DeviceInformations !");
 		}
-		String typeId = (String) options.get("type");
-		String deviceId = (String) options.get("id");
+		String typeId = this.getDeviceType();
+		String deviceId = this.getDeviceId();
 		
 		if(typeId == null) {
 			LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Could not create Managed Client "

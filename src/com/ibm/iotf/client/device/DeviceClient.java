@@ -57,24 +57,68 @@ public class DeviceClient extends AbstractClient {
 		createClient(this.new MqttDeviceCallBack());
 	}
 	
+	/*
+	 * old style - org
+	 * new style - Organization-ID
+	 */
 	public String getOrgId() {
-		return options.getProperty("org");
+		String org = null;
+		org = options.getProperty("org");
+		
+		if(org == null) {
+			org = options.getProperty("Organization-ID");
+		}
+		return org;
 	}
 
+	/*
+	 * old style - id
+	 * new style - Device-ID
+	 */
 	public String getDeviceId() {
-		return options.getProperty("id");
+		String id = null;
+		id = options.getProperty("id");
+		if(id == null) {
+			id = options.getProperty("Device-ID");
+		}
+		return id;
 	}
 
+	/*
+	 * old style - type
+	 * new style - Device-Type
+	 */
 	public String getDeviceType() {
-		return options.getProperty("type");
+		String type = null;
+		type = options.getProperty("type");
+		if(type == null) {
+			type = options.getProperty("Device-Type");
+		}
+		return type;
 	}
 
+	/*
+	 * old style - auth-method
+	 * new style - Authentication-Method
+	 */	
 	public String getAuthMethod() {
-		return options.getProperty("auth-method");
+		String method = options.getProperty("auth-method");
+		if(method == null) {
+			method = options.getProperty("Authentication-Method");
+		}
+		return method;
 	}
 
+	/*
+	 * old style - auth-token
+	 * new style - Authentication-Token
+	 */
 	public String getAuthToken() {
-		return options.getProperty("auth-token");
+		String token = options.getProperty("auth-token");
+		if(token == null) {
+			token = options.getProperty("Authentication-Token");
+		}
+		return token;
 	}
 
 

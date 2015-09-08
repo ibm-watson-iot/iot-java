@@ -130,12 +130,12 @@ public class DiagnosticsErrorCodeUpdateSample {
 		
 		// Options to connect to IoT Foundation
 		Properties options = new Properties();
-		options.setProperty("org", deviceProps.getProperty("org"));
-		options.setProperty("type", deviceProps.getProperty("type"));
-		options.setProperty("id", deviceProps.getProperty("id"));
-		options.setProperty("auth-method", deviceProps.getProperty("auth-method"));
-		options.setProperty("auth-token", deviceProps.getProperty("auth-token"));
-
+		options.setProperty("Organization-ID", deviceProps.getProperty("Organization-ID"));
+		options.setProperty("Device-Type", deviceProps.getProperty("Device-Type"));
+		options.setProperty("Device-ID", deviceProps.getProperty("Device-ID"));
+		options.setProperty("Authentication-Method", deviceProps.getProperty("Authentication-Method"));
+		options.setProperty("Authentication-Token", deviceProps.getProperty("Authentication-Token"));
+		
 
 		dmClient = new ManagedDevice(options, deviceData);
 	}
