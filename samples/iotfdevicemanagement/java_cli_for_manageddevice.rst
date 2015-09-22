@@ -24,7 +24,7 @@ The device management feature enhances the Internet of Things Foundation service
 
 Construct DeviceData
 ------------------------------------------------------------------------
-The device model is the combination of device metadata and management characteristics of a device. Devices can contain a lot of metadata, including device identifiers, device type and associated identifiers, and device model extensions. For a list of identifiers, see the device model reference documentation
+Devices can contain a lot of metadata, including device identifiers, device type and associated identifiers, and device model extensions. For a list of identifiers, see the device model reference documentation
 
 To create Device Data one needs to create the following objects:
 
@@ -58,9 +58,9 @@ The following code snippet shows how to create the DeviceData Object with the ab
 				 build();
 Construct ManagedDevice
 -------------------------------------------------------------------------------
-The constructor builds a ManagedDevice instance using which the device can perform the device management operations. Also the ManagedDevice instance can be used to do normal device operations like publishing device events and listening for commands from application.
+ManagedDevice - A device class that connects the device as managed device to IBM IoT Foundation and enables devices to perform one or more Device Management operations. Also the ManagedDevice instance can be used to do normal device operations like publishing device events and listening for commands from application.
 
-The device management section provides 3 different constructors to support different user patterns, 
+ManagedDevice exposes 3 different constructors to support different user patterns, 
 
 **Constructor#1**
 
@@ -87,7 +87,7 @@ The following code shows how to create a ManagedDevice instance:
 	options.setProperty("Authentication-Token", "authToken");
 	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
  
-Note that the name of the properties are slightly changed to miror the names in Internet of Things Foundation Dashboard, but the existing users who wants to migrate from the DeviceClient to ManagedDevice can still use the old format:
+Note that the name of the properties are slightly changed to miror the names in Internet of Things Foundation Dashboard, but the existing users who wants to migrate from the DeviceClient to ManagedDevice can still use the old format and construct the ManagedDevice Instance:
 
 .. code:: java
 
@@ -99,7 +99,28 @@ Note that the name of the properties are slightly changed to miror the names in 
 	options.setProperty("auth-token", "authToken");
 	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
 
+**Constructor#2**
 
+Constructs a managedDevice instance by accepting the DeviceData and the MqttClient instance:
+
+.. code:: java
+	
+	// code that constructs the MqttClient
+	....
+	ManagedDevice dmClient = new ManagedDevice(mqttClient, deviceData);
+	
+Note this constructor helps the custom device users to create ManagedDevice instance with the already Created and connected MqttClient instance to take advantage of device management operations. But we recommend the users to use the library for all the device functionalities.
+
+**Constructor#3**
+
+Constructs a managedDevice instance by accepting the DeviceData and the AsyncMqttClient instance:
+
+.. code:: java
+	
+	// code that constructs the AsyncMqttClient
+	....
+	ManagedDevice dmClient = new ManagedDevice(asyncMqttClient, deviceData);
+	
 Using a configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
