@@ -1,5 +1,5 @@
 ===============================================================================
-Java Client Library - Devices
+Java Client Library - Managed Device (Update In Progress)
 ===============================================================================
 
 Introduction
@@ -7,124 +7,97 @@ Introduction
 
 This client library describes how to use devices with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://docs.internetofthings.ibmcloud.com/libraries/java.html#/>`__. 
 
-This client library is divided into three sections, all included within the library. This section contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
+This client library is divided into four sections, all included within the library. This section contains information on how devices can participate in various device management activities like, firmware update, location update, diagnostics update, device actions and etc..
+
+The Device section contains information on how devices can publish events and handle commands using the Java ibmiotf Client Library. 
 
 The Applications section contains information on how applications can use the Java ibmiotf Client Library to interact with devices. 
 
 The Historian section contains information on how applications can use the Java ibmiotf Client Library to retrieve the historical information.
 
-Constructor
+Device Management
 -------------------------------------------------------------------------------
+The device management feature enhances the Internet of Things Foundation service with new capabilities for managing devices. It creates a distinction between managed and unmanaged devices,
 
-The constructor builds the client instance, and accepts a Properties object containing the following definitions:
+* **Managed Devices** are defined as devices which have a management agent installed. The management agent sends and receives device metadata and responds to device management commands from the Internet of Things Foundation. The device management agent and the Internet of Things Foundation device management service must share an understanding of data formats and communication patterns so they can interpret data correctly.
+* **Unmanaged Devices** are any devices which do not have a device management agent. All devices begin their lifecycle as unmanaged devices, and can transition to managed devices by sending a message from a device management agent to the Internet of Things Foundation. Devices without a device management agent installed can never become managed devices.
 
-* org - Your organization ID. (This is a required field. In case of quickstart flow, provide org as quickstart.)
-* type - The type of your device. (This is a required field.)
-* id - The ID of your device. (This is a required field.
-* auth-method - Method of authentication (This is an optional field, needed only for registered flow and the only value currently supported is "token"). 
-* auth-token - API key token (This is an optional field, needed only for registered flow).
+Construct DeviceData
+------------------------------------------------------------------------
+The device model is the combination of device metadata and management characteristics of a device. Devices can contain a lot of metadata, including device identifiers, device type and associated identifiers, and device model extensions. For a list of identifiers, see the device model reference documentation
+
+To create Device Data one needs to create the following objects:
+
+* DeviceInfo (mandatory)
+* DeviceLocation (optional)
+* DeviceDiagnostic (optional)
+* DeviceFirmware (optional)
+
+The following code snippet shows how to create the DeviceInfo Object with sample data:
+
+.. code:: java
+
+     DeviceInfo deviceInfo = new DeviceInfo.Builder().
+				serialNumber("10087").
+				manufacturer("IBM").
+				model("7865").
+				deviceClass("A").
+				description("My RasPi Device").
+				fwVersion("1.0.0").
+				hwVersion("1.0").
+				descriptiveLocation("EGL C").
+				build();
+
+The following code snippet shows how to create the DeviceData Object with the above created DeviceInfo object:
+
+.. code:: java
+
+	DeviceData deviceData = new DeviceData.Builder().
+				 deviceInfo(deviceInfo).
+				 metadata(new JsonObject()).
+				 build();
+Construct ManagedDevice
+-------------------------------------------------------------------------------
+The constructor builds a ManagedDevice instance using which the device can perform the device management operations. Also the ManagedDevice instance can be used to do normal device operations like publishing device events and listening for commands from application.
+
+The device management section provides 3 different constructors to support different user patterns, 
+
+**Constructor#1**
+
+Constructs a managedDevice instance by accepting the DeviceData and the following properties,
+
+* Organization-ID - Your organization ID.
+* Device-Type - The type of your device.
+* Device-ID - The ID of your device.
+* Authentication-Method - Method of authentication (The only value currently supported is "token"). 
+* Authentication-Token - API key token
 
 The Properties object creates definitions which are used to interact with the Internet of Things Foundation module. 
 
-The following code shows a device publishing events in a Quickstart mode.
+The following code shows how to create a ManagedDevice instance:
 
 
 .. code:: java
 
-
-
-	package com.ibm.iotf.sample.client.device;
-
-	import java.util.Properties;
-
-	import com.google.gson.JsonObject;
-	import com.ibm.iotf.client.device.DeviceClient;
-
-	public class QuickstartDeviceEventPublish {
-
-		public static void main(String[] args) {
-			
-			//Provide the device specific data using Properties class
-			Properties options = new Properties();
-			options.setProperty("org", "quickstart");
-			options.setProperty("type", "iotsample-arduino");
-			options.setProperty("id", "00aabbccde03");
-			
-			DeviceClient myClient = null;
-			try {
-				//Instantiate the class by passing the properties file
-				myClient = new DeviceClient(options);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			//Connect to the IBM IoT Foundation
-			myClient.connect();
-			
-			//Generate a JSON object of the event to be published
-			JsonObject event = new JsonObject();
-			event.addProperty("name", "foo");
-			event.addProperty("cpu",  90);
-			event.addProperty("mem",  70);
-
-			//Quickstart flow allows only QoS = 0
-			myClient.publishEvent("status", event, 0);
-			System.out.println("SUCCESSFULLY POSTED......");
-
-      ...
-
+	Properties options = new Properties();
+	options.setProperty("Organization-ID", "organization");
+	options.setProperty("Device-Type", "deviceType");
+	options.setProperty("Device-ID", "deviceId");
+	options.setProperty("Authentication-Method", "authMethod");
+	options.setProperty("Authentication-Token", "authToken");
+	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
  
-
-
-The following program shows a device publishing events in a registered flow
-
+Note that the name of the properties are slightly changed to miror the names in Internet of Things Foundation Dashboard, but the existing users who wants to migrate from the DeviceClient to ManagedDevice can still use the old format:
 
 .. code:: java
 
-
-	package com.ibm.iotf.sample.client.device;
-
-	import java.util.Properties;
-
-	import com.google.gson.JsonObject;
-	import com.ibm.iotf.client.device.DeviceClient;
-
-	public class RegisteredDeviceEventPublish {
-
-		public static void main(String[] args) {
-			
-			//Provide the device specific data, as well as Auth-key and token using Properties class		
-			Properties options = new Properties();
-
-			options.setProperty("org", "uguhsp");
-			options.setProperty("type", "iotsample-arduino");
-			options.setProperty("id", "00aabbccde03");
-			options.setProperty("auth-method", "token");
-			options.setProperty("auth-token", "AUTH TOKEN FOR DEVICE");
-			
-			DeviceClient myClient = null;
-			try {
-				//Instantiate the class by passing the properties file
-				myClient = new DeviceClient(options);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			//Connect to the IBM IoT Foundation		
-			myClient.connect();
-			
-			//Generate a JSON object of the event to be published
-			JsonObject event = new JsonObject();
-			event.addProperty("name", "foo");
-			event.addProperty("cpu",  90);
-			event.addProperty("mem",  70);
-			
-			//Registered flow allows 0, 1 and 2 QoS
-			myClient.publishEvent("status", event);
-			System.out.println("SUCCESSFULLY POSTED......");
-
-      ...
-
+	Properties options = new Properties();
+	options.setProperty("org", "organization");
+	options.setProperty("type", "deviceType");
+	options.setProperty("id", "deviceId");
+	options.setProperty("auth-method", "authMethod");
+	options.setProperty("auth-token", "authToken");
+	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
 
 
 Using a configuration file
