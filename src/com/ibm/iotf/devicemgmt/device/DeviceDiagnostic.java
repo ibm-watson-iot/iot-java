@@ -20,13 +20,13 @@ import com.ibm.iotf.devicemgmt.device.DiagnosticLog.LogSeverity;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 
 /**
- * This class represents the errorcode & log information of a device.  
- * When <code>update</code> or <code>send</code> method is invoked, 
- * the IBM Internet of Things Foundation will be notified.
+ * <p>This class represents the errorcode & log information of a device.  
+ * When <code>append</code> or <code>send</code> method is invoked, 
+ * the IBM Internet of Things Foundation will be notified.</p>
  * 
- * The device diagnostics operations are intended to provide information 
+ * </p>The device diagnostics operations are intended to provide information 
  * on device errors, and does not provide diagnostic information relating 
- * to the devices connection to the Internet of Things Foundation.
+ * to the devices connection to the Internet of Things Foundation.</p>
  */
 public class DeviceDiagnostic extends Resource {
 	public static final String ERRORCODE_CHANGE_EVENT = "DiagnosticErrorCode";
@@ -60,8 +60,10 @@ public class DeviceDiagnostic extends Resource {
 	}
 		
 	/**
-	 * The "errorCode" is a current device error code that needs to be added to the Internet of Things Foundation.
-	 * @param errorCode
+	 * Appends the current errorcode to IBM IoT Foundation.
+	 * 
+	 * @param errorCode The "errorCode" is a current device error code that 
+	 * needs to be added to the Internet of Things Foundation.
 	 * 
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
@@ -74,8 +76,7 @@ public class DeviceDiagnostic extends Resource {
 	}
 	
 	/**
-	 * The "errorCode" is a current device error code that needs to be 
-	 * added to the Internet of Things Foundation.
+	 * Sends the last device error code to IBM Internet of Things Foundation.
 	 * 
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
@@ -88,10 +89,10 @@ public class DeviceDiagnostic extends Resource {
 	}
 	
 	/**
-	 * The Log message that needs to be added to the Internet of Things Foundation.
-	 * @param message
-	 * @param timestamp
-	 * @param severity
+	 * Appends a Log message to the Internet of Things Foundation.
+	 * @param message The Log message that needs to be added to the Internet of Things Foundation.
+	 * @param timestamp The Log timestamp
+	 * @param severity the Log severity
 	 * 
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
@@ -103,10 +104,10 @@ public class DeviceDiagnostic extends Resource {
 	/**
 	 * The Log message that needs to be added to the Internet of Things Foundation.
 	 * 
-	 * @param message
-	 * @param timestamp
-	 * @param severity
-	 * @param data
+	 * @param message The Log message that needs to be added to the Internet of Things Foundation.
+	 * @param timestamp The Log timestamp
+	 * @param severity The Log severity
+	 * @param data The String data
 	 * 
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
@@ -119,7 +120,7 @@ public class DeviceDiagnostic extends Resource {
 	}
 	
 	/**
-	 * The Log message that needs to be added to the Internet of Things Foundation.
+	 * The last Log message that needs to be added to the Internet of Things Foundation.
 	 * 
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
@@ -132,16 +133,16 @@ public class DeviceDiagnostic extends Resource {
 	}
 
 	/**
-	 * returns the latest ErrorCode
-	 * @return DiagnosticErrorCode
+	 * @return DiagnosticErrorCode Returns the DiagnosticsErrorCode object
+	 * @see DiagnosticErrorCode
 	 */
 	public DiagnosticErrorCode getErrorCode() {
 		return this.errorCode;
 	}
 
 	/**
-	 * returns the latest Log information
-	 * @return DiagnosticLog
+	 * @return DiagnosticLog Returns the DiagnosticsLog
+	 * @see DiagnosticLog
 	 */
 	public DiagnosticLog getLog() {
 		return this.log;
@@ -175,11 +176,16 @@ public class DeviceDiagnostic extends Resource {
 
 	@Override
 	public JsonElement toJsonObject() {
-		throw new RuntimeException("Not Implemented");
+		throw new RuntimeException("Not Supported");
 	}
 
 	@Override
+	public int update(JsonElement json) {
+		throw new RuntimeException("Not Supported");
+	}
+	
+	@Override
 	public int update(JsonElement json, boolean fireEvent) {
-		throw new RuntimeException("Not Implemented");
+		throw new RuntimeException("Not Supported");
 	}
 }

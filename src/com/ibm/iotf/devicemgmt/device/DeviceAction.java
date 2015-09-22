@@ -19,13 +19,20 @@ import java.beans.PropertyChangeSupport;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.ibm.iotf.devicemgmt.device.resource.Resource.ChangeListenerType;
 
 /**
- * This class encapsulates the device action like reboot & factory reset.
+ * <p>This class encapsulates the device action like reboot & factory reset.</p>
  * 
  */
 public class DeviceAction {
-	
+	/**
+	 * <p>Status of the DeviceAction when there is a failure,</p>
+	 * <ul class="simple">
+	 * <li> 500 - if the operation fails for some reason</li>
+	 * <li> 501 - if the operation is not supported</li>
+	 * </ul>
+	 */
 	public enum Status {
 		FAILED(500), UNSUPPORTED(501);
 		
@@ -47,12 +54,32 @@ public class DeviceAction {
 	
 	private Status status;
 	private String message;
-		
-		
+
+	DeviceAction() {}
+	
+	/**
+	 * <p>Set the failure status of the current device action
+	 * <br>
+	 * The Device Action handler must use this method to report 
+	 * the failure status back to IBM IoT Foundation whenever
+	 * there is a failure.</p>
+	 * 
+	 * @param status Failure status of the current device action
+	 */
 	public void setStatus(Status status) {
 		this.status = status;
 	}
 	
+	/**
+	 * <p>Set the failure message of the current device action that needs to be 
+	 * sent to the IBM IoT Foundation.
+	 * <br>
+	 * The Device Action handler must use this method to report 
+	 * the failure message back to IBM IoT Foundation whenever
+	 * there is a failure.</p>
+	 * 
+	 * @param message failure message that needs to be sent to IBM IoT Foundation
+	 */
 	public void setMessage(String message) {
 		this.message = message;
 	}
@@ -60,16 +87,22 @@ public class DeviceAction {
 		
 	private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	
+	/**
+	 * Trigger the notification message - This method should only be used by the library code
+	 * @param event event to be fired
+	 */
 	public void fireEvent(String event) {
 		pcs.firePropertyChange(event, null, this);
 	}
 		
 	/**
 	 * Add a new listener to be notified when the location is changed.
+	 * @param internal 
 	 * 
 	 * @param listener
 	 */
-	public synchronized void addPropertyChangeListener(PropertyChangeListener listener) {
+	synchronized void addPropertyChangeListener(ChangeListenerType internal, 
+			PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(listener);
 	}
 	
@@ -78,7 +111,7 @@ public class DeviceAction {
 	 *  
 	 * @param listener
 	 */
-	public synchronized void removePropertyChangeListener(PropertyChangeListener listener) {
+	synchronized void removePropertyChangeListener(PropertyChangeListener listener) {
 		pcs.removePropertyChangeListener(listener);
 	}
 	

@@ -13,6 +13,8 @@
 package com.ibm.iotf.devicemgmt.device.handler;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -42,11 +44,11 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 	private static Map<ManagedDevice, FactoryResetRequestHandler> resetHandlers = new HashMap<ManagedDevice,FactoryResetRequestHandler>();
 	private static Map<ManagedDevice, FirmwareDownloadRequestHandler> fwDownloadHandlers = new HashMap<ManagedDevice,FirmwareDownloadRequestHandler>();
 	private static Map<ManagedDevice, FirmwareUpdateRequestHandler> fwUpdateHandlers = new HashMap<ManagedDevice,FirmwareUpdateRequestHandler>();
-	private static Map<ManagedDevice, GenericRequestHandler> genericHandlers = new HashMap<ManagedDevice,GenericRequestHandler>();
 	
-	private static Map<ServerTopic, DMRequestHandler> handlers = new HashMap<ServerTopic,DMRequestHandler>();
-	
-	public abstract void handleRequest(JsonObject jsonRequest);
+	protected abstract void subscribe();
+	protected abstract void unsubscribe();
+	protected abstract ServerTopic getTopic();
+	protected abstract void handleRequest(JsonObject jsonRequest);
 	
 	@Override
 	public void messageArrived(String topic, MqttMessage message) {
@@ -57,15 +59,7 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 			LoggerUtility.fine(CLASS_NAME, METHOD, System.identityHashCode(this) + "Handler(" + this.getClass().getName() + 
 					") Received request on topic " + topic + ") " + jsonRequest.toString());
 			
-			DMRequestHandler h = handlers.get(ServerTopic.get(topic));
-			if (h != null) {
-				h.handleRequest(jsonRequest);
-			} else {
-				if(!ServerTopic.RESPONSE.getName().equals(topic)) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, "No handler for topic (" + topic + 
-						") payload(" + jsonRequest.toString() + ")");
-				}
-			}
+			handleRequest(jsonRequest);
 		} catch (Exception e) {
 			LoggerUtility.severe(CLASS_NAME, METHOD, "Unexpected Exception = " + e.getMessage());
 			e.printStackTrace();
@@ -82,6 +76,24 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 	
 	protected ObserveRequestHandler getObserveRequestHandler(ManagedDevice dmClient) {
 		return observeHandlers.get(dmClient);
+	}
+	
+	protected void subscribe(ServerTopic topic) {
+		final String METHOD = "subscribe";
+		try {
+			getDMClient().subscribe(topic, 1, (IMqttMessageListener)this);
+		} catch (MqttException e) {
+			LoggerUtility.severe(CLASS_NAME, METHOD, ": Unexpected Mqtt Exception, code = " + e.getReasonCode());
+		}
+	}
+	
+	protected void unsubscribe(ServerTopic topic) {
+		final String METHOD = "unsubscribe";
+		try {
+			getDMClient().unsubscribe(topic);
+		} catch (MqttException e) {
+			LoggerUtility.severe(CLASS_NAME, METHOD, ": Unexpected Mqtt Exception, code = " + e.getReasonCode());
+		}
 	}
 
 	protected void respond(JsonObject payload) {
@@ -102,77 +114,145 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 		}
 	}
 	
+	/**
+	 * Create all the necessary request handlers - this is called when manage request is
+	 * called by the agent
+	 * 
+	 * Do a bulk subscribe to improve the performance
+	 * @param dmClient
+	 * @throws MqttException
+	 */
 	public static void setRequestHandlers(ManagedDevice dmClient) throws MqttException{
+		
+		String[] topics = new String[7];
+		IMqttMessageListener[] listener = new IMqttMessageListener[7];
+		int index = 0;
 		
 		DeviceUpdateRequestHandler device = deviceUpdateHandlers.get(dmClient);
 		if (device == null) {
 			device = new DeviceUpdateRequestHandler(dmClient);
+			topics[index] = device.getTopic().getName();
+			listener[index++] = device;
+			//device.subscribe();
 			deviceUpdateHandlers.put(dmClient, device);
-			handlers.put(ServerTopic.DEVICE_UPDATE, device);
 		}
 		
 		ObserveRequestHandler observe = observeHandlers.get(dmClient);
 		if (observe == null) {
 			observe = new ObserveRequestHandler(dmClient);
+			topics[index] = observe.getTopic().getName();
+			listener[index++] = observe;
 			observeHandlers.put(dmClient, observe);
-			handlers.put(ServerTopic.OBSERVE, observe);
 		}
 		
 		CancelRequestHandler cancel = cancelHandlers.get(dmClient);
 		if (cancel == null) {
 			cancel = new CancelRequestHandler(dmClient);
+			topics[index] = cancel.getTopic().getName();
+			listener[index++] = cancel;
 			cancelHandlers.put(dmClient, cancel);
-			handlers.put(ServerTopic.CANCEL, cancel);
 		}
 		
 		RebootRequestHandler reboot = rebootHandlers.get(dmClient);
 		if (reboot == null) {
 			reboot = new RebootRequestHandler(dmClient);
+			topics[index] = reboot.getTopic().getName();
+			listener[index++] = reboot;
 			rebootHandlers.put(dmClient, reboot);
-			handlers.put(ServerTopic.INITIATE_REBOOT, reboot);
 		}
 		
 		FactoryResetRequestHandler reset = resetHandlers.get(dmClient);
 		if (reset == null) {
 			reset = new FactoryResetRequestHandler(dmClient);
+			topics[index] = reset.getTopic().getName();
+			listener[index++] = reset;
 			resetHandlers.put(dmClient, reset);
-			handlers.put(ServerTopic.INITIATE_FACTORY_RESET, reset);
 		}
 		
 		FirmwareDownloadRequestHandler fwDownload = fwDownloadHandlers.get(dmClient);
 		if (fwDownload == null) {
 			fwDownload = new FirmwareDownloadRequestHandler(dmClient);
+			topics[index] = fwDownload.getTopic().getName();
+			listener[index++] = fwDownload;
 			fwDownloadHandlers.put(dmClient, fwDownload);
-			handlers.put(ServerTopic.INITIATE_FIRMWARE_DOWNLOAD, fwDownload);
 		}
 		
 		FirmwareUpdateRequestHandler fwUpdate = fwUpdateHandlers.get(dmClient);
 		if (fwUpdate == null) {
 			fwUpdate = new FirmwareUpdateRequestHandler(dmClient);
+			topics[index] = fwUpdate.getTopic().getName();
+			listener[index++] = fwUpdate;
 			fwUpdateHandlers.put(dmClient, fwUpdate);
-			handlers.put(ServerTopic.INITIATE_FIRMWARE_UPDATE, fwUpdate);
 		}
-
-		GenericRequestHandler generic = genericHandlers.get(dmClient);
-		if (generic == null) {
-			generic = new GenericRequestHandler(dmClient);
-			genericHandlers.put(dmClient, generic);
-			handlers.put(ServerTopic.GENERIC, generic);
+		
+		if(index > 0) {
+			int[] qos = new int[index];
+			Arrays.fill(qos, 1);
+			dmClient.subscribe(topics, qos, listener);
 		}
-		// Subscribe
-		generic.getDMClient().subscribe(ServerTopic.GENERIC, 1, generic);
 	}
 	
-	public static void clearRequestHandlers(ManagedDevice dmClient) {
+	/**
+	 * Clear all the request handlers - this is called when unmanage request is
+	 * called by the agent
+	 * 
+	 * Do a bulk unsubscribe to improve performance
+	 * @param dmClient
+	 * @throws MqttException 
+	 */
+	public static void clearRequestHandlers(ManagedDevice dmClient) throws MqttException {
 		
-		deviceUpdateHandlers.remove(dmClient);
-		observeHandlers.remove(dmClient);
-		cancelHandlers.remove(dmClient);
-		rebootHandlers.remove(dmClient);
-		resetHandlers.remove(dmClient);
-		fwDownloadHandlers.remove(dmClient);
-		fwUpdateHandlers.remove(dmClient);
-		genericHandlers.remove(dmClient);
+		String[] topics = new String[7];
+		IMqttMessageListener[] listener = new IMqttMessageListener[7];
+		int index = 0;
+		
+		DeviceUpdateRequestHandler device = deviceUpdateHandlers.remove(dmClient);
+		if (device != null) {
+			topics[index] = device.getTopic().getName();
+			listener[index++] = device;
+		}
+		
+		ObserveRequestHandler observe = observeHandlers.remove(dmClient);
+		if (observe != null) {
+			topics[index] = observe.getTopic().getName();
+			listener[index++] = observe;
+		}
+		
+		CancelRequestHandler cancel = cancelHandlers.remove(dmClient);
+		if (cancel != null) {
+			topics[index] = cancel.getTopic().getName();
+			listener[index++] = cancel;
+		}
+		
+		RebootRequestHandler reboot = rebootHandlers.remove(dmClient);
+		if (reboot != null) {
+			topics[index] = reboot.getTopic().getName();
+			listener[index++] = reboot;
+		}
+		
+		FactoryResetRequestHandler reset = resetHandlers.remove(dmClient);
+		if (reset != null) {
+			topics[index] = reset.getTopic().getName();
+			listener[index++] = reset;
+		}
+
+		FirmwareDownloadRequestHandler fwDownload = fwDownloadHandlers.remove(dmClient);
+		if (fwDownload != null) {
+			topics[index] = fwDownload.getTopic().getName();
+			listener[index++] = fwDownload;
+		}
+		
+		FirmwareUpdateRequestHandler fwUpdate = fwUpdateHandlers.remove(dmClient);
+		if (fwUpdate != null) {
+			topics[index] = fwUpdate.getTopic().getName();
+			listener[index++] = fwUpdate;
+		}
+		
+		if(index > 0) {
+			int[] qos = new int[index];
+			Arrays.fill(qos, 1);
+			dmClient.unsubscribe(topics);
+		}
 		
 	}
 

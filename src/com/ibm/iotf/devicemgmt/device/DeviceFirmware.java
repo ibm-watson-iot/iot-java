@@ -24,7 +24,9 @@ import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.devicemgmt.device.resource.StringResource;
 
 /**
- * Device Firmware as specified in IoTF Device Model.
+ * Device Firmware as specified in IoTF Device Model. 
+ * The following attributes are present as part of the Device Firmware,
+ * <ul class="simple">
  * <li>mgmt.firmware.version
  * <li>mgmt.firmware.name
  * <li>mgmt.firmware.url
@@ -32,11 +34,45 @@ import com.ibm.iotf.devicemgmt.device.resource.StringResource;
  * <li>mgmt.firmware.state
  * <li>mgmt.firmware.updateStatus
  * <li>mgmt.firmware.updatedDateTime
- * 
+ * </ul>
  * 
  */
 public class DeviceFirmware extends Resource {
-	
+	/**
+	 * <p>The firmware update process is separated into two distinct actions, Downloading Firmware, and Updating Firmware.
+	 * The status of each of these actions is stored in a separate attribute on the device. 
+	 * The <code class="docutils literal"><span class="pre">mgmt.firmware.state</span></code>
+	 * attribute describes the status of the firmware download. The possible values for 
+	 * <code class="docutils literal"><span class="pre">mgmt.firmware.state</span></code> are:</p>
+	 * <table border="1" class="docutils">
+	 * 	<colgroup>
+	 * 	<col width="12%" />
+	 * 	<col width="11%" />
+	 * 	<col width="77%" />
+	 * </colgroup>
+	 * <thead valign="bottom">
+	 * 	<tr class="row-odd"><th class="head">Value</th>
+	 * 	<th class="head">State</th>
+	 * 	<th class="head">Meaning</th>
+	 * </tr>
+	 * </thead>
+	 * <tbody valign="top">
+	 * <tr class="row-even"><td>0</td>
+	 * <td>Idle</td>
+	 * <td>The device is currently not in the process of downloading firmware</td>
+	 * </tr>
+	 * <tr class="row-odd"><td>1</td>
+	 * <td>Downloading</td>
+	 * <td>The device is currently downloading firmware</td>
+	 * </tr>
+	 * <tr class="row-even"><td>2</td>
+	 * <td>Downloaded</td>
+	 * <td>The device has successfully downloaded a firmware update and it is ready to install</td>
+	 * </tr>
+	 * </tbody>
+	 * </table>
+	 *  
+	 */
 	public enum FirmwareState {
 		IDLE(0), DOWNLOADING(1), DOWNLOADED(2);
 		
@@ -46,11 +82,63 @@ public class DeviceFirmware extends Resource {
 			this.state = state;
 		}
 		
+		/**
+		 * Returns the current Firmware download State
+		 * @return
+		 */
 		public int getState() {
 			return state;
 		}
 	}
 	
+	/**
+	 * <p>The <code class="docutils literal"><span class="pre">mgmt.firmware.updateStatus</span></code> 
+	 * attribute describes the status of firmware update. The possible values for <code class="docutils literal">
+	 * <span class="pre">mgmt.firmware.status</span></code> are:</p>
+	 * <table border="1" class="docutils">
+	 * <colgroup>
+	 * <col width="13%" />
+	 * <col width="20%" />
+	 * <col width="67%" />
+	 * </colgroup>
+	 * <thead valign="bottom">
+	 * <tr class="row-odd"><th class="head">Value</th>
+	 * <th class="head">State</th>
+	 * <th class="head">Meaning</th>
+	 * </tr>
+	 * </thead>
+	 * <tbody valign="top">
+	 * <tr class="row-even"><td>0</td>
+	 * <td>Success</td>
+	 * <td>The firmware has been successfully updated</td>
+	 * </tr>
+	 * <tr class="row-odd"><td>1</td>
+	 * <td>In Progress</td>
+	 * <td>The firmware update has been initiated but is not yet complete</td>
+	 * </tr>
+	 * <tr class="row-even"><td>2</td>
+	 * <td>Out of Memory</td>
+	 * <td>An out of memory condition has been detected during the operation.</td>
+	 * </tr>
+	 * <tr class="row-odd"><td>3</td>
+	 * <td>Connection Lost</td>
+	 * <td>The connection was lost during the firmware download</td>
+	 * </tr>
+	 * <tr class="row-even"><td>4</td>
+	 * <td>Verification Failed</td>
+	 * <td>The firmware did not pass verification</td>
+	 *</tr>
+	 *<tr class="row-odd"><td>5</td>
+	 *<td>Unsupported Image</td>
+	 *<td>The downloaded firmware image is not supported by the device</td>
+	 *</tr>
+	 *<tr class="row-even"><td>6</td>
+	 *<td>Invalid URI</td>
+	 *<td>The device could not download the firmware from the provided URI</td>
+	 *</tr>
+	 *</tbody>
+	 *</table>
+	 */
 	public enum FirmwareUpdateStatus {
 		SUCCESS(0),
 		IN_PROGRESS(1),
@@ -65,6 +153,11 @@ public class DeviceFirmware extends Resource {
 		private FirmwareUpdateStatus(int status) {
 			this.status = status;
 		}
+		
+		/**
+		 * Returns the current Firmware Update Status
+		 * @return
+		 */
 		public int getStatus() {
 			return status;
 		}
@@ -114,6 +207,18 @@ public class DeviceFirmware extends Resource {
 	 * Update the Firmware object with new values
 	 * 
 	 * @param firmware
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+
+	public int update(JsonElement firmware) {
+		return update(firmware, true);
+	}
+	
+	/**
+	 * Update the Firmware object with new values
+	 * 
+	 * @param firmware
 	 * @param fireEvent - whether to fire an update event of not
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
@@ -146,12 +251,14 @@ public class DeviceFirmware extends Resource {
 				}
 			}
 		}
-		if(fireEvent) {
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
-		}
+		fireEvent(fireEvent);
 		return this.getRC();
 	}
 	
+	/**
+	 * returns the version of the firmware
+	 * @return
+	 */
 	public String getVersion() {
 		if (this.version != null) {
 			return version.getValue();
@@ -160,6 +267,10 @@ public class DeviceFirmware extends Resource {
 		}
 	}
 	
+	/**
+	 * Set the firmware with the given version 
+	 * @param version version to be updated
+	 */
 	public void setVersion(String version) {
 		this.setVersion(version, true);
 	}
@@ -174,11 +285,12 @@ public class DeviceFirmware extends Resource {
 		} else {
 			this.version.setValue(version);
 		}
-		if(fireEvent) {
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
-		}
+		fireEvent(fireEvent);
 	}
 	
+	/**
+	 * Returns the firmware URL
+	 */
 	public String getUrl() {
 		if (this.url != null) {
 			return url.getValue();
@@ -187,6 +299,9 @@ public class DeviceFirmware extends Resource {
 		}
 	}
 	
+	/**
+	 * Set the firmware URL
+	 */
 	public void setUrl(String url) {
 		this.setUrl(url, true);
 	}
@@ -202,11 +317,12 @@ public class DeviceFirmware extends Resource {
 			this.url.setValue(url);
 		}
 		
-		if(fireEvent) {
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
-		}
+		fireEvent(fireEvent);
 	}
 	
+	/**
+	 * Returns the firmware Verifier
+	 */
 	public String getVerifier() {
 		if (this.verifier != null) {
 			return verifier.getValue();
@@ -215,6 +331,9 @@ public class DeviceFirmware extends Resource {
 		}
 	}
 	
+	/**
+	 * Set the firmware verifier
+	 */
 	public void setVerifier(String verifier) {
 		setVerifier(verifier, true);
 	}
@@ -229,15 +348,19 @@ public class DeviceFirmware extends Resource {
 		} else {
 			this.verifier.setValue(verifier);
 		}
-		if(fireEvent) {
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
-		}
+		fireEvent(fireEvent);
 	}
 
+	/**
+	 * Returns the firmware state
+	 */
 	public int getState() {
 		return this.state.getValue().intValue();
 	}
 	
+	/**
+	 * Set the firmware state
+	 */
 	public void setState(FirmwareState state) {
 		setState(state, true);
 	}
@@ -254,11 +377,12 @@ public class DeviceFirmware extends Resource {
 			this.state.setValue(state.getState());
 		}
 		
-		if(fireEvent) {
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
-		}
+		fireEvent(fireEvent);
 	}
 	
+	/**
+	 * Returns the name of the firmware
+	 */
 	public String getName() {
 		if(this.name != null) {
 			return this.name.getValue();
@@ -267,6 +391,9 @@ public class DeviceFirmware extends Resource {
 		}
 	}
 	
+	/**
+	 * Set the name of the firmware
+	 */
 	public void setName(String name) {
 		this.setName(name, true);
 	}
@@ -282,15 +409,19 @@ public class DeviceFirmware extends Resource {
 			this.name.setValue(name);
 		}
 		
-		if(fireEvent) {
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
-		}
+		fireEvent(fireEvent);
 	}
 	
+	/**
+	 * Returns the Firmware Update status
+	 */
 	public int getUpdateStatus() {
 		return this.updateStatus.getValue().intValue();
 	}
 	
+	/**
+	 * Set the Firmware Update status
+	 */
 	public void setUpdateStatus(FirmwareUpdateStatus updateStatus) {
 		this.setUpdateStatus(updateStatus, true);
 	}
@@ -308,12 +439,7 @@ public class DeviceFirmware extends Resource {
 			this.updateStatus.setValue(updateStatus.getStatus());
 		}
 		
-		if(fireEvent)
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
-	}
-	
-	public void fireEvent(String event) {
-		pcs.firePropertyChange(event, null, this);
+		fireEvent(fireEvent);
 	}
 	
 	/**
@@ -354,6 +480,9 @@ public class DeviceFirmware extends Resource {
 		return toJsonObject().toString();
 	}
 	
+	/**
+	 * A Builder class that helps to build the Device Firmware object
+	 */
 	public static class Builder {
 		private String version; 
 		private String name; 

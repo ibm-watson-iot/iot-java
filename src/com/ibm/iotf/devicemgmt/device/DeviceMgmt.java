@@ -18,6 +18,9 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 
+/**
+ * An internal class that encapsulated the Firmware Object
+ */
 public class DeviceMgmt extends Resource {
 
 	public static final String RESOURCE_NAME = "mgmt";
@@ -35,10 +38,14 @@ public class DeviceMgmt extends Resource {
 	}
 
 	@Override
-	public int update(JsonElement json, boolean fireEvent) {
-		throw new RuntimeException("Not Implemented");
+	public int update(JsonElement json) {
+		throw new RuntimeException("Not Supported");
 	}
 
+	@Override
+	public int update(JsonElement json, boolean fireEvent) {
+		throw new RuntimeException("Not Supported");
+	}
 	public DeviceFirmware getDeviceFirmware() {
 		return this.firmware;
 	}

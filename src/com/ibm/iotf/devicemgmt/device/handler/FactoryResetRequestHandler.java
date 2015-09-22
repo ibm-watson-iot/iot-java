@@ -18,6 +18,7 @@ import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.device.DeviceAction;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.device.ResponseCode;
+import com.ibm.iotf.devicemgmt.device.ServerTopic;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -34,9 +35,36 @@ public class FactoryResetRequestHandler extends DMRequestHandler {
 		setDMClient(dmClient);
 		
 	}
-
+	
+	/**
+	 * return initiate factory reset topic
+	 */
 	@Override
-	public void handleRequest(JsonObject jsonRequest) {
+	protected ServerTopic getTopic() {
+		return ServerTopic.INITIATE_FACTORY_RESET;
+	}
+	
+	/**
+	 * subscribe to initiate factory reset topic
+	 */
+	@Override
+	protected void subscribe() {
+		subscribe(ServerTopic.INITIATE_FACTORY_RESET);
+	}
+
+	/**
+	 * Unsubscribe initiate factory reset topic
+	 */
+	@Override
+	protected void unsubscribe() {
+		unsubscribe(ServerTopic.INITIATE_FACTORY_RESET);
+	}
+
+	/**
+	 * Handle the initiate factory reset messages from IBM IoT Foundation 
+	 */
+	@Override
+	protected void handleRequest(JsonObject jsonRequest) {
 		final String METHOD = "handleRequest";
 		ResponseCode rc = ResponseCode.DM_ACCEPTED;
 		

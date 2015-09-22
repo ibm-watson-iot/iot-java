@@ -21,6 +21,7 @@ import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.device.ResponseCode;
+import com.ibm.iotf.devicemgmt.device.ServerTopic;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -35,6 +36,30 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 
 	public FirmwareUpdateRequestHandler(ManagedDevice dmClient) {
 		setDMClient(dmClient);
+	}
+	
+	/**
+	 * Return Initiate firmware update
+	 */
+	@Override
+	protected ServerTopic getTopic() {
+		return ServerTopic.INITIATE_FIRMWARE_UPDATE;
+	}
+	
+	/**
+	 * subscribe to Initiate firmware update topic
+	 */
+	@Override
+	protected void subscribe() {
+		subscribe(ServerTopic.INITIATE_FIRMWARE_UPDATE);
+	}
+
+	/**
+	 * Unsubscribe Initiate firmware update topic
+	 */
+	@Override
+	protected void unsubscribe() {
+		unsubscribe(ServerTopic.INITIATE_FIRMWARE_UPDATE);
 	}
 
 	/**
@@ -92,22 +117,5 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 		response.add("rc", new JsonPrimitive(rc.getCode()));
 		respond(response);
 	}
-
-/*	@Override
-	public void propertyChange(PropertyChangeEvent event) {
-		final String METHOD = "propertyChange";
-		JsonObject jsonNotify = new JsonObject();
-		if (event.getPropertyName().equals(DeviceFirmware.FIRMWARE_UPDATE_IN_PROGRESS) || 
-				event.getPropertyName().equals(DeviceFirmware.FIRMWARE_UPDATE_STOP)) {
-			LoggerUtility.fine(CLASS_NAME, METHOD, "Firmware state (" + getDMClient().getDeviceData().getDeviceFirmware() + ")");
-			JsonObject data = new JsonObject();
-			data.add("field", new JsonPrimitive("mgmt.firmware"));
-			data.add("value", getDMClient().getDeviceData().getDeviceFirmware().toJsonObject());
-			jsonNotify.add("d", data);
-			System.out.println(jsonNotify);
-			notify(jsonNotify);
-		}		
-		
-	}*/
 
 }

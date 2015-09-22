@@ -28,11 +28,34 @@ import com.google.gson.JsonElement;
 public abstract class Resource<T> {
 	
 	public final static String ROOT_RESOURCE_NAME = "root";
-	public final static int RESPONSE_TIMEOUT =  1000 * 60;
-	protected PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	
-	/* The resource resourceResourceName. */
-	private String resourceResourceName;
+	public enum ChangeListenerType {
+		INTERNAL("Internal"),
+		EXTERNAL("External");
+		
+		private ChangeListenerType(String name) {
+			this.name = name;
+		}
+		
+		private final String name;
+		
+		public String getName() {
+			return name;
+		}
+	}
+	
+	// Lets say 2 minutes is the default timeout period
+	public final static int RESPONSE_TIMEOUT =  1000 * 60 * 2;
+	
+	// Internal listeners are the library classes that listens for the
+	// attribute change that needs to be sent to the IBM IoT Foundation
+	private PropertyChangeSupport pcsInternal = new PropertyChangeSupport(this);
+	
+	// Externals are those that will be added by the device code 
+	private PropertyChangeSupport pcsExternal = new PropertyChangeSupport(this);
+	
+	/* The resource resource. */
+	private String resourceName;
 	private String canonicalName;
 	
 	private T value;
@@ -51,7 +74,7 @@ public abstract class Resource<T> {
 	}
 	
 	public Resource(String resourceResourceName, T value) {
-		this.resourceResourceName = resourceResourceName;
+		this.resourceName = resourceResourceName;
 		this.value = value;
 		this.children = new HashMap<String, Resource>();
 		this.canonicalName = resourceResourceName;
@@ -63,25 +86,39 @@ public abstract class Resource<T> {
 	}
 	
 	public void setValue(T value) {
-		this.value = value;
-		pcs.firePropertyChange(this.canonicalName, null, this);
+		setValue(value, true);
 	}
 	
 	public void setValue(T value, boolean fireEvent) {
 		this.value = value;
-		if(fireEvent)
-			pcs.firePropertyChange(this.canonicalName, null, this);
+		if(fireEvent) {
+			pcsInternal.firePropertyChange(this.canonicalName, null, this);
+		}
+	}
+	
+	protected void fireEvent(boolean fire) {
+		if(fire) {
+			pcsInternal.firePropertyChange(this.canonicalName, null, this);
+		}
+	}
+	
+	public void fireEvent(String event) {
+		pcsInternal.firePropertyChange(event, null, this);
+	}
+	
+	public void notifyExternalListeners() {
+		pcsExternal.firePropertyChange(this.canonicalName, null, this);
 	}
 	
 	public void add(Resource child) {
-		if (child.resourceResourceName == null)
+		if (child.resourceName == null)
 			throw new NullPointerException("Child must have a resourceResourceName");
 		if (child.getParent() != null)
 			child.getParent().remove(child);
-		children.put(child.resourceResourceName, child);
+		children.put(child.resourceName, child);
 		child.setParent(this);
-		if(!this.resourceResourceName.equals(ROOT_RESOURCE_NAME)) {
-			child.canonicalName = this.canonicalName + "." +child.resourceResourceName;
+		if(!this.resourceName.equals(ROOT_RESOURCE_NAME)) {
+			child.canonicalName = this.canonicalName + "." +child.resourceName;
 		}
 	}
 	
@@ -92,7 +129,7 @@ public abstract class Resource<T> {
 
 
 	public boolean remove(Resource child) {
-		Resource removed = remove(child.resourceResourceName);
+		Resource removed = remove(child.resourceName);
 		if (removed == child) {
 			child.setParent(null);
 			return true;
@@ -136,11 +173,11 @@ public abstract class Resource<T> {
 	}
 
 	/* 
-	 * Returns the resourceResourceName of this resource
+	 * Returns the resourceName of this resource
 	 */
 	
 	public String getResourceName() {
-		return resourceResourceName;
+		return resourceName;
 	}
 	
 	public String getCanonicalName() {
@@ -154,13 +191,28 @@ public abstract class Resource<T> {
 	
 	public abstract JsonElement toJsonObject();
 
+	
+	/**
+	 * Add a new listener to be notified when the value is changed.
+	 * 
+	 * @param listener
+	 */
+	public synchronized void addPropertyChangeListener(PropertyChangeListener listener) {
+		pcsExternal.addPropertyChangeListener(listener);
+	}
+	
+	
 	/**
 	 * Add a new listener to be notified when the location is changed.
 	 * 
 	 * @param listener
 	 */
-	public synchronized void addPropertyChangeListener(PropertyChangeListener listener) {
-		pcs.addPropertyChangeListener(listener);
+	public synchronized void addPropertyChangeListener(ChangeListenerType type, PropertyChangeListener listener) {
+		if(type == ChangeListenerType.INTERNAL) {
+			pcsInternal.addPropertyChangeListener(listener);
+		} else {
+			pcsExternal.addPropertyChangeListener(listener);
+		}
 	}
 	
 	/**
@@ -169,9 +221,10 @@ public abstract class Resource<T> {
 	 * @param listener
 	 */
 	public synchronized void removePropertyChangeListener(PropertyChangeListener listener) {
-		pcs.removePropertyChangeListener(listener);
+		pcsInternal.removePropertyChangeListener(listener);
 	}
 
+	public abstract int update(JsonElement json);
 	public abstract int update(JsonElement json, boolean fireEvent);
 	
 	/**

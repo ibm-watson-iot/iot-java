@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.device.ResponseCode;
+import com.ibm.iotf.devicemgmt.device.ServerTopic;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -46,9 +47,36 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 	public ObserveRequestHandler(ManagedDevice dmClient) {
 		setDMClient(dmClient);
 	}
-
+	
+	/**
+	 * Return the observe topic
+	 */
 	@Override
-	public void handleRequest(JsonObject jsonRequest) {
+	protected ServerTopic getTopic() {
+		return ServerTopic.OBSERVE;
+	}
+	
+	/**
+	 * subscribe to observe topic
+	 */
+	@Override
+	protected void subscribe() {
+		subscribe(ServerTopic.OBSERVE);
+	}
+
+	/**
+	 * unsubscribe to observe topic
+	 */
+	@Override
+	protected void unsubscribe() {
+		unsubscribe(ServerTopic.OBSERVE);
+	}
+
+	/**
+	 * Handles the observe request from IBM IoT Foundation
+	 */
+	@Override
+	protected void handleRequest(JsonObject jsonRequest) {
 		JsonObject response = new JsonObject();
 		JsonArray responseArray = new JsonArray();
 		JsonObject d = (JsonObject) jsonRequest.get("d");
@@ -58,7 +86,7 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 			JsonObject fieldResponse = new JsonObject();
 			Resource resource = getDMClient().getDeviceData().getResource(name);
 			if(resource != null) {
-				resource.addPropertyChangeListener(this);
+				resource.addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, this);
 				fieldsMap.put(name, resource);
 			}
 			fieldResponse.add("field", fields.get(i));

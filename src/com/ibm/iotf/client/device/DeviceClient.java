@@ -7,7 +7,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
@@ -31,6 +33,21 @@ public class DeviceClient extends AbstractClient {
 	
 	private CommandCallback commandCallback = null;
 	
+	/**
+	 * This constructor allows external user to pass the existing MqttAsyncClient 
+	 * @param mqttAsyncClient
+	 */
+	protected DeviceClient(MqttAsyncClient mqttAsyncClient) {
+		super(mqttAsyncClient);
+	}
+
+	/**
+	 * This constructor allows external user to pass the existing MqttClient 
+	 * @param mqttClient
+	 */
+	protected DeviceClient(MqttClient mqttClient) {
+		super(mqttClient);
+	}
 	/**
 	 * Create a device client for the IBM Internet of Things Foundation. <br>
 	 * 

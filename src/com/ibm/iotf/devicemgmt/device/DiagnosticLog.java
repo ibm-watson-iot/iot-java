@@ -26,12 +26,12 @@ import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 
 /**
- * This class represents the Diagnostic Log information of a device.  
- * When <code>update</code> or <code>send</code> method is invoked, 
- * the IBM Internet of Things Foundation will be notified.
+ * <p>This class represents the Diagnostic Log information of a device.  
+ * When <code>append</code> or <code>send</code> method is invoked, 
+ * the IBM Internet of Things Foundation will be notified.</p>
  * 
- * Log entry includes a log messages, its timestamp and severity, as well as 
- * an optional base64-encoded binary diagnostic data.
+ * <p>Log entry includes a log messages, its timestamp and severity, as well as 
+ * an optional base64-encoded binary diagnostic data.</p>
  */
 public class DiagnosticLog extends Resource {
 	
@@ -57,21 +57,21 @@ public class DiagnosticLog extends Resource {
 	private static final String RESOURCE_NAME = "log";
 	
 	/**
+	 * @param message The Log message that needs to be added to the Internet of Things Foundation.
+	 * @param timestamp The Log timestamp
+	 * @param severity The Log severity
 	 * 
-	 * @param message
-	 * @param timestamp
-	 * @param severity
-	 */
+	 **/
 	public DiagnosticLog(String message, Date timestamp, LogSeverity severity) {
 		this(message, timestamp, severity, null);
 	}
 	/**
-	 * 
-	 * @param message
-	 * @param timestamp
-	 * @param severity
-	 * @param data
-	 */
+	 * @param message The Log message that needs to be added to the Internet of Things Foundation.
+	 * @param timestamp The Log timestamp
+	 * @param severity The Log severity
+	 * @param data The String data
+	 * 	 
+	 **/
 	public DiagnosticLog(String message, Date timestamp, LogSeverity severity, String data) {
 		super(RESOURCE_NAME);
 		this.message = message;
@@ -80,13 +80,6 @@ public class DiagnosticLog extends Resource {
 		this.data = data;
 	}
 	
-	/**
-	 * 
-	 * @return DiagnosticLog
-	 */
-	public DiagnosticLog getDeviceDiagnostic() {
-		return this;
-	}
 
 	/**
 	 * 
@@ -104,7 +97,7 @@ public class DiagnosticLog extends Resource {
 	}
 	
 	int send() {
-		pcs.firePropertyChange(DeviceDiagnostic.LOG_CHANGE_EVENT, null, this);
+		fireEvent(DeviceDiagnostic.LOG_CHANGE_EVENT);
 		return this.getRC();
 	}
 	
@@ -134,13 +127,19 @@ public class DiagnosticLog extends Resource {
 		return toJsonObject().toString();
 	}
 	
-	public int clear() {
-		pcs.firePropertyChange(DeviceDiagnostic.LOG_CLEAR_EVENT, null, this);
+	int clear() {
+		fireEvent(DeviceDiagnostic.LOG_CLEAR_EVENT);
 		return this.getRC();
 	}
 	
 	@Override
 	public int update(JsonElement json, boolean fireEvent) {
+		// Not required
+		return 0;
+	}
+	
+	@Override
+	public int update(JsonElement json) {
 		// Not required
 		return 0;
 	}

@@ -35,13 +35,14 @@ public class DiagnosticErrorCode extends Resource {
 	}
 	
 	int update(int errorcode) {
+		
 		this.errorCode = errorcode;
-		pcs.firePropertyChange(DeviceDiagnostic.ERRORCODE_CHANGE_EVENT, null, this);
+		fireEvent(DeviceDiagnostic.ERRORCODE_CHANGE_EVENT);
 		return this.getRC();
 	}
 	
 	int send() {
-		pcs.firePropertyChange(DeviceDiagnostic.ERRORCODE_CHANGE_EVENT, null, this);
+		fireEvent(DeviceDiagnostic.ERRORCODE_CHANGE_EVENT);
 		return this.getRC();
 	}
 	
@@ -62,8 +63,13 @@ public class DiagnosticErrorCode extends Resource {
 		return toJsonObject().toString();
 	}
 
-	public int clear() {
-		pcs.firePropertyChange(DeviceDiagnostic.ERRORCODE_CLEAR_EVENT, null, this);
+	int clear() {
+		fireEvent(DeviceDiagnostic.ERRORCODE_CLEAR_EVENT);
+		return this.getRC();
+	}
+
+	@Override
+	public int update(JsonElement json) {
 		return this.getRC();
 	}
 
@@ -71,5 +77,4 @@ public class DiagnosticErrorCode extends Resource {
 	public int update(JsonElement json, boolean fireEvent) {
 		return this.getRC();
 	}
-
 }

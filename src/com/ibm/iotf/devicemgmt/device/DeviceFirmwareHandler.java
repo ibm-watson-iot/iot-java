@@ -26,9 +26,11 @@ import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareUpdateStatus;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
- * If a device supports firmware update, this abstract class <code>DMDeviceFirmwareHandler</code>
- * should be extended by the device code.  The <code>downloadFirmware</code> and <code>updateFirmware</code>
- * must be implemented to handle
+ * <p>If a device supports firmware update, this abstract class <code>DeviceFirmwareHandler</code>
+ * should be extended by the device code.</p> 
+ * 
+ * <p>The <code>downloadFirmware</code> and <code>updateFirmware</code>
+ * must be implemented to handle</p>
  *
  */
 public abstract class DeviceFirmwareHandler extends Thread implements PropertyChangeListener {
@@ -88,7 +90,7 @@ public abstract class DeviceFirmwareHandler extends Thread implements PropertyCh
 		LoggerUtility.info(CLASS_NAME, METHOD,  "Exiting...");
 	}
 
-	public void terminate() {
+	void terminate() {
 		running = false;
 		try {
 			queue.put(dummy);
@@ -96,6 +98,10 @@ public abstract class DeviceFirmwareHandler extends Thread implements PropertyCh
 		}
 	}
 
+	/**
+	 * This method listens for the Firmware events and calls the
+	 * appropriate methods to complete the action. 
+	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		final String METHOD = "propertyChange";
@@ -121,25 +127,26 @@ public abstract class DeviceFirmwareHandler extends Thread implements PropertyCh
 	}
 	
 	/**
-	 * Subclass must implement this method.  
-	 * <br>If the device supports firmware download, subclass should start downloading
-	 * firmware to the device.  When done, set the state and status accordingly.
+	 * <p>Subclass must implement this method.</p>  
+	 * <p>If the device supports firmware download, subclass must add logic to
+	 *  download the firmware to the device. When done, set the state and status accordingly.</p>
 	 *
-	 * @param deviceFirmware
+	 * @param deviceFirmware DeviceFirmware where the device code can set the Firmware Download progress
 	 * @see DeviceFirmware
 	 */
 	public abstract void downloadFirmware(DeviceFirmware deviceFirmware);
 	
 	/**
-	 * Subclass must implement this method.
-	 * <br>If the device supports firmware update, subclass should start updating the
-	 * firmware on the device.  When done, set the update status accordingly.
-	 * @param deviceFirmware
+	 * <p> Subclass must implement this method. </p>
+	 * <p>If the device supports firmware update, subclass should start updating the
+	 * firmware on the device.  When done, set the update status accordingly.</p>
+	 * 
+	 * @param deviceFirmware DeviceFirmware where the device code can set the Firmware Update progress
 	 * @see DeviceFirmware
 	 */
 	public abstract void updateFirmware(DeviceFirmware deviceFirmware);
 
-	public void setDeviceData(DeviceData deviceData) {
+	void setDeviceData(DeviceData deviceData) {
 		this.device = deviceData;
 		
 	}

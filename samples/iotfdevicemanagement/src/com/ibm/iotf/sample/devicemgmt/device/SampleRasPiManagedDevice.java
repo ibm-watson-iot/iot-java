@@ -29,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
+import com.ibm.iotf.client.device.Command;
+import com.ibm.iotf.client.device.CommandCallback;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
 import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
@@ -45,7 +47,8 @@ import com.ibm.iotf.sample.devicemgmt.device.task.ManageTask;
 import com.ibm.iotf.sample.devicemgmt.device.task.PublishDeviceEventTask;
 
 /**
- * A sample device management agent code that shows the following core DM capabilities,
+ * A sample Managed device that shows the following core DM capabilities while performing
+ * device activities like, publishing device events and subscribing to application commands,
  * 
  * 1. Managed device
  * 2. Firmware update
@@ -77,17 +80,19 @@ import com.ibm.iotf.sample.devicemgmt.device.task.PublishDeviceEventTask;
  * Refer to this link https://docs.internetofthings.ibmcloud.com/reference/device_mgmt.html
  * for more information about IBM IoT Foundation's DM capabilities 
  */
-public class SampleRasPiDMAgent {
+public class SampleRasPiManagedDevice {
 	private final static String PROPERTIES_FILE_NAME = "DMDeviceSample.properties";
 	private final static String DEFAULT_PATH = "samples/iotfmanagedclient/src";
 	private DeviceData deviceData;
 	private ManagedDevice dmClient;
+	private boolean isCommandCallabckAdded = false;
 	
 	private ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
 	private ScheduledFuture manageTask;
 	private ScheduledFuture locationTask;
 	private ScheduledFuture errorcodeTask;
 	private ScheduledFuture logTask;
+	private ScheduledFuture deviceEventTask;
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -99,11 +104,10 @@ public class SampleRasPiDMAgent {
 			fileName = getDefaultFilePath();
 		}
 		
-		SampleRasPiDMAgent sample = new SampleRasPiDMAgent();
+		SampleRasPiManagedDevice sample = new SampleRasPiManagedDevice();
 		try {
 			sample.createManagedClient(fileName);
 			sample.connect();
-			//sample.scheduleDeviceEventPublishTask();
 			sample.userAction();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -119,12 +123,31 @@ public class SampleRasPiDMAgent {
 	/**
 	 * Device Event publish Task  - publish an event every 1 minute,
 	 * 
-	 * this is to showcase that one can publish events while carrying 
+	 * This showcases that one can publish events while carrying 
 	 * out DM activities
 	 */
 	private void scheduleDeviceEventPublishTask() {
-		PublishDeviceEventTask task = new PublishDeviceEventTask(this.dmClient);
-		scheduledThreadPool.scheduleAtFixedRate(task, 0, 60, TimeUnit.SECONDS);
+		if(this.deviceEventTask == null) {
+			PublishDeviceEventTask task = new PublishDeviceEventTask(this.dmClient);
+			this.deviceEventTask = scheduledThreadPool.scheduleAtFixedRate(task, 0, 60, TimeUnit.SECONDS);
+		} else {
+			System.out.println("Publish Device event task is already started and running !!");
+		}
+	}
+	
+	/**
+	 * Adds the command callback object to the ManagedDevice
+	 * 
+	 * This showcases that one can listen for application commands while carrying 
+	 * out DM activities
+	 */
+	private void addCommandCallback() {
+		if(isCommandCallabckAdded == false) {
+			dmClient.setCommandCallback(new MyNewCommandCallback());
+			isCommandCallabckAdded = true;
+		} else {
+			System.out.println("Commad callback is already added and listening for commands !!");
+		}
 	}
 
 	/**
@@ -145,7 +168,7 @@ public class SampleRasPiDMAgent {
 	 */
 	private void scheduleErrorCodeTask() {
 		if(errorcodeTask == null) {
-			DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(this.deviceData.getDeviceDiagnostic());
+			DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(deviceData.getDeviceDiagnostic());
 			this.errorcodeTask = scheduledThreadPool.scheduleAtFixedRate(ecTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("ErrorCode Update Task started successfully");
 		} else {
@@ -160,8 +183,7 @@ public class SampleRasPiDMAgent {
 	private void scheduleLogTask() {
 		
 		if(this.logTask == null) {
-			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(
-					this.deviceData.getDeviceDiagnostic());
+			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(deviceData.getDeviceDiagnostic());
 			this.logTask = scheduledThreadPool.scheduleAtFixedRate(logTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("Log Update Task started successfully");
 		} else {
@@ -264,6 +286,7 @@ public class SampleRasPiDMAgent {
 	private void connect() throws Exception {
 		dmClient.connect();
 	}
+	
 	private boolean sendManageRequest(int lifetime) throws MqttException {
 		if(this.manageTask != null) {
 			manageTask.cancel(false);
@@ -375,7 +398,7 @@ public class SampleRasPiDMAgent {
 		} catch (FileNotFoundException e) {
 		
 			InputStream stream =
-					SampleRasPiDMAgent.class.getClass().getResourceAsStream(PROPERTIES_FILE_NAME);
+					SampleRasPiManagedDevice.class.getClass().getResourceAsStream(PROPERTIES_FILE_NAME);
 			try {
 				clientProperties.load(stream);
 			} catch (IOException e1) {
@@ -420,9 +443,9 @@ public class SampleRasPiDMAgent {
 		return PROPERTIES_FILE_NAME;
 
 	}
-
+	
 	private static void printOptions() {
-		System.out.println("List of device management operations that this agent can perform are:");
+    	System.out.println("List of device management operations that this agent can perform are:");
 		System.out.println("manage [lifetime in seconds] :: Request to make the device as Managed device in IoTF");
 		System.out.println("unmanage   :: Request to make the device unmanaged ");
 		System.out.println("firmware   :: Adds a Firmware Handler that listens for the firmware requests from IoTF");
@@ -430,12 +453,15 @@ public class SampleRasPiDMAgent {
 		System.out.println("location   :: Starts a task that updates a random location at every 30 seconds");
 		System.out.println("errorcode  :: Starts a task that appends/clears a simulated ErrorCode at every 30 seconds");
 		System.out.println("log        :: Starts a task that appends/clears a simulated Log message at every 30 seconds");
+		System.out.println("publish-events:: Starts a task that publishes a simulated device event at every 60 seconds");
+		System.out.println("subscribe-to-commands:: Adds a CommandCallback listener to receive commands from the Application");
 		System.out.println("quit       :: quit this sample agent");
+
 	}
-	
 	private void userAction() {
     	Scanner in = new Scanner(System.in);
     	printOptions();
+		
     	while(true) {
     		try {
 	    		System.out.println("Enter the command ");	
@@ -445,6 +471,14 @@ public class SampleRasPiDMAgent {
 	            
 	            switch(parameters[0]) {
 	            
+	            	case "publish-events":
+	            		this.scheduleDeviceEventPublishTask();
+	            		break;
+	            		
+	            	case "subscribe-to-commands":
+	            		this.addCommandCallback();
+	            		break;
+	            		
 	            	case "manage":
 	            		boolean status = false;
 	            		if(parameters.length == 2) {
@@ -501,8 +535,7 @@ public class SampleRasPiDMAgent {
 	
 	            	default:
 	            		System.out.println("Unknown command received :: "+input);
-	            		printOptions();
-	            		
+	            		printOptions();        		
 	            }
     		} catch(Exception e) {
     			System.out.println("Operation failed with exception "+e.getMessage());
@@ -513,6 +546,17 @@ public class SampleRasPiDMAgent {
     	
     }
 
-	
+	//Implement a CommandCallback class to provide the way in which you want the command to be handled
+	private class MyNewCommandCallback implements CommandCallback {
+		
+		//In this sample, we are just displaying the command the moment the device recieves it
+		@Override
+		public void processCommand(Command command) {
+			System.out.println("COMMAND RECEIVED = '" + command.getCommand() + 
+					"'\twith Payload = '" + command.getPayload() + "'");		
+		}
+	}
+
+
 	
 }

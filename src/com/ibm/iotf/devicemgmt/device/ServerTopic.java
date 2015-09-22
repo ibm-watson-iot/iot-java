@@ -13,7 +13,10 @@
  */
 package com.ibm.iotf.devicemgmt.device;
 
-//IoTF DM server may publish on these topics
+	/**
+	 * List of Service topics where the IBM IoT Foundation server
+	 * initiates a device management request or responds to client request
+	 */
 	public enum ServerTopic {
 		RESPONSE("iotdm-1/response"),
 		OBSERVE("iotdm-1/observe"),
@@ -22,7 +25,6 @@ package com.ibm.iotf.devicemgmt.device;
 		INITIATE_FACTORY_RESET("iotdm-1/mgmt/initiate/device/factory_reset"),
 		INITIATE_FIRMWARE_DOWNLOAD("iotdm-1/mgmt/initiate/firmware/download"),
 		INITIATE_FIRMWARE_UPDATE("iotdm-1/mgmt/initiate/firmware/update"),
-		GENERIC("iotdm-1/#"),
 		DEVICE_UPDATE("iotdm-1/device/update");
 		
 		private ServerTopic(String name) {
@@ -31,11 +33,18 @@ package com.ibm.iotf.devicemgmt.device;
 		
 		private final String name;
 		
+		/**
+		 * @return the name of the topic
+		 */
 		public String getName() {
 			return name;
 		}
 
-		public static Object get(String topic) {
+		/**
+		 * @param topic name in string
+		 * @return the ServerTopic for the given string
+		 */
+		public static ServerTopic get(String topic) {
 			switch(topic) {
 			case "iotdm-1/response": return RESPONSE;
 			
@@ -50,8 +59,6 @@ package com.ibm.iotf.devicemgmt.device;
 			case "iotdm-1/mgmt/initiate/firmware/download": return INITIATE_FIRMWARE_DOWNLOAD;
 			
 			case "iotdm-1/mgmt/initiate/firmware/update": return INITIATE_FIRMWARE_UPDATE;
-			
-			case "iotdm-1/#": return GENERIC;
 			
 			case "iotdm-1/device/update": return DEVICE_UPDATE;
 			

@@ -22,6 +22,7 @@ import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.DeviceLocation;
 import com.ibm.iotf.devicemgmt.device.DeviceTopic;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.util.LoggerUtility;
 
 public class DMListener implements PropertyChangeListener {
@@ -86,7 +87,8 @@ public class DMListener implements PropertyChangeListener {
 			if (locationNotifier == null) {
 				locationNotifier = new LocationChangeNotifier(this.dmClient);
 				locationNotifier.setNotifyTopic(DeviceTopic.UPDATE_LOCATION);
-				dmClient.getDeviceData().getDeviceLocation().addPropertyChangeListener(this);
+				dmClient.getDeviceData().getDeviceLocation().addPropertyChangeListener(
+						Resource.ChangeListenerType.INTERNAL, this);
 			}
 		} else {
 			LoggerUtility.info(CLASS_NAME, METHOD,  "The device does not support location notification.");
@@ -97,13 +99,13 @@ public class DMListener implements PropertyChangeListener {
 			if(diagnostic.getErrorCode() != null && this.errorCodeNotifier == null) {
 				this.errorCodeNotifier = new DiagnosticErrorCodeChangeNotifier(dmClient);
 				errorCodeNotifier.setNotifyTopic(DeviceTopic.CREATE_DIAG_ERRCODES);
-				diagnostic.getErrorCode().addPropertyChangeListener(this);
+				diagnostic.getErrorCode().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, this);
 			}
 		
 			if(diagnostic.getLog() != null && this.logNotifier == null) {
 				logNotifier = new DiagnosticLogChangeNotifier(dmClient);
 				logNotifier.setNotifyTopic(DeviceTopic.ADD_DIAG_LOG);
-				diagnostic.getLog().addPropertyChangeListener(this);
+				diagnostic.getLog().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, this);
 			}
 		} else {
 			LoggerUtility.info(CLASS_NAME, METHOD,  "The device does not support Diagnostic notification.");
@@ -115,15 +117,15 @@ public class DMListener implements PropertyChangeListener {
 	
 		DMListener dmListener = dmListeners.remove(dmClient);
 		
-		if(dmListener.locationNotifier != null) {
+		if(null != dmListener && dmListener.locationNotifier != null) {
 			dmClient.getDeviceData().getDeviceLocation().removePropertyChangeListener(dmListener);
 		}
 			
-		if(dmListener.errorCodeNotifier != null) {
+		if(null != dmListener && dmListener.errorCodeNotifier != null) {
 			dmClient.getDeviceData().getDeviceDiagnostic().getErrorCode().removePropertyChangeListener(dmListener);
 		}
 			
-		if(dmListener.logNotifier != null) {
+		if(null != dmListener && dmListener.logNotifier != null) {
 			dmClient.getDeviceData().getDeviceDiagnostic().getLog().removePropertyChangeListener(dmListener);
 		}
 	}

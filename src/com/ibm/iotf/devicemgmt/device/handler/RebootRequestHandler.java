@@ -19,6 +19,7 @@ import com.ibm.iotf.devicemgmt.device.DeviceAction;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.device.ResponseCode;
+import com.ibm.iotf.devicemgmt.device.ServerTopic;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -34,9 +35,36 @@ public class RebootRequestHandler extends DMRequestHandler {
 	public RebootRequestHandler(ManagedDevice dmClient) {
 		setDMClient(dmClient);
 	}
-
+	
+	/**
+	 * Return Initiate reboot topic
+	 */
 	@Override
-	public void handleRequest(JsonObject jsonRequest) {
+	protected ServerTopic getTopic() {
+		return ServerTopic.INITIATE_REBOOT;
+	}
+	
+	/**
+	 * Subscribe to Initiate reboot topic
+	 */
+	@Override
+	protected void subscribe() {
+		subscribe(ServerTopic.INITIATE_REBOOT);
+	}
+
+	/**
+	 * unsubscribe Initiate reboot topic
+	 */
+	@Override
+	protected void unsubscribe() {
+		unsubscribe(ServerTopic.INITIATE_REBOOT);
+	}
+
+	/**
+	 * Handle initiate reboot request from IBM IoT Foundation
+	 */
+	@Override
+	protected void handleRequest(JsonObject jsonRequest) {
 		final String METHOD = "handleRequest";
 		ResponseCode rc = ResponseCode.DM_ACCEPTED;
 		

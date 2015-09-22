@@ -16,8 +16,10 @@ package com.ibm.iotf.devicemgmt.device.handler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.ibm.iotf.devicemgmt.device.DeviceTopic;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.device.ResponseCode;
+import com.ibm.iotf.devicemgmt.device.ServerTopic;
 
 /**
  * Request handler for <code>MMqttClient.SERVER_TOPIC_CANCEL</code>
@@ -41,8 +43,11 @@ public class CancelRequestHandler extends DMRequestHandler {
 		
 	}
 
+	/**
+	 * This method handles the cancel request messages from IBM IoT Foundation
+	 */
 	@Override
-	public void handleRequest(JsonObject jsonRequest) {
+	protected void handleRequest(JsonObject jsonRequest) {
 		JsonArray fields = null;
 		JsonObject d = (JsonObject)jsonRequest.get("d");
 		if (d != null) {
@@ -60,5 +65,31 @@ public class CancelRequestHandler extends DMRequestHandler {
 		response.add("rc", new JsonPrimitive(ResponseCode.DM_SUCCESS.getCode()));
 		respond(response);
 	}
+	
+	
+	/**
+	 * Subscribe to cancel topic 
+	 */
+	@Override
+	protected void subscribe() {
+		subscribe(ServerTopic.CANCEL);
+	}
+	
+	/**
+	 * Return the cancel topic
+	 */
+	@Override
+	protected ServerTopic getTopic() {
+		return ServerTopic.CANCEL;
+	}
+
+	/**
+	 * Unsubscribe the cancel topic
+	 */
+	@Override
+	protected void unsubscribe() {
+		unsubscribe(ServerTopic.CANCEL);
+	}
+
 
 }

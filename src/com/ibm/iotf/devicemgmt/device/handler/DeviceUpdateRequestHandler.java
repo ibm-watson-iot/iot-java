@@ -13,6 +13,12 @@
  */
 package com.ibm.iotf.devicemgmt.device.handler;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 import com.google.gson.JsonArray;
@@ -21,6 +27,7 @@ import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.device.DeviceAction;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.device.ResponseCode;
+import com.ibm.iotf.devicemgmt.device.ServerTopic;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -67,17 +74,48 @@ import com.ibm.iotf.util.LoggerUtility;
 public class DeviceUpdateRequestHandler extends DMRequestHandler {
 	private static final String CLASS_NAME = DeviceUpdateRequestHandler.class.getName();
 	
+	private static final ExecutorService executor = Executors.newCachedThreadPool();
+	
 	public DeviceUpdateRequestHandler(ManagedDevice dmClient) {
 		setDMClient(dmClient);
 	}
 	
+	/**
+	 * Subscribe to update topic
+	 */
+	@Override
+	protected void subscribe() {
+		subscribe(ServerTopic.DEVICE_UPDATE);
+	}
+	
+	/**
+	 * Returns the update topic
+	 */
+	@Override
+	protected ServerTopic getTopic() {
+		return ServerTopic.DEVICE_UPDATE;
+	}
+
+	/**
+	 * Unsubscribe update topic
+	 */
+	@Override
+	protected void unsubscribe() {
+		unsubscribe(ServerTopic.DEVICE_UPDATE);
+	}
+	
+	/**
+	 * This method handles all the update requests from IBM IoT Foundation
+	 */
 	@Override
 	public void handleRequest(JsonObject jsonRequest) {
 		final String METHOD = "handleRequest";
+		List<Resource> fireRequiredResources = new ArrayList<Resource>();
 		JsonArray fields = null;
 		ResponseCode rc = ResponseCode.DM_UPDATE_SUCCESS;
 		JsonObject response = new JsonObject();
 		JsonObject d = (JsonObject)jsonRequest.get("d");
+		
 		if (d != null) {
 			fields = (JsonArray)d.get("fields");
 			if (fields != null) {
@@ -93,7 +131,11 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 						JsonObject value = (JsonObject)obj.get("value");
 						boolean success = false;
 						try {
-							success = updateField(key, value);
+							Resource resource = getDMClient().getDeviceData().getResource(key);
+							if(resource != null) {
+								success = updateField(resource, value);
+								fireRequiredResources.add(resource);
+							}
 						} catch(Exception e) {
 							LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, 
 									"Exception in updating field "+key +
@@ -119,17 +161,48 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 		
 		response.add("rc", new JsonPrimitive(rc.getCode()) );
 		response.add("reqId", jsonRequest.get("reqId"));
-		respond(response);				
+		respond(response);	
+		
+		// Lets fire the property change event now - this will notify the
+		// device code if they are listening to
+		Task task = this.new Task(fireRequiredResources);
+		executor.execute(task);
 	}
 	
-	private boolean updateField(String name, JsonObject value) {
-		Resource resource = getDMClient().getDeviceData().getResource(name);
+	/**
+	 * Update resource with new value
+	 * 
+	 * @param resource resource to be updated
+	 * @param value - the new value
+	 * @return - true if the update is successful, false if not
+	 */
+	private boolean updateField(Resource resource, JsonObject value) {
 		if(resource != null) {
-			// Don't generate a notify message for the update from IoT Foundation
+			// Update the properties but do not fire the change event
 			resource.update(value, false);
 			return true;
 		}
 		return false;
 	}
+	
+	/**
+	 * A task that fires the modified event on all the
+	 * resources that are updated
+	 */
+	private class Task implements Runnable {
+		private List<Resource> fireRequiredResources;
+		
+		private Task(List<Resource> fireRequiredResources) {
+			this.fireRequiredResources = fireRequiredResources;
+		}
 
+		@Override
+		public void run() {
+			for(int i = 0; i < fireRequiredResources.size(); i++) {
+				Resource resource = fireRequiredResources.get(i);
+				resource.notifyExternalListeners();
+			}
+		}
+		
+	}
 }

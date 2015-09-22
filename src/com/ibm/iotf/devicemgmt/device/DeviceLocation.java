@@ -122,7 +122,7 @@ public class DeviceLocation extends Resource {
 
 	 */
 	public int update(DeviceLocation location) {
-		return update(location.toJsonObject(), true);
+		return update(location.toJsonObject());
 	}
 	
 	/**
@@ -201,7 +201,7 @@ public class DeviceLocation extends Resource {
 				this.accuracy.setValue(accuracy);
 			}
 		}
-		pcs.firePropertyChange(this.getCanonicalName(), null, this);
+		fireEvent(true);
 		return this.getRC();
 	}
 	
@@ -235,6 +235,10 @@ public class DeviceLocation extends Resource {
 		return toJsonObject().toString();
 	}
 	
+	/**
+	 * A builder class that helps to construct the Location object
+	 *
+	 */
 	public static class Builder {
 		private Double latitude;
 		private Double longitude;
@@ -273,6 +277,17 @@ public class DeviceLocation extends Resource {
 	 * Updates each of the resources with the new value
 	 * 
 	 * @param fromLocation
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int update(JsonElement fromLocation) {
+		return update(fromLocation, true);
+	}
+	
+	/**
+	 * Updates each of the resources with the new value
+	 * 
+	 * @param fromLocation
 	 * @param fireEvent - boolean to indicate whether to fire the update event.
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
@@ -290,7 +305,6 @@ public class DeviceLocation extends Resource {
 				case DeviceLocation.LATITUDE: 
 					this.latitude = new NumberResource(LATITUDE, e.getValue().getAsNumber());
 					this.add(this.latitude);
-
 					break;
 				case DeviceLocation.LONGITUDE:
 					this.longitude = new NumberResource(LONGITUDE, e.getValue().getAsNumber());
@@ -315,9 +329,8 @@ public class DeviceLocation extends Resource {
 				}
 			}
 		}
-		if(fireEvent) {
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
-		}
+		fireEvent(fireEvent);
+		
 		return this.getRC();
 	}
 	

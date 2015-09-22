@@ -24,12 +24,12 @@ import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
- * If a device supports device actions like reboot and factory reset, 
+ * <p>If a device supports device actions like reboot and factory reset, 
  * this abstract class <code>DeviceActionHandler</code>
- * should be extended by the device code.  
+ * should be extended by the device code.</p>  
  * 
- * The <code>handleReboot</code> and <code>handleFactoryReset</code>
- * must be implemented to handle the actions
+ * <p>The <code>handleReboot</code> and <code>handleFactoryReset</code>
+ * must be implemented to handle the actions</p>
  *
  */
 public abstract class DeviceActionHandler extends Thread implements PropertyChangeListener {
@@ -80,7 +80,7 @@ public abstract class DeviceActionHandler extends Thread implements PropertyChan
 		LoggerUtility.info(CLASS_NAME, METHOD,  "Exiting...");
 	}
 
-	public void terminate() {
+	void terminate() {
 		running = false;
 		try {
 			queue.put(dummy);
@@ -89,6 +89,10 @@ public abstract class DeviceActionHandler extends Thread implements PropertyChan
 	}
 
 	@Override
+	/**
+	 * This method listens for the device action events and calls the
+	 * appropriate methods to complete the action. 
+	 */
 	public void propertyChange(PropertyChangeEvent evt) {
 		final String METHOD = "propertyChange";
 		try {
@@ -109,27 +113,35 @@ public abstract class DeviceActionHandler extends Thread implements PropertyChan
 	
 	/**
 	 * Subclass must implement this method.  
-	 * <br>If the device supports reboot, subclass should start rebooting the 
+	 * <p>If the device supports reboot, subclass must add logic to reboot the 
 	 * device.  
-	 *
+	 *<br>
+	 *<br>
 	 * If reboot attempt fails, the "rc" is set to 500 and the "message" 
 	 * field should be set accordingly, if the reboot is not supported, 
-	 * set "rc" to 501 and optionally set "message" accordingly
+	 * set "rc" to 501 and optionally set "message" accordingly</p>
+	 * 
+	 * @param action DeviceAction where the device code can set the failure status and message
+	 * @see DeviceAction
 	 */
 	public abstract void handleReboot(DeviceAction action);
 	
 	/**
 	 * Subclass must implement this method.  
-	 * <br>If the device supports factory reset, subclass should reset the 
+	 * <p>If the device supports factory reset, subclass must add logic to reset the 
 	 * device to factory settings
-	 *
+	 *<br>
+	 *<br>
 	 * If the factory reset attempt fails, the "rc" should be 500 and the "message" 
 	 * field should be set accordingly, if the factory reset action is not supported, 
-	 * set "rc" to 501 and optionally set "message" accordingly.
+	 * set "rc" to 501 and optionally set "message" accordingly.</p>
+	 * 
+ 	 * @param action DeviceAction where the device code can set the failure status and message
+	 * @see DeviceAction
 	 */
 	public abstract void handleFactoryReset(DeviceAction action);
 
-	public void setDeviceData(DeviceData deviceData) {
+	void setDeviceData(DeviceData deviceData) {
 		this.device = deviceData;
 		
 	}

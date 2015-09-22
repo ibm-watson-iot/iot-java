@@ -18,6 +18,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Properties;
 import java.util.Scanner;
@@ -26,6 +28,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLContext;
+
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
@@ -43,7 +49,6 @@ import com.ibm.iotf.sample.devicemgmt.device.task.DiagnosticLogUpdateTask;
 import com.ibm.iotf.sample.devicemgmt.device.task.LocationUpdateTask;
 import com.ibm.iotf.sample.devicemgmt.device.task.ManageTask;
 import com.ibm.iotf.sample.devicemgmt.device.task.PublishDeviceEventTask;
-
 /**
  * A sample device management agent code that shows the following core DM capabilities,
  * 
@@ -55,8 +60,11 @@ import com.ibm.iotf.sample.devicemgmt.device.task.PublishDeviceEventTask;
  * 6. Diagnostic Log addition & clear 
  * 7. unmanage
  * 
- * This sample connects the device as manage device to IoT Foundation in the first step such
- * that this device can participate in DM activities,
+ * This sample is similar to SampleRasPiDMAgent, but it passes the MQTTAsyncClient as
+ * an argument to the library code to initiate ManagedDevice object. This sample
+ * demonstrates how to use the DM capabilities if one has the custom device
+ * functionalities implemented already - but we strongly recommend the users to
+ * use the library for both device and management activities. 
  * 
  * And performs the following activities based on user input
  * 
@@ -77,11 +85,12 @@ import com.ibm.iotf.sample.devicemgmt.device.task.PublishDeviceEventTask;
  * Refer to this link https://docs.internetofthings.ibmcloud.com/reference/device_mgmt.html
  * for more information about IBM IoT Foundation's DM capabilities 
  */
-public class SampleRasPiDMAgent {
+public class SampleRasPiDMAgentWithCustomMqttAsyncClient {
 	private final static String PROPERTIES_FILE_NAME = "DMDeviceSample.properties";
 	private final static String DEFAULT_PATH = "samples/iotfmanagedclient/src";
 	private DeviceData deviceData;
 	private ManagedDevice dmClient;
+	private MqttAsyncClient mqttAsyncClient = null;
 	
 	private ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
 	private ScheduledFuture manageTask;
@@ -99,11 +108,9 @@ public class SampleRasPiDMAgent {
 			fileName = getDefaultFilePath();
 		}
 		
-		SampleRasPiDMAgent sample = new SampleRasPiDMAgent();
+		SampleRasPiDMAgentWithCustomMqttAsyncClient sample = new SampleRasPiDMAgentWithCustomMqttAsyncClient();
 		try {
 			sample.createManagedClient(fileName);
-			sample.connect();
-			//sample.scheduleDeviceEventPublishTask();
 			sample.userAction();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -112,8 +119,8 @@ public class SampleRasPiDMAgent {
 		} finally {
 			sample.terminate();
 		}
-		
 		System.out.println(" Exiting...");
+		System.exit(-1);
 	}
 	
 	/**
@@ -123,7 +130,7 @@ public class SampleRasPiDMAgent {
 	 * out DM activities
 	 */
 	private void scheduleDeviceEventPublishTask() {
-		PublishDeviceEventTask task = new PublishDeviceEventTask(this.dmClient);
+		PublishDeviceEventTask task = new PublishDeviceEventTask(dmClient);
 		scheduledThreadPool.scheduleAtFixedRate(task, 0, 60, TimeUnit.SECONDS);
 	}
 
@@ -145,7 +152,7 @@ public class SampleRasPiDMAgent {
 	 */
 	private void scheduleErrorCodeTask() {
 		if(errorcodeTask == null) {
-			DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(this.deviceData.getDeviceDiagnostic());
+			DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(deviceData.getDeviceDiagnostic());
 			this.errorcodeTask = scheduledThreadPool.scheduleAtFixedRate(ecTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("ErrorCode Update Task started successfully");
 		} else {
@@ -160,15 +167,14 @@ public class SampleRasPiDMAgent {
 	private void scheduleLogTask() {
 		
 		if(this.logTask == null) {
-			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(
-					this.deviceData.getDeviceDiagnostic());
+			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(deviceData.getDeviceDiagnostic());
 			this.logTask = scheduledThreadPool.scheduleAtFixedRate(logTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("Log Update Task started successfully");
 		} else {
 			System.out.println("Log update task is already running !!");
 		}
 	}
-	
+
 	private String trimedValue(String value) {
 		if(value == null || value == "") {
 			return "";
@@ -176,7 +182,7 @@ public class SampleRasPiDMAgent {
 			return value.trim();
 		}
 	}
-
+	
 	/**
 	 * This method builds the device objects required to create the
 	 * ManagedClient
@@ -236,34 +242,54 @@ public class SampleRasPiDMAgent {
 		DeviceDiagnostic diag = new DeviceDiagnostic(errorCode, log);
 		
 		this.deviceData = new DeviceData.Builder().
+						 typeId(trimedValue(deviceProps.getProperty("Device-Type"))).
+						 deviceId(trimedValue(deviceProps.getProperty("Device-ID"))).
 						 deviceInfo(deviceInfo).
 						 deviceFirmware(firmware).
 						 deviceLocation(location).
 						 deviceDiag(diag).
 						 metadata(new JsonObject()).
 						 build();
-		
-		// Options to connect to IoT Foundation
-		Properties options = new Properties();
-		
-		options.setProperty("Organization-ID", trimedValue(deviceProps.getProperty("Organization-ID")));
-		options.setProperty("Device-Type", trimedValue(deviceProps.getProperty("Device-Type")));
-		options.setProperty("Device-ID", trimedValue(deviceProps.getProperty("Device-ID")));
-		options.setProperty("Authentication-Method", trimedValue(deviceProps.getProperty("Authentication-Method")));
-		options.setProperty("Authentication-Token", trimedValue(deviceProps.getProperty("Authentication-Token")));
+
+		createMqttAsyncClient(deviceProps);
 				
-		dmClient = new ManagedDevice(options, deviceData);
+		dmClient = new ManagedDevice(this.mqttAsyncClient, deviceData);
 	}
 	
-	/**
-	 * This method connects the device to the IoT Foundation and sends
-	 * a manage request, so that this device becomes a managed device.
-	 * 
-	 * Use the overloaded connect method that takes the lifetime parameter
-	 */
-	private void connect() throws Exception {
-		dmClient.connect();
+	private void createMqttAsyncClient(Properties deviceProps) throws MqttException, 
+	NoSuchAlgorithmException, 
+	KeyManagementException {
+		
+		StringBuilder serverURI = new StringBuilder();
+		StringBuilder clientId = new StringBuilder();
+		
+		serverURI.append("ssl://")
+				 .append(trimedValue(deviceProps.getProperty("Organization-ID")))
+				 .append(".messaging.internetofthings.ibmcloud.com:8883");
+		
+		clientId.append("d:")
+		         .append(trimedValue(deviceProps.getProperty("Organization-ID")))
+		         .append(":")
+		         .append(trimedValue(deviceProps.getProperty("Device-Type")))
+		         .append(":")
+		         .append(trimedValue(deviceProps.getProperty("Device-ID")));
+		
+		MqttConnectOptions conOpt = new MqttConnectOptions();
+		conOpt.setCleanSession(false);
+		conOpt.setUserName("use-token-auth");
+		conOpt.setPassword(trimedValue(deviceProps.getProperty("Authentication-Token")).toCharArray());
+		SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+		sslContext.init(null, null, null);
+		conOpt.setSocketFactory(sslContext.getSocketFactory());
+		
+		
+		mqttAsyncClient = new MqttAsyncClient(serverURI.toString(), clientId.toString());
+		System.out.println("Trying to connect to URI -> "+serverURI.toString() +" ClientID: "+clientId.toString());
+		System.out.println("Username : "+conOpt.getUserName());
+		System.out.println("password : "+new String(conOpt.getPassword()));
+		mqttAsyncClient.connect(conOpt);
 	}
+	
 	private boolean sendManageRequest(int lifetime) throws MqttException {
 		if(this.manageTask != null) {
 			manageTask.cancel(false);
@@ -284,15 +310,16 @@ public class SampleRasPiDMAgent {
 		}
 		return false;
 	}
-	
+
 	private void terminate() throws Exception {
 		if(this.dmClient != null) {
 			if(scheduledThreadPool != null)
 				scheduledThreadPool.shutdown();
-			dmClient.disconnect();
-			System.out.println("Bye !!");
-			System.exit(-1);
+			this.sendUnManageRequest();
 		}
+		this.mqttAsyncClient.disconnect();
+		System.out.println("Bye !!");
+		System.exit(-1);
 	}
 	
 	/**
@@ -338,6 +365,7 @@ public class SampleRasPiDMAgent {
 		}
 	}
 	
+	
 	private void sendUnManageRequest() throws MqttException {
 		dmClient.unmanage();
 		
@@ -375,7 +403,7 @@ public class SampleRasPiDMAgent {
 		} catch (FileNotFoundException e) {
 		
 			InputStream stream =
-					SampleRasPiDMAgent.class.getClass().getResourceAsStream(PROPERTIES_FILE_NAME);
+					SampleRasPiDMAgentWithCustomMqttAsyncClient.class.getClass().getResourceAsStream(PROPERTIES_FILE_NAME);
 			try {
 				clientProperties.load(stream);
 			} catch (IOException e1) {
@@ -420,7 +448,7 @@ public class SampleRasPiDMAgent {
 		return PROPERTIES_FILE_NAME;
 
 	}
-
+	
 	private static void printOptions() {
 		System.out.println("List of device management operations that this agent can perform are:");
 		System.out.println("manage [lifetime in seconds] :: Request to make the device as Managed device in IoTF");
@@ -433,9 +461,12 @@ public class SampleRasPiDMAgent {
 		System.out.println("quit       :: quit this sample agent");
 	}
 	
+	
 	private void userAction() {
     	Scanner in = new Scanner(System.in);
+    	
     	printOptions();
+		
     	while(true) {
     		try {
 	    		System.out.println("Enter the command ");	
@@ -497,10 +528,10 @@ public class SampleRasPiDMAgent {
 	            		
 	            	case "quit":
 	            		this.terminate();
+	            		System.out.println("Bye !!");
 	            		break;
 	
 	            	default:
-	            		System.out.println("Unknown command received :: "+input);
 	            		printOptions();
 	            		
 	            }

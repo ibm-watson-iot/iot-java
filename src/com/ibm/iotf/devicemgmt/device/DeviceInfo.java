@@ -24,7 +24,9 @@ import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.devicemgmt.device.resource.StringResource;
 
 /**
- * Device Info as specified in IoTF Device Model
+ * Device Info as specified in IoTF Device Model, The following attributes provide the
+ * information about the device,
+ * <ul class="simple">
  *   <li>serialNumber
  *   <li>manufacturer
  *   <li>model
@@ -33,7 +35,7 @@ import com.ibm.iotf.devicemgmt.device.resource.StringResource;
  *   <li>fwVersion
  *   <li>hwVersion
  *   <li>descriptiveLocation
- *
+ *</ul>
  */
 public class DeviceInfo extends Resource {
 	
@@ -94,6 +96,16 @@ public class DeviceInfo extends Resource {
 	/**
 	 * Update the device with new values
 	 * @param deviceInfo - JsonObject containing the new values
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int update(JsonElement deviceInfo) {
+		return update(deviceInfo, true);
+	}
+	
+	/**
+	 * Update the device with new values
+	 * @param deviceInfo - JsonObject containing the new values
 	 * @param fireEvent - whether to fire an update or not
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
@@ -142,7 +154,7 @@ public class DeviceInfo extends Resource {
 				}
 			}
 		}
-		pcs.firePropertyChange(this.getCanonicalName(), null, this);
+		fireEvent(fireEvent);
 		return this.getRC();
 	}
 	
@@ -167,8 +179,7 @@ public class DeviceInfo extends Resource {
 		}
 		this.serialNumber.setValue(serialNumber);
 		
-		if(fireEvent)
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
+		fireEvent(fireEvent);
 	}
 
 	public String getManufacturer() {
@@ -192,8 +203,7 @@ public class DeviceInfo extends Resource {
 		}
 		this.manufacturer.setValue(manufacturer);
 		
-		if(fireEvent)
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
+		fireEvent(fireEvent);
 	}
 
 	public String getModel() {
@@ -215,8 +225,7 @@ public class DeviceInfo extends Resource {
 			this.add(this.model);
 		}
 		this.model.setValue(model);
-		if(fireEvent)
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
+		fireEvent(fireEvent);
 	}
 
 	public String getDeviceClass() {
@@ -237,8 +246,7 @@ public class DeviceInfo extends Resource {
 			this.add(this.deviceClass);
 		}
 		this.deviceClass.setValue(deviceClass);
-		if(fireEvent)
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
+		fireEvent(fireEvent);
 	}
 
 	public String getDescription() {
@@ -262,8 +270,7 @@ public class DeviceInfo extends Resource {
 			this.add(this.description);
 		}
 		this.description.setValue(description);
-		if(fireEvent)
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
+		fireEvent(fireEvent);
 	}
 
 	public String getFwVersion() {
@@ -286,8 +293,7 @@ public class DeviceInfo extends Resource {
 			this.add(this.fwVersion);
 		}
 		this.fwVersion.setValue(fwVersion);
-		if(fireEvent)
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
+		fireEvent(fireEvent);
 	}
 
 	public String getHwVersion() {
@@ -312,8 +318,7 @@ public class DeviceInfo extends Resource {
 		}
 		this.hwVersion.setValue(hwVersion);
 		
-		if(fireEvent)
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
+		fireEvent(fireEvent);
 	}
 
 	public String getDescriptiveLocation() {
@@ -336,8 +341,7 @@ public class DeviceInfo extends Resource {
 			this.add(this.descriptiveLocation);
 		}
 		this.descriptiveLocation.setValue(descriptiveLocation);
-		if(fireEvent)
-			pcs.firePropertyChange(this.getCanonicalName(), null, this);
+		fireEvent(fireEvent);
 	}
 
 	/**
@@ -388,6 +392,10 @@ public class DeviceInfo extends Resource {
 		return toJsonObject().toString();
 	}
 	
+	/**
+	 * A builder class that helps to create a Device Info object
+	 *
+	 */
 	public static class Builder {
 		private String serialNumber; 
 		private String manufacturer; 

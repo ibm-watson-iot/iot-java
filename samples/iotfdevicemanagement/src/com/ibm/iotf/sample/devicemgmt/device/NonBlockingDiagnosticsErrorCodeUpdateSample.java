@@ -80,6 +80,14 @@ public class NonBlockingDiagnosticsErrorCodeUpdateSample {
 		this.ecUpdaterThread.start();
 	}
 
+	private String trimedValue(String value) {
+		if(value == null || value == "") {
+			return "";
+		} else {
+			return value.trim();
+		}
+	}
+	
 	/**
 	 * This method builds the device objects required to create the
 	 * ManagedClient
@@ -101,14 +109,14 @@ public class NonBlockingDiagnosticsErrorCodeUpdateSample {
 		 *   - DeviceFirmware (optional)
 		 */
 		DeviceInfo deviceInfo = new DeviceInfo.Builder().
-				serialNumber(deviceProps.getProperty("DeviceInfo.serialNumber")).
-				manufacturer(deviceProps.getProperty("DeviceInfo.manufacturer")).
-				model(deviceProps.getProperty("DeviceInfo.model")).
-				deviceClass(deviceProps.getProperty("DeviceInfo.deviceClass")).
-				description(deviceProps.getProperty("DeviceInfo.description")).
-				fwVersion(deviceProps.getProperty("DeviceInfo.swVersion")).
-				hwVersion(deviceProps.getProperty("DeviceInfo.hwVersion")).
-				descriptiveLocation(deviceProps.getProperty("DeviceInfo.descriptiveLocation")).
+				serialNumber(trimedValue(deviceProps.getProperty("DeviceInfo.serialNumber"))).
+				manufacturer(trimedValue(deviceProps.getProperty("DeviceInfo.manufacturer"))).
+				model(trimedValue(deviceProps.getProperty("DeviceInfo.model"))).
+				deviceClass(trimedValue(deviceProps.getProperty("DeviceInfo.deviceClass"))).
+				description(trimedValue(deviceProps.getProperty("DeviceInfo.description"))).
+				fwVersion(trimedValue(deviceProps.getProperty("DeviceInfo.swVersion"))).
+				hwVersion(trimedValue(deviceProps.getProperty("DeviceInfo.hwVersion"))).
+				descriptiveLocation(trimedValue(deviceProps.getProperty("DeviceInfo.descriptiveLocation"))).
 				build();
 		
 		/**
@@ -132,11 +140,11 @@ public class NonBlockingDiagnosticsErrorCodeUpdateSample {
 		
 		// Options to connect to IoT Foundation
 		Properties options = new Properties();
-		options.setProperty("Organization-ID", deviceProps.getProperty("Organization-ID"));
-		options.setProperty("Device-Type", deviceProps.getProperty("Device-Type"));
-		options.setProperty("Device-ID", deviceProps.getProperty("Device-ID"));
-		options.setProperty("Authentication-Method", deviceProps.getProperty("Authentication-Method"));
-		options.setProperty("Authentication-Token", deviceProps.getProperty("Authentication-Token"));
+		options.setProperty("Organization-ID", trimedValue(deviceProps.getProperty("Organization-ID")));
+		options.setProperty("Device-Type", trimedValue(deviceProps.getProperty("Device-Type")));
+		options.setProperty("Device-ID", trimedValue(deviceProps.getProperty("Device-ID")));
+		options.setProperty("Authentication-Method", trimedValue(deviceProps.getProperty("Authentication-Method")));
+		options.setProperty("Authentication-Token", trimedValue(deviceProps.getProperty("Authentication-Token")));
 		
 
 		dmClient = new ManagedDevice(options, deviceData);

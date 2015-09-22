@@ -14,16 +14,24 @@
 package com.ibm.iotf.devicemgmt.device;
 
 import com.google.gson.JsonObject;
+import com.ibm.iotf.devicemgmt.device.resource.JsonResource;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.devicemgmt.device.resource.StringResource;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
- * <code>DeviceData</code> 
- *
+ * <p><code>DeviceData</code> defines the device model.</p>
+ * 
+ * <p>The device model describes the metadata and management characteristics of a device. 
+ * The device database in the Internet of Things Foundation is the master source of 
+ * device information. Applications and managed devices are able to send updates to 
+ * the database such as a location or the progress of a firmware update.
+ * Once these updates are received by the Internet of Things Foundation, 
+ * the device database is updated, making the information available to applications.</p>
  */
 public class DeviceData {
 	private static String CLASS_NAME = DeviceData.class.getName();
+	private static final String METADATA = "metadata";
 	
 	private String typeId = null;
 	private String deviceId = null;
@@ -31,7 +39,7 @@ public class DeviceData {
 	private DeviceLocation deviceLocation = null;
 	private DeviceDiagnostic deviceDiag = null;
 	private DeviceMgmt mgmt = null;
-	private JsonObject metadata = null;
+	private JsonResource metadata = null;
 	
 	private DeviceAction deviceAction = null;
 	
@@ -40,13 +48,13 @@ public class DeviceData {
 	
 	private Resource root = new StringResource(Resource.ROOT_RESOURCE_NAME, "");
 	
-	public DeviceData(Builder builder) {
+	private DeviceData(Builder builder) {
 		this.typeId = builder.typeId;
 		this.deviceId = builder.deviceId;
 		this.deviceInfo = builder.deviceInfo;
 		this.deviceLocation = builder.deviceLocation;
 		this.deviceDiag = builder.deviceDiag;
-		this.metadata = builder.metadata;
+		this.metadata = new JsonResource(METADATA, builder.metadata);
 
 		if(builder.deviceFirmware != null) {
 			this.mgmt = new DeviceMgmt(builder.deviceFirmware);
@@ -67,45 +75,77 @@ public class DeviceData {
 		if(this.deviceDiag != null) {
 			root.add(this.deviceDiag);
 		}
-	}
-	
-	public DeviceDiagnostic getDeviceDiag() {
-		return deviceDiag;
+		
+		if(this.metadata != null) {
+			root.add(this.metadata);
+		}
 	}
 
-
+	/**
+	 * Returns metadata set on the device
+	 */
 	public JsonObject getMetadata() {
-		return metadata;
+		if(this.metadata != null) {
+			return metadata.getValue();
+		} 
+		return null;
 	}
 
-
+	/**
+	 * Returns the Device type
+	 */
 	public String getTypeId() {
 		return typeId;
 	}
 	
+	/**
+	 * Returns the Device ID
+	 */
 	public String getDeviceId() {
 		return deviceId;
 	}
 	
+	/**
+	 * Returns the DeviceInfo object
+	 */
 	public DeviceInfo getDeviceInfo() {
 		return deviceInfo;
 	}
 	
+	/**
+	 * Return the DeviceLocation object
+	 */
 	public DeviceLocation getDeviceLocation() {
 		return deviceLocation;
 	}
-	
+
+	/**
+	 * Returns the DeviceDiagnostics object 
+	 */
 	public DeviceDiagnostic getDeviceDiagnostic() {
 		return deviceDiag;
 	}
 	
+	/**
+	 * Returns the DeviceFirmware object 
+	 */
 	public DeviceFirmware getDeviceFirmware() {
 		if(mgmt != null) {
 			return mgmt.getDeviceFirmware();
 		}
 		return null;
 	}
-	
+	/**
+	 * <p>Adds a device action handler which is of type <code>DeviceActionHandler</code></p>
+	 * 
+	 * <p>If a device supports device actions like reboot and factory reset,
+	 * the abstract class <code>DeviceActionHandler</code>
+	 * should be extended by the device code. The <code>handleReboot</code> and <code>handleFactoryReset</code>
+	 * must be implemented to handle the actions.</p>
+	 *  
+	 * @param actionHandler DeviceActionHandler that handles the Reboot and Factory reset actions
+	 * @throws Exception throws an exception if a handler is already added
+	 */
 	public void addDeviceActionHandler(DeviceActionHandler actionHandler) throws Exception {
 		final String METHOD = "addDeviceActionHandler";
 
@@ -118,12 +158,16 @@ public class DeviceData {
 		}
 		
 		actionHandler.setDeviceData(this);
-		getDeviceAction().addPropertyChangeListener(actionHandler);
+		getDeviceAction().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, actionHandler);
 		actionHandler.start();
 		this.actionHandler = actionHandler;
 		
 	}
 
+	/**
+	 * Returns the device action object
+	 * @return DeviceAction object or null
+	 */
 	public DeviceAction getDeviceAction() {
 		if(this.deviceAction == null) {
 			this.deviceAction = new DeviceAction();
@@ -132,7 +176,18 @@ public class DeviceData {
 		return deviceAction;
 	}
 
-
+	/**
+	 * <p>Adds a firmware handler that is of type <code>DeviceFirmwareHandler</code></p>
+	 * 
+	 * <p>If a device supports firmware update, the abstract class 
+	 * <code>DeviceFirmwareHandler</code> should be extended by the device code.
+	 * The <code>downloadFirmware</code> and <code>updateFirmware</code>
+	 * must be implemented to handle.</p>
+	 * 
+	 * @param fwHandler DeviceFirmwareHandler that handles the Firmware actions
+	 * @throws Exception throws an exception if a handler is already added
+	 *
+	 */
 	public void addFirmwareHandler(DeviceFirmwareHandler fwHandler) throws Exception {
 		final String METHOD = "addFirmwareHandler";
 		if(getDeviceFirmware() == null) {
@@ -151,11 +206,15 @@ public class DeviceData {
 		}
 		
 		fwHandler.setDeviceData(this);
-		getDeviceFirmware().addPropertyChangeListener(fwHandler);
+		getDeviceFirmware().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, fwHandler);
 		fwHandler.start();
 		this.fwHandler = fwHandler;
 	}
 	
+	/**
+	 * A builder class that helps to construct the DeviceData object. 
+	 *
+	 */
 	public static class Builder {
 		private String typeId = null;
 		private String deviceId = null;
@@ -222,19 +281,45 @@ public class DeviceData {
 		
 	}
 
+	/**
+	 * Set the Device-Type
+	 * 
+	 * @param typeId Device Type to be set
+	 */
 	void setTypeId(String typeId) {
 		this.typeId = typeId;
 	}
 	
+	/**
+	 * Set Device-ID
+	 * 
+	 * @param deviceId DeviceID to be set
+	 */
 	void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;
 	}
 
 
+	/**
+	 * Set Metadata
+	 * 
+	 * @param value MetaData to be set
+	 */
 	public void setMetadata(JsonObject value) {
-		this.metadata = value;
+		if(this.metadata == null) {
+			this.metadata = new JsonResource(METADATA, value);
+			return;
+		} else {
+			this.metadata.setValue(value);
+		}
 	}
 
+	/**
+	 * Returns the Resource for the given name
+	 * 
+	 * @param name - the name of the resource to be returned
+	 * @return Resource or null
+	 */
 	public Resource getResource(String name) {
 		String[] token = name.split("\\.");
 		Resource resource = this.root;

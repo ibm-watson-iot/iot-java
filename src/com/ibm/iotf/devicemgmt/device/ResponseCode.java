@@ -13,6 +13,10 @@
  */
 package com.ibm.iotf.devicemgmt.device;
 
+/**
+ * List of available response codes that device needs to respond to
+ * the server request
+ */
 public enum ResponseCode {
 	DM_SUCCESS(200),
 	DM_ACCEPTED(202),

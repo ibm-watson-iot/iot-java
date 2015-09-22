@@ -13,26 +13,47 @@
  */
 package com.ibm.iotf.devicemgmt.device;
 
-//Device can only publish to these topics
-	public enum DeviceTopic {
-		MANAGE("iotdevice-1/mgmt/manage"),
-		UNMANGE("iotdevice-1/mgmt/unmanage"),
-		UPDATE_LOCATION("iotdevice-1/device/update/location"),
-		CREATE_DIAG_ERRCODES("iotdevice-1/add/diag/errorCodes"),
-		CLEAR_DIAG_ERRCODES("iotdevice-1/clear/diag/errorCodes"),
-		ADD_DIAG_LOG("iotdevice-1/add/diag/log"),
-		CLEAR_DIAG_LOG("iotdevice-1/clear/diag/log"),
-		NOTIFY("iotdevice-1/notify"),
-		RESPONSE("iotdevice-1/response");
+/**
+ * List of device topics where device sends the device management 
+ * requests to the server
+ * 
+ */
+public enum DeviceTopic {
+	MANAGE("iotdevice-1/mgmt/manage"),
+	UNMANAGE("iotdevice-1/mgmt/unmanage"),
+	UPDATE_LOCATION("iotdevice-1/device/update/location"),
+	CREATE_DIAG_ERRCODES("iotdevice-1/add/diag/errorCodes"),
+	CLEAR_DIAG_ERRCODES("iotdevice-1/clear/diag/errorCodes"),
+	ADD_DIAG_LOG("iotdevice-1/add/diag/log"),
+	CLEAR_DIAG_LOG("iotdevice-1/clear/diag/log"),
+	NOTIFY("iotdevice-1/notify"),
+	RESPONSE("iotdevice-1/response");
 		
-		private DeviceTopic(String name) {
-			this.name = name;
-		}
-		
-		private final String name;
-		
-		public String getName() {
-			return name;
-		}
+	private DeviceTopic(String name) {
+		this.name = name;
 	}
+		
+	private final String name;
+	
+	public String getName() {
+		return name;
+	}
+		
+	public static DeviceTopic get(String topic) {
+		switch(topic) {
+		
+			case "iotdevice-1/mgmt/manage": return DeviceTopic.MANAGE;
+			case "iotdevice-1/mgmt/unmanage": return DeviceTopic.UNMANAGE;
+			case "iotdevice-1/device/update/location": return UPDATE_LOCATION;
+			case "iotdevice-1/add/diag/errorCodes": return CREATE_DIAG_ERRCODES;
+			case "iotdevice-1/clear/diag/errorCodes": return CLEAR_DIAG_ERRCODES;
+			case "iotdevice-1/add/diag/log": return ADD_DIAG_LOG;
+			case "iotdevice-1/clear/diag/log": return CLEAR_DIAG_LOG;
+			case "iotdevice-1/notify": return NOTIFY;
+			case "iotdevice-1/response": return RESPONSE;
+			
+		}
+		return null;
+	}
+}
 	

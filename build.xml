@@ -43,8 +43,8 @@
 			destdir="${outputDir}/doc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" 
 			packagenames="com.ibm.iotf.client.app,com.ibm.iotf.client.device,com.ibm.iotf.client.api,
 						  com.ibm.iotf.client,com.ibm.iotf.devicemgmt.device" 
-			source="1.7" sourcepath="src" splitindex="true" use="true" version="true"
-		/>
+			source="1.7" sourcepath="src" splitindex="true" use="true" version="true">
+		</javadoc>
 	</target>
 	
 	

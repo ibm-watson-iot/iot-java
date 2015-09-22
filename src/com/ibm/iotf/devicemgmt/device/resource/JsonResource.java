@@ -22,12 +22,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 /**
- * An internal class that represents a String attribute of the
+ * An internal class that represents a Json attribute of the
  * Device
  */
-public class StringResource extends Resource<String> {
+public class JsonResource extends Resource<JsonObject> {
 
-	public StringResource(String name, String value) {
+	public JsonResource(String name, JsonObject value) {
 		super(name, value);
 	}
 	
@@ -36,7 +36,7 @@ public class StringResource extends Resource<String> {
 	 */
 	@Override
 	public JsonElement toJsonObject() {
-		return (JsonElement) new JsonPrimitive(getValue());
+		return (JsonElement) getValue();
 	}
 	
 	/**
@@ -45,12 +45,12 @@ public class StringResource extends Resource<String> {
 	public int update(JsonElement json) {
 		return update(json, true);
 	}
-	
+
 	/**
 	 * Updates the value of this resource with the given Json value
 	 */
 	public int update(JsonElement json, boolean fireEvent) {
-		this.setValue(json.getAsString(), fireEvent);
+		this.setValue((JsonObject)json, fireEvent);
 		return this.getRC();
 	}
 }

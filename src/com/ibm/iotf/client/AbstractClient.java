@@ -71,6 +71,8 @@ public abstract class AbstractClient {
 	protected MqttConnectOptions mqttClientOptions;
 	protected MqttCallback mqttCallback;
 	
+	// Supported only for DM ManagedClient
+	protected MqttClient mqttClient = null;
 
 	/**
 	 * Note that this class does not have a default constructor <br>
@@ -83,6 +85,22 @@ public abstract class AbstractClient {
 		final String METHOD = "Constructor";
 		this.options = options;
 		LoggerUtility.fine(CLASS_NAME, METHOD, options.toString());
+	}
+	
+	/**
+	 * This constructor allows external user to pass the existing MqttAsyncClient 
+	 * @param mqttAsyncClient
+	 */
+	protected AbstractClient(MqttAsyncClient mqttAsyncClient) {
+		this.mqttAsyncClient = mqttAsyncClient;
+	}
+
+	/**
+	 * This constructor allows external user to pass the existing MqttClient 
+	 * @param mqttClient
+	 */
+	protected AbstractClient(MqttClient mqttClient) {
+		this.mqttClient = mqttClient;
 	}
 	
 	/**
@@ -281,7 +299,15 @@ public abstract class AbstractClient {
 	 * @return Whether the device is connected to the IBM Internet of Things Foundation
 	 */
 	public boolean isConnected() {
-		return mqttAsyncClient.isConnected();
+		final String METHOD = "isConnected";
+		boolean connected = false;
+		if (mqttAsyncClient != null) {
+			connected = mqttAsyncClient.isConnected();
+		} else if (mqttClient != null) {
+			connected = mqttClient.isConnected();
+		}
+		LoggerUtility.log(Level.FINEST, CLASS_NAME, METHOD, "Connected(" + connected + ")");
+		return connected;
 	}
 	
 	/**

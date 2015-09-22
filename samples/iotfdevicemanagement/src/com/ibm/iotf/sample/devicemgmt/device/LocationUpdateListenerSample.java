@@ -12,6 +12,8 @@
  */
 package com.ibm.iotf.sample.devicemgmt.device;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,27 +21,48 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
 
-import org.eclipse.paho.client.mqttv3.MqttException;
-
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
-import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
+import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.DeviceInfo;
+import com.ibm.iotf.devicemgmt.device.DeviceLocation;
+import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
-import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
+import com.ibm.iotf.devicemgmt.device.resource.Resource;
 
 /**
- * A sample device code that shows how to make a device managed and then unmanaged
- *  
- * This sample takes a properties file where the device informations and Firmware
+ * A sample device code that listens for the update message from IBM IoT Foundation. 
+ * The library code updates these attributes in the corresponding objects and 
+ * notifies the sample code if interested,
+ * 
+ * The IBM Internet of Things Foundation can send the following update request to a device to update 
+ * values of one or more device attributes. 
+ * 
+ * iotdm-1/device/update
+ * 
+ * Attributes that can be updated by this operation are location, metadata, device information and firmware.
+ * 
+ * The "value" is the new value of the device attribute. It is a complex field matching the device model. 
+ * Only writeable fields should be updated as a result of this operation. Values can be updated in:
+ * 
+ * location
+ * metadata
+ * deviceInfo
+ * mgmt.firmware
+ * 
+ * 
+ * This sample shows how one can listen for the incoming update message from IBM IoT Foundation
+ * 
+ * This sample takes a properties file where the device informations and location
  * informations are present. There is a default properties file in the sample folder, this
  * class takes the default properties file if one not specified by user.
  */
-public class ManageToUnmanageSample {
+public class LocationUpdateListenerSample implements PropertyChangeListener {
 	private final static String PROPERTIES_FILE_NAME = "DMDeviceSample.properties";
 	private final static String DEFAULT_PATH = "samples/iotfmanagedclient/src";
 	
@@ -48,23 +71,23 @@ public class ManageToUnmanageSample {
 	
 	public static void main(String[] args) throws Exception {
 		
-		System.out.println("Starting Device Management sample test...");
+		System.out.println("Starting DM Java Client sample Location Update test...");
+
 		String fileName = null;
 		if (args.length == 1) {
 			fileName = args[0];
 		} else {
 			fileName = getDefaultFilePath();
 		}
-		
-		ManageToUnmanageSample sample = new ManageToUnmanageSample();
+
+		LocationUpdateListenerSample sample = new LocationUpdateListenerSample();
 		try {
 			sample.createManagedClient(fileName);
 			sample.connect();
-			sample.publishDeviceEvent();
-			sample.sendUnManageRequest();
-			sample.publishDeviceEvent();
-			sample.sendManageRequest();
-			sample.publishDeviceEvent();
+			// wait for 10 minutes
+			try {
+				Thread.sleep(1000 * 60 * 10);
+			} catch(InterruptedException e) {}
 			sample.disConnect();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -72,6 +95,19 @@ public class ManageToUnmanageSample {
 		}
 		
 		System.out.println(" Exiting...");
+	}
+	
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		System.out.println("Received a new location - "+evt.getNewValue());
+	}
+	
+	private String trimedValue(String value) {
+		if(value == null || value == "") {
+			return "";
+		} else {
+			return value.trim();
+		}
 	}
 	
 	/**
@@ -86,7 +122,7 @@ public class ManageToUnmanageSample {
 		 * Load device properties
 		 */
 		Properties deviceProps = loadPropertiesFile(propertiesFile);
-		
+
 		/**
 		 * To create a DeviceData object, we will need the following objects:
 		 *   - DeviceInfo
@@ -95,29 +131,40 @@ public class ManageToUnmanageSample {
 		 *   - DeviceFirmware (optional)
 		 */
 		DeviceInfo deviceInfo = new DeviceInfo.Builder().
-				serialNumber(deviceProps.getProperty("DeviceInfo.serialNumber")).
-				manufacturer(deviceProps.getProperty("DeviceInfo.manufacturer")).
-				model(deviceProps.getProperty("DeviceInfo.model")).
-				deviceClass(deviceProps.getProperty("DeviceInfo.deviceClass")).
-				description(deviceProps.getProperty("DeviceInfo.description")).
-				fwVersion(deviceProps.getProperty("DeviceInfo.swVersion")).
-				hwVersion(deviceProps.getProperty("DeviceInfo.hwVersion")).
-				descriptiveLocation(deviceProps.getProperty("DeviceInfo.descriptiveLocation")).
+				serialNumber(trimedValue(deviceProps.getProperty("DeviceInfo.serialNumber"))).
+				manufacturer(trimedValue(deviceProps.getProperty("DeviceInfo.manufacturer"))).
+				model(trimedValue(deviceProps.getProperty("DeviceInfo.model"))).
+				deviceClass(trimedValue(deviceProps.getProperty("DeviceInfo.deviceClass"))).
+				description(trimedValue(deviceProps.getProperty("DeviceInfo.description"))).
+				fwVersion(trimedValue(deviceProps.getProperty("DeviceInfo.swVersion"))).
+				hwVersion(trimedValue(deviceProps.getProperty("DeviceInfo.hwVersion"))).
+				descriptiveLocation(trimedValue(deviceProps.getProperty("DeviceInfo.descriptiveLocation"))).
 				build();
 		
+		/**
+		 * Create a DeviceLocation object
+		 */
+		DeviceLocation location = new DeviceLocation.Builder(30.28565, -97.73921).
+												elevation(10).build();
+		
+		// Add a listener for location change
+		location.addPropertyChangeListener(this);
+
 		this.deviceData = new DeviceData.Builder().
 						 deviceInfo(deviceInfo).
+						 deviceLocation(location).
 						 metadata(new JsonObject()).
 						 build();
 		
 		// Options to connect to IoT Foundation
 		Properties options = new Properties();
-		options.setProperty("Organization-ID", deviceProps.getProperty("Organization-ID"));
-		options.setProperty("Device-Type", deviceProps.getProperty("Device-Type"));
-		options.setProperty("Device-ID", deviceProps.getProperty("Device-ID"));
-		options.setProperty("Authentication-Method", deviceProps.getProperty("Authentication-Method"));
-		options.setProperty("Authentication-Token", deviceProps.getProperty("Authentication-Token"));
+		options.setProperty("Organization-ID", trimedValue(deviceProps.getProperty("Organization-ID")));
+		options.setProperty("Device-Type", trimedValue(deviceProps.getProperty("Device-Type")));
+		options.setProperty("Device-ID", trimedValue(deviceProps.getProperty("Device-ID")));
+		options.setProperty("Authentication-Method", trimedValue(deviceProps.getProperty("Authentication-Method")));
+		options.setProperty("Authentication-Token", trimedValue(deviceProps.getProperty("Authentication-Token")));
 		
+
 		dmClient = new ManagedDevice(options, deviceData);
 	}
 	
@@ -133,49 +180,6 @@ public class ManageToUnmanageSample {
 		dmClient.disconnect();
 	}
 	
-	/**
-	 * Send a device manage request to IoT Foundation
-	 * 
-	 * A device uses this request to become a managed device. 
-	 * It should be the first device management request sent by the 
-	 * device after connecting to the Internet of Things Foundation. 
-	 * It would be usual for a device management agent to send this 
-	 * whenever is starts or restarts.
-	 * 
-	 * @param lifetime The length of time in seconds within 
-	 *        which the device must send another Manage device request 
-	 * @return True if successful
-	 * @throws MqttException
-	 */
-	private void sendManageRequest() throws MqttException {
-		if (dmClient.manage(0)) {
-			System.out.println("Device connected as Managed device now!");
-		} else {
-			System.err.println("Managed request failed!");
-		}
-	}
-	
-	private void sendUnManageRequest() throws MqttException {
-		dmClient.unmanage();
-	}
-	
-	/**
-	 * This method publishes a sample device event 
-	 */
-	private void publishDeviceEvent() {
-		
-		//Generate a JSON object of the event to be published
-		JsonObject event = new JsonObject();
-		event.addProperty("name", "foo");
-		event.addProperty("cpu",  80);
-		event.addProperty("mem",  90);
-		
-		System.out.println("Publishing device event:: "+event);
-		//Registered flow allows 0, 1 and 2 QoS	
-		dmClient.publishEvent("status", event);
-	}
-	
-
 	private static Properties loadPropertiesFile(String propertiesFilePath) {
 		File propertiesFile = new File(propertiesFilePath);
 		Properties clientProperties = new Properties();
