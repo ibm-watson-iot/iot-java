@@ -58,13 +58,13 @@ The following code snippet shows how to create the DeviceData Object with the ab
 				 build();
 Construct ManagedDevice
 -------------------------------------------------------------------------------
-ManagedDevice - A device class that connects the device as managed device to IBM IoT Foundation and enables devices to perform one or more Device Management operations. Also the ManagedDevice instance can be used to do normal device operations like publishing device events and listening for commands from application.
+ManagedDevice - A device class that connects the device as managed device to IBM IoT Foundation and enables the device to perform one or more Device Management operations. Also the ManagedDevice instance can be used to do normal device operations like publishing device events and listening for commands from application.
 
 ManagedDevice exposes 3 different constructors to support different user patterns, 
 
 **Constructor#1**
 
-Constructs a managedDevice instance by accepting the DeviceData and the following properties,
+Constructs a ManagedDevice instance by accepting the DeviceData and the following properties,
 
 * Organization-ID - Your organization ID.
 * Device-Type - The type of your device.
@@ -109,7 +109,7 @@ Constructs a managedDevice instance by accepting the DeviceData and the MqttClie
 	....
 	ManagedDevice dmClient = new ManagedDevice(mqttClient, deviceData);
 	
-Note this constructor helps the custom device users to create ManagedDevice instance with the already Created and connected MqttClient instance to take advantage of device management operations. But we recommend the users to use the library for all the device functionalities.
+Note this constructor helps the custom device users to create ManagedDevice instance with the already created and connected MqttClient instance to take advantage of device management operations. But we recommend the users to use the library for all the device functionalities.
 
 **Constructor#3**
 
@@ -120,54 +120,27 @@ Constructs a managedDevice instance by accepting the DeviceData and the AsyncMqt
 	// code that constructs the AsyncMqttClient
 	....
 	ManagedDevice dmClient = new ManagedDevice(asyncMqttClient, deviceData);
-	
-Using a configuration file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Instead of including a Properties object directly, you can use a configuration file containing the name-value pairs for Properties. If you are using a configuration file containing a Properties object, use the following code format.
+Manage	
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A device can send this request to become a managed device. It should be the first device management request sent by the device after connecting to the Internet of Things Foundation. 
+
+The connect() method on ManagedDevice does 2 things,
+
+* Connects the device to IBM IoT Foundation and
+* Sends the manage request such that the device becomes an Managed Device.
+
+The overloaded connect(long) method takes time in seconds that specifies the length of time within which the device must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant.
 
 .. code:: java
 
+	dmClient.connect(3600);
 
-	package com.ibm.iotf.sample.client.device;
+The manage() method can be invoked to send the manage request to IBM IoT Foundation:
 
-	import java.io.File;
-	import java.util.Properties;
+.. code:: java
 
-	import com.google.gson.JsonObject;
-	import com.ibm.iotf.client.device.DeviceClient;
-
-	public class RegisteredDeviceEventPublishPropertiesFile {
-
-		public static void main(String[] args) {
-			//Provide the device specific data, as well as Auth-key and token using Properties class	
-			Properties options = DeviceClient.parsePropertiesFile(new File("C:\\temp\\device.prop"));
-
-			DeviceClient myClient = null;
-			try {
-				//Instantiate the class by passing the properties file			
-				myClient = new DeviceClient(options);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			//Connect to the IBM IoT Foundation	
-			myClient.connect();
-			
-			//Generate a JSON object of the event to be published
-			JsonObject event = new JsonObject();
-			event.addProperty("name", "foo");
-			event.addProperty("cpu",  90);
-			event.addProperty("mem",  70);
-			
-			//Registered flow allows 0, 1 and 2 QoS
-			myClient.publishEvent("status", event, 1);
-			System.out.println("SUCCESSFULLY POSTED......");
-			
-      ...
-
-The content of the configuration file must be in the following format:
-
+	dmClient.manage(4800);
 ::
 
     [device]
