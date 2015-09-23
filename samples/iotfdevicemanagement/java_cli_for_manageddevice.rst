@@ -179,13 +179,18 @@ Once the device is connected to Internet of Things Foundation, the location can 
 
 .. code:: java
 
-	deviceLocation.sendLocation();
+	int rc = deviceLocation.sendLocation();
+	if(rc == 200) {
+	    	System.out.println("Current location (" + deviceLocation.toString() + ")");
+	} else {
+            	System.err.println("Failed to update the location");
+	}
 
 Later, any new location can be easily updated by changing the properties of the DeviceLocation object,
 
 .. code:: java
 
-	deviceLocation.update(40.28, -98.33, 11);
+	int rc = deviceLocation.update(40.28, -98.33, 11);
 	if(rc == 200) {
 		System.out.println("Current location (" + deviceLocation.toString() + ")");
 	} else {
@@ -578,17 +583,17 @@ Refer to `this page <https://docs.internetofthings.ibmcloud.com/device_mgmt/oper
 
 Examples
 -------------
-* SampleRasPiDMAgent - A sample agent code that shows how to perform various device management operations on Raspberry Pi
-* SampleRasPiManagedDevice - A sample code that shows how one can perform both device operations and management operations
-* SampleRasPiDMAgentWithCustomMqttAsyncClient - A sample agent code with custom MqttAsyncClient
-* SampleRasPiDMAgentWithCustomMqttClient - A sample agent code with custom MqttClient
-* RasPiFirmwareHandlerSample - A sample implementation of FirmwareHandler for Raspberry Pi
-* DeviceActionHandlerSample - A sample implementation of DeviceActionHandler
-* ManagedDeviceWithLifetimeSample - A sample that shows how to send regular manage request with lifetime specified
-* LocationUpdateListenerSample - A sample that shows how to listen for a location update message from the IoT Foundation server 
-* NonBlockingDiagnosticsErrorCodeUpdateSample - A sample that shows how to add ErrorCode without waiting for response from the server
+* `SampleRasPiDMAgent <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgent.java>`__ - A sample agent code that shows how to perform various device management operations on Raspberry Pi
+* `SampleRasPiManagedDevice <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiManagedDevice.java>`__ - A sample code that shows how one can perform both device operations and management operations
+* `SampleRasPiDMAgentWithCustomMqttAsyncClient <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgentWithCustomMqttAsyncClient.java>`__ - A sample agent code with custom MqttAsyncClient
+* `SampleRasPiDMAgentWithCustomMqttClient <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgentWithCustomMqttClient.java>`__ - A sample agent code with custom MqttClient
+* `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__ - A sample implementation of FirmwareHandler for Raspberry Pi
+* `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__ - A sample implementation of DeviceActionHandler
+* `ManagedDeviceWithLifetimeSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/ManagedDeviceWithLifetimeSample.java>`__ - A sample that shows how to send regular manage request with lifetime specified
+* `LocationUpdateListenerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/LocationUpdateListenerSample.java>`__ - A sample that shows how to listen for a location update message from the IoT Foundation server 
+* `NonBlockingDiagnosticsErrorCodeUpdateSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/NonBlockingDiagnosticsErrorCodeUpdateSample.java>` - A sample that shows how to add ErrorCode without waiting for response from the server
 
 Recipe
 ----------
 
-A recipe that shows how to connect the Raspberry Pi device as managed device to Internet Of Things Foundation to perform various device management operations in step by step using this client library.
+Refer to `the recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-managed-device-to-ibm-iot-foundation/>`__ that shows how to connect the Raspberry Pi device as managed device to Internet Of Things Foundation to perform various device management operations in step by step using this client library.
