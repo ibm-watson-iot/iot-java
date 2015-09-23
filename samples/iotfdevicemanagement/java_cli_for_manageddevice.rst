@@ -376,10 +376,9 @@ In order to support the Firmware action, the device needs to create a handler an
 
 **3.1 Sample implementation of downloadFirmware**
 
-The implementation must report the status of the Firmware Download via DeviceFirmware object. If the Firmware Download operation is successful, then the state of the firmware to be set to DOWNLOADED and UpdateStatus should be set to SUCCESS.
+The implementation must add logic to download the firmware and report the status of the download via DeviceFirmware object. If the Firmware Download operation is successful, then the state of the firmware to be set to DOWNLOADED and UpdateStatus should be set to SUCCESS.
 
 If an error occurs during Firmware Download the state should be set to IDLE and updateStatus should be set to one of the error status values,
-
 * OUT_OF_MEMORY
 * CONNECTION_LOST
 * INVALID_URI
@@ -445,9 +444,9 @@ A sample Firmware Download implementation for a Raspberry Pi device is shown bel
 
 **3.2 Sample implementation of updateFirmware**
 
-The implementation must report the status of the Firmware Update via DeviceFirmware object. If the Firmware Update operation is successful, then the state of the firmware should to be set to IDLE and UpdateStatus should be set to SUCCESS. 
-If an error occurs during Firmware Update, updateStatus should be set to one of the error status values,
+The implementation must add logic to install the downloaded firmware and report the status of the update via DeviceFirmware object. If the Firmware Update operation is successful, then the state of the firmware should to be set to IDLE and UpdateStatus should be set to SUCCESS. 
 
+If an error occurs during Firmware Update, updateStatus should be set to one of the error status values,
 * OUT_OF_MEMORY
 * UNSUPPORTED_IMAGE
 			
@@ -537,7 +536,7 @@ In order to support the device action, the device needs to create a handler and 
 
 **2.1 Sample implementation of handleReboot**
 
-The implementation must set the status of the reboot operation along with a optional message when there is a failure. The DeviceAction object to be used to update the status of the reboot operation. A sample reboot implementation for a Raspberry Pi device is shown below,
+The implementation must add a logic to reboot the device and report the status of the reboot via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because the successful operation reboots the device and the device code will not have a control to update the Internet of Things Foundation server). A sample reboot implementation for a Raspberry Pi device is shown below,
 
 .. code:: java
 
@@ -563,7 +562,7 @@ The implementation must set the status of the reboot operation along with a opti
 
 **2.2 Sample implementation of handleFactoryReset**
 
-Similar to handleReboot() method, the implementation must set the status of the factory reset operation along with a optional message when there is a failure. The skeleton of the Factory Reset implementation is shown below,
+The implementation must add a logic to reset the device to factory settings and report the status via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because as part of this process, the device reboots and the device will not have a control to update status to Internet of Things Foundation server). The skeleton of the Factory Reset implementation is shown below,
 
 .. code:: java
 	
