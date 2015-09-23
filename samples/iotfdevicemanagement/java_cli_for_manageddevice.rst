@@ -122,7 +122,7 @@ Construct a ManagedDevice instance by accepting the DeviceData and the MqttClien
 Note this constructor helps the custom device users to create ManagedDevice instance with the already created and connected MqttClient instance to take advantage of device management operations. But we recommend the users to use the library for all the device functionalities.
 
 Manage	
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------------------------
 In order to participate in device management activities, the device needs to send a manage request to Internet of Things Foundation. The connect() method on ManagedDevice implicitly sends a manage request to connect the device as Managed device.
 
 .. code:: java
@@ -145,7 +145,9 @@ Also, the manage(long) method can be used to send the manage request to Internet
 .. code:: java
 
 	managedDevice.manage(4800);
-	
+
+Refer to the `documenation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/manage.html>`__ for more information about the manage operation.
+
 Unmanage
 -----------------------------------------------------
 
@@ -155,7 +157,7 @@ A device can invoke unmanage() method when it no longer needs to be managed. The
 
 	managedDevice.unmanage();
 
-Refer to the `documenation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/manage.html>`__ for more information about the manage operation.
+Refer to the `documenation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/manage.html>`__ for more information about the Unmanage operation.
 
 Location Update
 -----------------------------------------------------
