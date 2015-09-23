@@ -5,7 +5,7 @@ Java Client Library - Managed Device (Update In Progress)
 Introduction
 -------------------------------------------------------------------------------
 
-This client library describes how to use devices with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://docs.internetofthings.ibmcloud.com/libraries/java.html#/>`__. 
+This client library describes how to use devices with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://docs.internetofthings.ibmcloud.com/java/javaintro.html/>`__. 
 
 This client library is divided into four sections, all included within the library. This section contains information on how devices can participate in various device management activities like, firmware update, location update, diagnostics update, device actions and etc..
 
@@ -17,7 +17,7 @@ The Historian section contains information on how applications can use the Java 
 
 Device Management
 -------------------------------------------------------------------------------
-The `device management<https://docs.internetofthings.ibmcloud.com/reference/device_mgmt.html>`__ feature enhances the Internet of Things Foundation service with new capabilities for managing devices. It creates a distinction between managed and unmanaged devices,
+The `device management<managedDevices://docs.internetofthings.ibmcloud.com/reference/device_mgmt.html>`__ feature enhances the Internet of Things Foundation service with new capabilities for managing devices. It creates a distinction between managed and unmanaged devices,
 
 * **Managed Devices** are defined as devices which have a management agent installed. The management agent sends and receives device metadata and responds to device management commands from the Internet of Things Foundation. 
 * **Unmanaged Devices** are any devices which do not have a device management agent. All devices begin their lifecycle as unmanaged devices, and can transition to managed devices by sending a message from a device management agent to the Internet of Things Foundation. 
@@ -85,7 +85,7 @@ The following code shows how to create a ManagedDevice instance,
 	options.setProperty("Authentication-Method", "authMethod");
 	options.setProperty("Authentication-Token", "authToken");
 	
-	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
+	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
  
 The existing users of DeviceClient might observe that the names of these properties are slightly changed. These names are changed to mirror the names in the Internet of Things Foundation Dashboard, but the existing users who wants to migrate from the DeviceClient to ManagedDevice can still use the old format and construct the ManagedDevice instance as follows,
 
@@ -97,11 +97,11 @@ The existing users of DeviceClient might observe that the names of these propert
 	options.setProperty("id", "deviceId");
 	options.setProperty("auth-method", "authMethod");
 	options.setProperty("auth-token", "authToken");
-	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
+	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
 
 **Constructor#2**
 
-Construct a ManagedDevice instance by accepting the DeviceData and the MqttClient instance. Also, this constructor requires the DeviceData to be created with additional device attributes like Device Type and Device Id as follows,
+Construct a ManagedDevice instance by accepting the DeviceData and the MqttClient instance. And this constructor requires the DeviceData to be created with additional device attributes like Device Type and Device Id as follows,
 
 .. code:: java
 	
@@ -117,41 +117,45 @@ Construct a ManagedDevice instance by accepting the DeviceData and the MqttClien
 				 build();
 	
 	....
-	ManagedDevice dmClient = new ManagedDevice(mqttClient, deviceData);
+	ManagedDevice managedDevice = new ManagedDevice(mqttClient, deviceData);
 	
 Note this constructor helps the custom device users to create ManagedDevice instance with the already created and connected MqttClient instance to take advantage of device management operations. But we recommend the users to use the library for all the device functionalities.
 
 Manage	
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-A device can invoke a manage(lifetime) method to become a managed device. It should be the first device management request sent by the device after connecting to the Internet of Things Foundation. 
+In order to participate in device management activities, the device needs to send a manage request to Internet of Things Foundation. The connect() method on ManagedDevice implicitly sends a manage request to connect the device as Managed device.
 
-The connect() method on ManagedDevice does 2 things,
+.. code:: java
+
+	managedDevice.connect(3600);
+	
+Actually the connect() method does the following,
 
 * Connects the device to Internet of Things Foundation and
 * Sends the manage request such that the device becomes an Managed Device.
 
-The overloaded connect(long) method takes time in seconds that specifies the length of time within which the device must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant.
+The overloaded connect(long) method can be used to register the device with lifetime. The lifetime specifies the length of time within which the device must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant.
 
 .. code:: java
 
-	dmClient.connect(3600);
+	managedDevice.connect(3600);
 
-The manage(long) method can be used to send the manage request to Internet of Things Foundation at any point - The custom device clients that pass the MqttClient instance need to explicitly send the manage() request to make the device as managed device in Internet of Things Foundation.
+Also, the manage(long) method can be used to send the manage request to Internet of Things Foundation at any point - The custom device clients that pass the MqttClient instance, must explicitly invoke the manage() method to participate in device management activities.
 
 .. code:: java
 
-	dmClient.manage(4800);
+	managedDevice.manage(4800);
 	
 Unmanage
 -----------------------------------------------------
 
-A device can call unmanage() method when it no longer needs to be managed. The Internet of Things Foundation will no longer send new device management requests to this device and all device management requests from this device will be rejected other than a **Manage device** request.
+A device can invoke unmanage() method when it no longer needs to be managed. The Internet of Things Foundation will no longer send new device management requests to this device and all device management requests from this device will be rejected other than a **Manage device** request.
 
 .. code:: java
 
-	dmClient.unmanage();
+	managedDevice.unmanage();
 
-Refer to the `documenation<https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/manage.html>`__ for more information about the manage operation.
+Refer to the `documenation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/manage.html>`__ for more information about the manage operation.
 
 Location Update
 -----------------------------------------------------
@@ -204,7 +208,7 @@ As the location of the device can be updated using the the Internet of Things Fo
 		System.out.println("Received a new location - "+evt.getNewValue());
 	}
 
-Refer to the `documenation<https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/update.html>`__ for more information about the Location update.
+Refer to the `documenation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/update.html>`__ for more information about the Location update.
 
 Append/Clear ErrorCodes
 -----------------------------------------------
@@ -251,8 +255,7 @@ Also, the ErrorCodes can be cleared from Internet of Things Foundation server by
 
 Append/Clear Log messages
 -----------------------------
-
-Devices can choose to notify IoTF device management support about changes a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. In order to send log messages, the device needs to construct a DeviceDiagnostic object as follows,
+Devices can choose to notify the Internet of Things Foundation server about changes by adding a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. In order to send log messages, the device needs to construct a DeviceDiagnostic object as follows,
 
 .. code:: java
 
@@ -301,7 +304,7 @@ Also, the ErrorCodes can be cleared from Internet of Things Foundation server by
 
 The device diagnostics operations are intended to provide information on device errors, and does not provide diagnostic information relating to the devices connection to the Internet of Things Foundation.
 
-Refer to the `documentation<https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/diagnostics.html>`__ for more information about the Diagnostics operation.
+Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/diagnostics.html>`__ for more information about the Diagnostics operation.
 
 Firmware Actions
 -------------------------------------------------------------
@@ -327,37 +330,37 @@ In order to perform Firmware actions the device needs to construct the DeviceFir
 				metadata(new JsonObject()).
 				build();
 	
-	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
-	dmClient.connect();
+	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
+	managedDevice.connect();
 		
 
 The DeviceFirmware object represents the current firmware of the device and will be used to report the status of the Firmware Download and Firmware Update actions to Internet of Things Foundation server.
 
 **Inform the Firmware action support**
 
-The device needs to set the firmware action flag to true in order for the server to initiate the firmware request. This can achieved by invoking a following method with a boolean value,
+The device needs to set the firmware action flag to true in order for the server to initiate the firmware request. This can be achieved by invoking a following method with a boolean value,
 
 .. code:: java
 	
-	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
-	dmClient.supportsFirmwareActions(true);
-	dmClient.connect();
+	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
+	managedDevice.supportsFirmwareActions(true);
+	managedDevice.connect();
 	
-Note that the supportsFirmwareActions() method to be called before the connect() method as the ManagedDevice instance sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet Of Things Server about the firmware action support and hence it needs to be added prior to calling connect() method.
+Note that the supportsFirmwareActions() method to be called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet Of Things Server about the firmware action support and hence it needs to be added prior to calling connect() method.
 
 Alternatively, the support can be added later as well followed by the manage request as follows,
 
 .. code:: java
 
-	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
-    	dmClient.connect();
+	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
+    	managedDevice.connect();
     	...
-    	dmClient.supportsFirmwareActions(true);
-    	dmClient.manage(3600);
+    	managedDevice.supportsFirmwareActions(true);
+    	managedDevice.manage(3600);
 	
 **Defining the Firmware Action Handler**
 
-In order to support the Firmware action, the device needs to create a handler and add it to ManagedDevice. The handler must extend the DeviceFirmwareHandler class and implement the following methods,
+In order to support the Firmware action, the device needs to create a handler and add it to ManagedDevice. The handler must extend a DeviceFirmwareHandler class and implement the following methods,
 
 .. code:: java
 
@@ -480,7 +483,7 @@ The created handler needs to be added to the ManagedDevice instance so that the 
 	DeviceFirmwareHandlerSample fwHandler = new DeviceFirmwareHandlerSample();
 	deviceData.addFirmwareHandler(fwHandler);
 
-Refer to `this page<https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/firmware_actions.html>`__ for more information about the Firmware action.
+Refer to `this page <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/firmware_actions.html>`__ for more information about the Firmware action.
 
 Device Actions
 ------------------------------------
@@ -489,29 +492,29 @@ The Internet of Things Foundation supports the following device actions,
 * Reboot
 * Factory Reset
 
-In order to perform Reboot and Factory Reset the device needs to inform the Internet Of Things server about its support first. This can achieved by invoking a following method with a boolean value,
+In order to perform Reboot and Factory Reset the device needs to inform the Internet of Things server about its support first. This can achieved by invoking a following method with a boolean value,
 
 .. code:: java
 	
-	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
-	dmClient.supportsDeviceActions(true);
-	dmClient.connect();
+	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
+	managedDevice.supportsDeviceActions(true);
+	managedDevice.connect();
 	
-Note that the supportsDeviceActions() method to be called before the connect() method as the ManagedDevice instance sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet Of Things Server about the device action support and hence it needs to be added prior to calling connect() method.
+Note that the supportsDeviceActions() method to be called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet Of Things Server about the device action support and hence it needs to be added prior to calling connect() method.
 
 Alternatively, the support can be added later as well followed by the manage request as follows,
 
 .. code:: java
 
-	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
-    	dmClient.connect();
+	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
+    	managedDevice.connect();
     	...
-    	dmClient.supportsDeviceActions(true);
-    	dmClient.manage(3600);
+    	managedDevice.supportsDeviceActions(true);
+    	managedDevice.manage(3600);
 	
 **Creating the Device Action Handler**
 
-In order to support the device action, the device needs to create a handler and add it to ManagedDevice. The handler must extend the DeviceActionHandler class and provide implementation for the following methods,
+In order to support the device action, the device needs to create a handler and add it to ManagedDevice. The handler must extend a DeviceActionHandler class and provide implementation for the following methods,
 
 .. code:: java
 
@@ -570,7 +573,7 @@ The created handler needs to be added to the ManagedDevice instance so that the 
 	DeviceActionHandlerSample actionHandler = new DeviceActionHandlerSample();
 	deviceData.addDeviceActionHandler(actionHandler);
 
-Refer to `this page<https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/device_actions.html>`__ for more information about the Device Action.
+Refer to `this page <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/device_actions.html>`__ for more information about the Device Action.
 
 Examples
 -------------
