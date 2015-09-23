@@ -101,11 +101,21 @@ Note that the name of the properties are slightly changed to miror the names in 
 
 **Constructor#2**
 
-Constructs a managedDevice instance by accepting the DeviceData and the MqttClient instance:
+Construct a ManagedDevice instance by accepting the DeviceData and the MqttClient instance. Also, this constructor requires the DeviceData to be created with the Device Type and Device Id as follows:
 
 .. code:: java
 	
-	// code that constructs the MqttClient
+	// Code that constructs the MqttClient
+	.....
+	
+	// Code that constructs the DeviceData
+	DeviceData deviceData = new DeviceData.Builder().
+				 typeId("Device-Type").
+				 deviceId("Device-ID").
+				 deviceInfo(deviceInfo).
+				 metadata(new JsonObject()).
+				 build();
+	
 	....
 	ManagedDevice dmClient = new ManagedDevice(mqttClient, deviceData);
 	
@@ -136,12 +146,66 @@ The overloaded connect(long) method takes time in seconds that specifies the len
 
 	dmClient.connect(3600);
 
-The manage() method can be invoked to send the manage request to IBM IoT Foundation:
+The manage(long) method can be used to send the manage request to IBM IoT Foundation at any point:
 
 .. code:: java
 
 	dmClient.manage(4800);
-::
+	
+Unmanage
+-----------------------------------------------------
+
+A device can send this request when it no longer needs to be managed. The Internet of Things Foundation will no longer send new device management requests to this device and all device management requests from this device will be rejected other than a **Manage device** request.
+
+.. code:: java
+
+	dmClient.unmanage();
+
+Location Update
+-----------------------------------------------------
+
+Devices that can determine their location can choose to notify the Internet of Things Foundation device management server about location changes. In order to update the location, the device needs to create DeviceData instance with the DeviceLocation object:
+
+.. code:: java
+    // Construct the location object with latitude, longitude and elevation
+    DeviceLocation location = new DeviceLocation.Builder(30.28565, -97.73921).
+								elevation(10).
+								build();
+    DeviceData deviceData = new DeviceData.Builder().
+				 deviceInfo(deviceInfo).
+				 deviceLocation(location).
+				 metadata(new JsonObject()).
+				 build();
+	
+    
+Once the device is connected to IBM IoT Foundation, the location can be updated by invoking the following method:
+
+.. code:: java
+
+	location.sendLocation();
+
+Later, any new location can be easily updated by changing the properties of the DeviceLocation object:
+
+.. code:: java
+
+	location.update(40.28, -98.33, 11);
+
+Listening for Location change
+-----------------------------
+
+As the location of the device can be updated using the the Internet of Things Foundation REST API, the library code updates the DeviceLocation object whenever it receives the update from the Internet of Things Foundation. The device can listen for such a location change by adding itself as a property change listener in DeviceLocation object and query the properties whenever the location is changed:
+
+.. code:: java
+
+	// Add a listener for location change
+	location.addPropertyChangeListener(this);
+	
+	...
+	
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		System.out.println("Received a new location - "+evt.getNewValue());
+	}
 
     [device]
     org=$orgId
