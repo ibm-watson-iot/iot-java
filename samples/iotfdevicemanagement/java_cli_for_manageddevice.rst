@@ -72,7 +72,7 @@ Constructs a ManagedDevice instance by accepting the DeviceData and the followin
 * Authentication-Method - Method of authentication (The only value currently supported is "token"). 
 * Authentication-Token - API key token
 
-The Properties object creates definitions which are used to interact with the Internet of Things Foundation module. 
+The Properties object creates definitions which are used to interact with the Internet of Things Foundation server. 
 
 The following code shows how to create a ManagedDevice instance,
 
@@ -160,7 +160,7 @@ Refer to the `documenation <https://docs.internetofthings.ibmcloud.com/device_mg
 Location Update
 -----------------------------------------------------
 
-Devices that can determine their location can choose to notify the Internet of Things Foundation device management server about location changes. In order to update the location, the device needs to create DeviceData instance with the DeviceLocation object.
+Devices that can determine their location can choose to notify the Internet of Things Foundation server about location changes. In order to update the location, the device needs to create DeviceData instance with the DeviceLocation object.
 
 .. code:: java
 
@@ -219,7 +219,7 @@ Refer to the `documenation <https://docs.internetofthings.ibmcloud.com/device_mg
 Append/Clear ErrorCodes
 -----------------------------------------------
 
-Devices can choose to notify the Internet of Things Foundation device management server about changes in their error status. In order to send the ErrorCodes the device needs to construct a DeviceDiagnostic object as follows,
+Devices can choose to notify the Internet of Things Foundation server about changes in their error status. In order to send the ErrorCodes the device needs to construct a DeviceDiagnostic object as follows,
 
 .. code:: java
 
@@ -352,7 +352,7 @@ The device needs to set the firmware action flag to true in order for the server
 	managedDevice.supportsFirmwareActions(true);
 	managedDevice.connect();
 	
-Note that the supportsFirmwareActions() method to be called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet Of Things Server about the firmware action support and hence it needs to be added prior to calling connect() method.
+Note that the supportsFirmwareActions() method to be called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Foundation server about the firmware action support and hence it needs to be added prior to calling connect() method.
 
 Alternatively, the support can be added later as well followed by the manage request as follows,
 
@@ -506,7 +506,7 @@ In order to perform Reboot and Factory Reset the device needs to inform the Inte
 	managedDevice.supportsDeviceActions(true);
 	managedDevice.connect();
 	
-Note that the supportsDeviceActions() method to be called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet Of Things Server about the device action support and hence it needs to be added prior to calling connect() method.
+Note that the supportsDeviceActions() method to be called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Server about the device action support and hence it needs to be added prior to calling connect() method.
 
 Alternatively, the support can be added later as well followed by the manage request as follows,
 
@@ -591,9 +591,9 @@ Examples
 * `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__ - A sample implementation of DeviceActionHandler
 * `ManagedDeviceWithLifetimeSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/ManagedDeviceWithLifetimeSample.java>`__ - A sample that shows how to send regular manage request with lifetime specified
 * `LocationUpdateListenerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/LocationUpdateListenerSample.java>`__ - A sample that shows how to listen for a location update message from the IoT Foundation server 
-* `NonBlockingDiagnosticsErrorCodeUpdateSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/NonBlockingDiagnosticsErrorCodeUpdateSample.java>` - A sample that shows how to add ErrorCode without waiting for response from the server
+* `NonBlockingDiagnosticsErrorCodeUpdateSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/NonBlockingDiagnosticsErrorCodeUpdateSample.java>`__ - A sample that shows how to add ErrorCode without waiting for response from the server
 
 Recipe
 ----------
 
-Refer to `the recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-managed-device-to-ibm-iot-foundation/>`__ that shows how to connect the Raspberry Pi device as managed device to Internet Of Things Foundation to perform various device management operations in step by step using this client library.
+Refer to `the recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-managed-device-to-ibm-iot-foundation/>`__ that shows how to connect the Raspberry Pi device as managed device to Internet of Things Foundation to perform various device management operations in step by step using this client library.
