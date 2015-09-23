@@ -168,12 +168,12 @@ Devices that can determine their location can choose to notify the Internet of T
 
 .. code:: java
     // Construct the location object with latitude, longitude and elevation
-    DeviceLocation location = new DeviceLocation.Builder(30.28565, -97.73921).
+    DeviceLocation deviceLocation = new DeviceLocation.Builder(30.28565, -97.73921).
 								elevation(10).
 								build();
     DeviceData deviceData = new DeviceData.Builder().
 				 deviceInfo(deviceInfo).
-				 deviceLocation(location).
+				 deviceLocation(deviceLocation).
 				 metadata(new JsonObject()).
 				 build();
 	
@@ -182,13 +182,18 @@ Once the device is connected to IBM IoT Foundation, the location can be updated 
 
 .. code:: java
 
-	location.sendLocation();
+	deviceLocation.sendLocation();
 
 Later, any new location can be easily updated by changing the properties of the DeviceLocation object:
 
 .. code:: java
 
-	location.update(40.28, -98.33, 11);
+	deviceLocation.update(40.28, -98.33, 11);
+	if(rc == 200) {
+		System.out.println("Current location (" + deviceLocation.toString() + ")");
+	} else {
+		System.err.println("Failed to update the location");
+	}
 
 Listening for Location change
 -----------------------------
@@ -207,126 +212,94 @@ As the location of the device can be updated using the the Internet of Things Fo
 		System.out.println("Received a new location - "+evt.getNewValue());
 	}
 
-    [device]
-    org=$orgId
-    typ=$myDeviceType
-    id=$myDeviceId
-    auth-method=token
-    auth-token=$token
+Append/Clear ErrorCodes
+-----------------------------------------------
 
-
-----
-
-
-Publishing events
--------------------------------------------------------------------------------
-Events are the mechanism by which devices publish data to the Internet of Things Foundation. The device controls the content of the event and assigns a name for each event it sends.
-
-When an event is received by the IBM IoT Foundation the credentials of the connection on which the event was received are used to determine from which device the event was sent. With this architecture it is impossible for a device to impersonate another device.
-
-Events can be published at any of the three `quality of service levels <https://docs.internetofthings.ibmcloud.com/messaging/mqtt.html#/>` defined by the MQTT protocol.  By default events will be published as qos level 0.
-
-Publish event using default quality of service
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. code:: java
-
-			myClient.connect();
-			
-			JsonObject event = new JsonObject();
-			event.addProperty("name", "foo");
-			event.addProperty("cpu",  90);
-			event.addProperty("mem",  70);
-		    
-			myClient.publishEvent("status", event);
-
-
-----
-
-
-Publish event using user-defined quality of service
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Events can be published at higher MQTT quality of servive levels, but these events may take slower than QoS level 0, because of the extra confirmation of receipt. Also Quickstart flow allows only Qos of 0
+The device diagnostics operations are intended to provide information on device errors, and does not provide diagnostic information relating to the devices connection to the Internet of Things Foundation. Devices can choose to notify the Internet of Things Foundation device management server about changes in their error status. In order to send ErrorCodes to IBM IoT Foundation the device needs to construct a DeviceDiagnostic object:
 
 .. code:: java
 
-			myClient.connect();
-			
-			JsonObject event = new JsonObject();
-			event.addProperty("name", "foo");
-			event.addProperty("cpu",  90);
-			event.addProperty("mem",  70);
-		    
-			//Registered flow allows 0, 1 and 2 QoS
-			myClient.publishEvent("status", event, 2);
+	DiagnosticErrorCode errorCode = new DiagnosticErrorCode(0);
+	DeviceDiagnostic diag = new DeviceDiagnostic(errorCode);
+	this.deviceData = new DeviceData.Builder().
+				 deviceInfo(deviceInfo).
+				 deviceDiag(diag).
+				 metadata(new JsonObject()).
+				 build();
 
-
-----
-
-
-Handling commands
--------------------------------------------------------------------------------
-When the device client connects it automatically subscribes to any command for this device. To process specific commands you need to register a command callback method. 
-The messages are returned as an instance of the Command class which has the following properties:
-
-* payload - java.lang.String
-* format - java.lang.String
-* command - java.lang.String
-* timestamp - org.joda.time.DateTime
+Once the device is connected to IBM IoT Foundation, the ErrorCode can be sent to Internet Of Things Foundation by calling the sendErrorCode() method as follows,
 
 .. code:: java
 
-	package com.ibm.iotf.sample.client.device;
+	diag.sendErrorCode();
 
-	import java.util.Properties;
+Later, any new ErrorCodes can be easily added to the Internet Of Things Foundation server by calling the append method as follows,
 
+.. code:: java
 
-	import com.ibm.iotf.client.device.Command;
-	import com.ibm.iotf.client.device.CommandCallback;
-	import com.ibm.iotf.client.device.DeviceClient;
-
-
-	//Implement the CommandCallback class to provide the way in which you want the command to be handled
-	class MyNewCommandCallback implements CommandCallback{
-		
-		public MyNewCommandCallback() {
-		}
-
-		//In this sample, we are just displaying the command the moment the device recieves it
-		@Override
-		public void processCommand(Command command) {
-			System.out.println("COMMAND RECEIVED = '" + command.getCommand() + "'\twith Payload = '" + command.getPayload() + "'");			
-		}
+	int rc = diag.append(random.nextInt(500));
+	if(rc == 200) {
+		System.out.println("Current Errorcode (" + diag.getErrorCode() + ")");
+	} else {
+		System.out.println("Errorcode addition failed!");
 	}
 
-	public class RegisteredDeviceCommandSubscribe {
+Also, the ErrorCodes can be cleared from Internet Of Things Foundation server by calling the clear method as follows,
 
-		
-		public static void main(String[] args) {
-			
-			//Provide the device specific data, as well as Auth-key and token using Properties class		
-			Properties options = new Properties();
-			
-			options.setProperty("org", "uguhsp");
-			options.setProperty("type", "iotsample-arduino");
-			options.setProperty("id", "00aabbccde03");
-			options.setProperty("auth-method", "token");
-			options.setProperty("auth-token", "AUTH TOKEN FOR DEVICE");
-			
-			DeviceClient myClient = null;
-			try {
-				//Instantiate the class by passing the properties file			
-				myClient = new DeviceClient(options);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			//Pass the above implemented CommandCallback as an argument to this device client
-			myClient.setCommandCallback(new MyNewCommandCallback());
+.. code:: java
 
-			//Connect to the IBM IoT Foundation	
-			myClient.connect();
-		}
+	int rc = diag.clearErrorCode();
+	if(rc == 200) {
+		System.out.println("ErrorCodes are cleared successfully!");
+	} else {
+		System.out.println("Failed to clear the ErrorCodes!");
 	}
 
+Append/Clear Log messages
+-----------------------------
 
+Devices can choose to notify IoTF device management support about changes a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. In order to send og messages, the device needs to construct a DeviceDiagnostic object as follows,
+
+.. code:: java
+
+	DiagnosticLog log = new DiagnosticLog(
+				"Simple Log Message", 
+				new Date(),
+				DiagnosticLog.LogSeverity.informational);
+		
+	DeviceDiagnostic diag = new DeviceDiagnostic(log);
+	this.deviceData = new DeviceData.Builder().
+				 deviceInfo(deviceInfo).
+				 deviceDiag(diag).
+				 metadata(new JsonObject()).
+				 build();
+
+Once the device is connected to IBM IoT Foundation, the log message can be sent to Internet Of Things Foundation by calling the sendLog() method as follows,
+
+.. code:: java
+
+	diag.sendLog();
+
+Later, any new log messages can be easily added to the Internet Of Things Foundation server by calling the append method as follows,
+
+.. code:: java
+
+	int rc = diag.append("Log event " + count++, new Date(), 
+				DiagnosticLog.LogSeverity.informational);
+			
+	if(rc == 200) {
+		System.out.println("Current Log (" + diag.getLog() + ")");
+	} else {
+		System.out.println("Log Addition failed");
+	}
+
+Also, the ErrorCodes can be cleared from Internet Of Things Foundation server by calling the clear method as follows,
+
+.. code:: java
+
+	rc = diag.clearLog();
+	if(rc == 200) {
+		System.out.println("Logs are cleared successfully");
+	} else {
+		System.out.println("Failed to clear the Logs")
+	}	
