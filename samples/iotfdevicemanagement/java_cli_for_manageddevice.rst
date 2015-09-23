@@ -200,7 +200,7 @@ Later, any new location can be easily updated by changing the properties of the 
 	}
 
 Listening for Location change
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As the location of the device can be updated using the the Internet of Things Foundation REST API, the library code updates the DeviceLocation object whenever it receives the update from the Internet of Things Foundation. The device can listen for such a location change by adding itself as a property change listener in DeviceLocation object and query the properties whenever the location is changed.
 
@@ -316,9 +316,9 @@ Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/device_m
 
 Firmware Actions
 -------------------------------------------------------------
-The firmware update process is separated into two distinct actions, Downloading Firmware, and Updating Firmware.
+The firmware update process is separated into two distinct actions, Downloading Firmware, and Updating Firmware. The device needs to do the following activities to support Firmware Actions,
 
-**Construct DeviceFirmware Object**
+** 1. Construct DeviceFirmware Object**
 
 In order to perform Firmware actions the device needs to construct the DeviceFirmware object and add it to DeviceData as follows,
 
@@ -344,7 +344,7 @@ In order to perform Firmware actions the device needs to construct the DeviceFir
 
 The DeviceFirmware object represents the current firmware of the device and will be used to report the status of the Firmware Download and Firmware Update actions to Internet of Things Foundation server.
 
-**Inform the Firmware action support**
+** 2. Inform the server about the Firmware action support**
 
 The device needs to set the firmware action flag to true in order for the server to initiate the firmware request. This can be achieved by invoking a following method with a boolean value,
 
@@ -354,7 +354,7 @@ The device needs to set the firmware action flag to true in order for the server
 	managedDevice.supportsFirmwareActions(true);
 	managedDevice.connect();
 	
-Note that the supportsFirmwareActions() method to be called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Foundation server about the firmware action support and hence it needs to be added prior to calling connect() method.
+Note that the supportsFirmwareActions() method is called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Foundation server about the firmware action support and hence it needs to be added prior to calling connect() method.
 
 Alternatively, the support can be added later as well followed by the manage request as follows,
 
@@ -366,7 +366,7 @@ Alternatively, the support can be added later as well followed by the manage req
     	managedDevice.supportsFirmwareActions(true);
     	managedDevice.manage(3600);
 	
-**Defining the Firmware Action Handler**
+** 3. Create the Firmware Action Handler**
 
 In order to support the Firmware action, the device needs to create a handler and add it to ManagedDevice. The handler must extend a DeviceFirmwareHandler class and implement the following methods,
 
@@ -375,7 +375,7 @@ In order to support the Firmware action, the device needs to create a handler an
 	public abstract void downloadFirmware(DeviceFirmware deviceFirmware);
 	public abstract void updateFirmware(DeviceFirmware deviceFirmware);
 
-**Sample implementation of downloadFirmware**
+** 3.1 Sample implementation of downloadFirmware**
 
 The implementation must report the status of the Firmware Download via DeviceFirmware object. If the Firmware Download operation is successful, then the state of the firmware to be set to DOWNLOADED and UpdateStatus should be set to SUCCESS. If an error occurs during Firmware Download the state should be set to IDLE and updateStatus should be set to one of the error status values,
     * OUT_OF_MEMORY
@@ -441,7 +441,7 @@ A sample Firmware Download implementation for a Raspberry Pi device is shown bel
 		}
 	}
 
-**Sample implementation of updateFirmware**
+** 3.2 Sample implementation of updateFirmware**
 
 The implementation must report the status of the Firmware Update via DeviceFirmware object. If the Firmware Update operation is successful, then the state of the firmware should to be set to IDLE and UpdateStatus should be set to SUCCESS. 
 
@@ -482,7 +482,7 @@ A sample Firmware Update implementation for a Raspberry Pi device is shown below
 	}
 
 
-**Adding the handler to ManagedDevice**
+** 4. Add the handler to ManagedDevice**
 
 The created handler needs to be added to the ManagedDevice instance so that the ibmiotf client library invokes the corresponding method when there is a Firmware action request from Internet of Things Foundation server.
 
@@ -500,6 +500,10 @@ The Internet of Things Foundation supports the following device actions,
 * Reboot
 * Factory Reset
 
+The device needs to do the following activities to support Device Actions,
+
+** 1. Inform server about the Device Actions support**
+
 In order to perform Reboot and Factory Reset the device needs to inform the Internet of Things server about its support first. This can achieved by invoking a following method with a boolean value,
 
 .. code:: java
@@ -508,7 +512,7 @@ In order to perform Reboot and Factory Reset the device needs to inform the Inte
 	managedDevice.supportsDeviceActions(true);
 	managedDevice.connect();
 	
-Note that the supportsDeviceActions() method to be called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Server about the device action support and hence it needs to be added prior to calling connect() method.
+Note that the supportsDeviceActions() method is called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Server about the device action support and hence it needs to be added prior to calling connect() method.
 
 Alternatively, the support can be added later as well followed by the manage request as follows,
 
@@ -520,7 +524,7 @@ Alternatively, the support can be added later as well followed by the manage req
     	managedDevice.supportsDeviceActions(true);
     	managedDevice.manage(3600);
 	
-**Creating the Device Action Handler**
+** 2. Create the Device Action Handler**
 
 In order to support the device action, the device needs to create a handler and add it to ManagedDevice. The handler must extend a DeviceActionHandler class and provide implementation for the following methods,
 
@@ -529,7 +533,7 @@ In order to support the device action, the device needs to create a handler and 
 	public abstract void handleReboot(DeviceAction action);
 	public abstract void handleFactoryReset(DeviceAction action);
 
-**Sample implementation of handleReboot**
+** 2.1 Sample implementation of handleReboot**
 
 The implementation must set the status of the reboot operation along with a optional message when there is a failure. The DeviceAction object to be used to update the status of the reboot operation. A sample reboot implementation for a Raspberry Pi device is shown below,
 
@@ -555,7 +559,7 @@ The implementation must set the status of the reboot operation along with a opti
 	}
 
 
-**Sample implementation of handleFactoryReset**
+** 2.2 Sample implementation of handleFactoryReset**
 
 Similar to handleReboot() method, the implementation must set the status of the factory reset operation along with a optional message when there is a failure. The skeleton of the Factory Reset implementation is shown below,
 
@@ -572,7 +576,7 @@ Similar to handleReboot() method, the implementation must set the status of the 
 		}
 	}
 
-**Adding the handler to ManagedDevice**
+** 3. Add the handler to ManagedDevice**
 
 The created handler needs to be added to the ManagedDevice instance so that the ibmiotf client library invokes the corresponding method when there is a device action request from Internet of Things Foundation server.
 
