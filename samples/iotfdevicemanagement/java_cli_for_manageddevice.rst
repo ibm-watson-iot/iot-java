@@ -5,7 +5,7 @@ Java Client Library - Managed Device (Update In Progress)
 Introduction
 -------------------------------------------------------------------------------
 
-This client library describes how to use devices with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://docs.internetofthings.ibmcloud.com/java/javaintro.html/>`__. 
+This client library describes how to use devices with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://docs.internetofthings.ibmcloud.com/java/javaintro.html>`__. 
 
 This client library is divided into four sections, all included within the library. This section contains information on how devices can participate in various device management activities like, firmware update, location update, diagnostics update, device actions and etc..
 
@@ -17,7 +17,7 @@ The Historian section contains information on how applications can use the Java 
 
 Device Management
 -------------------------------------------------------------------------------
-The `device management<managedDevices://docs.internetofthings.ibmcloud.com/reference/device_mgmt.html>`__ feature enhances the Internet of Things Foundation service with new capabilities for managing devices. It creates a distinction between managed and unmanaged devices,
+The `device management <managedDevices://docs.internetofthings.ibmcloud.com/reference/device_mgmt.html>`__ feature enhances the Internet of Things Foundation service with new capabilities for managing devices. It creates a distinction between managed and unmanaged devices,
 
 * **Managed Devices** are defined as devices which have a management agent installed. The management agent sends and receives device metadata and responds to device management commands from the Internet of Things Foundation. 
 * **Unmanaged Devices** are any devices which do not have a device management agent. All devices begin their lifecycle as unmanaged devices, and can transition to managed devices by sending a message from a device management agent to the Internet of Things Foundation. 
@@ -163,6 +163,7 @@ Location Update
 Devices that can determine their location can choose to notify the Internet of Things Foundation device management server about location changes. In order to update the location, the device needs to create DeviceData instance with the DeviceLocation object.
 
 .. code:: java
+
     // Construct the location object with latitude, longitude and elevation
     DeviceLocation deviceLocation = new DeviceLocation.Builder(30.28565, -97.73921).
 								elevation(10).
