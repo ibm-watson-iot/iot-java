@@ -376,11 +376,14 @@ In order to support the Firmware action, the device needs to create a handler an
 
 **3.1 Sample implementation of downloadFirmware**
 
-The implementation must report the status of the Firmware Download via DeviceFirmware object. If the Firmware Download operation is successful, then the state of the firmware to be set to DOWNLOADED and UpdateStatus should be set to SUCCESS. If an error occurs during Firmware Download the state should be set to IDLE and updateStatus should be set to one of the error status values,
-    * OUT_OF_MEMORY
-    * CONNECTION_LOST
-    * INVALID_URI
-			
+The implementation must report the status of the Firmware Download via DeviceFirmware object. If the Firmware Download operation is successful, then the state of the firmware to be set to DOWNLOADED and UpdateStatus should be set to SUCCESS.
+
+If an error occurs during Firmware Download the state should be set to IDLE and updateStatus should be set to one of the error status values,
+
+* OUT_OF_MEMORY
+* CONNECTION_LOST
+* INVALID_URI
+
 A sample Firmware Download implementation for a Raspberry Pi device is shown below,
 
 .. code:: java
@@ -442,9 +445,11 @@ A sample Firmware Download implementation for a Raspberry Pi device is shown bel
 
 **3.2 Sample implementation of updateFirmware**
 
-The implementation must report the status of the Firmware Update via DeviceFirmware object. If the Firmware Update operation is successful, then the state of the firmware should to be set to IDLE and UpdateStatus should be set to SUCCESS. If an error occurs during Firmware Update, updateStatus should be set to one of the error status values,
-    * OUT_OF_MEMORY
-    * UNSUPPORTED_IMAGE
+The implementation must report the status of the Firmware Update via DeviceFirmware object. If the Firmware Update operation is successful, then the state of the firmware should to be set to IDLE and UpdateStatus should be set to SUCCESS. 
+If an error occurs during Firmware Update, updateStatus should be set to one of the error status values,
+
+* OUT_OF_MEMORY
+* UNSUPPORTED_IMAGE
 			
 A sample Firmware Update implementation for a Raspberry Pi device is shown below,
 
