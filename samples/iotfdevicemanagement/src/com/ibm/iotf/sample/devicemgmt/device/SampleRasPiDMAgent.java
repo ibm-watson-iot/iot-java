@@ -160,8 +160,7 @@ public class SampleRasPiDMAgent {
 	private void scheduleLogTask() {
 		
 		if(this.logTask == null) {
-			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(
-					this.deviceData.getDeviceDiagnostic());
+			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(this.deviceData.getDeviceDiagnostic());
 			this.logTask = scheduledThreadPool.scheduleAtFixedRate(logTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("Log Update Task started successfully");
 		} else {
@@ -198,14 +197,14 @@ public class SampleRasPiDMAgent {
 		 *   - DeviceFirmware (optional)
 		 */
 		DeviceInfo deviceInfo = new DeviceInfo.Builder().
-				serialNumber("10087").
-				manufacturer("IBM").
-				model("7865").
-				deviceClass("A").
-				description("My RasPi Device").
-				fwVersion("1.0.0").
-				hwVersion("1.0").
-				descriptiveLocation("EGL C").
+				serialNumber(trimedValue(deviceProps.getProperty("DeviceInfo.serialNumber"))).
+				manufacturer(trimedValue(deviceProps.getProperty("DeviceInfo.manufacturer"))).
+				model(trimedValue(deviceProps.getProperty("DeviceInfo.model"))).
+				deviceClass(trimedValue(deviceProps.getProperty("DeviceInfo.deviceClass"))).
+				description(trimedValue(deviceProps.getProperty("DeviceInfo.description"))).
+				fwVersion(trimedValue(deviceProps.getProperty("DeviceInfo.swVersion"))).
+				hwVersion(trimedValue(deviceProps.getProperty("DeviceInfo.hwVersion"))).
+				descriptiveLocation(trimedValue(deviceProps.getProperty("DeviceInfo.descriptiveLocation"))).
 				build();
 		
 		DeviceFirmware firmware = new DeviceFirmware.Builder().
@@ -246,11 +245,11 @@ public class SampleRasPiDMAgent {
 		// Options to connect to IoT Foundation
 		Properties options = new Properties();
 		
-		options.setProperty("org", "organization");
-		options.setProperty("type", "deviceType");
-		options.setProperty("id", "deviceId");
-		options.setProperty("auth-method", "authMethod");
-		options.setProperty("auth-token", "authToken");
+		options.setProperty("Organization-ID", trimedValue(deviceProps.getProperty("Organization-ID")));
+		options.setProperty("Device-Type", trimedValue(deviceProps.getProperty("Device-Type")));
+		options.setProperty("Device-ID", trimedValue(deviceProps.getProperty("Device-ID")));
+		options.setProperty("Authentication-Method", trimedValue(deviceProps.getProperty("Authentication-Method")));
+		options.setProperty("Authentication-Token", trimedValue(deviceProps.getProperty("Authentication-Token")));
 				
 		dmClient = new ManagedDevice(options, deviceData);
 	}
