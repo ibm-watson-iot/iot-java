@@ -206,6 +206,15 @@ public class DeviceLocation extends Resource {
 	}
 	
 	/**
+	 * Notifies the IBM IoT Foundation server with the current location
+	 * @return
+	 */
+	public int sendLocation() {
+		fireEvent(true);
+		return this.getRC();
+	}
+	
+	/**
 	 * Return the <code>JsonObject</code> representation of the <code>DeviceLocation</code> object.
 	 * @return JsonObject object
 	 */
