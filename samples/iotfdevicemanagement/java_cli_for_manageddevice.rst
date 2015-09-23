@@ -379,6 +379,7 @@ In order to support the Firmware action, the device needs to create a handler an
 The implementation must add logic to download the firmware and report the status of the download via DeviceFirmware object. If the Firmware Download operation is successful, then the state of the firmware to be set to DOWNLOADED and UpdateStatus should be set to SUCCESS.
 
 If an error occurs during Firmware Download the state should be set to IDLE and updateStatus should be set to one of the error status values,
+
 * OUT_OF_MEMORY
 * CONNECTION_LOST
 * INVALID_URI
@@ -447,6 +448,7 @@ A sample Firmware Download implementation for a Raspberry Pi device is shown bel
 The implementation must add logic to install the downloaded firmware and report the status of the update via DeviceFirmware object. If the Firmware Update operation is successful, then the state of the firmware should to be set to IDLE and UpdateStatus should be set to SUCCESS. 
 
 If an error occurs during Firmware Update, updateStatus should be set to one of the error status values,
+
 * OUT_OF_MEMORY
 * UNSUPPORTED_IMAGE
 			
