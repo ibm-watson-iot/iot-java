@@ -146,7 +146,7 @@ Also, the manage(long) method can be used to send the manage request to Internet
 
 	managedDevice.manage(4800);
 
-Refer to the `documenation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/manage.html>`__ for more information about the manage operation.
+Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/manage.html>`__ for more information about the manage operation.
 
 Unmanage
 -----------------------------------------------------
@@ -157,7 +157,7 @@ A device can invoke unmanage() method when it no longer needs to be managed. The
 
 	managedDevice.unmanage();
 
-Refer to the `documenation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/manage.html>`__ for more information about the Unmanage operation.
+Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/manage.html>`__ for more information about the Unmanage operation.
 
 Location Update
 -----------------------------------------------------
@@ -215,7 +215,7 @@ As the location of the device can be updated using the the Internet of Things Fo
 		System.out.println("Received a new location - "+evt.getNewValue());
 	}
 
-Refer to the `documenation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/update.html>`__ for more information about the Location update.
+Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/update.html>`__ for more information about the Location update.
 
 Append/Clear ErrorCodes
 -----------------------------------------------
