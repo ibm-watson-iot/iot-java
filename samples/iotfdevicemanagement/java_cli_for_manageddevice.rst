@@ -324,9 +324,9 @@ Alternatively, the support can be added later as well followed by the manage req
     	dmClient.supportsDeviceActions(true);
     	dmClient.manage(3600);
 	
-**Adding the Device Action Handler**
+**Creating the Device Action Handler**
 
-In order to support the device action, the device needs to add a handler. The handler must extend the DeviceActionHandler class and provide implementation for the following methods,
+In order to support the device action, the device needs to create a handler and add it to ManagedDevice. The handler must extend the DeviceActionHandler class and provide implementation for the following methods,
 
 .. code:: java
 
@@ -335,7 +335,7 @@ In order to support the device action, the device needs to add a handler. The ha
 
 **Sample implmentation for handleReboot**
 
-The implementation must set the status of the reboot operation along with a optional message when there is a failure. The DeviceAction object to be used to update the status of the reboot operation. A sample 
+The implementation must set the status of the reboot operation along with a optional message when there is a failure. The DeviceAction object to be used to update the status of the reboot operation. A sample reboot implementation for a Raspberry Pi device is shown below,
 
 .. code:: java
 
@@ -358,3 +358,223 @@ The implementation must set the status of the reboot operation along with a opti
 		}
 	}
 
+
+**Sample implmentation for handleFactoryReset**
+
+Similar to handleReboot() method, the implementation must set the status of the factory reset operation along with a optional message when there is a failure. The skeleton of the Factory Reset implementation is shown below,
+
+.. code:: java
+	
+	public void handleFactoryReset(DeviceAction action) {
+		try {
+			// code to perform Factory reset
+		} catch (IOException e) {
+			action.setMessage(e.getMessage());
+		}
+		if(status == false) {
+			action.setStatus(DeviceAction.Status.FAILED);
+		}
+	}
+
+**Adding the handler to ManagedDevice**
+
+The created handler needs to be added to the ManagedDevice instance so that the iotf-client library invokes the corresponding method when there is a device action request from Internet Of Things Foundation server.
+
+.. code:: java
+
+	DeviceActionHandlerSample actionHandler = new DeviceActionHandlerSample();
+	deviceData.addDeviceActionHandler(actionHandler);
+	
+Firmware Actions
+-------------------------------------------------------------
+The firmware update process is separated into two distinct actions, Downloading Firmware, and Updating Firmware.
+
+**Construct DeviceFirmware Object**
+
+In order to perform Firmware actions the device needs to construct the DeviceFirmware object and add it to DeviceData as follows,
+
+.. code:: java
+
+	DeviceFirmware firmware = new DeviceFirmware.Builder().
+				version("Firmware.version").
+				name("Firmware.name").
+				url("Firmware.url").
+				verifier("Firmware.verifier").
+				state(FirmwareState.IDLE).				
+				build();
+				
+	DeviceData deviceData = new DeviceData.Builder().
+				deviceInfo(deviceInfo).
+				deviceFirmware(firmware).
+				metadata(new JsonObject()).
+				build();
+	
+	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
+	dmClient.connect();
+		
+
+The DeviceFirmware object represents the current firmware of the device and will be used to report the status of the Firmware Download and Firmware Update actions to Internet Of Things Foundation server.
+
+**Inform the Firmware action support**
+
+The device needs to set the firmware action flag to true in order for the server to initiate the firmware request. This can achieved by invoking a following method with a boolean value,
+
+.. code:: java
+	
+	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
+	dmClient.supportsFirmwareActions(true);
+	dmClient.connect();
+	
+Note that the supportsFirmwareActions() method to be called before the connect() method as the ManagedDevice instance sends a manage request as part of the connect() method. As part of manage request the iotf-client library informs the Internet Of Things Server about the firmware action support and hence it needs to be added prior to calling connect() method.
+
+Alternatively, the support can be added later as well followed by the manage request as follows,
+
+.. code:: java
+
+	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
+    	dmClient.connect();
+    	...
+    	dmClient.supportsFirmwareActions(true);
+    	dmClient.manage(3600);
+	
+**Defining the Firmware Action Handler**
+
+In order to support the Firmware action, the device needs to create a handler and add it to ManagedDevice. The handler must extend the DeviceFirmwareHandler class and implement the following methods,
+
+.. code:: java
+
+	public abstract void downloadFirmware(DeviceFirmware deviceFirmware);
+	public abstract void updateFirmware(DeviceFirmware deviceFirmware);
+
+**Sample implmentation of downloadFirmware**
+
+The implementation must report the status of the Firmware Download via DeviceFirmware object. If the Firmware Download operation is successfull, then the state of the firmware to be set to DOWNLOADED and UpdateStatus should be set to SUCCESS. If an error occurrs during Firmware Download the state should be set to IDLE and updateStatus should be set to one of the error status values,
+    * OUT_OF_MEMORY
+    * CONNECTION_LOST
+    * INVALID_URI
+			
+A sample Firmware Download implementation for a Raspberry Pi device is shown below,
+
+.. code:: java
+
+	public void downloadFirmware(DeviceFirmware deviceFirmware) {
+		boolean success = false;
+		URL firmwareURL = null;
+		URLConnection urlConnection = null;
+		
+		try {
+			firmwareURL = new URL(deviceFirmware.getUrl());
+			urlConnection = firmwareURL.openConnection();
+			if(deviceFirmware.getName() != null) {
+				downloadedFirmwareName = deviceFirmware.getName();
+			} else {
+				// use the timestamp as the name
+				downloadedFirmwareName = "firmware_" +new Date().getTime()+".deb";
+			}
+			
+			File file = new File(downloadedFirmwareName);
+			BufferedInputStream bis = new BufferedInputStream(urlConnection.getInputStream());
+			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file.getName()));
+			
+			int data = bis.read();
+			if(data != -1) {
+				bos.write(data);
+				byte[] block = new byte[1024];
+				while (true) {
+					int len = bis.read(block, 0, block.length);
+					if(len != -1) {
+						bos.write(block, 0, len);
+					} else {
+						break;
+					}
+				}
+				bos.close();
+				bis.close();
+				success = true;
+			} else {
+				//There is no data to read, so set an error
+				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.INVALID_URI);
+			}
+		} catch(MalformedURLException me) {
+			// Invalid URL, so set the status to reflect the same,
+			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.INVALID_URI);
+		} catch (IOException e) {
+			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.CONNECTION_LOST);
+		} catch (OutOfMemoryError oom) {
+			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.OUT_OF_MEMORY);
+		}
+		
+		if(success == true) {
+			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
+			deviceFirmware.setState(FirmwareState.DOWNLOADED);
+		} else {
+			deviceFirmware.setState(FirmwareState.IDLE);
+		}
+	}
+
+**Sample implmentation of updateFirmware**
+
+The implementation must report the status of the Firmware Update via DeviceFirmware object. If the Firmware Update operation is successfull, then the state of the firmware should to be set to IDLE and UpdateStatus should be set to SUCCESS. 
+
+If an error occurrs during Firmware Update, updateStatus should be set to one of the error status values,
+    * OUT_OF_MEMORY
+    * UNSUPPORTED_IMAGE
+			
+A sample Firmware Update implementation for a Raspberry Pi device is shown below,
+
+.. code:: java
+	
+	public void updateFirmware(DeviceFirmware deviceFirmware) {
+		try {
+			ProcessBuilder pkgInstaller = null;
+			Process p = null;
+			pkgInstaller = new ProcessBuilder("sudo", "dpkg", "-i", this.downloadedFirmwareName);
+			boolean success = false;
+			try {
+				p = pkgInstaller.start();
+				boolean status = waitForCompletion(p, 5);
+				if(status == false) {
+					p.destroy();
+					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
+					return;
+				}
+				System.out.println("Firmware Update command "+status);
+				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
+			} catch (IOException e) {
+				e.printStackTrace();
+				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
+			}
+		} catch (OutOfMemoryError oom) {
+			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.OUT_OF_MEMORY);
+		}
+	}
+
+
+**Adding the handler to ManagedDevice**
+
+The created handler needs to be added to the ManagedDevice instance so that the iotf-client library invokes the corresponding method when there is a Firmware action request from Internet Of Things Foundation server.
+
+.. code:: java
+
+	DeviceFirmwareHandlerSample fwHandler = new DeviceFirmwareHandlerSample();
+	deviceData.addFirmwareHandler(fwHandler);
+	
+Examples
+-------------
+* SampleRasPiDMAgent - A sample agent code that shows how to perform various device management operations on Raspberry Pi
+* SampleRasPiManagedDevice - A sample code that shows how one can perform both device operations and management operations
+* SampleRasPiDMAgentWithCustomMqttAsyncClient - A sample agent code with custom MqttAsyncClient
+* SampleRasPiDMAgentWithCustomMqttClient - A sample agent code with custom MqttClient
+* RasPiFirmwareHandlerSample - A sample implementation of FirmwareHandler for Raspberry Pi
+* DeviceActionHandlerSample - A sample implementation of DeviceActionHandler
+* ManagedDeviceWithLifetimeSample - A sample that shows how to send regular manage request with lifetime specified
+* LocationUpdateListenerSample - A sample that shows how to listen for a location update message from the IoT Foundation server 
+* NonBlockingDiagnosticsErrorCodeUpdateSample - A sample that shows how to add ErrorCode without waiting for response from the server
+
+Recipe
+----------
+
+A recipe that shows how to connect the Raspberry Pi device as managed device to Internet Of Things Foundation to perform various device management operations in step by step using this iotf-client library.
