@@ -19,8 +19,8 @@ Device Management
 -------------------------------------------------------------------------------
 The device management feature enhances the Internet of Things Foundation service with new capabilities for managing devices. It creates a distinction between managed and unmanaged devices,
 
-* **Managed Devices** are defined as devices which have a management agent installed. The management agent sends and receives device metadata and responds to device management commands from the Internet of Things Foundation. The device management agent and the Internet of Things Foundation device management service must share an understanding of data formats and communication patterns so they can interpret data correctly.
-* **Unmanaged Devices** are any devices which do not have a device management agent. All devices begin their lifecycle as unmanaged devices, and can transition to managed devices by sending a message from a device management agent to the Internet of Things Foundation. Devices without a device management agent installed can never become managed devices.
+* **Managed Devices** are defined as devices which have a management agent installed. The management agent sends and receives device metadata and responds to device management commands from the Internet of Things Foundation. 
+* **Unmanaged Devices** are any devices which do not have a device management agent. All devices begin their lifecycle as unmanaged devices, and can transition to managed devices by sending a message from a device management agent to the Internet of Things Foundation. 
 
 Construct DeviceData
 ------------------------------------------------------------------------
@@ -60,7 +60,7 @@ Construct ManagedDevice
 -------------------------------------------------------------------------------
 ManagedDevice - A device class that connects the device as managed device to IBM IoT Foundation and enables the device to perform one or more Device Management operations. Also the ManagedDevice instance can be used to do normal device operations like publishing device events and listening for commands from application.
 
-ManagedDevice exposes 3 different constructors to support different user patterns, 
+ManagedDevice exposes 2 different constructors to support different user patterns, 
 
 **Constructor#1**
 
@@ -74,8 +74,7 @@ Constructs a ManagedDevice instance by accepting the DeviceData and the followin
 
 The Properties object creates definitions which are used to interact with the Internet of Things Foundation module. 
 
-The following code shows how to create a ManagedDevice instance:
-
+The following code shows how to create a ManagedDevice instance,
 
 .. code:: java
 
@@ -85,6 +84,7 @@ The following code shows how to create a ManagedDevice instance:
 	options.setProperty("Device-ID", "deviceId");
 	options.setProperty("Authentication-Method", "authMethod");
 	options.setProperty("Authentication-Token", "authToken");
+	
 	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
  
 Note that the name of the properties are slightly changed to miror the names in Internet of Things Foundation Dashboard, but the existing users who wants to migrate from the DeviceClient to ManagedDevice can still use the old format and construct the ManagedDevice Instance:
@@ -101,11 +101,11 @@ Note that the name of the properties are slightly changed to miror the names in 
 
 **Constructor#2**
 
-Construct a ManagedDevice instance by accepting the DeviceData and the MqttClient instance. Also, this constructor requires the DeviceData to be created with the Device Type and Device Id as follows:
+Construct a ManagedDevice instance by accepting the DeviceData and the MqttClient instance. Also, this constructor requires the DeviceData to be created with additional device attributes like Device Type and Device Id as follows,
 
 .. code:: java
 	
-	// Code that constructs the MqttClient
+	// Code that constructs the MqttClient (either Synchronous or Asynchronous MqttClient)
 	.....
 	
 	// Code that constructs the DeviceData
@@ -120,16 +120,6 @@ Construct a ManagedDevice instance by accepting the DeviceData and the MqttClien
 	ManagedDevice dmClient = new ManagedDevice(mqttClient, deviceData);
 	
 Note this constructor helps the custom device users to create ManagedDevice instance with the already created and connected MqttClient instance to take advantage of device management operations. But we recommend the users to use the library for all the device functionalities.
-
-**Constructor#3**
-
-Constructs a managedDevice instance by accepting the DeviceData and the AsyncMqttClient instance:
-
-.. code:: java
-	
-	// code that constructs the AsyncMqttClient
-	....
-	ManagedDevice dmClient = new ManagedDevice(asyncMqttClient, deviceData);
 
 Manage	
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -146,7 +136,7 @@ The overloaded connect(long) method takes time in seconds that specifies the len
 
 	dmClient.connect(3600);
 
-The manage(long) method can be used to send the manage request to IBM IoT Foundation at any point:
+The manage(long) method can be used to send the manage request to IBM IoT Foundation at any point - The custom device clients that pass the MqttClient instance need to explicitly send the manage() request to make the device as managed device in Internt Of Things Foundation.
 
 .. code:: java
 
@@ -164,7 +154,7 @@ A device can send this request when it no longer needs to be managed. The Intern
 Location Update
 -----------------------------------------------------
 
-Devices that can determine their location can choose to notify the Internet of Things Foundation device management server about location changes. In order to update the location, the device needs to create DeviceData instance with the DeviceLocation object:
+Devices that can determine their location can choose to notify the Internet of Things Foundation device management server about location changes. In order to update the location, the device needs to create DeviceData instance with the DeviceLocation object.
 
 .. code:: java
     // Construct the location object with latitude, longitude and elevation
@@ -178,13 +168,13 @@ Devices that can determine their location can choose to notify the Internet of T
 				 build();
 	
     
-Once the device is connected to IBM IoT Foundation, the location can be updated by invoking the following method:
+Once the device is connected to IBM IoT Foundation, the location can be updated by invoking the following method,
 
 .. code:: java
 
 	deviceLocation.sendLocation();
 
-Later, any new location can be easily updated by changing the properties of the DeviceLocation object:
+Later, any new location can be easily updated by changing the properties of the DeviceLocation object,
 
 .. code:: java
 
@@ -198,7 +188,7 @@ Later, any new location can be easily updated by changing the properties of the 
 Listening for Location change
 -----------------------------
 
-As the location of the device can be updated using the the Internet of Things Foundation REST API, the library code updates the DeviceLocation object whenever it receives the update from the Internet of Things Foundation. The device can listen for such a location change by adding itself as a property change listener in DeviceLocation object and query the properties whenever the location is changed:
+As the location of the device can be updated using the the Internet of Things Foundation REST API, the library code updates the DeviceLocation object whenever it receives the update from the Internet of Things Foundation. The device can listen for such a location change by adding itself as a property change listener in DeviceLocation object and query the properties whenever the location is changed.
 
 .. code:: java
 
@@ -215,7 +205,7 @@ As the location of the device can be updated using the the Internet of Things Fo
 Append/Clear ErrorCodes
 -----------------------------------------------
 
-The device diagnostics operations are intended to provide information on device errors, and does not provide diagnostic information relating to the devices connection to the Internet of Things Foundation. Devices can choose to notify the Internet of Things Foundation device management server about changes in their error status. In order to send ErrorCodes to IBM IoT Foundation the device needs to construct a DeviceDiagnostic object:
+Devices can choose to notify the Internet of Things Foundation device management server about changes in their error status. In order to send ErrorCodes to IBM IoT Foundation the device needs to construct a DeviceDiagnostic object as follows,
 
 .. code:: java
 
@@ -258,7 +248,7 @@ Also, the ErrorCodes can be cleared from Internet Of Things Foundation server by
 Append/Clear Log messages
 -----------------------------
 
-Devices can choose to notify IoTF device management support about changes a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. In order to send og messages, the device needs to construct a DeviceDiagnostic object as follows,
+Devices can choose to notify IoTF device management support about changes a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. In order to send log messages, the device needs to construct a DeviceDiagnostic object as follows,
 
 .. code:: java
 
@@ -268,6 +258,7 @@ Devices can choose to notify IoTF device management support about changes a new 
 				DiagnosticLog.LogSeverity.informational);
 		
 	DeviceDiagnostic diag = new DeviceDiagnostic(log);
+	
 	this.deviceData = new DeviceData.Builder().
 				 deviceInfo(deviceInfo).
 				 deviceDiag(diag).
@@ -303,3 +294,67 @@ Also, the ErrorCodes can be cleared from Internet Of Things Foundation server by
 	} else {
 		System.out.println("Failed to clear the Logs")
 	}	
+
+The device diagnostics operations are intended to provide information on device errors, and does not provide diagnostic information relating to the devices connection to the Internet of Things Foundation.
+
+Device Actions
+------------------------------------
+The Internet Of Things Foundation supports the following device actions,
+
+* Reboot
+* Factory Reset
+
+In order to perform Reboot and Factory Reset the device needs to inform the Internet Of Things server about its support first. This can achieved by invoking a following method with a boolean value,
+
+.. code:: java
+	
+	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
+	dmClient.supportsDeviceActions(true);
+	dmClient.connect();
+	
+Note that the supportsDeviceActions() method to be called before the connect() method as the ManagedDevice instance sends a manage request as part of the connect() method. As part of manage request the iotf-client library informs the Internet Of Things Server about the device action support and hence it needs to be added prior to calling connect() method.
+
+Alternatively, the support can be added later as well followed by the manage request as follows,
+
+.. code:: java
+
+	ManagedDevice dmClient = new ManagedDevice(options, deviceData);
+    	dmClient.connect();
+    	...
+    	dmClient.supportsDeviceActions(true);
+    	dmClient.manage(3600);
+	
+**Adding the Device Action Handler**
+
+In order to support the device action, the device needs to add a handler. The handler must extend the DeviceActionHandler class and provide implementation for the following methods,
+
+.. code:: java
+
+	public abstract void handleReboot(DeviceAction action);
+	public abstract void handleFactoryReset(DeviceAction action);
+
+**Sample implmentation for handleReboot**
+
+The implementation must set the status of the reboot operation along with a optional message when there is a failure. The DeviceAction object to be used to update the status of the reboot operation. A sample 
+
+.. code:: java
+
+	public void handleReboot(DeviceAction action) {
+		ProcessBuilder processBuilder = null;
+		Process p = null;
+		processBuilder = new ProcessBuilder("sudo", "shutdown", "-r", "now");
+		boolean status = false;
+		try {
+			p = processBuilder.start();
+			// wait for say 2 minutes before giving it up
+			status = waitForCompletion(p, 2);
+		} catch (IOException e) {
+			action.setMessage(e.getMessage());
+		} catch (InterruptedException e) {
+			action.setMessage(e.getMessage());
+		}
+		if(status == false) {
+			action.setStatus(DeviceAction.Status.FAILED);
+		}
+	}
+
