@@ -32,6 +32,7 @@ The device model in the ibmiotf client library is represented as DeviceData and 
 * DeviceLocation (optional but required if the device supports location update)
 * DeviceDiagnostic (optional but required if the device supports diagnostics update)
 * DeviceFirmware (optional but required if the device supports Firmware Actions)
+* Metadata (mandatory)
 
 The following code snippet shows how to create the DeviceInfo Object with sample data,
 
