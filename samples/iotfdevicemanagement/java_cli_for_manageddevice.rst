@@ -124,7 +124,7 @@ Note this constructor helps the custom device users to create ManagedDevice inst
 
 Manage	
 ------------------------------------------------------------------
-In order to participate in device management activities, the device needs to send a manage request to Internet of Things Foundation. The connect() method on ManagedDevice implicitly sends a manage request to connect the device as Managed device.
+In order to participate in device management activities, the device needs to send a manage request to Internet of Things Foundation. The connect() method on ManagedDevice implicitly sends a manage request and connects the device as Managed device.
 
 .. code:: java
 
