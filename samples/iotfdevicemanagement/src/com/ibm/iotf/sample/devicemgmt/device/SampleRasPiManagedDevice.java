@@ -32,10 +32,10 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.device.Command;
 import com.ibm.iotf.client.device.CommandCallback;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
-import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.device.DeviceInfo;
 import com.ibm.iotf.devicemgmt.device.DeviceLocation;
+import com.ibm.iotf.devicemgmt.device.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
 import com.ibm.iotf.devicemgmt.device.DiagnosticLog;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
@@ -168,7 +168,7 @@ public class SampleRasPiManagedDevice {
 	 */
 	private void scheduleErrorCodeTask() {
 		if(errorcodeTask == null) {
-			DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(deviceData.getDeviceDiagnostic());
+			DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(deviceData.getDiagnosticErrorCode());
 			this.errorcodeTask = scheduledThreadPool.scheduleAtFixedRate(ecTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("ErrorCode Update Task started successfully");
 		} else {
@@ -183,7 +183,7 @@ public class SampleRasPiManagedDevice {
 	private void scheduleLogTask() {
 		
 		if(this.logTask == null) {
-			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(deviceData.getDeviceDiagnostic());
+			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(deviceData.getDiagnosticLog());
 			this.logTask = scheduledThreadPool.scheduleAtFixedRate(logTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("Log Update Task started successfully");
 		} else {
@@ -215,8 +215,10 @@ public class SampleRasPiManagedDevice {
 		/**
 		 * To create a DeviceData object, we will need the following objects:
 		 *   - DeviceInfo
+		 *   - DeviceMetadata
 		 *   - DeviceLocation (optional)
-		 *   - DeviceDiagnostic (optional)
+		 *   - DiagnosticErrorCode (optional)
+		 *   - DiagnosticLog (optional)
 		 *   - DeviceFirmware (optional)
 		 */
 		DeviceInfo deviceInfo = new DeviceInfo.Builder().
@@ -255,14 +257,20 @@ public class SampleRasPiManagedDevice {
 				new Date(),
 				DiagnosticLog.LogSeverity.informational);
 		
-		DeviceDiagnostic diag = new DeviceDiagnostic(errorCode, log);
+		/**
+		 * Create a DeviceMetadata object
+		 */
+		JsonObject data = new JsonObject();
+		data.addProperty("customField", "customValue");
+		DeviceMetadata metadata = new DeviceMetadata(data);
 		
 		this.deviceData = new DeviceData.Builder().
 						 deviceInfo(deviceInfo).
 						 deviceFirmware(firmware).
 						 deviceLocation(location).
-						 deviceDiag(diag).
-						 metadata(new JsonObject()).
+						 deviceErrorCode(errorCode).
+						 deviceLog(log).
+						 metadata(metadata).
 						 build();
 		
 		// Options to connect to IoT Foundation

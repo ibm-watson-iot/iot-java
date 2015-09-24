@@ -31,6 +31,7 @@ import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.device.DeviceInfo;
+import com.ibm.iotf.devicemgmt.device.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
 
@@ -106,13 +107,17 @@ public class ManagedDeviceWithLifetimeSample {
 			System.err.println("Lifetime "+lifetime + " is less than minimum value (1 hour), so setting it to 1 hour");
 			lifetime = 3600;
 		}
+
 		/**
 		 * To create a DeviceData object, we will need the following objects:
 		 *   - DeviceInfo
+		 *   - DeviceMetadata
 		 *   - DeviceLocation (optional)
-		 *   - DeviceDiagnostic (optional)
+		 *   - DiagnosticErrorCode (optional)
+		 *   - DiagnosticLog (optional)
 		 *   - DeviceFirmware (optional)
 		 */
+		
 		DeviceInfo deviceInfo = new DeviceInfo.Builder().
 				serialNumber(trimedValue(deviceProps.getProperty("DeviceInfo.serialNumber"))).
 				manufacturer(trimedValue(deviceProps.getProperty("DeviceInfo.manufacturer"))).
@@ -124,9 +129,16 @@ public class ManagedDeviceWithLifetimeSample {
 				descriptiveLocation(trimedValue(deviceProps.getProperty("DeviceInfo.descriptiveLocation"))).
 				build();
 		
+		/**
+		 * Create a DeviceMetadata object
+		 */
+		JsonObject data = new JsonObject();
+		data.addProperty("customField", "customValue");
+		DeviceMetadata metadata = new DeviceMetadata(data);
+		
 		this.deviceData = new DeviceData.Builder().
 						 deviceInfo(deviceInfo).
-						 metadata(new JsonObject()).
+						 metadata(metadata).
 						 build();
 		
 		// Options to connect to IoT Foundation

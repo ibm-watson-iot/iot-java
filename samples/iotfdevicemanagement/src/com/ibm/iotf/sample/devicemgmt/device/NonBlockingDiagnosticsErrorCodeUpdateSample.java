@@ -17,18 +17,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
 
 import com.google.gson.JsonObject;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
-import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.DeviceInfo;
-import com.ibm.iotf.devicemgmt.device.DeviceLocation;
+import com.ibm.iotf.devicemgmt.device.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
@@ -104,10 +99,13 @@ public class NonBlockingDiagnosticsErrorCodeUpdateSample {
 		/**
 		 * To create a DeviceData object, we will need the following objects:
 		 *   - DeviceInfo
+		 *   - DeviceMetadata
 		 *   - DeviceLocation (optional)
-		 *   - DeviceDiagnostic (optional)
+		 *   - DiagnosticErrorCode (optional)
+		 *   - DiagnosticLog (optional)
 		 *   - DeviceFirmware (optional)
 		 */
+		
 		DeviceInfo deviceInfo = new DeviceInfo.Builder().
 				serialNumber(trimedValue(deviceProps.getProperty("DeviceInfo.serialNumber"))).
 				manufacturer(trimedValue(deviceProps.getProperty("DeviceInfo.manufacturer"))).
@@ -126,17 +124,23 @@ public class NonBlockingDiagnosticsErrorCodeUpdateSample {
 		DiagnosticErrorCode errorCode = new DiagnosticErrorCode(0);
 		errorCode.waitForResponse(false);
 		
-		DeviceDiagnostic diag = new DeviceDiagnostic(errorCode);
+		/**
+		 * Create a DeviceMetadata object
+		 */
+		JsonObject data = new JsonObject();
+		data.addProperty("customField", "customValue");
+		DeviceMetadata metadata = new DeviceMetadata(data);
+		
 		
 		this.deviceData = new DeviceData.Builder().
 						 deviceInfo(deviceInfo).
-						 deviceDiag(diag).
-						 metadata(new JsonObject()).
+						 deviceErrorCode(errorCode).						 
+						 metadata(metadata).
 						 build();
 		
 		// create the location updater thread 
 		this.ecUpdaterThread = new ErrorCodeUpdaterThread();
-		this.ecUpdaterThread.diag = diag;
+		this.ecUpdaterThread.diag = errorCode;
 		
 		// Options to connect to IoT Foundation
 		Properties options = new Properties();
@@ -168,7 +172,7 @@ public class NonBlockingDiagnosticsErrorCodeUpdateSample {
 	 * for every 5 seconds
 	 */
 	private static class ErrorCodeUpdaterThread extends Thread {
-		private DeviceDiagnostic diag;
+		private DiagnosticErrorCode diag;
 		Random random = new Random();
 		
 		public void run() {
@@ -177,15 +181,14 @@ public class NonBlockingDiagnosticsErrorCodeUpdateSample {
 				// Don't check for response code as we don't wait 
 				// for response from the IoT Foundation server
 				diag.append(random.nextInt(500));
-				System.out.println("Current Errorcode (" + diag.getErrorCode() + ")");
+				System.out.println("Current Errorcode (" + diag + ")");
 				
 				if(i % 25 == 0) {
-					diag.clearErrorCode();
+					diag.clear();
 				}
 				try {
 					Thread.sleep(5000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

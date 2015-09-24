@@ -11,7 +11,7 @@
  *****************************************************************************
  *
  */
-package com.ibm.iotf.devicemgmt.device;
+package com.ibm.iotf.devicemgmt.device.internal;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -26,7 +26,7 @@ public class DeviceMgmt extends Resource {
 	public static final String RESOURCE_NAME = "mgmt";
 	private DeviceFirmware firmware;
 	
-	DeviceMgmt(DeviceFirmware firmware) {
+	public DeviceMgmt(DeviceFirmware firmware) {
 		super(RESOURCE_NAME);
 		this.firmware = firmware;
 		this.add(firmware);

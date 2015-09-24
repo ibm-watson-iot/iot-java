@@ -16,7 +16,7 @@ package com.ibm.iotf.sample.devicemgmt.device.task;
 import java.util.Random;
 import java.util.TimerTask;
 
-import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
+import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
 
 /**
  * Timer task that appends/clears Error code to IoT Foundation
@@ -25,26 +25,26 @@ import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
  */
 public class DiagnosticErrorCodeUpdateTask extends TimerTask {
 		
-	private DeviceDiagnostic diag;
+	private DiagnosticErrorCode diagErr;
 	private Random random = new Random();
 	private int count = 0;
 		
-	public DiagnosticErrorCodeUpdateTask(DeviceDiagnostic diag) {
-		this.diag = diag;
+	public DiagnosticErrorCodeUpdateTask(DiagnosticErrorCode diagErr) {
+		this.diagErr = diagErr;
 	}
 		
 	@Override
 	public void run() {
 		
-		int rc = diag.append(random.nextInt(500));
+		int rc = diagErr.append(random.nextInt(500));
 		if(rc == 200) {
-			System.out.println("Current Errorcode (" + diag.getErrorCode() + ")");
+			System.out.println("Current Errorcode (" + diagErr + ")");
 		} else {
 			System.out.println("Errorcode addition failed!");
 		}
 			
 		if(count++ == 25) {
-			rc = diag.clearErrorCode();
+			rc = diagErr.clear();
 			if(rc == 200) {
 				System.out.println("ErrorCodes are cleared successfully!");
 			} else {

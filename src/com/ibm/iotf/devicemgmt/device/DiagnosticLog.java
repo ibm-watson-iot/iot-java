@@ -23,6 +23,7 @@ import org.apache.commons.codec.binary.Base64;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 
 /**
@@ -32,9 +33,20 @@ import com.ibm.iotf.devicemgmt.device.resource.Resource;
  * 
  * <p>Log entry includes a log messages, its timestamp and severity, as well as 
  * an optional base64-encoded binary diagnostic data.</p>
+ * 
+ * </p>The device diagnostics operations are intended to provide information 
+ * on device errors, and does not provide diagnostic information relating 
+ * to the devices connection to the Internet of Things Foundation.</p>
  */
 public class DiagnosticLog extends Resource {
 	
+	public static final String LOG_CHANGE_EVENT = "DiagnosticLog";
+	public static final String LOG_CLEAR_EVENT = "ClearDiagnosticLog";
+	
+	/**
+	 * 
+	 * <p> Provides the possible Log severities </p>
+	 */
 	public enum LogSeverity {
 		informational(0), warning(1), error(2);
 		
@@ -82,13 +94,30 @@ public class DiagnosticLog extends Resource {
 	
 
 	/**
+	 * Appends a Log message to the Internet of Things Foundation.
+	 * @param message The Log message that needs to be added to the Internet of Things Foundation.
+	 * @param timestamp The Log timestamp
+	 * @param severity the Log severity
 	 * 
-	 * @param message
-	 * @param timestamp
-	 * @param severity
-	 * @param data
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
 	 */
-	int update(String message, Date timestamp, LogSeverity severity, String data) {
+	public int append(String message, Date timestamp, LogSeverity severity) {
+		return append(message, timestamp, severity, null);
+	}
+	
+	/**
+	 * The Log message that needs to be added to the Internet of Things Foundation.
+	 * 
+	 * @param message The Log message that needs to be added to the Internet of Things Foundation.
+	 * @param timestamp The Log timestamp
+	 * @param severity The Log severity
+	 * @param data The String data
+	 * 
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int append(String message, Date timestamp, LogSeverity severity, String data) {
 		this.message = message;
 		this.timestamp = timestamp;
 		this.severity = severity;
@@ -96,8 +125,14 @@ public class DiagnosticLog extends Resource {
 		return send();
 	}
 	
-	int send() {
-		fireEvent(DeviceDiagnostic.LOG_CHANGE_EVENT);
+	/**
+	 * The last Log message that needs to be added to the Internet of Things Foundation.
+	 * 
+	 * @return code indicating whether the send is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int send() {
+		fireEvent(LOG_CHANGE_EVENT);
 		return this.getRC();
 	}
 	
@@ -127,8 +162,14 @@ public class DiagnosticLog extends Resource {
 		return toJsonObject().toString();
 	}
 	
-	int clear() {
-		fireEvent(DeviceDiagnostic.LOG_CLEAR_EVENT);
+
+	/**
+	 * Clear the Logs from IBM IoT Foundation for this device
+	 * @return code indicating whether the clear operation is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int clear() {
+		fireEvent(LOG_CLEAR_EVENT);
 		return this.getRC();
 	}
 	

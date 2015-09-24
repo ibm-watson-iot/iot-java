@@ -24,9 +24,9 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
-import com.ibm.iotf.devicemgmt.device.DeviceTopic;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceDiagnostic;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceTopic;
 import com.ibm.iotf.util.LoggerUtility;
 
 public abstract class DMNotifier {

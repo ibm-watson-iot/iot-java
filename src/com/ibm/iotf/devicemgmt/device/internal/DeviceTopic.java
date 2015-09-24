@@ -11,7 +11,7 @@
  *****************************************************************************
  *
  */
-package com.ibm.iotf.devicemgmt.device;
+package com.ibm.iotf.devicemgmt.device.internal;
 
 /**
  * List of device topics where device sends the device management 

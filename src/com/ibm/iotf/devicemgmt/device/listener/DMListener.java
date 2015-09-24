@@ -18,10 +18,12 @@ import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.DeviceLocation;
-import com.ibm.iotf.devicemgmt.device.DeviceTopic;
+import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
+import com.ibm.iotf.devicemgmt.device.DiagnosticLog;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceDiagnostic;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceTopic;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -43,21 +45,20 @@ public class DMListener implements PropertyChangeListener {
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
-		final String METHOD = "propertyChange"; 
 		switch(event.getPropertyName()) {
-			case DeviceDiagnostic.LOG_CHANGE_EVENT:
+			case DiagnosticLog.LOG_CHANGE_EVENT:
 				this.logNotifier.handleEvent(event);
 				break;
 								
-			case DeviceDiagnostic.ERRORCODE_CHANGE_EVENT:
+			case DiagnosticErrorCode.ERRORCODE_CHANGE_EVENT:
 				this.errorCodeNotifier.handleEvent(event);
 				break;
 								
-			case DeviceDiagnostic.ERRORCODE_CLEAR_EVENT:
+			case DiagnosticErrorCode.ERRORCODE_CLEAR_EVENT:
 				this.errorCodeNotifier.clearEvent(event);
 				break;
 								
-			case DeviceDiagnostic.LOG_CLEAR_EVENT:
+			case DiagnosticLog.LOG_CLEAR_EVENT:
 				this.logNotifier.clearEvent(event);
 				break;
 								
@@ -94,20 +95,21 @@ public class DMListener implements PropertyChangeListener {
 			LoggerUtility.info(CLASS_NAME, METHOD,  "The device does not support location notification.");
 		}
 		
-		DeviceDiagnostic diagnostic = dmClient.getDeviceData().getDeviceDiagnostic(); 
-		if (diagnostic != null) {			
-			if(diagnostic.getErrorCode() != null && this.errorCodeNotifier == null) {
-				this.errorCodeNotifier = new DiagnosticErrorCodeChangeNotifier(dmClient);
-				errorCodeNotifier.setNotifyTopic(DeviceTopic.CREATE_DIAG_ERRCODES);
-				diagnostic.getErrorCode().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, this);
-			}
+		DiagnosticErrorCode errorcode = dmClient.getDeviceData().getDiagnosticErrorCode(); 
+		if (errorcode != null && this.errorCodeNotifier == null) {
+			this.errorCodeNotifier = new DiagnosticErrorCodeChangeNotifier(dmClient);
+			errorCodeNotifier.setNotifyTopic(DeviceTopic.CREATE_DIAG_ERRCODES);
+			errorcode.addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, this);
+		}
 		
-			if(diagnostic.getLog() != null && this.logNotifier == null) {
+		DiagnosticLog log = dmClient.getDeviceData().getDiagnosticLog();
+		if(log != null && this.logNotifier == null) {
 				logNotifier = new DiagnosticLogChangeNotifier(dmClient);
 				logNotifier.setNotifyTopic(DeviceTopic.ADD_DIAG_LOG);
-				diagnostic.getLog().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, this);
-			}
-		} else {
+				log.addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, this);
+		}
+	 
+		if(errorcode == null && log == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD,  "The device does not support Diagnostic notification.");
 		}
 
@@ -122,11 +124,11 @@ public class DMListener implements PropertyChangeListener {
 		}
 			
 		if(null != dmListener && dmListener.errorCodeNotifier != null) {
-			dmClient.getDeviceData().getDeviceDiagnostic().getErrorCode().removePropertyChangeListener(dmListener);
+			dmClient.getDeviceData().getDiagnosticErrorCode().removePropertyChangeListener(dmListener);
 		}
 			
 		if(null != dmListener && dmListener.logNotifier != null) {
-			dmClient.getDeviceData().getDeviceDiagnostic().getLog().removePropertyChangeListener(dmListener);
+			dmClient.getDeviceData().getDiagnosticLog().removePropertyChangeListener(dmListener);
 		}
 	}
 	

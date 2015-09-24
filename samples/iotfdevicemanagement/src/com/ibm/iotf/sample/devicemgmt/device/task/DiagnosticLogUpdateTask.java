@@ -16,7 +16,6 @@ package com.ibm.iotf.sample.devicemgmt.device.task;
 import java.util.Date;
 import java.util.TimerTask;
 
-import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.DiagnosticLog;
 
 /**
@@ -26,26 +25,26 @@ import com.ibm.iotf.devicemgmt.device.DiagnosticLog;
  */
 public class DiagnosticLogUpdateTask extends TimerTask {
 	
-	private DeviceDiagnostic diag;
+	private DiagnosticLog diagLog;
 	private int count = 0;
 	
-	public DiagnosticLogUpdateTask(DeviceDiagnostic diag) {
-		this.diag = diag;
+	public DiagnosticLogUpdateTask(DiagnosticLog diagLog) {
+		this.diagLog = diagLog;
 	}
 	
 	@Override
 	public void run() {
-		int rc = diag.append("Log event " + count++, new Date(), 
+		int rc = diagLog.append("Log event " + count++, new Date(), 
 				DiagnosticLog.LogSeverity.informational);
 			
 		if(rc == 200) {
-			System.out.println("Current Log (" + diag.getLog() + ")");
+			System.out.println("Current Log (" + diagLog + ")");
 		} else {
 			System.out.println("Log Addition failed");
 		}
 			
 		if(count == 25) {
-			rc = diag.clearLog();
+			rc = diagLog.clear();
 			if(rc == 200) {
 				System.out.println("Logs are cleared successfully");
 			} else {

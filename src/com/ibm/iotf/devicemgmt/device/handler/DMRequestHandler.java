@@ -25,9 +25,9 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.ibm.iotf.devicemgmt.device.DeviceTopic;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
-import com.ibm.iotf.devicemgmt.device.ServerTopic;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceTopic;
+import com.ibm.iotf.devicemgmt.device.internal.ServerTopic;
 import com.ibm.iotf.util.LoggerUtility;
 
 

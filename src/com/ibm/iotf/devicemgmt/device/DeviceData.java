@@ -13,8 +13,8 @@
  */
 package com.ibm.iotf.devicemgmt.device;
 
-import com.google.gson.JsonObject;
-import com.ibm.iotf.devicemgmt.device.resource.JsonResource;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceDiagnostic;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceMgmt;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.devicemgmt.device.resource.StringResource;
 import com.ibm.iotf.util.LoggerUtility;
@@ -31,7 +31,6 @@ import com.ibm.iotf.util.LoggerUtility;
  */
 public class DeviceData {
 	private static String CLASS_NAME = DeviceData.class.getName();
-	private static final String METADATA = "metadata";
 	
 	private String typeId = null;
 	private String deviceId = null;
@@ -39,8 +38,7 @@ public class DeviceData {
 	private DeviceLocation deviceLocation = null;
 	private DeviceDiagnostic deviceDiag = null;
 	private DeviceMgmt mgmt = null;
-	private JsonResource metadata = null;
-	
+	private DeviceMetadata metadata = null;
 	private DeviceAction deviceAction = null;
 	
 	private DeviceFirmwareHandler fwHandler = null;
@@ -53,11 +51,14 @@ public class DeviceData {
 		this.deviceId = builder.deviceId;
 		this.deviceInfo = builder.deviceInfo;
 		this.deviceLocation = builder.deviceLocation;
-		this.deviceDiag = builder.deviceDiag;
-		this.metadata = new JsonResource(METADATA, builder.metadata);
+		this.metadata = builder.metadata;
 
 		if(builder.deviceFirmware != null) {
 			this.mgmt = new DeviceMgmt(builder.deviceFirmware);
+		}
+		
+		if(builder.diagErr != null || builder.diagLog != null) {
+			this.deviceDiag = new DeviceDiagnostic(builder.diagErr, builder.diagLog);
 		}
 		
 		if(this.mgmt != null) {
@@ -80,17 +81,7 @@ public class DeviceData {
 			root.add(this.metadata);
 		}
 	}
-
-	/**
-	 * Returns metadata set on the device
-	 */
-	public JsonObject getMetadata() {
-		if(this.metadata != null) {
-			return metadata.getValue();
-		} 
-		return null;
-	}
-
+	
 	/**
 	 * Returns the Device type
 	 */
@@ -119,13 +110,6 @@ public class DeviceData {
 		return deviceLocation;
 	}
 
-	/**
-	 * Returns the DeviceDiagnostics object 
-	 */
-	public DeviceDiagnostic getDeviceDiagnostic() {
-		return deviceDiag;
-	}
-	
 	/**
 	 * Returns the DeviceFirmware object 
 	 */
@@ -220,9 +204,10 @@ public class DeviceData {
 		private String deviceId = null;
 		private DeviceInfo deviceInfo = null;
 		private DeviceLocation deviceLocation = null;
-		private DeviceDiagnostic deviceDiag = null;
+		private DiagnosticErrorCode diagErr = null;
+		private DiagnosticLog diagLog = null;
 		private DeviceFirmware deviceFirmware = null;
-		private JsonObject metadata = null;
+		private DeviceMetadata metadata = null;
 		
 		public Builder() {}
 		
@@ -246,8 +231,13 @@ public class DeviceData {
 			return this;
 		}
 		
-		public Builder deviceDiag(DeviceDiagnostic deviceDiag) {
-			this.deviceDiag = deviceDiag;
+		public Builder deviceErrorCode(DiagnosticErrorCode diagErr) {
+			this.diagErr = diagErr;
+			return this;
+		}
+		
+		public Builder deviceLog(DiagnosticLog diagLog) {
+			this.diagLog = diagLog;
 			return this;
 		}
 		
@@ -256,7 +246,7 @@ public class DeviceData {
 			return this;
 		}
 		
-		public Builder metadata(JsonObject metadata) {
+		public Builder metadata(DeviceMetadata metadata) {
 			this.metadata = metadata;
 			return this;
 		}
@@ -301,20 +291,6 @@ public class DeviceData {
 
 
 	/**
-	 * Set Metadata
-	 * 
-	 * @param value MetaData to be set
-	 */
-	public void setMetadata(JsonObject value) {
-		if(this.metadata == null) {
-			this.metadata = new JsonResource(METADATA, value);
-			return;
-		} else {
-			this.metadata.setValue(value);
-		}
-	}
-
-	/**
 	 * Returns the Resource for the given name
 	 * 
 	 * @param name - the name of the resource to be returned
@@ -327,6 +303,36 @@ public class DeviceData {
 			resource = resource.getChild(token[i]);
 		}
 		return resource;
+	}
+
+	/**
+	 * Returns the metadata
+	 * @return the metadata
+	 */
+	public DeviceMetadata getMetadata() {
+		return this.metadata;
+	}
+
+	/**
+	 * Returns the DiagnosticErrorCode object
+	 * @return returns DiagnosticErrorCode or null
+	 */
+	public DiagnosticErrorCode getDiagnosticErrorCode() {
+		if(this.deviceDiag != null) {
+			return this.deviceDiag.getErrorCode();
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the DiagnosticLog object
+	 * @return returns DiagnosticLog or null
+	 */
+	public DiagnosticLog getDiagnosticLog() {
+		if(this.deviceDiag != null) {
+			return this.deviceDiag.getLog();
+		}
+		return null;
 	}
 
 }

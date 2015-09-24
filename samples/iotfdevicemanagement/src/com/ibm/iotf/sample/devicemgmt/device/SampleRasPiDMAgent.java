@@ -30,10 +30,10 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
-import com.ibm.iotf.devicemgmt.device.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.device.DeviceInfo;
 import com.ibm.iotf.devicemgmt.device.DeviceLocation;
+import com.ibm.iotf.devicemgmt.device.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
 import com.ibm.iotf.devicemgmt.device.DiagnosticLog;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
@@ -42,7 +42,6 @@ import com.ibm.iotf.sample.devicemgmt.device.task.DiagnosticErrorCodeUpdateTask;
 import com.ibm.iotf.sample.devicemgmt.device.task.DiagnosticLogUpdateTask;
 import com.ibm.iotf.sample.devicemgmt.device.task.LocationUpdateTask;
 import com.ibm.iotf.sample.devicemgmt.device.task.ManageTask;
-import com.ibm.iotf.sample.devicemgmt.device.task.PublishDeviceEventTask;
 
 /**
  * A sample device management agent code that shows the following core DM capabilities,
@@ -117,17 +116,6 @@ public class SampleRasPiDMAgent {
 	}
 	
 	/**
-	 * Device Event publish Task  - publish an event every 1 minute,
-	 * 
-	 * this is to showcase that one can publish events while carrying 
-	 * out DM activities
-	 */
-	private void scheduleDeviceEventPublishTask() {
-		PublishDeviceEventTask task = new PublishDeviceEventTask(this.dmClient);
-		scheduledThreadPool.scheduleAtFixedRate(task, 0, 60, TimeUnit.SECONDS);
-	}
-
-	/**
 	 * Location Update Task  - updates random location at every 30th second
 	 */
 	private void scheduleLocationTask() {
@@ -145,7 +133,7 @@ public class SampleRasPiDMAgent {
 	 */
 	private void scheduleErrorCodeTask() {
 		if(errorcodeTask == null) {
-			DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(this.deviceData.getDeviceDiagnostic());
+			DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(this.deviceData.getDiagnosticErrorCode());
 			this.errorcodeTask = scheduledThreadPool.scheduleAtFixedRate(ecTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("ErrorCode Update Task started successfully");
 		} else {
@@ -160,7 +148,7 @@ public class SampleRasPiDMAgent {
 	private void scheduleLogTask() {
 		
 		if(this.logTask == null) {
-			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(this.deviceData.getDeviceDiagnostic());
+			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(this.deviceData.getDiagnosticLog());
 			this.logTask = scheduledThreadPool.scheduleAtFixedRate(logTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("Log Update Task started successfully");
 		} else {
@@ -192,8 +180,10 @@ public class SampleRasPiDMAgent {
 		/**
 		 * To create a DeviceData object, we will need the following objects:
 		 *   - DeviceInfo
+		 *   - DeviceMetadata
 		 *   - DeviceLocation (optional)
-		 *   - DeviceDiagnostic (optional)
+		 *   - DiagnosticErrorCode (optional)
+		 *   - DiagnosticLog (optional)
 		 *   - DeviceFirmware (optional)
 		 */
 		DeviceInfo deviceInfo = new DeviceInfo.Builder().
@@ -232,14 +222,21 @@ public class SampleRasPiDMAgent {
 				new Date(),
 				DiagnosticLog.LogSeverity.informational);
 		
-		DeviceDiagnostic diag = new DeviceDiagnostic(errorCode, log);
+		
+		/**
+		 * Create a DeviceMetadata object
+		 */
+		JsonObject data = new JsonObject();
+		data.addProperty("customField", "customValue");
+		DeviceMetadata metadata = new DeviceMetadata(data);
 		
 		this.deviceData = new DeviceData.Builder().
 						 deviceInfo(deviceInfo).
 						 deviceFirmware(firmware).
 						 deviceLocation(location).
-						 deviceDiag(diag).
-						 metadata(new JsonObject()).
+						 deviceErrorCode(errorCode).
+						 deviceLog(log).
+						 metadata(metadata).
 						 build();
 		
 		// Options to connect to IoT Foundation

@@ -22,9 +22,9 @@ import java.util.logging.Level;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
-import com.ibm.iotf.devicemgmt.device.DeviceTopic;
 import com.ibm.iotf.devicemgmt.device.DiagnosticLog;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceTopic;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.util.LoggerUtility;
 

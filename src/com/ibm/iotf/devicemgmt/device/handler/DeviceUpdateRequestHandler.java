@@ -26,8 +26,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.device.DeviceAction;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
-import com.ibm.iotf.devicemgmt.device.ResponseCode;
-import com.ibm.iotf.devicemgmt.device.ServerTopic;
+import com.ibm.iotf.devicemgmt.device.internal.ResponseCode;
+import com.ibm.iotf.devicemgmt.device.internal.ServerTopic;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.util.LoggerUtility;
 

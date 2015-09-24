@@ -16,10 +16,10 @@ package com.ibm.iotf.devicemgmt.device.handler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.ibm.iotf.devicemgmt.device.DeviceTopic;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
-import com.ibm.iotf.devicemgmt.device.ResponseCode;
-import com.ibm.iotf.devicemgmt.device.ServerTopic;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceTopic;
+import com.ibm.iotf.devicemgmt.device.internal.ResponseCode;
+import com.ibm.iotf.devicemgmt.device.internal.ServerTopic;
 
 /**
  * Request handler for <code>MMqttClient.SERVER_TOPIC_CANCEL</code>

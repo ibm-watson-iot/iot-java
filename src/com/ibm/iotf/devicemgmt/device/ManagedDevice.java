@@ -38,6 +38,9 @@ import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.client.device.DeviceClient;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
 import com.ibm.iotf.devicemgmt.device.handler.DMRequestHandler;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceTopic;
+import com.ibm.iotf.devicemgmt.device.internal.ResponseCode;
+import com.ibm.iotf.devicemgmt.device.internal.ServerTopic;
 import com.ibm.iotf.devicemgmt.device.listener.DMListener;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -300,10 +303,15 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				data.add("deviceInfo", deviceData.getDeviceInfo().toJsonObject());
 			}
 			if (deviceData.getMetadata() != null) {
-				data.add("metadata", deviceData.getMetadata());
+				data.add("metadata", deviceData.getMetadata().getMetadata());
 			}
 			data.add("lifetime", new JsonPrimitive(lifetime));
 			jsonPayload.add("d", data);
+		} else {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Cannot send manage request "
+					+ "as either deviceInfo or metadata is not set !!");
+			
+			return false;
 		}
 
 		JsonObject jsonResponse = sendAndWait(topic, jsonPayload, REGISTER_TIMEOUT_VALUE);

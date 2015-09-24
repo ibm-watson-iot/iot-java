@@ -16,6 +16,7 @@ package com.ibm.iotf.devicemgmt.device;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 
 /**
@@ -26,6 +27,8 @@ import com.ibm.iotf.devicemgmt.device.resource.Resource;
 public class DiagnosticErrorCode extends Resource {
 	
 	private static final String RESOURCE_NAME = "errorCodes";
+	public static final String ERRORCODE_CHANGE_EVENT = "DiagnosticErrorCode";
+	public static final String ERRORCODE_CLEAR_EVENT = "ClearDiagnosticErrorCode";
 	
 	private int errorCode = 0;
 
@@ -34,15 +37,30 @@ public class DiagnosticErrorCode extends Resource {
 		this.errorCode = errorCode;
 	}
 	
-	int update(int errorcode) {
+	/**
+	 * Appends the current errorcode to IBM IoT Foundation.
+	 * 
+	 * @param errorCode The "errorCode" is a current device error code that 
+	 * needs to be added to the Internet of Things Foundation.
+	 * 
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int append(int errorcode) {
 		
 		this.errorCode = errorcode;
-		fireEvent(DeviceDiagnostic.ERRORCODE_CHANGE_EVENT);
+		fireEvent(ERRORCODE_CHANGE_EVENT);
 		return this.getRC();
 	}
 	
-	int send() {
-		fireEvent(DeviceDiagnostic.ERRORCODE_CHANGE_EVENT);
+	/**
+	 * Sends the current device error code to IBM Internet of Things Foundation.
+	 * 
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int send() {
+		fireEvent(ERRORCODE_CHANGE_EVENT);
 		return this.getRC();
 	}
 	
@@ -63,11 +81,17 @@ public class DiagnosticErrorCode extends Resource {
 		return toJsonObject().toString();
 	}
 
-	int clear() {
-		fireEvent(DeviceDiagnostic.ERRORCODE_CLEAR_EVENT);
+
+	/**
+	 * Clear the Error Codes from IBM IoT Foundation for this device
+	 * @return code indicating whether the clear operation is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int clear() {
+		fireEvent(ERRORCODE_CLEAR_EVENT);
 		return this.getRC();
 	}
-
+	
 	@Override
 	public int update(JsonElement json) {
 		return this.getRC();
