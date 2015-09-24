@@ -208,6 +208,8 @@ Later, any new location can be easily updated by changing the properties of the 
 		System.err.println("Failed to update the location");
 	}
 
+The update() method actually informs the Internet of Things Foundation server about the new location.
+
 **Listening for Location change**
 
 As the location of the device can be updated using the the Internet of Things Foundation REST API, the library code updates the DeviceLocation object whenever it receives the update from the Internet of Things Foundation. The device can listen for such a location change by adding itself as a property change listener in DeviceLocation object and query the properties whenever the location is changed.
@@ -235,7 +237,7 @@ Devices can choose to notify the Internet of Things Foundation server about chan
 
 	DiagnosticErrorCode errorCode = new DiagnosticErrorCode(0);
 	
-	this.deviceData = new DeviceData.Builder().
+	DeviceData deviceData = new DeviceData.Builder().
 				 deviceInfo(deviceInfo).
 				 deviceErrorCode(errorCode).
 				 metadata(metadata).
@@ -280,7 +282,7 @@ Devices can choose to notify the Internet of Things Foundation server about chan
 				new Date(),
 				DiagnosticLog.LogSeverity.informational);
 		
-	this.deviceData = new DeviceData.Builder().
+	DeviceData deviceData = new DeviceData.Builder().
 				 deviceInfo(deviceInfo).
 				 deviceLog(log).
 				 metadata(metadata).
@@ -449,7 +451,7 @@ A sample Firmware Download implementation for a Raspberry Pi device is shown bel
 		}
 	}
 
-The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__
+The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__.
 
 **3.2 Sample implementation of updateFirmware**
 
@@ -468,7 +470,7 @@ A sample Firmware Update implementation for a Raspberry Pi device is shown below
 		try {
 			ProcessBuilder pkgInstaller = null;
 			Process p = null;
-			pkgInstaller = new ProcessBuilder("sudo", "dpkg", "-i", this.downloadedFirmwareName);
+			pkgInstaller = new ProcessBuilder("sudo", "dpkg", "-i", downloadedFirmwareName);
 			boolean success = false;
 			try {
 				p = pkgInstaller.start();
@@ -492,7 +494,7 @@ A sample Firmware Update implementation for a Raspberry Pi device is shown below
 		}
 	}
 
-The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__
+The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__.
 
 **4. Add the handler to ManagedDevice**
 
@@ -570,7 +572,7 @@ The implementation must add a logic to reboot the device and report the status o
 		}
 	}
 
-The complete code can be found in the device management sample `<https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__
+The complete code can be found in the device management sample `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__.
 
 **2.2 Sample implementation of handleFactoryReset**
 
@@ -634,17 +636,17 @@ Also, the device needs to implement the propertyChange() method where it receive
 			
 			case "location":
 				DeviceLocation location = (DeviceLocation) value;
-				System.out.println("received an updated location -- "+ location);
+				System.out.println("Received an updated location -- "+ location);
 				break;
 			
 			case "deviceInfo":
 				DeviceInfo info = (DeviceInfo) value;
-				System.out.println("received an updated device info -- "+ info);
+				System.out.println("Received an updated device info -- "+ info);
 				break;
 				
 			case "mgmt.firmware":
 				DeviceFirmware firmware = (DeviceFirmware) value;
-				System.out.println("received an updated device firmware -- "+ firmware);
+				System.out.println("Received an updated device firmware -- "+ firmware);
 				break;		
 		}
 	}
