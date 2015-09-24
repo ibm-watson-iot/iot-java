@@ -29,12 +29,13 @@ The `device model <https://docs.internetofthings.ibmcloud.com/reference/device_m
 The device model in the ibmiotf client library is represented as DeviceData and to create a DeviceData one needs to create the following objects,
 
 * DeviceInfo (mandatory)
-* DeviceLocation (optional but required if the device supports location update)
-* DeviceDiagnostic (optional but required if the device supports diagnostics update)
-* DeviceFirmware (optional but required if the device supports Firmware Actions)
-* Metadata (mandatory)
+* DeviceLocation (required if the device supports location update)
+* DiagnosticErrorCode (required if the device wants to update the ErrorCode)
+* DiagnosticLog (required if the device wants to update Log information)
+* DeviceFirmware (required if the device supports Firmware Actions)
+* DeviceMetadata (mandatory)
 
-The following code snippet shows how to create the DeviceInfo Object with sample data,
+The following code snippet shows how to create the mandatory objects, DeviceInfo and DeviceMetadata with sample data,
 
 .. code:: java
 
@@ -48,14 +49,21 @@ The following code snippet shows how to create the DeviceInfo Object with sample
 				hwVersion("1.0").
 				descriptiveLocation("EGL C").
 				build();
+	
+     /**
+       * Create a DeviceMetadata object 
+      **/
+     JsonObject data = new JsonObject();
+     data.addProperty("customField", "customValue");
+     DeviceMetadata metadata = new DeviceMetadata(data);
 
-The following code snippet shows how to create the DeviceData Object with the above created DeviceInfo object,
+The following code snippet shows how to create the DeviceData Object with the above created DeviceInfo and DeviceMetadata objects,
 
 .. code:: java
 
 	DeviceData deviceData = new DeviceData.Builder().
 				 deviceInfo(deviceInfo).
-				 metadata(new JsonObject()).
+				 metadata(metadata).
 				 build();
 Construct ManagedDevice
 -------------------------------------------------------------------------------
@@ -73,7 +81,7 @@ Constructs a ManagedDevice instance by accepting the DeviceData and the followin
 * Authentication-Method - Method of authentication (The only value currently supported is "token"). 
 * Authentication-Token - API key token
 
-The Properties object creates definitions which are used to interact with the Internet of Things Foundation server. 
+These properties create a definition which are used to interact with the Internet of Things Foundation server. 
 
 The following code shows how to create a ManagedDevice instance,
 
@@ -114,7 +122,7 @@ Construct a ManagedDevice instance by accepting the DeviceData and the MqttClien
 				 typeId("Device-Type").
 				 deviceId("Device-ID").
 				 deviceInfo(deviceInfo).
-				 metadata(new JsonObject()).
+				 metadata(metadata).
 				 build();
 	
 	....
@@ -174,7 +182,7 @@ Devices that can determine their location can choose to notify the Internet of T
     DeviceData deviceData = new DeviceData.Builder().
 				 deviceInfo(deviceInfo).
 				 deviceLocation(deviceLocation).
-				 metadata(new JsonObject()).
+				 metadata(metadata).
 				 build();
 	
     
@@ -221,40 +229,40 @@ Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/device_m
 Append/Clear ErrorCodes
 -----------------------------------------------
 
-Devices can choose to notify the Internet of Things Foundation server about changes in their error status. In order to send the ErrorCodes the device needs to construct a DeviceDiagnostic object as follows,
+Devices can choose to notify the Internet of Things Foundation server about changes in their error status. In order to send the ErrorCodes the device needs to construct a DiagnosticErrorCode object as follows,
 
 .. code:: java
 
 	DiagnosticErrorCode errorCode = new DiagnosticErrorCode(0);
-	DeviceDiagnostic diag = new DeviceDiagnostic(errorCode);
+	
 	this.deviceData = new DeviceData.Builder().
 				 deviceInfo(deviceInfo).
-				 deviceDiag(diag).
-				 metadata(new JsonObject()).
+				 deviceErrorCode(errorCode).
+				 metadata(metadata).
 				 build();
 
-Once the device is connected to Internet of Things Foundation, the ErrorCode can be sent by calling the sendErrorCode() method as follows,
+Once the device is connected to Internet of Things Foundation, the ErrorCode can be sent by calling the send() method as follows,
 
 .. code:: java
 
-	diag.sendErrorCode();
+	errorCode.send();
 
 Later, any new ErrorCodes can be easily added to the Internet of Things Foundation server by calling the append method as follows,
 
 .. code:: java
 
-	int rc = diag.append(random.nextInt(500));
+	int rc = errorCode.append(500);
 	if(rc == 200) {
-		System.out.println("Current Errorcode (" + diag.getErrorCode() + ")");
+		System.out.println("Current Errorcode (" + errorCode + ")");
 	} else {
 		System.out.println("Errorcode addition failed!");
 	}
 
-Also, the ErrorCodes can be cleared from Internet of Things Foundation server by calling the clear method as follows,
+Also, the ErrorCodes can be cleared from Internet of Things Foundation server by calling the clear() method as follows,
 
 .. code:: java
 
-	int rc = diag.clearErrorCode();
+	int rc = errorCode.clear();
 	if(rc == 200) {
 		System.out.println("ErrorCodes are cleared successfully!");
 	} else {
@@ -263,7 +271,7 @@ Also, the ErrorCodes can be cleared from Internet of Things Foundation server by
 
 Append/Clear Log messages
 -----------------------------
-Devices can choose to notify the Internet of Things Foundation server about changes by adding a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. In order to send log messages, the device needs to construct a DeviceDiagnostic object as follows,
+Devices can choose to notify the Internet of Things Foundation server about changes by adding a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. In order to send log messages, the device needs to construct a DiagnosticLog object as follows,
 
 .. code:: java
 
@@ -272,29 +280,26 @@ Devices can choose to notify the Internet of Things Foundation server about chan
 				new Date(),
 				DiagnosticLog.LogSeverity.informational);
 		
-	DeviceDiagnostic diag = new DeviceDiagnostic(log);
-	
 	this.deviceData = new DeviceData.Builder().
 				 deviceInfo(deviceInfo).
-				 deviceDiag(diag).
-				 metadata(new JsonObject()).
+				 deviceLog(log).
+				 metadata(metadata).
 				 build();
 
-Once the device is connected to Internet of Things Foundation, the log message can be sent by calling the sendLog() method as follows,
+Once the device is connected to Internet of Things Foundation, the log message can be sent by calling the send() method as follows,
 
 .. code:: java
 
-	diag.sendLog();
+	log.send();
 
 Later, any new log messages can be easily added to the Internet of Things Foundation server by calling the append method as follows,
 
 .. code:: java
 
-	int rc = diag.append("Log event " + count++, new Date(), 
-				DiagnosticLog.LogSeverity.informational);
+	int rc = log.append("sample log", new Date(), DiagnosticLog.LogSeverity.informational);
 			
 	if(rc == 200) {
-		System.out.println("Current Log (" + diag.getLog() + ")");
+		System.out.println("Current Log (" + log + ")");
 	} else {
 		System.out.println("Log Addition failed");
 	}
@@ -303,7 +308,7 @@ Also, the ErrorCodes can be cleared from Internet of Things Foundation server by
 
 .. code:: java
 
-	rc = diag.clearLog();
+	rc = log.clear();
 	if(rc == 200) {
 		System.out.println("Logs are cleared successfully");
 	} else {
@@ -335,7 +340,7 @@ In order to perform Firmware actions the device needs to construct the DeviceFir
 	DeviceData deviceData = new DeviceData.Builder().
 				deviceInfo(deviceInfo).
 				deviceFirmware(firmware).
-				metadata(new JsonObject()).
+				metadata(metadata).
 				build();
 	
 	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
@@ -444,6 +449,8 @@ A sample Firmware Download implementation for a Raspberry Pi device is shown bel
 		}
 	}
 
+The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__
+
 **3.2 Sample implementation of updateFirmware**
 
 The implementation must add logic to install the downloaded firmware and report the status of the update via DeviceFirmware object. If the Firmware Update operation is successful, then the state of the firmware should to be set to IDLE and UpdateStatus should be set to SUCCESS. 
@@ -485,6 +492,7 @@ A sample Firmware Update implementation for a Raspberry Pi device is shown below
 		}
 	}
 
+The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__
 
 **4. Add the handler to ManagedDevice**
 
@@ -562,6 +570,7 @@ The implementation must add a logic to reboot the device and report the status o
 		}
 	}
 
+The complete code can be found in the device management sample `<https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__
 
 **2.2 Sample implementation of handleFactoryReset**
 
@@ -591,6 +600,57 @@ The created handler needs to be added to the ManagedDevice instance so that the 
 
 Refer to `this page <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/device_actions.html>`__ for more information about the Device Action.
 
+Listen for Device attribute changes
+-----------------------------------------------------------------
+
+This ibmiotf client library updates the corresponding objects whenever there is an update request from the Internet of Things Foundation Server, these update requests are initiated by the application either directly or indirectly (Firmware Update) via the Internet of Things Foundation REST API. Apart from updating these attributes, the library provides a mechanism where the device can be notified whenever a device attribute is updated.
+
+Attributes that can be updated by this operation are location, metadata, device information and firmware.
+
+In order to get notified, the device needs to add a property change listener on those objects that it is interested,
+
+.. code:: java
+
+	deviceLocation.addPropertyChangeListener(listener);
+	firmware.addPropertyChangeListener(listener);
+	deviceInfo.addPropertyChangeListener(listener);
+	metadata.addPropertyChangeListener(listener);
+	
+Also, the device needs to implement the propertyChange() method where it receives the notification. A sample implementation is as follows,
+
+.. code:: java
+
+	public void propertyChange(PropertyChangeEvent evt) {
+		if(evt.getNewValue() == null) {
+			return;
+		}
+		Object value = (Object) evt.getNewValue();
+		
+		switch(evt.getPropertyName()) {
+			case "metadata":
+				DeviceMetadata metadata = (DeviceMetadata) value;
+				System.out.println("Received an updated metadata -- "+ metadata);
+				break;
+			
+			case "location":
+				DeviceLocation location = (DeviceLocation) value;
+				System.out.println("received an updated location -- "+ location);
+				break;
+			
+			case "deviceInfo":
+				DeviceInfo info = (DeviceInfo) value;
+				System.out.println("received an updated device info -- "+ info);
+				break;
+				
+			case "mgmt.firmware":
+				DeviceFirmware firmware = (DeviceFirmware) value;
+				System.out.println("received an updated device firmware -- "+ firmware);
+				break;		
+		}
+	}
+
+Refer to `this page <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/update.html>`__ for more information about updating the device attributes.
+
 Examples
 -------------
 * `SampleRasPiDMAgent <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgent.java>`__ - A sample agent code that shows how to perform various device management operations on Raspberry Pi
@@ -600,7 +660,7 @@ Examples
 * `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__ - A sample implementation of FirmwareHandler for Raspberry Pi
 * `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__ - A sample implementation of DeviceActionHandler
 * `ManagedDeviceWithLifetimeSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/ManagedDeviceWithLifetimeSample.java>`__ - A sample that shows how to send regular manage request with lifetime specified
-* `LocationUpdateListenerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/LocationUpdateListenerSample.java>`__ - A sample that shows how to listen for a location update message from the IoT Foundation server 
+* `DeviceAttributesUpdateListenerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceAttributesUpdateListenerSample.java>`__ - A sample listener code that shows how to listen for a various device attribute changes 
 * `NonBlockingDiagnosticsErrorCodeUpdateSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/NonBlockingDiagnosticsErrorCodeUpdateSample.java>`__ - A sample that shows how to add ErrorCode without waiting for response from the server
 
 Recipe
