@@ -325,7 +325,12 @@ Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/device_m
 
 Firmware Actions
 -------------------------------------------------------------
-The firmware update process is separated into two distinct actions, Downloading Firmware, and Updating Firmware. The device needs to do the following activities to support Firmware Actions,
+The firmware update process is separated into two distinct actions, 
+
+* Downloading Firmware, and 
+* Updating Firmware. 
+
+The device needs to do the following activities to support Firmware Actions,
 
 **1. Construct DeviceFirmware Object**
 
@@ -520,7 +525,7 @@ The device needs to do the following activities to support Device Actions,
 
 **1. Inform server about the Device Actions support**
 
-In order to perform Reboot and Factory Reset the device needs to inform the Internet of Things server about its support first. This can achieved by invoking a following method with a boolean value,
+In order to perform Reboot and Factory Reset, the device needs to inform the Internet of Things Foundation Connect server about its support first. This can achieved by invoking a following method with a boolean value,
 
 .. code:: java
 	
