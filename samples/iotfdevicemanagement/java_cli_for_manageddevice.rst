@@ -98,7 +98,7 @@ The following code shows how to create a ManagedDevice instance,
 	
 	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
  
-The existing users of DeviceClient might observe that the names of these properties are slightly changed. These names are changed to mirror the names in the Internet of Things Foundation Connect Dashboard, but the existing users who wants to migrate from the DeviceClient to ManagedDevice can still use the old format and construct the ManagedDevice instance as follows,
+The existing users of DeviceClient might observe that the names of these properties have changed slightly. These names have been changed to mirror the names in the Internet of Things Foundation Connect Dashboard, but the existing users who want to migrate from the DeviceClient to the ManagedDevice can still use the old format and construct the ManagedDevice instance as follows,
 
 .. code:: java
 
@@ -134,7 +134,7 @@ Note this constructor helps the custom device users to create ManagedDevice inst
 
 Manage	
 ------------------------------------------------------------------
-In order to participate in device management activities, the device needs to send a manage request to Internet of Things Foundation Connect. The connect() method on ManagedDevice implicitly sends a manage request and connects the device as Managed device.
+In order to participate in device management activities, the device needs to send a manage request command to Internet of Things Foundation Connect. The connect() method on ManagedDevice implicitly sends a manage request and connects the device as a Managed device.
 
 .. code:: java
 
@@ -145,7 +145,7 @@ Actually the connect() method does the following,
 * Connects the device to Internet of Things Foundation Connect and
 * Sends the manage request such that the device becomes an Managed Device.
 
-The overloaded connect(long) method can be used to register the device with lifetime. The lifetime specifies the length of time within which the device must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant.
+The overloaded "connect(long)" method can be used to register the device for a given timeframe. The timeframe specifies the length of time within which the device must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant.
 
 .. code:: java
 
@@ -214,7 +214,7 @@ The update() method actually informs the Internet of Things Foundation Connect s
 
 **Listening for Location change**
 
-As the location of the device can be updated using the the Internet of Things Foundation Connect ReST API, the library code updates the DeviceLocation object whenever it receives the update from the Internet of Things Foundation Connect. The device can listen for such a location change by adding itself as a property change listener in DeviceLocation object and query the properties whenever the location is changed.
+As the location of the device can be updated using the the Internet of Things Foundation Connect ReST API, the library code updates the DeviceLocation object whenever it receives an update from the Internet of Things Foundation Connect. The device can listen for such a location change by adding itself as a property change listener in DeviceLocation object and query the properties whenever the location is changed.
 
 .. code:: java
 
@@ -230,7 +230,7 @@ As the location of the device can be updated using the the Internet of Things Fo
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/update.html>`__ for more information about the Location update.
 
-Append/Clear ErrorCodes
+Append / Clear ErrorCodes
 -----------------------------------------------
 
 Devices can choose to notify the Internet of Things Foundation Connect server about changes in their error status. In order to send the ErrorCodes the device needs to construct a DiagnosticErrorCode object as follows,
@@ -273,7 +273,7 @@ Also, the ErrorCodes can be cleared from Internet of Things Foundation Connect s
 		System.out.println("Failed to clear the ErrorCodes!");
 	}
 
-Append/Clear Log messages
+Append / Clear Log messages
 -----------------------------
 Devices can choose to notify the Internet of Things Foundation Connect server about changes by adding a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. In order to send log messages, the device needs to construct a DiagnosticLog object as follows,
 
