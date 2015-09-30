@@ -20,6 +20,8 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.Random;
 
+import org.eclipse.paho.client.mqttv3.MqttException;
+
 import com.google.gson.JsonObject;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
 import com.ibm.iotf.devicemgmt.device.DeviceInfo;
@@ -60,6 +62,7 @@ public class NonBlockingDiagnosticsErrorCodeUpdateSample {
 		try {
 			sample.createManagedClient(fileName);
 			sample.connect();
+			sample.sendManageRequest();
 			sample.startErrorCodeUpdaterThread();
 			sample.publishDeviceEvents();
 			sample.disConnect();
@@ -155,11 +158,18 @@ public class NonBlockingDiagnosticsErrorCodeUpdateSample {
 	}
 	
 	/**
-	 * This method connects the device to the IoT Foundation and sends
-	 * a manage request, so that this device becomes a managed device.
+	 * This method connects the device to the IoT Foundation as normal device
 	 */
 	private void connect() throws Exception {		
 		dmClient.connect();
+	}
+	
+	private void sendManageRequest() throws MqttException {
+		if (dmClient.manage(0)) {
+			System.out.println("Device connected as Managed device now!");
+		} else {
+			System.err.println("Managed request failed!");
+		}
 	}
 	
 	private void disConnect() throws Exception {

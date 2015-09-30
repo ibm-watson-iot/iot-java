@@ -16,6 +16,7 @@ package com.ibm.iotf.sample.devicemgmt.device;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -120,6 +121,24 @@ public class RasPiFirmwareHandlerSample extends DeviceFirmwareHandler {
 				//There is no data to read, so throw an exception
 				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.INVALID_URI);
 			}
+			
+			// Verify the firmware image if verifier is set
+			if(deviceFirmware.getVerifier() != null && !deviceFirmware.getVerifier().equals("")) {
+				success = verifyFirmware(file, deviceFirmware.getVerifier());
+				
+				/**
+				 * As per the documentation, If a firmware verifier has been set, the device should 
+				 * attempt to verify the firmware image. 
+				 * 
+				 * If the image verification fails, mgmt.firmware.state should be set to 0 (Idle) 
+				 * and mgmt.firmware.updateStatus should be set to the error status value 4 (Verification Failed).
+				 */
+				if(success == false) {
+					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.VERIFICATION_FAILED);
+					// the firmware state is updated to IDLE below
+				}
+			}
+			
 		} catch(MalformedURLException me) {
 			// Invalid URL, so set the status to reflect the same,
 			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.INVALID_URI);
@@ -132,7 +151,8 @@ public class RasPiFirmwareHandlerSample extends DeviceFirmwareHandler {
 		}
 		
 		/**
-		 * Set the firmware download and possibly the firmware update (will be sent later) status accordingly
+		 * Set the firmware download and possibly the firmware update status
+		 * (will be sent later) accordingly
 		 */
 		if(success == true) {
 			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
@@ -142,6 +162,29 @@ public class RasPiFirmwareHandlerSample extends DeviceFirmwareHandler {
 		}
 		
 		System.out.println(CLASS_NAME + ": Firmware Download END...("+success+ ")");
+	}
+
+	private boolean verifyFirmware(File file, String verifier) throws IOException {
+		FileInputStream fis = null;
+		String md5 = null;
+		try {
+			fis = new FileInputStream(file);
+			md5 = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
+			System.out.println("Downloaded Firmware MD5 sum:: "+ md5);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			fis.close();
+		}
+		if(verifier.equals(md5)) {
+			System.out.println("Firmware verification successful");
+			return true;
+		}
+		System.out.println("Download firmware checksum verification failed.. "
+				+ "Expected "+verifier + " found "+md5);
+		return false;
 	}
 
 	/**
@@ -207,6 +250,7 @@ public class RasPiFirmwareHandlerSample extends DeviceFirmwareHandler {
 				}
 				System.out.println("Firmware Update command "+status);
 				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
+				deviceFirmware.setState(FirmwareState.IDLE);
 			} catch (IOException e) {
 				e.printStackTrace();
 				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);

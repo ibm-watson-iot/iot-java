@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Timer;
+
+import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
@@ -87,6 +90,7 @@ public class DeviceAttributesUpdateListenerSample implements PropertyChangeListe
 		try {
 			sample.createManagedClient(fileName);
 			sample.connect();
+			sample.sendManageRequest();
 			// wait for 10 minutes
 			try {
 				Thread.sleep(1000 * 60 * 10);
@@ -218,11 +222,30 @@ public class DeviceAttributesUpdateListenerSample implements PropertyChangeListe
 	}
 	
 	/**
-	 * This method connects the device to the IoT Foundation and sends
-	 * a manage request, so that this device becomes a managed device.
+	 * This method connects the device to the IoT Foundation so that
+	 * we can do one or more Device Management activities 
 	 */
 	private void connect() throws Exception {		
 		dmClient.connect();
+	}
+	
+	/**
+	 * Send a device manage request to IoT Foundation
+	 * 
+	 * A device uses this request to become a managed device. 
+	 * It should be the first device management request sent by the 
+	 * device after connecting to the Internet of Things Foundation. 
+	 * It would be usual for a device management agent to send this 
+	 * whenever is starts or restarts.
+	 * 
+	 * @throws MqttException
+	 */
+	private void sendManageRequest() throws MqttException {
+		if (dmClient.manage(0)) {
+			System.out.println("Device connected as Managed device now!");
+		} else {
+			System.err.println("Managed request failed!");
+		}
 	}
 	
 	private void disConnect() throws Exception {

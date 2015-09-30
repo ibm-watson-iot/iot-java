@@ -122,16 +122,18 @@ public class DiagnosticLog extends Resource {
 		this.timestamp = timestamp;
 		this.severity = severity;
 		this.data = data;
-		return send();
+		fireEvent(LOG_CHANGE_EVENT);
+		return this.getRC();
 	}
 	
 	/**
-	 * The last Log message that needs to be added to the Internet of Things Foundation.
+	 * This method appends the last log message to the Internet of Things Foundation.
 	 * 
 	 * @return code indicating whether the send is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
 	 */
 	public int send() {
+		this.timestamp = new Date();
 		fireEvent(LOG_CHANGE_EVENT);
 		return this.getRC();
 	}

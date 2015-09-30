@@ -191,29 +191,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 
 	
-	/**
-	 * Connect to the IBM Internet of Things Foundation and 
-	 * send a device manage request such that this device
-	 * can receive a device management commands from IoT
-	 * Foundation DM server 
-	 * 
-	 * Does not do anything if the device is already connected
-	 * 
-	 * @param lifetime The length of time in seconds within 
-	 *        which the device must send another Manage device request 
-	 * 
-	 */	
-	public void connect(long lifetime) {
-		final String METHOD = "connect(lifetime)";
-		
-		if (this.isConnected()) {
-			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Device is already connected");
-			return;
-		}
-		super.connect();
-		registerDevice(lifetime);
-	}
-	
 	private boolean registerDevice(long lifetime) {
 		final String METHOD = "registerDevice";
 		boolean success = false;
@@ -245,15 +222,12 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 	
 	/**
-	 * Connect to the IBM Internet of Things Foundation and 
-	 * send a device manage request such that this device
-	 * can receive a device management commands from IoT
-	 * Foundation DM server 
+	 * <p>This method just connects to the IBM Internet of Things Foundation,
+	 * Device needs to make a call to manage() to participate in Device
+	 * Management activities.<p> 
 	 * 
 	 * This method does nothing if the device is already connected
 	 * 
-	 * This method connects with lifetime 0 - the device will
-	 * never become dormant
 	 * 
 	 */	
 	public void connect() {
@@ -263,21 +237,49 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			return;
 		}
 		super.connect();
-		registerDevice(0);
 	}
 	
 	
 	/**
-	 * Send a device manage request to IoT Foundation
+	 * <p>Send a device manage request to IoT Foundation</p>
 	 * 
-	 * A device uses this request to become a managed device. 
+	 * <p>A device uses this request to become a managed device. 
 	 * It should be the first device management request sent by the 
 	 * device after connecting to the Internet of Things Foundation. 
 	 * It would be usual for a device management agent to send this 
-	 * whenever is starts or restarts.
+	 * whenever is starts or restarts.</p>
+	 * 
+	 * <p>This method connects the device to IoT Foundation connect if its not connected already</p>
+	 * 
+	 * <p>This method sends a manage request with lifetime 0 and hence
+	 * the device will never become dormant. </p>
+	 * 
+	 * <p>Use overloaded method manage(long) to specify lifetime</p>
+	 * 
+	 * @return
+	 * @throws MqttException
+	 */
+	public boolean manage() throws MqttException {
+		return this.manage(0);
+	}
+	
+	/**
+	 * <p>Send a device manage request to IoT Foundation</p>
+	 * 
+	 * <p>A device uses this request to become a managed device. 
+	 * It should be the first device management request sent by the 
+	 * device after connecting to the Internet of Things Foundation. 
+	 * It would be usual for a device management agent to send this 
+	 * whenever is starts or restarts.</p>
+	 * 
+	 * <p>This method connects the device to IoT Foundation connect if 
+	 * its not connected already</p>
 	 * 
 	 * @param lifetime The length of time in seconds within 
-	 *        which the device must send another Manage device request 
+	 *        which the device must send another Manage device request.
+	 *        if set to 0, the managed device will not become dormant. 
+	 *        When set, the minimum supported setting is 3600 (1 hour).
+	 *        
 	 * @return True if successful
 	 * @throws MqttException
 	 */
@@ -289,6 +291,10 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		
 		boolean success = false;
 		DeviceTopic topic = DeviceTopic.MANAGE;
+		
+		if (!this.isConnected()) {
+			this.connect();
+		}
 		
 		JsonObject jsonPayload = new JsonObject();
 		if (deviceData.getDeviceInfo() != null  || deviceData.getMetadata() != null) {

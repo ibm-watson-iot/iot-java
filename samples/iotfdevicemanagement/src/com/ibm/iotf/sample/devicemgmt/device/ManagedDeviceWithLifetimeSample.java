@@ -17,8 +17,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Timer;
@@ -27,13 +25,10 @@ import java.util.TimerTask;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
-import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.device.DeviceInfo;
 import com.ibm.iotf.devicemgmt.device.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
-import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
 
 /**
  * A sample device code that shows how to register the device with a lifetime parameter,
@@ -67,6 +62,7 @@ public class ManagedDeviceWithLifetimeSample {
 		try {
 			sample.createManagedClient(fileName);
 			sample.connect();
+			sample.sendManageRequest();
 			sample.publishDeviceEvents();	
 			sample.disConnect();
 		} catch (Exception e) {
@@ -153,20 +149,11 @@ public class ManagedDeviceWithLifetimeSample {
 	}
 	
 	/**
-	 * This method connects the device to the IoT Foundation and sends
-	 * a manage request, so that this device becomes a managed device.
-	 * 
-	 * Use the overloaded connect method that takes the lifetime parameter
+	 * This method connects the device to the IoT Foundation so that
+	 * we can do one or more Device Management activities 
 	 */
 	private void connect() throws Exception {
-		dmClient.connect(lifetime);
-		if(lifetime > 0) {
-			ManageTask task = this.new ManageTask();
-			this.timer = new Timer(true);
-			int twoMinutes = 1000 * 60 * 2;
-			timer.scheduleAtFixedRate(task, (lifetime *1000) - twoMinutes, 
-											(lifetime *1000) - twoMinutes);
-		}
+		dmClient.connect();
 	}
 	
 	/**
@@ -181,7 +168,7 @@ public class ManagedDeviceWithLifetimeSample {
 		@Override
 		public void run() {
 			try {
-				sendManageRequest();
+				dmClient.manage(lifetime);
 			} catch (MqttException e) {
 				e.printStackTrace();
 			}
@@ -203,13 +190,19 @@ public class ManagedDeviceWithLifetimeSample {
 	 * It would be usual for a device management agent to send this 
 	 * whenever is starts or restarts.
 	 * 
-	 * @param lifetime The length of time in seconds within 
-	 *        which the device must send another Manage device request 
-	 * @return True if successful
 	 * @throws MqttException
 	 */
 	private void sendManageRequest() throws MqttException {
 		if (dmClient.manage(lifetime)) {
+			
+			// Schedule a task that sends a manage request repeatedly  
+			if(lifetime > 0) {
+				ManageTask task = this.new ManageTask();
+				this.timer = new Timer(true);
+				int twoMinutes = 1000 * 60 * 2;
+				timer.scheduleAtFixedRate(task, (lifetime *1000) - twoMinutes, 
+												(lifetime *1000) - twoMinutes);
+			}
 			System.out.println("Device connected as Managed device now!");
 		} else {
 			System.err.println("Managed request failed!");

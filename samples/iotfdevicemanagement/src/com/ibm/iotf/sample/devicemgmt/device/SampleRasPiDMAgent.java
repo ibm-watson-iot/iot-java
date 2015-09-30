@@ -102,7 +102,6 @@ public class SampleRasPiDMAgent {
 		try {
 			sample.createManagedClient(fileName);
 			sample.connect();
-			//sample.scheduleDeviceEventPublishTask();
 			sample.userAction();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -223,6 +222,9 @@ public class SampleRasPiDMAgent {
 				DiagnosticLog.LogSeverity.informational);
 		
 		
+		log.send();
+		log.append("sample log", new Date(), DiagnosticLog.LogSeverity.informational);
+		log.clear();
 		/**
 		 * Create a DeviceMetadata object
 		 */
@@ -236,7 +238,7 @@ public class SampleRasPiDMAgent {
 						 deviceLocation(location).
 						 deviceErrorCode(errorCode).
 						 deviceLog(log).
-						 metadata(metadata).
+						 //metadata(metadata).
 						 build();
 		
 		// Options to connect to IoT Foundation
@@ -252,14 +254,12 @@ public class SampleRasPiDMAgent {
 	}
 	
 	/**
-	 * This method connects the device to the IoT Foundation and sends
-	 * a manage request, so that this device becomes a managed device.
-	 * 
-	 * Use the overloaded connect method that takes the lifetime parameter
+	 * This method connects the device to the IoT Foundation
 	 */
-	private void connect() throws Exception {
+	private void connect() throws Exception {		
 		dmClient.connect();
 	}
+	
 	private boolean sendManageRequest(int lifetime) throws MqttException {
 		if(this.manageTask != null) {
 			manageTask.cancel(false);

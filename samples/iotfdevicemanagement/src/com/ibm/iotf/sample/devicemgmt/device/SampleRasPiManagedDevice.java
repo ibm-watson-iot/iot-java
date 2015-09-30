@@ -286,10 +286,7 @@ public class SampleRasPiManagedDevice {
 	}
 	
 	/**
-	 * This method connects the device to the IoT Foundation and sends
-	 * a manage request, so that this device becomes a managed device.
-	 * 
-	 * Use the overloaded connect method that takes the lifetime parameter
+	 * This method connects the device to IBM IoT Foundation Connect as normal device 
 	 */
 	private void connect() throws Exception {
 		dmClient.connect();
