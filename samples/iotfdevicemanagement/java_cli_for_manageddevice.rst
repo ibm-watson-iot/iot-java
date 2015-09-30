@@ -25,7 +25,7 @@ The `device management <../reference/device_mgmt.html>`__ feature enhances the I
 
 Create DeviceData
 ------------------------------------------------------------------------
-The `device model <https://docs.internetofthings.ibmcloud.com/reference/device_model.html>`__ describes the metadata and management characteristics of a device. The device database in the Internet of Things Foundation Connect is the master source of device information. Applications and managed devices are able to send updates to the database such as a location or the progress of a firmware update. Once these updates are received by the Internet of Things Foundation Connect, the device database is updated, making the information available to applications.
+The `device model <../reference/device_model.html>`__ describes the metadata and management characteristics of a device. The device database in the Internet of Things Foundation Connect is the master source of device information. Applications and managed devices are able to send updates to the database such as a location or the progress of a firmware update. Once these updates are received by the Internet of Things Foundation Connect, the device database is updated, making the information available to applications.
 
 The device model in the ibmiotf client library is represented as DeviceData and to create a DeviceData one needs to create the following objects,
 
