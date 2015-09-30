@@ -138,7 +138,6 @@ The device can invoke manage() method to participate in device management activi
 
 .. code:: java
 
-	managedDevice.connect();
 	managedDevice.manage();
 	
 The device can use overloaded manage(lifetime) method to register the device for a given timeframe. The timeframe specifies the length of time within which the device must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant.
