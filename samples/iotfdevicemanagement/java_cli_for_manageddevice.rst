@@ -35,9 +35,9 @@ The device model in the ibmiotf client library is represented as DeviceData and 
 * DiagnosticErrorCode (required if the device wants to update the ErrorCode)
 * DiagnosticLog (required if the device wants to update Log information)
 * DeviceFirmware (required if the device supports Firmware Actions)
-* DeviceMetadata (mandatory)
+* DeviceMetadata (optional)
 
-The following code snippet shows how to create the mandatory objects, DeviceInfo and DeviceMetadata with sample data,
+The following code snippet shows how to create the mandatory object DeviceInfo along with an optional object DeviceMetadata with sample data,
 
 .. code:: java
 
@@ -59,7 +59,7 @@ The following code snippet shows how to create the mandatory objects, DeviceInfo
      data.addProperty("customField", "customValue");
      DeviceMetadata metadata = new DeviceMetadata(data);
 
-The following code snippet shows how to create the DeviceData Object with the above created DeviceInfo and DeviceMetadata objects,
+The following code snippet shows how to create the DeviceData object with the above created DeviceInfo and DeviceMetadata objects,
 
 .. code:: java
 
@@ -69,7 +69,7 @@ The following code snippet shows how to create the DeviceData Object with the ab
 				 build();
 Construct ManagedDevice
 -------------------------------------------------------------------------------
-ManagedDevice - A device class that connects the device as managed device to Internet of Things Foundation Connect server and enables the device to perform one or more Device Management operations. Also the ManagedDevice instance can be used to do normal device operations like publishing device events and listening for commands from application.
+ManagedDevice - A device class that connects the device as managed device to Internet of Things Foundation Connect and enables the device to perform one or more Device Management operations. Also the ManagedDevice instance can be used to do normal device operations like publishing device events and listening for commands from application.
 
 ManagedDevice exposes 2 different constructors to support different user patterns, 
 
@@ -83,18 +83,18 @@ Constructs a ManagedDevice instance by accepting the DeviceData and the followin
 * Authentication-Method - Method of authentication (The only value currently supported is "token"). 
 * Authentication-Token - API key token
 
-These properties create a definition which are used to interact with the Internet of Things Foundation server. 
+All these properties are required to interact with the Internet of Things Foundation Connect. 
 
 The following code shows how to create a ManagedDevice instance,
 
 .. code:: java
 
 	Properties options = new Properties();
-	options.setProperty("Organization-ID", "organization");
-	options.setProperty("Device-Type", "deviceType");
-	options.setProperty("Device-ID", "deviceId");
-	options.setProperty("Authentication-Method", "authMethod");
-	options.setProperty("Authentication-Token", "authToken");
+	options.setProperty("Organization-ID", "uguhsp");
+	options.setProperty("Device-Type", "iotsample-arduino");
+	options.setProperty("Device-ID", "00aabbccde03");
+	options.setProperty("Authentication-Method", "token");
+	options.setProperty("Authentication-Token", "AUTH TOKEN FOR DEVICE");
 	
 	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
  
@@ -103,11 +103,11 @@ The existing users of DeviceClient might observe that the names of these propert
 .. code:: java
 
 	Properties options = new Properties();
-	options.setProperty("org", "organization");
-	options.setProperty("type", "deviceType");
-	options.setProperty("id", "deviceId");
-	options.setProperty("auth-method", "authMethod");
-	options.setProperty("auth-token", "authToken");
+	options.setProperty("org", "uguhsp");
+	options.setProperty("type", "iotsample-arduino");
+	options.setProperty("id", "00aabbccde03");
+	options.setProperty("auth-method", "token");
+	options.setProperty("auth-token", "AUTH TOKEN FOR DEVICE");
 	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
 
 **Constructor#2**
@@ -134,28 +134,18 @@ Note this constructor helps the custom device users to create ManagedDevice inst
 
 Manage	
 ------------------------------------------------------------------
-In order to participate in device management activities, the device needs to send a manage request command to Internet of Things Foundation Connect. The connect() method on ManagedDevice implicitly sends a manage request and connects the device as a Managed device.
+The device can invoke manage() method to participate in device management activities. The manage request will initiate a connect request internally if the device is not connected to the Internet of Things Foundation Connect already,
 
 .. code:: java
 
-	managedDevice.connect(3600);
+	managedDevice.connect();
+	managedDevice.manage();
 	
-Actually the connect() method does the following,
-
-* Connects the device to Internet of Things Foundation Connect and
-* Sends the manage request such that the device becomes an Managed Device.
-
-The overloaded "connect(long)" method can be used to register the device for a given timeframe. The timeframe specifies the length of time within which the device must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant.
+The device can use overloaded manage(lifetime) method to register the device for a given timeframe. The timeframe specifies the length of time within which the device must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant.
 
 .. code:: java
 
-	managedDevice.connect(3600);
-
-Also, the manage(long) method can be used to send the manage request to Internet of Things Foundation Connect at any point - The custom device clients that pass the MqttClient instance, must explicitly invoke the manage() method to participate in device management activities.
-
-.. code:: java
-
-	managedDevice.manage(4800);
+    managedDevice.manage(3600);
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/manage.html>`__ for more information about the manage operation.
 
@@ -173,7 +163,7 @@ Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/device_m
 Location Update
 -----------------------------------------------------
 
-Devices that can determine their location can choose to notify the Internet of Things Foundation Connect server about location changes. In order to update the location, the device needs to create DeviceData instance with the DeviceLocation object first.
+Devices that can determine their location can choose to notify the Internet of Things Foundation Connect about location changes. In order to update the location, the device needs to create DeviceData instance with the DeviceLocation object first.
 
 .. code:: java
 
@@ -210,30 +200,14 @@ Later, any new location can be easily updated by changing the properties of the 
 		System.err.println("Failed to update the location");
 	}
 
-The update() method actually informs the Internet of Things Foundation Connect server about the new location.
-
-**Listening for Location change**
-
-As the location of the device can be updated using the the Internet of Things Foundation Connect ReST API, the library code updates the DeviceLocation object whenever it receives an update from the Internet of Things Foundation Connect. The device can listen for such a location change by adding itself as a property change listener in DeviceLocation object and query the properties whenever the location is changed.
-
-.. code:: java
-
-	// Add a listener for location change
-	location.addPropertyChangeListener(this);
-	
-	...
-	
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		System.out.println("Received a new location - "+evt.getNewValue());
-	}
+The update() method actually informs the Internet of Things Foundation Connect about the new location.
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/device_mgmt/operations/update.html>`__ for more information about the Location update.
 
 Append / Clear ErrorCodes
 -----------------------------------------------
 
-Devices can choose to notify the Internet of Things Foundation Connect server about changes in their error status. In order to send the ErrorCodes the device needs to construct a DiagnosticErrorCode object as follows,
+Devices can choose to notify the Internet of Things Foundation Connect about changes in their error status. In order to send the ErrorCodes the device needs to construct a DiagnosticErrorCode object as follows,
 
 .. code:: java
 
@@ -251,7 +225,7 @@ Once the device is connected to Internet of Things Foundation Connect, the Error
 
 	errorCode.send();
 
-Later, any new ErrorCodes can be easily added to the Internet of Things Foundation Connect server by calling the append method as follows,
+Later, any new ErrorCodes can be easily added to the Internet of Things Foundation Connect by calling the append method as follows,
 
 .. code:: java
 
@@ -262,7 +236,7 @@ Later, any new ErrorCodes can be easily added to the Internet of Things Foundati
 		System.out.println("Errorcode addition failed!");
 	}
 
-Also, the ErrorCodes can be cleared from Internet of Things Foundation Connect server by calling the clear() method as follows,
+Also, the ErrorCodes can be cleared from Internet of Things Foundation Connect by calling the clear() method as follows,
 
 .. code:: java
 
@@ -275,7 +249,7 @@ Also, the ErrorCodes can be cleared from Internet of Things Foundation Connect s
 
 Append / Clear Log messages
 -----------------------------
-Devices can choose to notify the Internet of Things Foundation Connect server about changes by adding a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. In order to send log messages, the device needs to construct a DiagnosticLog object as follows,
+Devices can choose to notify the Internet of Things Foundation Connect about changes by adding a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. In order to send log messages, the device needs to construct a DiagnosticLog object as follows,
 
 .. code:: java
 
@@ -296,7 +270,7 @@ Once the device is connected to Internet of Things Foundation Connect, the log m
 
 	log.send();
 
-Later, any new log messages can be easily added to the Internet of Things Foundation Connect server by calling the append method as follows,
+Later, any new log messages can be easily added to the Internet of Things Foundation Connect by calling the append method as follows,
 
 .. code:: java
 
@@ -308,7 +282,7 @@ Later, any new log messages can be easily added to the Internet of Things Founda
 		System.out.println("Log Addition failed");
 	}
 
-Also, the ErrorCodes can be cleared from Internet of Things Foundation Connect server by calling the clear method as follows,
+Also, the ErrorCodes can be cleared from Internet of Things Foundation Connect by calling the clear method as follows,
 
 .. code:: java
 
@@ -356,7 +330,7 @@ In order to perform Firmware actions the device needs to construct the DeviceFir
 	managedDevice.connect();
 		
 
-The DeviceFirmware object represents the current firmware of the device and will be used to report the status of the Firmware Download and Firmware Update actions to Internet of Things Foundation Connect server.
+The DeviceFirmware object represents the current firmware of the device and will be used to report the status of the Firmware Download and Firmware Update actions to Internet of Things Foundation Connect.
 
 **2. Inform the server about the Firmware action support**
 
@@ -368,7 +342,7 @@ The device needs to set the firmware action flag to true in order for the server
 	managedDevice.supportsFirmwareActions(true);
 	managedDevice.connect();
 	
-Note that the supportsFirmwareActions() method is called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Foundation Connect server about the firmware action support and hence it needs to be added prior to calling connect() method.
+Note that the supportsFirmwareActions() method is called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Foundation Connect about the firmware action support and hence it needs to be added prior to calling connect() method.
 
 Alternatively, the support can be added later as well followed by the manage request as follows,
 
@@ -458,6 +432,33 @@ A sample Firmware Download implementation for a Raspberry Pi device is shown bel
 		}
 	}
 
+Device can check the integrity of the downloaded firmware image using the verifier and report the status back to Internet of Things Foundation Connect. The verifier can be set by the device during the startup (while creating the DeviceFirmware Object) or as part of the Download Firmware request by the application. A sample code to verify the same is below,
+
+.. code:: java
+
+	private boolean verifyFirmware(File file, String verifier) throws IOException {
+		FileInputStream fis = null;
+		String md5 = null;
+		try {
+			fis = new FileInputStream(file);
+			md5 = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
+			System.out.println("Downloaded Firmware MD5 sum:: "+ md5);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			fis.close();
+		}
+		if(verifier.equals(md5)) {
+			System.out.println("Firmware verification successful");
+			return true;
+		}
+		System.out.println("Download firmware checksum verification failed.. "
+				+ "Expected "+verifier + " found "+md5);
+		return false;
+	}
+
 The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__.
 
 **3.2 Sample implementation of updateFirmware**
@@ -489,6 +490,7 @@ A sample Firmware Update implementation for a Raspberry Pi device is shown below
 				}
 				System.out.println("Firmware Update command "+status);
 				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
+				deviceFirmware.setState(FirmwareState.IDLE);
 			} catch (IOException e) {
 				e.printStackTrace();
 				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
@@ -505,7 +507,7 @@ The complete code can be found in the device management sample `RasPiFirmwareHan
 
 **4. Add the handler to ManagedDevice**
 
-The created handler needs to be added to the ManagedDevice instance so that the ibmiotf client library invokes the corresponding method when there is a Firmware action request from Internet of Things Foundation Connect server.
+The created handler needs to be added to the ManagedDevice instance so that the ibmiotf client library invokes the corresponding method when there is a Firmware action request from Internet of Things Foundation Connect.
 
 .. code:: java
 
@@ -525,7 +527,7 @@ The device needs to do the following activities to support Device Actions,
 
 **1. Inform server about the Device Actions support**
 
-In order to perform Reboot and Factory Reset, the device needs to inform the Internet of Things Foundation Connect server about its support first. This can achieved by invoking a following method with a boolean value,
+In order to perform Reboot and Factory Reset, the device needs to inform the Internet of Things Foundation Connect about its support first. This can achieved by invoking a following method with a boolean value,
 
 .. code:: java
 	
@@ -533,7 +535,7 @@ In order to perform Reboot and Factory Reset, the device needs to inform the Int
 	managedDevice.supportsDeviceActions(true);
 	managedDevice.connect();
 	
-Note that the supportsDeviceActions() method is called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Server about the device action support and hence it needs to be added prior to calling connect() method.
+Note that the supportsDeviceActions() method is called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Connect about the device action support and hence it needs to be added prior to calling connect() method.
 
 Alternatively, the support can be added later as well followed by the manage request as follows,
 
@@ -556,7 +558,7 @@ In order to support the device action, the device needs to create a handler and 
 
 **2.1 Sample implementation of handleReboot**
 
-The implementation must add a logic to reboot the device and report the status of the reboot via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because the successful operation reboots the device and the device code will not have a control to update the Internet of Things Foundation Connect server). A sample reboot implementation for a Raspberry Pi device is shown below,
+The implementation must add a logic to reboot the device and report the status of the reboot via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because the successful operation reboots the device and the device code will not have a control to update the Internet of Things Foundation Connect). A sample reboot implementation for a Raspberry Pi device is shown below,
 
 .. code:: java
 
@@ -583,7 +585,7 @@ The complete code can be found in the device management sample `DeviceActionHand
 
 **2.2 Sample implementation of handleFactoryReset**
 
-The implementation must add a logic to reset the device to factory settings and report the status via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because as part of this process, the device reboots and the device will not have a control to update status to Internet of Things Foundation Connect server). The skeleton of the Factory Reset implementation is shown below,
+The implementation must add a logic to reset the device to factory settings and report the status via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because as part of this process, the device reboots and the device will not have a control to update status to Internet of Things Foundation Connect). The skeleton of the Factory Reset implementation is shown below,
 
 .. code:: java
 	
@@ -600,7 +602,7 @@ The implementation must add a logic to reset the device to factory settings and 
 
 **3. Add the handler to ManagedDevice**
 
-The created handler needs to be added to the ManagedDevice instance so that the ibmiotf client library invokes the corresponding method when there is a device action request from Internet of Things Foundation Connect server.
+The created handler needs to be added to the ManagedDevice instance so that the ibmiotf client library invokes the corresponding method when there is a device action request from Internet of Things Foundation Connect.
 
 .. code:: java
 
@@ -612,7 +614,7 @@ Refer to `this page <https://docs.internetofthings.ibmcloud.com/device_mgmt/oper
 Listen for Device attribute changes
 -----------------------------------------------------------------
 
-This ibmiotf client library updates the corresponding objects whenever there is an update request from the Internet of Things Foundation Connect Server, these update requests are initiated by the application either directly or indirectly (Firmware Update) via the Internet of Things Foundation Connect ReST API. Apart from updating these attributes, the library provides a mechanism where the device can be notified whenever a device attribute is updated.
+This ibmiotf client library updates the corresponding objects whenever there is an update request from the Internet of Things Foundation Connect, these update requests are initiated by the application either directly or indirectly (Firmware Update) via the Internet of Things Foundation Connect ReST API. Apart from updating these attributes, the library provides a mechanism where the device can be notified whenever a device attribute is updated.
 
 Attributes that can be updated by this operation are location, metadata, device information and firmware.
 
