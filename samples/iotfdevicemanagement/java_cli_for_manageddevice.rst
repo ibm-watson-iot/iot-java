@@ -1,13 +1,11 @@
-===============================================================================
-Java Client Library - Managed Device (Update In Progress)
-===============================================================================
+======================================
+Java Client Library - Managed Device
+======================================
 
 Introduction
--------------------------------------------------------------------------------
+-------------
 
-This client library describes how to use devices with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://docs.internetofthings.ibmcloud.com/java/javaintro.html>`__. 
-
-This client library is divided into three sections, all included within the library. 
+This client library describes how to use devices with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <../java/javaintro.html>`__. 
 
 This section contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java and perform device management operations like firmware update, location update, and diagnostics update.
 
@@ -22,6 +20,11 @@ The `device management <../reference/device_mgmt.html>`__ feature enhances the I
 
 * **Managed Devices** are defined as devices which have a management agent installed. The management agent sends and receives device metadata and responds to device management commands from the Internet of Things Foundation Connect. 
 * **Unmanaged Devices** are any devices which do not have a device management agent. All devices begin their lifecycle as unmanaged devices, and can transition to managed devices by sending a message from a device management agent to the Internet of Things Foundation Connect. 
+
+
+---------------------------------------------------------------------------
+Connecting to the Internet of Things Foundation Device Management Service
+---------------------------------------------------------------------------
 
 Create DeviceData
 ------------------------------------------------------------------------
@@ -187,7 +190,7 @@ Once the device is connected to Internet of Things Foundation Connect, the locat
             	System.err.println("Failed to update the location");
 	}
 
-Later, any new location can be easily updated by changing the properties of the DeviceLocation object:
+Later, any new location can be updated by changing the properties of the DeviceLocation object:
 
 .. code:: java
 
@@ -198,7 +201,7 @@ Later, any new location can be easily updated by changing the properties of the 
 		System.err.println("Failed to update the location");
 	}
 
-The update() method actually informs the Internet of Things Foundation Connect about the new location.
+The update() method informs the Internet of Things Foundation Connect about the new location.
 
 Refer to the `documentation <../device_mgmt/operations/update.html>`__ for more information about the Location update.
 
@@ -280,7 +283,7 @@ Later, any new log messages can be easily added to the Internet of Things Founda
 		System.out.println("Log Addition failed");
 	}
 
-Also, the ErrorCodes can be cleared from Internet of Things Foundation Connect by calling the clear method as follows:
+Also, the log messages can be cleared from Internet of Things Foundation Connect by calling the clear method as follows:
 
 .. code:: java
 
@@ -335,23 +338,12 @@ The DeviceFirmware object represents the current firmware of the device and will
 The device needs to set the firmware action flag to true in order for the server to initiate the firmware request. This can be achieved by invoking a following method with a boolean value:
 
 .. code:: java
-	
-	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
-	managedDevice.supportsFirmwareActions(true);
-	managedDevice.connect();
-	
-Note that the supportsFirmwareActions() method is called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Foundation Connect about the firmware action support and hence it needs to be added prior to calling connect() method.
 
-Alternatively, the support can be added later as well followed by the manage request as follows:
-
-.. code:: java
-
-	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
-    	managedDevice.connect();
-    	...
     	managedDevice.supportsFirmwareActions(true);
-    	managedDevice.manage(3600);
+    	managedDevice.manage();
 	
+As the manage request informs the Internet of Things Foundation Connect about the firmware action support, manage() method needs to be called right after setting the firmware action support.
+
 **3. Create the Firmware Action Handler**
 
 In order to support the Firmware action, the device needs to create a handler and add it to ManagedDevice. The handler must extend a DeviceFirmwareHandler class and implement the following methods:
@@ -529,21 +521,10 @@ In order to perform Reboot and Factory Reset, the device needs to inform the Int
 
 .. code:: java
 	
-	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
 	managedDevice.supportsDeviceActions(true);
-	managedDevice.connect();
+    	managedDevice.manage();
 	
-Note that the supportsDeviceActions() method is called before the connect() method as the ManagedDevice sends a manage request as part of the connect() method. As part of manage request the ibmiotf client library informs the Internet of Things Connect about the device action support and hence it needs to be added prior to calling connect() method.
-
-Alternatively, the support can be added later as well followed by the manage request as follows:
-
-.. code:: java
-
-	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
-    	managedDevice.connect();
-    	...
-    	managedDevice.supportsDeviceActions(true);
-    	managedDevice.manage(3600);
+As the manage request informs the Internet of Things Foundation Connect about the device action support, manage() method needs to be called right after setting the device action support.
 	
 **2. Create the Device Action Handler**
 
