@@ -9,9 +9,9 @@ This client library describes how to use devices with the Java ibmiotf client li
 
 This client library is divided into three sections, all included within the library. This section contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
 
-The Applications section contains information on how applications can use the Java ibmiotf Client Library to interact with devices. 
+The Device management section contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java and perform device management operations like firmware update, location update, and diagnostics update.
 
-The Historian section contains information on how applications can use the Java ibmiotf Client Library to retrieve the historical information.
+The Applications section contains information on how applications can use the Java ibmiotf Client Library to interact with devices. 
 
 Constructor
 -------------------------------------------------------------------------------
