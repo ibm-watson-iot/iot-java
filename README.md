@@ -13,7 +13,7 @@ This client library documentation is divided into two sections:
 
 Download
 -------------------------------------------------------------------------------
-The latest version of the client library is available `here <https://github.com/ibm-messaging/iot-java/releases/latest>`__ to download.
+The latest version of the client library is available [here] (https://github.com/ibm-messaging/iot-java/releases/latest) to download.
 
 The zip module contains the following files,
 
