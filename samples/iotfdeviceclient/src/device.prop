@@ -1,6 +1,5 @@
-[device]
-org=uguhsp
-type=iotsample-arduino
-id=00aabbccde03
-auth-method=token
-auth-token=AUTH_TOKEN_OF_DEVICE
+Organization-ID = <Your Organization ID>
+Device-Type = <Your Device Type>
+Device-ID = <Your Device ID>
+Authentication-Method = token
+Authentication-Token = <Your Device Token>

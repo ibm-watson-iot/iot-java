@@ -1,12 +1,16 @@
 package com.ibm.iotf.client;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -14,6 +18,12 @@ import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.commons.net.util.Base64;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -22,6 +32,8 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -53,12 +65,12 @@ public abstract class AbstractClient {
 	private static final int THROTTLE_3 = 20;
 	private static final long RATE_3 = TimeUnit.MINUTES.toMillis(5);
 	
-	protected final Gson gson = new Gson();
+	protected static final Gson gson = new Gson();
 	
 	/**
 	 * A formatter for ISO 8601 compliant timestamps.
 	 */
-	protected final DateFormat ISO8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+	protected static final DateFormat ISO8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 	
 	protected Properties options;
 	protected String clientId;
@@ -345,27 +357,167 @@ public abstract class AbstractClient {
 		return clientProperties;
 	}
 	
-	/**
-	 * Returns the orgid for this client
-	 * 
-	 * @return orgid
-	 * 						String orgid
+	/*
+	 * old style - org
+	 * new style - Organization-ID
 	 */
 	public String getOrgId() {
-//		return options.getProperty("org");
-		String authKeyPassed = options.getProperty("auth-key");
-		if(authKeyPassed != null && ! authKeyPassed.trim().equals("") && ! authKeyPassed.equals("quickstart")) {
-			if(authKeyPassed.length() >=8){
-
-				return authKeyPassed.substring(2, 8);}
-			else{
-				return null;
-			}
-		} else {
-			return "quickstart";
+		String org = null;
+		org = options.getProperty("org");
+		
+		if(org == null) {
+			org = options.getProperty("Organization-ID");
 		}
-
+		return trimedValue(org);
 	}
 
+	
+	public static String trimedValue(String value) {
+		if(value != null) {
+			return value.trim();
+		}
+		return value;
+	}
 
+	/**
+	 * Accessor method to retrieve Authendication Method
+	 * old style - auth-method
+	 * new style - Authentication-Method
+	 */	
+	public String getAuthMethod() {
+		String method = options.getProperty("auth-method");
+		if(method == null) {
+			method = options.getProperty("Authentication-Method");
+		}
+		return trimedValue(method);
+	}
+
+	/*
+	 * old style - auth-token
+	 * new style - Authentication-Token
+	 */
+	public String getAuthToken() {
+		String token = options.getProperty("auth-token");
+		if(token == null) {
+			token = options.getProperty("Authentication-Token");
+		}
+		return trimedValue(token);
+	}
+
+	
+	private static void validateNull(String property, String value) throws Exception {
+		if(value == null || value == "") {
+			throw new Exception(property +" cannot be null or empty !");
+		}
+	}
+	
+	/**
+	 * @param organization  Organization ID (Either "quickstart" or the registered organization ID)
+	 * @param deviceType	Device Type
+	 * @param deviceId		Device ID
+	 * @param eventName		Name of the Event
+	 * @param device 		Boolean value indicating whether the request is originated from device or application
+	 * @param authKey		Authentication Method
+	 * @param authToken		Authentication Token to securely post this event (Can be null or empty if its quickstart)
+	 * @param payload		The message to be published
+	 * @return
+	 * @throws Exception	throws exception when http post fails
+	 */
+	protected static int publishEventsThroughHttps(String organization,
+			String deviceType,
+			String deviceId,
+			String eventName,
+			boolean device,
+			String authKey,
+			String authToken,
+			Object payload) throws Exception {
+
+		final String METHOD = "publishEventsThroughHttps";
+
+		validateNull("Organization ID", organization);
+		validateNull("Device Type", deviceType);
+		validateNull("Device ID", deviceId);
+		validateNull("Event Name", eventName);
+		if("quickstart".equalsIgnoreCase(organization) == false) {
+			validateNull("Authentication Method", authKey);
+			validateNull("Authentication Token", authToken);
+		}
+
+		StringBuilder sb = new StringBuilder();
+		
+		// Form the URL
+		if("quickstart".equalsIgnoreCase(organization)) {
+			sb.append("http://");
+		} else {
+			sb.append("https://");
+		}
+		sb.append(organization)
+			.append(".internetofthings.ibmcloud.com/api/v0002");
+			
+		if(device == true) {
+			sb.append("/device");
+		} else {
+			sb.append("/application");
+		}
+		sb.append("/types/")
+			.append(deviceType)
+			.append("/devices/")
+			.append(deviceId)
+			.append("/events/")
+			.append(eventName);
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "ReST URL::"+sb.toString());
+		BufferedReader br = null;
+		br = new BufferedReader(new InputStreamReader(System.in));
+		
+		// Create the payload message in Json format
+		JsonObject message = new JsonObject();
+		
+		String timestamp = ISO8601_DATE_FORMAT.format(new Date());
+		message.addProperty("ts", timestamp);
+		
+		JsonElement dataElement = gson.toJsonTree(payload);
+		message.add("d", dataElement);
+		
+		StringEntity input = null;
+		try {
+			input = new StringEntity(message.toString());
+		} catch (UnsupportedEncodingException e) {
+			LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to carry out the ReST request");
+			throw e;
+		}
+		
+		// Create the Http post request
+		HttpPost post = new HttpPost(sb.toString());
+		post.setEntity(input);
+		post.addHeader("Content-Type", "application/json");
+		post.addHeader("Accept", "application/json");
+		
+		if("quickstart".equalsIgnoreCase(organization) == false) {
+			byte[] encoding = Base64.encodeBase64(new String(authKey + ":" + authToken).getBytes() );			
+			String encodedString = new String(encoding);
+			post.addHeader("Authorization", "Basic " + encodedString);
+		}
+		
+		try {
+			HttpClient client = HttpClientBuilder.create().build();					
+			HttpResponse response = client.execute(post);
+			
+			int httpCode = response.getStatusLine().getStatusCode();
+			if(httpCode >= 200 && httpCode < 300) {
+				return httpCode;
+			} 
+			br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+			String line = br.readLine();
+			
+			throw new Exception("Operation failed with code "+ httpCode +" message::"+line);
+		} catch (IOException e) {
+			LoggerUtility.severe(CLASS_NAME, METHOD, e.getMessage());
+			throw e;
+		} finally {
+			if(br != null) {
+				br.close();
+			}
+		}
+	}
 }

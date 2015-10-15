@@ -109,6 +109,7 @@
 		</jar>
 		
 		<copy file="samples/iotfdeviceclient/src/device.prop" todir="${outputDir}"/>
+		<copy file="samples/iotfdeviceclient/src/application.prop" todir="${outputDir}"/>
 		<copy file="samples/iotfdevicemanagement/src/DMDeviceSample.properties" todir="${outputDir}"/>
 		
 		<!-- Build the accompanying samples jar -->

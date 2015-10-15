@@ -1,11 +1,21 @@
 package com.ibm.iotf.client.device;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.net.util.Base64;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -75,20 +85,6 @@ public class DeviceClient extends AbstractClient {
 	}
 	
 	/*
-	 * old style - org
-	 * new style - Organization-ID
-	 */
-	public String getOrgId() {
-		String org = null;
-		org = options.getProperty("org");
-		
-		if(org == null) {
-			org = options.getProperty("Organization-ID");
-		}
-		return org;
-	}
-
-	/*
 	 * old style - id
 	 * new style - Device-ID
 	 */
@@ -98,7 +94,7 @@ public class DeviceClient extends AbstractClient {
 		if(id == null) {
 			id = options.getProperty("Device-ID");
 		}
-		return id;
+		return trimedValue(id);
 	}
 
 	/*
@@ -111,33 +107,8 @@ public class DeviceClient extends AbstractClient {
 		if(type == null) {
 			type = options.getProperty("Device-Type");
 		}
-		return type;
+		return trimedValue(type);
 	}
-
-	/*
-	 * old style - auth-method
-	 * new style - Authentication-Method
-	 */	
-	public String getAuthMethod() {
-		String method = options.getProperty("auth-method");
-		if(method == null) {
-			method = options.getProperty("Authentication-Method");
-		}
-		return method;
-	}
-
-	/*
-	 * old style - auth-token
-	 * new style - Authentication-Token
-	 */
-	public String getAuthToken() {
-		String token = options.getProperty("auth-token");
-		if(token == null) {
-			token = options.getProperty("Authentication-Token");
-		}
-		return token;
-	}
-
 
 	public String getFormat() {
 		String format = options.getProperty("format");
@@ -301,6 +272,20 @@ public class DeviceClient extends AbstractClient {
 	
 	public void setCommandCallback(CommandCallback callback) {
 		this.commandCallback  = callback;
+	}
+	
+	/**
+	 * Publish an event to the IBM Internet of Things Foundation using HTTP(S)<br>
+	 * 
+	 * @param eventName  Name of the dataset under which to publish the data
+	 * @param payload Object to be added to the payload as the dataset
+	 * @return httpcode the return code
+	 * @throws Exception if the operation is not successful
+	 */
+	public int publishEventOverHTTP(String eventName, Object payload) throws Exception {
+		String authKey = "use-token-auth";
+		return publishEventsThroughHttps(this.getOrgId(), this.getDeviceType(), this.getDeviceId(), 
+				eventName, true, authKey, this.getAuthToken(), payload);
 	}
 	
 }

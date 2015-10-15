@@ -1,0 +1,5 @@
+Organization-ID = <Your Organization ID>
+API-Key = <Your Organization's API Key>
+Authentication-Token = <Your Organization's Token>
+Device-Type = <Device Type on behalf the application publishes the event>
+Device-ID = <Device ID on behalf the application publishes the event>

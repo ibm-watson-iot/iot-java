@@ -71,41 +71,52 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
+	 * Returns the orgid for this client
+	 * 
+	 * @return orgid
+	 * 						String orgid
+	 */
+	public String getOrgId() {
+		// Check if org id is provided by the user
+		String orgid = super.getOrgId();
+		if(orgid == null || orgid.equals("")) {
+			String authKeyPassed = getAuthKey();
+			if(authKeyPassed != null && ! authKeyPassed.trim().equals("") && ! authKeyPassed.equals("quickstart")) {
+				if(authKeyPassed.length() >=8){
+					return authKeyPassed.substring(2, 8);}
+				else {
+					return null;
+				}
+			} else {
+				return "quickstart";
+			}
+		}
+		return orgid;
+
+	}
+	
+	/**
 	 * Accessor method to retrieve app id
 	 * @return appId
 	 * 					String appId
 	 */
 	public String getAppId() {
-		return options.getProperty("id");
+		return trimedValue(options.getProperty("id"));
 	}
 
-	/**
-	 * Accessor method to retrieve auth method
-	 * @return authMethod
-	 * 					String authMethod
-	 */
-	public String getAuthMethod() {
-		return options.getProperty("auth-method");
-	}
-	
 	/**
 	 * Accessor method to retrieve auth key
 	 * @return authKey
 	 * 					String authKey
 	 */
 	public String getAuthKey() {
-		return options.getProperty("auth-key");
+		String authKeyPassed = options.getProperty("auth-key");
+		if(authKeyPassed == null) {
+			authKeyPassed = options.getProperty("API-Key");
+		}
+		return trimedValue(authKeyPassed);
 	}
-
-	/**
-	 * Accessor method to retrieve auth token
-	 * @return authToken
-	 * 					String authToken
-	 */
-	public String getAuthToken() {
-		return options.getProperty("auth-token");
-	}
-
+	
 	
 	@Override
 	public void connect() {
@@ -668,4 +679,23 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	public void setStatusCallback(StatusCallback callback) {
 		this.statusCallback  = callback;
 	}
+	
+	/**
+	 * Publish an event to the IBM Internet of Things Foundation using HTTP(S) <br>
+	 * 
+ 	 * @param deviceType	Device Type
+	 * @param deviceId		Device ID
+	 * @param eventName  Name of the dataset under which to publish the data
+	 * @param payload Object to be added to the payload as the dataset
+	 * @return httpcode the return code
+	 * @throws Exception if the operation is not successful
+	 */
+	public int publishEventOverHTTP(String deviceType,
+									String deviceId,
+									String eventName, 
+									Object payload) throws Exception {
+		return publishEventsThroughHttps(this.getOrgId(), deviceType, deviceId, 
+				eventName, false, this.getAuthKey(), this.getAuthToken(), payload);
+	}
+
 }

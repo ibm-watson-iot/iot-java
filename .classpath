@@ -10,18 +10,18 @@
 	<classpathentry kind="lib" path="lib/joda-time-2.6.jar"/>
 	<classpathentry kind="lib" path="lib/httpcore-4.3.3.jar"/>
 	<classpathentry kind="lib" path="lib/httpclient-4.3.6.jar"/>
-	<classpathentry kind="lib" path="lib/commons-net-3.3.jar"/>
 	<classpathentry kind="lib" path="samples/sigar/lib/log4j.jar"/>
 	<classpathentry kind="lib" path="samples/sigar/lib/sigar.jar"/>
 	<classpathentry kind="lib" path="samples/common/lib/args4j-2.0.21.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/com.ibm.ws.st.core.runtimeClasspathProvider/WebSphere Application Server V8.5 Liberty Profile"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/com.ibm.json4j_1.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/common-lang3.jar"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.10.jar"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.paho.client.mqttv3-1.0.3-20150818.040635-202.jar"/>
 	<classpathentry kind="lib" path="lib/javax.servlet_3.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/com.ibm.json4j_1.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/common-lang3.jar"/>
+	<classpathentry kind="lib" path="lib/commons-net-3.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
