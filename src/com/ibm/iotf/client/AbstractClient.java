@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 
 import org.apache.commons.net.util.Base64;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -466,7 +467,7 @@ public abstract class AbstractClient {
 			.append("/events/")
 			.append(eventName);
 		
-		LoggerUtility.info(CLASS_NAME, METHOD, "ReST URL::"+sb.toString());
+		LoggerUtility.fine(CLASS_NAME, METHOD, "ReST URL::"+sb.toString());
 		BufferedReader br = null;
 		br = new BufferedReader(new InputStreamReader(System.in));
 		
@@ -506,11 +507,28 @@ public abstract class AbstractClient {
 			int httpCode = response.getStatusLine().getStatusCode();
 			if(httpCode >= 200 && httpCode < 300) {
 				return httpCode;
-			} 
-			br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-			String line = br.readLine();
+			}
 			
-			throw new Exception("Operation failed with code "+ httpCode +" message::"+line);
+			/**
+			 * Looks like some error so log the header and response
+			 */
+			StringBuilder log = new StringBuilder("HTTP Code: "+httpCode);
+			log.append("\nURL: ")
+				.append(sb.toString())
+				.append("\nHeader:\n");
+			Header[] headers = response.getAllHeaders();
+			for(int i = 0; i < headers.length; i++) {
+				log.append(headers[i].getName())
+					.append(' ')
+					.append(headers[i].getValue())
+					.append('\n');
+			}
+			log.append("\nResponse \n");
+			br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+			log.append(br.readLine());
+			LoggerUtility.severe(CLASS_NAME, METHOD, log.toString());
+			
+			return httpCode;
 		} catch (IOException e) {
 			LoggerUtility.severe(CLASS_NAME, METHOD, e.getMessage());
 			throw e;
