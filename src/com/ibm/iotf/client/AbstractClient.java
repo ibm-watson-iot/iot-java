@@ -17,6 +17,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.net.util.Base64;
 import org.apache.http.Header;
@@ -501,7 +503,12 @@ public abstract class AbstractClient {
 		}
 		
 		try {
-			HttpClient client = HttpClientBuilder.create().build();					
+			
+			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+			sslContext.init(null, null, null);
+
+			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
+			
 			HttpResponse response = client.execute(post);
 			
 			int httpCode = response.getStatusLine().getStatusCode();

@@ -7,9 +7,12 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import com.ibm.iotf.client.Message;
 
 
-public class Command extends Message{
+public class Command extends Message {
 
-	private String type, id, command, format;
+	private String type;
+	private String id;
+	private String command;
+	private String format;
 	
 	/**
 	 * Note that this class does not have a default constructor

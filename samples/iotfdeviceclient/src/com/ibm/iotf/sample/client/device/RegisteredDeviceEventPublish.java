@@ -33,11 +33,11 @@ public class RegisteredDeviceEventPublish {
 		//Provide the device specific data, as well as Auth-key and token using Properties class		
 		Properties options = new Properties();
 
-		options.setProperty("org", "uguhsp");
-		options.setProperty("type", "iotsample-arduino");
-		options.setProperty("id", "00aabbccde03");
+		options.setProperty("org", "hrcl78");
+		options.setProperty("type", "ManagedDT");
+		options.setProperty("id", "RasPi01");
 		options.setProperty("auth-method", "token");
-		options.setProperty("auth-token", "AUTH TOKEN OF THE DEVICE");
+		options.setProperty("auth-token", "password");
 		
 		DeviceClient myClient = null;
 		try {
@@ -57,7 +57,7 @@ public class RegisteredDeviceEventPublish {
 		event.addProperty("mem",  70);
 		
 		//Registered flow allows 0, 1 and 2 QoS
-		myClient.publishEvent("status", event);
+		myClient.publishEvent("blink", event);
 		System.out.println("SUCCESSFULLY POSTED......");
 
 		//Disconnect cleanly

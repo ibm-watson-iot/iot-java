@@ -34,7 +34,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	private static final Pattern APP_STATUS_PATTERN = Pattern.compile("iot-2/app/(.+)/mon");
 	private static final Pattern DEVICE_COMMAND_PATTERN = Pattern.compile("iot-2/type/(.+)/id/(.+)/cmd/(.+)/fmt/(.+)");
 	
-	
 	private EventCallback eventCallback = null;
 	private StatusCallback statusCallback = null;
 	
@@ -332,7 +331,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 			e.printStackTrace();
 		}
 	}
-
+	
 	/**
 	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
 	 * Quality of Service is set to 0
@@ -553,6 +552,29 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	public void subscribeToDeviceStatus(String deviceType, String deviceId) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/mon";
+			subscriptions.put(newTopic, new Integer(0));			
+			mqttAsyncClient.subscribe(newTopic, 0);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Subscribe to application status of the IBM Internet of Things Foundation. <br>
+	 */
+	public void subscribeToApplicationStatus() {
+		subscribeToApplicationStatus("+");
+	}
+	
+	/**
+	 * Subscribe to application status of the IBM Internet of Things Foundation. <br>
+	 * 
+	 * @param appId object of String which denotes the application uniquely in the organization
+	 * 
+	 */
+	public void subscribeToApplicationStatus(String appId) {
+		try {
+			String newTopic = "iot-2/app/"+appId+"/mon";
 			subscriptions.put(newTopic, new Integer(0));			
 			mqttAsyncClient.subscribe(newTopic, 0);
 		} catch (MqttException e) {

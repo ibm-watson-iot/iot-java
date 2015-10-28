@@ -20,16 +20,77 @@ public abstract class Status {
 	protected final static DateTimeFormatter DT_PARSER = ISODateTimeFormat.dateTimeParser();
 
 	// Properties from the "Connect" status are common in "Disconnect" status too
-	public String clientAddr, protocol, clientId, user, action, connectTime;
-	public int port;
-	public DateTime time;
+	private String clientAddr;
+	private String protocol;
+	private String clientId;
+	private String user;
+	private String action;
+	private String connectTime;
+	private int port;
+	private DateTime time;
 	
 	// Additional "Disconnect" status properties
-	public int writeMsg = 0, readMsg = 0, readBytes = 0, writeBytes = 0;
-	public String reason = "";
+	private int writeMsg = 0;
+	private int readMsg = 0;
+	private int readBytes = 0;
+	private int writeBytes = 0;
+	private String reason = "";
 	
-	public String payload;
+	private String payload;
 	
+	
+	public String getClientAddr() {
+		return clientAddr;
+	}
+
+	public String getProtocol() {
+		return protocol;
+	}
+
+	public String getClientId() {
+		return clientId;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public String getAction() {
+		return action;
+	}
+
+	public String getConnectTime() {
+		return connectTime;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public DateTime getTime() {
+		return time;
+	}
+
+	public int getWriteMsg() {
+		return writeMsg;
+	}
+
+	public int getReadMsg() {
+		return readMsg;
+	}
+
+	public int getReadBytes() {
+		return readBytes;
+	}
+
+	public int getWriteBytes() {
+		return writeBytes;
+	}
+
+	public String getReason() {
+		return reason;
+	}
+
 	/**
 	 * This class does not have a default constructor and has a single argument constructor
 	 * @param msg

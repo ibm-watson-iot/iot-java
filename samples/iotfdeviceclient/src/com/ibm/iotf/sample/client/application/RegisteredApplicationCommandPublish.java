@@ -15,25 +15,17 @@
 
 package com.ibm.iotf.sample.client.application;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.app.ApplicationClient;
-import com.ibm.iotf.sample.client.SystemObject;
 import com.ibm.iotf.sample.util.Utility;
 
 /**
- * 
- * This sample shows how an application publish a device event 
- * using HTTP(s) to IBM IoT Foundation on behalf of the device.
+ * This sample shows how one application can publish commands to the device
  *
  */
-public class HttpApplicationDeviceEventPublish {
+public class RegisteredApplicationCommandPublish {
 
 	private final static String PROPERTIES_FILE_NAME = "application.prop";
 	private final static String DEFAULT_PATH = "samples/iotfdeviceclient/src";
@@ -50,46 +42,28 @@ public class HttpApplicationDeviceEventPublish {
 		 * Load properties file "application.prop"
 		 */
 		Properties props = Utility.loadPropertiesFile(PROPERTIES_FILE_NAME, fileName);
-		ApplicationClient myClient = null;
+		ApplicationClient myAppClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myAppClient = new ApplicationClient(props);
+			myAppClient.connect();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
 		
+		/**
+		 * Get the Device Type and Device Id to which the application will publish the command
+		 */
 		String deviceType = Utility.trimedValue(props.getProperty("Device-Type"));
 		String deviceId = Utility.trimedValue(props.getProperty("Device-ID"));
-
-		SystemObject obj = new SystemObject();
-		/**
-		 * Publishes this process load event for every 5 second
-		 */
-		while(true) {
-			int code = 0;
-			try {
-				
-				//Generate a JSON object of the event to be published
-				JsonObject event = new JsonObject();
-				event.addProperty("name", SystemObject.getName());
-				event.addProperty("cpu",  obj.getProcessCpuLoad());
-				event.addProperty("mem",  obj.getMemoryUsed());
-				
-				// publish the event on behalf of device
-				code = myClient.publishEventOverHTTP(deviceType, deviceId, "blink", event);
-			
-				Thread.sleep(1000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			if(code == 200) {
-				System.out.println("Published the event successfully !");
-			} else {
-				System.out.println("Failed to publish the event......");
-				System.exit(-1);
-			}
-		}
+		
+		JsonObject data = new JsonObject();
+		data.addProperty("name", "stop-rotation");
+		data.addProperty("delay",  0);
+		
+		//Registered flow allows 0, 1 and 2 QoS
+		myAppClient.publishCommand(deviceType, deviceId, "stop", data);
+		myAppClient.disconnect();
 	}
 }

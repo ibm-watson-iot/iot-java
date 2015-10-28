@@ -7,9 +7,9 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 /**
  * Class that handles application status, of applications using IBM Internet of Things Foundation
  */
-public class ApplicationStatus extends Status{
+public class ApplicationStatus extends Status {
 
-	public String id;
+	private String id;
 	
 	/**
 	 * Maintains the status of application
@@ -23,6 +23,10 @@ public class ApplicationStatus extends Status{
 	public ApplicationStatus(String id, MqttMessage msg) throws UnsupportedEncodingException {
 		super(msg);
 		this.id = id;
+	}
+
+	public String getId() {
+		return id;
 	}
 
 }

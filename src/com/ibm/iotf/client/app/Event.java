@@ -12,10 +12,12 @@ import com.ibm.iotf.client.Message;
  * This class is immutable and may be made final later on
  *
  */
-public class Event extends Message{
+public class Event extends Message {
 
-	private String type, id, event, format;
-
+	private String deviceType;
+	private String deviceId;
+	private String event;
+	private String format;
 	
 	/**
 	 * 
@@ -32,18 +34,18 @@ public class Event extends Message{
 	 */
 	public Event(String type, String id, String event, String format, MqttMessage msg) throws UnsupportedEncodingException{
 		super(msg, format);
-		this.type = type;
-		this.id = id;
+		this.deviceType = type;
+		this.deviceId = id;
 		this.event = event;
 		this.format = format;
 	}
 	
 	public String getDeviceType() {
-		return type;
+		return deviceType;
 	}
 
 	public String getDeviceId() {
-		return id;
+		return deviceId;
 	}
 	
 	public String getEvent() {
@@ -60,9 +62,9 @@ public class Event extends Message{
 	 */
 	public String toString() {
 		if(format.equalsIgnoreCase("json")) {
-			return "Event [" + timestamp.toString() + "] " + type + ":" + id + " - " + event + ": " + data.toString();			
+			return "Event [" + timestamp.toString() + "] " + deviceType + ":" + deviceId + " - " + event + ": " + data.toString();			
 		} else {
-			return "Event [" + timestamp.toString() + "] " + type + ":" + id + " - " + event + ": " + payload.toString();			
+			return "Event [" + timestamp.toString() + "] " + deviceType + ":" + deviceId + " - " + event + ": " + payload.toString();			
 		}
  
 	}

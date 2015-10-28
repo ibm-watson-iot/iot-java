@@ -9,9 +9,18 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  *
  */
 
-public class DeviceStatus extends Status{
+public class DeviceStatus extends Status {
 
-	public String type, id;
+	public String getDeviceType() {
+		return deviceType;
+	}
+
+	public String getDeviceId() {
+		return deviceId;
+	}
+
+	private String deviceType;
+	private String deviceId;
 	
 	/**
 	 * 
@@ -22,10 +31,10 @@ public class DeviceStatus extends Status{
 	 * @param msg
 	 * @throws UnsupportedEncodingException
 	 */
-	public DeviceStatus(String type, String id, MqttMessage msg) throws UnsupportedEncodingException {
+	public DeviceStatus(String typeId, String deviceId, MqttMessage msg) throws UnsupportedEncodingException {
 		super(msg);
-		this.type = type;
-		this.id = id;
+		this.deviceType = typeId;
+		this.deviceId = deviceId;
 	}
 
 }
