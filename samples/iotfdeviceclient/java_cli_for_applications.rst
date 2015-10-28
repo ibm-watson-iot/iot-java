@@ -75,7 +75,6 @@ The application configuration file must be in the following format:
     auth-key=$key
     auth-token=$token
 
-
 ----
 
 Connecting to the Internet of Things Foundation
@@ -93,6 +92,7 @@ Connect to the Internet of Things Foundation by calling the *connect* function.
 
 After the successful connection to the IoTF service, the application client can perform the following operations, like subscribing to device events, subscribing to device status, publishing device events and commands.
 
+----
 
 Subscribing to device events
 -------------------------------------------------------------------------------
@@ -332,3 +332,9 @@ Applications can publish commands to connected devices.
     myAppClient.publishCommand(deviceType, deviceId, "stop", data);
 
 ----
+
+Examples
+-------------
+* `MQTTApplicationDeviceEventPublish <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/MQTTApplicationDeviceEventPublish.java>`__ - A sample application that shows how to publish device events.
+* `RegisteredApplicationCommandPublish <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/RegisteredApplicationCommandPublish.java>`__ - A sample application that shows how to publish a command to a device.
+* `RegisteredApplicationSubscribeSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/RegisteredApplicationSubscribeSample.java>`__ - A sample application that shows how to subscribe for various events like, device events, device commands, device status and application status.
