@@ -39,8 +39,8 @@ public class RegisteredApplicationSubscribeSample {
 
 		options.put("id", "app" + (Math.random() * 10000));		
 		options.put("Authentication-Method","apikey");
-		options.put("API-Key", "a-hrcl78-bgpvpoo2se");		
-		options.put("Authentication-Token", "119v-47533KnZQ+0PT");
+		options.put("API-Key", "<YOUR API KEY>");		
+		options.put("Authentication-Token", "<YOUR TOKEN>");
 		
 		try {
 			myClient = new ApplicationClient(options);
