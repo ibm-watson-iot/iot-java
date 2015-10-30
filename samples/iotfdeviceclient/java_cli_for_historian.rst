@@ -412,6 +412,101 @@ Refer to the Device section of the `IBM IoT Foundation API <https://docs.interne
 
 ----
 
+Device diagnostic operations
+----------------------------------------------------
+
+Applications can use Device diagnostic opertions to clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Foundation.
+
+Clear Diagnostic logs 
+~~~~~~~~~~~~~~~~~~~~~~
+
+Method clearDiagnosticLogs() can be used to clear the diagnostic logs of the device. For example,
+
+.. code:: java
+
+    boolean status = apiClient.clearDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
+    
+Get Diagnostic logs
+~~~~~~~~~~~~~~~~~~~~~~
+
+Method getAllDiagnosticLogs() can be used to get all diagnostic logs of the device. For example,
+
+.. code:: java
+
+    JsonArray response = apiClient.getAllDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
+
+Add a Diagnostic log
+~~~~~~~~~~~~~~~~~~~~~~
+
+Method addDiagnosticLog() can be used to add an entry in the log of diagnostic information for the device. The log may be pruned as the new entry is added. If no date is supplied, the entry is added with the current date and time. For example,
+
+.. code:: java
+
+    private static final String logToBeAdded = "{\"message\": \"Sample log\",\"severity\": 0,\"data\": "
+			+ "\"sample data\",\"timestamp\": \"2015-10-24T04:17:23.889Z\"}";
+
+    ....
+    
+    JsonArray response = apiClient.getAllDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
+
+Delete a Diagnostic log
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method deleteDiagnosticLog() can be used to delete a diagnostic log based on the log id. For example,
+
+.. code:: java
+
+    boolean status = apiClient.deleteDiagnosticLog(DEVICE_TYPE, DEVICE_ID, "<logid>");
+    
+Get a Diagnostic log
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDiagnosticLog() can be used to retrieve a diagnostic log based on the log id. For example,
+
+.. code:: java
+
+    JsonObject log = apiClient.getDiagnosticLog(DEVICE_TYPE, DEVICE_ID, "<logid>");
+
+Clear Diagnostic ErrorCodes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method clearDiagnosticErrorCodes() can be used to clear the list of error codes of the device. The list is replaced with a single error code of zero. For example,
+
+.. code:: java
+
+    boolean status = apiClient.clearDiagnosticErrorCodes(DEVICE_TYPE, DEVICE_ID);
+    
+Get Diagnostic ErrorCodes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getAllDiagnosticErrorCodes() can be used to retrieve all diagnostic ErrorCodes of the device. For example,
+
+.. code:: java
+
+    JsonArray response = apiClient.getAllDiagnosticErrorCodes(DEVICE_TYPE, DEVICE_ID);
+
+Add a Diagnostic ErrorCode
+~~~~~~~~~~~~~~~~~~~~~~
+
+Method addDiagnosticLog() can be used to add an error code to the list of error codes for the device. The list may be pruned as the new entry is added. For example,
+
+.. code:: java
+
+    boolean status = this.apiClient.addDiagnosticErrorCode(DEVICE_TYPE, DEVICE_ID, 10, new Date());
+
+An overloaded method can be used to add errorcode in JSON format as well,
+
+.. code:: java
+
+    private static final String errorcodeToBeAdded = "{\"errorCode\": 100,\"timestamp\": "
+			+ "\"2015-10-24T04:17:23.892Z\"}";
+	
+    JsonParser parser = new JsonParser();
+    JsonElement errorcode = parser.parse(errorcodeToBeAdded);
+    boolean status = this.apiClient.addDiagnosticErrorCode(DEVICE_TYPE, DEVICE_ID, errorcode);
+
+----
+
 Examples
 -------------
 * `RegisteredApplicationSubscribeSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/RegisteredApplicationSubscribeSample.java>`__ - A sample application that shows how to subscribe for various events like, device events, device commands, device status and application status.
