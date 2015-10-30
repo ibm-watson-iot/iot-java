@@ -1,5 +1,5 @@
 ===============================================================================
-Java Client Library - Applications (**Update In Progress**)
+Java Client Library - Applications
 ===============================================================================
 
 Introduction
