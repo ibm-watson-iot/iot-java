@@ -41,7 +41,7 @@ public class SampleBulkAPIOperations {
 	// Example Json format to add a device
 	/*
 	 * {
-		    "typeId": "ManagedDT",
+		    "typeId": "SampleDT",
 		    "deviceId": "RasPi100",
 		    "authToken": "password",
 		    "deviceInfo": {
@@ -60,7 +60,7 @@ public class SampleBulkAPIOperations {
 		    "metadata": {}
 		}
 	 */
-	private final static String deviceToBeAdded = "{\"typeId\": \"ManagedDT\",\"deviceId\": "
+	private final static String deviceToBeAdded = "{\"typeId\": \"SampleDT\",\"deviceId\": "
 			+ "\"RasPi100\",\"authToken\": \"password\",\"deviceInfo\": {\"serialNumber\": "
 			+ "\"10087\",\"manufacturer\": \"IBM\",\"model\": \"7865\",\"deviceClass\": "
 			+ "\"A\",\"description\": \"My RasPi01 Device\",\"fwVersion\": \"1.0.0\","
@@ -68,7 +68,9 @@ public class SampleBulkAPIOperations {
 			+ "\"location\": {\"measuredDateTime\": \"2015-23-07T11:23:23+00:00\"    "
 			+ "},    \"metadata\": {}}";
 
-	private final static String deviceToBeDeleted = "{\"typeId\": \"ManagedDT\", \"deviceId\": \"RasPi100\"}";
+	private final static String deviceToBeDeleted1 = "{\"typeId\": \"SampleDT\", \"deviceId\": \"RasPi100\"}";
+	private final static String deviceToBeDeleted2 = "{\"typeId\": \"SampleDT\", \"deviceId\": \"RasPi101\"}";
+	
 	private APIClient apiClient = null;
 	
 	SampleBulkAPIOperations(String filePath) {
@@ -116,11 +118,13 @@ public class SampleBulkAPIOperations {
 	 * @throws Exception 
 	 */
 	private void deleteDevices() throws IoTFCReSTException {
-		JsonElement input = new JsonParser().parse(deviceToBeDeleted);
+		JsonElement device1 = new JsonParser().parse(deviceToBeDeleted1);
+		JsonElement device2 = new JsonParser().parse(deviceToBeDeleted2);
 		JsonArray arryOfDevicesToBeDeleted = new JsonArray();
-		arryOfDevicesToBeDeleted.add(input);
+		arryOfDevicesToBeDeleted.add(device1);
+		arryOfDevicesToBeDeleted.add(device2);
 		try {
-			JsonArray devices = this.apiClient.bulkDevicesRemove(arryOfDevicesToBeDeleted);
+			JsonArray devices = this.apiClient.deleteMultipleDevices(arryOfDevicesToBeDeleted);
 			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
 				JsonElement deviceElement = iterator.next();
 				JsonObject responseJson = deviceElement.getAsJsonObject();
@@ -143,7 +147,7 @@ public class SampleBulkAPIOperations {
 		JsonArray arryOfDevicesToBeAdded = new JsonArray();
 		arryOfDevicesToBeAdded.add(input);
 		try {
-			JsonArray devices = this.apiClient.bulkDevicesAdd(arryOfDevicesToBeAdded);
+			JsonArray devices = this.apiClient.addMultipleDevices(arryOfDevicesToBeAdded);
 			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
 				JsonElement deviceElement = iterator.next();
 				JsonObject responseJson = deviceElement.getAsJsonObject();
@@ -171,8 +175,10 @@ public class SampleBulkAPIOperations {
 		
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
 		parameters.add(new BasicNameValuePair("_sort","deviceId"));
-		JsonObject response = this.apiClient.getDevices(parameters);
+		//parameters.add(new BasicNameValuePair("_limit","2"));
+		JsonObject response = this.apiClient.getAllDevices(parameters);
 		
+		System.out.println(response);
 		// The response will contain more parameters that will be used to issue
 		// the next request. The result element will contain the current list of devices
 		JsonArray devices = response.get("results").getAsJsonArray(); 

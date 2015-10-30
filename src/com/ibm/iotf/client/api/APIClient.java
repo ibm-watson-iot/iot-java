@@ -236,8 +236,9 @@ public class APIClient {
 		   append(deviceId);
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				String result = this.readContent(response, METHOD);
@@ -260,6 +261,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -292,8 +294,9 @@ public class APIClient {
 		   append("/location");
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				String result = this.readContent(response, METHOD);
@@ -312,6 +315,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -347,8 +351,9 @@ public class APIClient {
 		
 		int code = 0;
 		JsonElement jsonResponse = null;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("put", sb.toString(), location.toString(), null);
+			response = connect("put", sb.toString(), location.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200 || code == 409) {
 				String result = this.readContent(response, METHOD);
@@ -371,6 +376,7 @@ public class APIClient {
 		} else if (code == 500) {		
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -403,8 +409,9 @@ public class APIClient {
 		   append("/mgmt");
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				String result = this.readContent(response, METHOD);
@@ -423,6 +430,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -458,8 +466,9 @@ public class APIClient {
 		
 		int code = 0;
 		JsonElement jsonResponse = null;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("put", sb.toString(), propertiesToBeModified.toString(), null);
+			response = connect("put", sb.toString(), propertiesToBeModified.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200 || code == 409) {
 				String result = this.readContent(response, METHOD);
@@ -486,6 +495,7 @@ public class APIClient {
 		} else if (code == 500) {		
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 
@@ -515,8 +525,9 @@ public class APIClient {
 		   append("/");
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				// success
@@ -540,6 +551,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 
@@ -563,7 +575,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException 
 	 */
-	public JsonObject getDevices(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDevices(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getDevices(1)";
 		/**
 		 * Form the url based on this swagger documentation
@@ -575,8 +587,9 @@ public class APIClient {
 		   append("/bulk/devices");
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, parameters);
+			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				// success
@@ -599,6 +612,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -615,8 +629,8 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException 
 	 */
-	public JsonObject getDevices() throws IoTFCReSTException {
-		return getDevices((ArrayList<NameValuePair>)null);
+	public JsonObject getAllDevices() throws IoTFCReSTException {
+		return getAllDevices((ArrayList<NameValuePair>)null);
 	}
 	
 	/**
@@ -655,8 +669,9 @@ public class APIClient {
 		   append(deviceType).append("/devices");
 				   
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, parameters);
+			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				// success
@@ -679,6 +694,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -725,7 +741,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException 
 	 */
-	public JsonObject getDeviceTypes(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDeviceTypes(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getDeviceTypes";
 		/**
 		 * Form the url based on this swagger documentation
@@ -738,9 +754,10 @@ public class APIClient {
 		   append(BASIC_API_V0002_URL).
 		   append("/device/types");
 		
+		HttpResponse response = null;
 		int code = 0;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, parameters);
+			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				// success
@@ -761,11 +778,12 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
 	/**
-	 * This method returns all the devices belonging to the organization. 
+	 * This method returns all the device types belonging to the organization. 
 	 * <p> Invoke the overloaded method, if you want to have control over the response, for example sorting.</p>
 	 * 
 	 * @return A JSON response containing the list of device types. Refer to the
@@ -777,7 +795,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException 
 	 */
 	public JsonObject getDeviceTypes() throws IoTFCReSTException {
-		return getDeviceTypes(null);
+		return getAllDeviceTypes(null);
 	}
 	
 	/**
@@ -804,8 +822,9 @@ public class APIClient {
 		   append(deviceType);
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				String result = this.readContent(response, METHOD);
@@ -828,6 +847,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -843,7 +863,7 @@ public class APIClient {
 	 * 
 	 * @throws IoTFCReSTException 
 	 */
-	public JsonObject updateDeviceType(String deviceType, JsonObject updatedValues) throws IoTFCReSTException {
+	public JsonObject updateDeviceType(String deviceType, JsonElement updatedValues) throws IoTFCReSTException {
 		final String METHOD = "updateDeviceType";
 		/**
 		 * Form the url based on this swagger documentation
@@ -857,8 +877,9 @@ public class APIClient {
 		
 		int code = 0;
 		JsonElement jsonResponse = null;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("put", sb.toString(), updatedValues.toString(), null);
+			response = connect("put", sb.toString(), updatedValues.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200 || code == 409) {
 				String result = this.readContent(response, METHOD);
@@ -885,6 +906,7 @@ public class APIClient {
 		} else if (code == 500) {		
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -901,7 +923,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException 
 	 */
 
-	public JsonObject addDeviceType(JsonObject deviceType) throws IoTFCReSTException {
+	public JsonObject addDeviceType(JsonElement deviceType) throws IoTFCReSTException {
 		
 		final String METHOD = "addDeviceType";
 		/**
@@ -914,9 +936,10 @@ public class APIClient {
 		   append("/device/types");
 		
 		int code = 0;
+		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			HttpResponse response = connect("post", sb.toString(), deviceType.toString(), null);
+			response = connect("post", sb.toString(), deviceType.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 201 || code == 400 || code == 409) {
 				// success
@@ -946,6 +969,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 
@@ -966,7 +990,7 @@ public class APIClient {
 	 */
 
 	public JsonObject addDeviceType(String id, String description, 
-			JsonObject deviceInfo, JsonObject metadata) throws IoTFCReSTException {
+			JsonElement deviceInfo, JsonElement metadata) throws IoTFCReSTException {
 		
 		/**
 		 * Form the url based on this swagger documentation
@@ -992,7 +1016,6 @@ public class APIClient {
 		}
 		
 		return this.addDeviceType(input);
-
 	}
 	
 	/**
@@ -1009,6 +1032,7 @@ public class APIClient {
 	 */
 
 	public boolean deleteDeviceType(String typeId) throws IoTFCReSTException {
+		final String METHOD = "deleteDeviceType";
 		/**
 		 * Form the url based on this swagger documentation
 		 */
@@ -1020,8 +1044,9 @@ public class APIClient {
 		   append(typeId);
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("delete", sb.toString(), null, null);
+			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 204) {
 				return true;
@@ -1033,7 +1058,6 @@ public class APIClient {
 			throw ex;
 		}
 		
-		System.out.println(code);
 		if(code == 401) {
 			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
 		} else if(code == 403) {
@@ -1041,6 +1065,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return false;
 	}
 	
@@ -1056,8 +1081,7 @@ public class APIClient {
 	 * @return JsonArray
 	 * @throws IoTFCReSTException
 	 */
-	public JsonElement getHistoricalEvents() throws IoTFCReSTException {
-		
+	public JsonElement getHistoricalEvents() throws IoTFCReSTException {		
 		return getHistoricalEvents(null, null, null);
 	}
 	
@@ -1075,8 +1099,7 @@ public class APIClient {
 	 * @return JsonArray
 	 * @throws IoTFCReSTException
 	 */
-	public JsonElement getHistoricalEvents(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
-		
+	public JsonElement getHistoricalEvents(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {		
 		return getHistoricalEvents(null, null, parameters);
 	}
 	
@@ -1093,8 +1116,7 @@ public class APIClient {
 	 * @return JsonArray
 	 * @throws IoTFCReSTException
 	 */
-	public JsonElement getHistoricalEvents(String deviceType) throws IoTFCReSTException {
-		
+	public JsonElement getHistoricalEvents(String deviceType) throws IoTFCReSTException {		
 		return getHistoricalEvents(deviceType, null, null);
 	}
 	
@@ -1113,8 +1135,8 @@ public class APIClient {
 	 * @return JsonArray
 	 * @throws IoTFCReSTException
 	 */
-	public JsonElement getHistoricalEvents(String deviceType, ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
-		
+	public JsonElement getHistoricalEvents(String deviceType, 
+			ArrayList<NameValuePair> parameters) throws IoTFCReSTException {		
 		return getHistoricalEvents(deviceType, null, parameters);
 	}
 
@@ -1171,8 +1193,9 @@ public class APIClient {
 		}
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, parameters);
+			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			JsonElement jsonResponse = new JsonParser().parse(result);
@@ -1182,6 +1205,7 @@ public class APIClient {
 					+ "the Historical events. :: "+e.getMessage());
 			ex.initCause(e);
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -1299,8 +1323,9 @@ public class APIClient {
 		}
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, parameters);
+			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			JsonElement jsonResponse = new JsonParser().parse(result);
@@ -1310,6 +1335,7 @@ public class APIClient {
 					+ "the Historical events. :: "+e.getMessage());
 			ex.initCause(e);
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 
@@ -1384,7 +1410,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException 
 	 */
 
-	public JsonObject registerDevice(String typeID, JsonObject device) throws IoTFCReSTException {
+	public JsonObject registerDevice(String typeID, JsonElement device) throws IoTFCReSTException {
 		final String METHOD = "registerDevice";
 		/**
 		 * Form the url based on this swagger documentation
@@ -1399,9 +1425,10 @@ public class APIClient {
 		   append("/devices");
 		
 		int code = 0;
+		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			HttpResponse response = connect("post", sb.toString(), device.toString(), null);
+			response = connect("post", sb.toString(), device.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 201 || code == 400 || code == 409) {
 				// success
@@ -1431,6 +1458,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -1449,6 +1477,7 @@ public class APIClient {
 	 * @throws IOException 
 	 */
 	public boolean deleteDevice(String deviceType, String deviceId) throws IoTFCReSTException {
+		final String METHOD = "deleteDevice";
 		/**
 		 * Form the url based on this swagger documentation
 		 */
@@ -1462,8 +1491,9 @@ public class APIClient {
 		   append(deviceId);
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("delete", sb.toString(), null, null);
+			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 204) {
 				return true;
@@ -1482,6 +1512,8 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		
+		throwException(response, METHOD);
 		return false;
 	}
 	
@@ -1500,7 +1532,7 @@ public class APIClient {
 	 * @throws IOException 
 	 */
 	public boolean clearDiagnosticLogs(String deviceType, String deviceId) throws IoTFCReSTException {
-		String METHOD = "clearDiagnosticLogs";
+		final String METHOD = "clearDiagnosticLogs";
 		
 		/**
 		 * Form the url based on this swagger documentation
@@ -1516,8 +1548,9 @@ public class APIClient {
 		   append("/diag/logs");
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("delete", sb.toString(), null, null);
+			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 204) {
 				return true;
@@ -1532,6 +1565,8 @@ public class APIClient {
 		if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		
+		throwException(response, METHOD);
 		return false;
 	}
 	
@@ -1564,8 +1599,9 @@ public class APIClient {
 		   append("/diag/logs");
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				String result = this.readContent(response, METHOD);
@@ -1577,13 +1613,13 @@ public class APIClient {
 					+ "::"+e.getMessage());
 			ex.initCause(e);
 			throw ex;
-		}
-		
+		}		
 		if(code == 404) {
 			throw new IoTFCReSTException(code, "Device log not found");
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 
@@ -1606,7 +1642,7 @@ public class APIClient {
 	 */
 
 	public boolean addDiagnosticLog(String deviceType, String deviceId, JsonElement log) throws IoTFCReSTException {
-		
+		final String METHOD = "addDiagnosticLog";
 		/**
 		 * Form the url based on this swagger documentation
 		 */
@@ -1621,8 +1657,9 @@ public class APIClient {
 		   append("/diag/logs");
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("post", sb.toString(), log.toString(), null);
+			response = connect("post", sb.toString(), log.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 201 ) {
 				return true;
@@ -1637,6 +1674,7 @@ public class APIClient {
 		if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return false;
 	}
 	
@@ -1658,6 +1696,7 @@ public class APIClient {
 	 * @throws IOException 
 	 */
 	public boolean deleteDiagnosticLog(String deviceType, String deviceId, String logId) throws IoTFCReSTException {
+		final String METHOD = "deleteDiagnosticLog";
 		/**
 		 * Form the url based on this swagger documentation
 		 */
@@ -1673,8 +1712,9 @@ public class APIClient {
 		   append(logId);
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("delete", sb.toString(), null, null);
+			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 204) {
 				return true;
@@ -1689,7 +1729,19 @@ public class APIClient {
 		if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return false;
+	}
+	
+	private void throwException(HttpResponse response, String method) throws IoTFCReSTException {
+		int code = response.getStatusLine().getStatusCode();
+		JsonElement jsonResponse = null;
+		try {
+			String result = this.readContent(response, method);
+			jsonResponse = new JsonParser().parse(result);
+		} catch(Exception e) {}
+		
+		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
 	
 	/**
@@ -1727,8 +1779,9 @@ public class APIClient {
 		   append(logId);
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				String result = this.readContent(response, METHOD);
@@ -1747,6 +1800,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 
@@ -1782,8 +1836,9 @@ public class APIClient {
 		   append("/diag/errorCodes");
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("delete", sb.toString(), null, null);
+			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 204) {
 				return true;
@@ -1798,6 +1853,7 @@ public class APIClient {
 		if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return false;
 	}
 	
@@ -1830,8 +1886,9 @@ public class APIClient {
 		   append("/diag/errorCodes");
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				String result = this.readContent(response, METHOD);
@@ -1850,6 +1907,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 
@@ -1871,7 +1929,7 @@ public class APIClient {
 	 */
 
 	public boolean addDiagnosticErrorCode(String deviceType, String deviceId, JsonElement errorcode) throws IoTFCReSTException {
-		
+		final String METHOD = "addDiagnosticErrorCode";
 		/**
 		 * Form the url based on this swagger documentation
 		 */
@@ -1886,9 +1944,9 @@ public class APIClient {
 		   append("/diag/errorCodes");
 		
 		int code = 0;
-		JsonElement jsonResponse = null;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("post", sb.toString(), errorcode.toString(), null);
+			response = connect("post", sb.toString(), errorcode.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 201) {
 				return true;
@@ -1903,6 +1961,7 @@ public class APIClient {
 		if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return false;
 	}
 
@@ -1936,7 +1995,6 @@ public class APIClient {
 				DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.getPattern());
 		
 		ec.addProperty("timestamp", utcTime);
-		System.out.println(ec.toString());
 		return addDiagnosticErrorCode(deviceType, deviceId, ec);
 	}
 	
@@ -1974,8 +2032,9 @@ public class APIClient {
 		   append(deviceId);
 		
 		int code = 0;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				String result = this.readContent(response, METHOD);
@@ -1998,6 +2057,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -2017,7 +2077,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException 
 	 */
 
-	public JsonArray bulkDevicesAdd(JsonArray arryOfDevicesToBeAdded) throws IoTFCReSTException {
+	public JsonArray addMultipleDevices(JsonArray arryOfDevicesToBeAdded) throws IoTFCReSTException {
 		final String METHOD = "bulkDevicesAdd";		
 		/**
 		 * Form the url based on this swagger documentation
@@ -2030,8 +2090,9 @@ public class APIClient {
 
 		int code = 0;
 		JsonElement jsonResponse = null;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("post", sb.toString(), arryOfDevicesToBeAdded.toString(), null);
+			response = connect("post", sb.toString(), arryOfDevicesToBeAdded.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code != 500) {
 				// success
@@ -2060,7 +2121,7 @@ public class APIClient {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
 		
-		return null;
+		throw new IoTFCReSTException(code, "",jsonResponse);
 	}
 	
 	/**
@@ -2074,7 +2135,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException
 	 */
-	public JsonArray bulkDevicesRemove(JsonArray arryOfDevicesToBeDeleted) throws IoTFCReSTException {
+	public JsonArray deleteMultipleDevices(JsonArray arryOfDevicesToBeDeleted) throws IoTFCReSTException {
 		final String METHOD = "bulkDevicesRemove";
 		/**
 		 * Form the url based on this swagger documentation
@@ -2086,9 +2147,10 @@ public class APIClient {
 		   append("/bulk/devices/remove");
 
 		int code = 0;
+		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			HttpResponse response = connect("post", sb.toString(), arryOfDevicesToBeDeleted.toString(), null);
+			response = connect("post", sb.toString(), arryOfDevicesToBeDeleted.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code != 500) {
 				// success
@@ -2114,7 +2176,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}
-		return null;
+		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
 	
 	/**
@@ -2137,9 +2199,10 @@ public class APIClient {
 		   append("/mgmt/requests");
 		
 		int code = 0;
+		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				String result = this.readContent(response, METHOD);
@@ -2156,6 +2219,7 @@ public class APIClient {
 		if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -2181,9 +2245,10 @@ public class APIClient {
 		   append("/mgmt/requests");
 		
 		int code = 0;
+		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			HttpResponse response = connect("post", sb.toString(), request.toString(), null);
+			response = connect("post", sb.toString(), request.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 202) {
 				return true;
@@ -2199,7 +2264,7 @@ public class APIClient {
 		if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
 		}
-		return false;
+		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
 	
 
@@ -2229,8 +2294,9 @@ public class APIClient {
 
 		int code = 0;
 		JsonElement jsonResponse = null;
+		HttpResponse response = null;
 		try {
-			HttpResponse response = connect("delete", sb.toString(), null, null);
+			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 204) {
 				return true;
@@ -2246,7 +2312,7 @@ public class APIClient {
 		if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
 		}
-		return false;
+		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
 	
 	/**
@@ -2270,9 +2336,10 @@ public class APIClient {
 		   append("/mgmt/requests/").append(requestId);
 		
 		int code = 0;
+		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200 || code == 500) {
 				String result = this.readContent(response, METHOD);
@@ -2292,6 +2359,7 @@ public class APIClient {
 		} else if(code == 410) {
 			throw new IoTFCReSTException(500, "Request status no longer available");
 		}
+		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -2333,9 +2401,10 @@ public class APIClient {
 		parameters.add(new BasicNameValuePair("detail", Boolean.toString(detail)));
 		
 		int code = 0;
+		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, parameters);
+			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
@@ -2354,7 +2423,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
 		}
-		return null;
+		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
 	
 	/**
@@ -2394,9 +2463,10 @@ public class APIClient {
 		parameters.add(new BasicNameValuePair("detail", Boolean.toString(detail)));
 		
 		int code = 0;
+		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, parameters);
+			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
@@ -2415,7 +2485,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
 		}
-		return null;
+		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
 	
 	/**
@@ -2455,9 +2525,10 @@ public class APIClient {
 		parameters.add(new BasicNameValuePair("detail", Boolean.toString(detail)));
 		
 		int code = 0;
+		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, parameters);
+			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
@@ -2476,7 +2547,7 @@ public class APIClient {
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
 		}
-		return null;
+		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
 	
 	/**
@@ -2499,9 +2570,10 @@ public class APIClient {
 		   append("/service-status");
 		
 		int code = 0;
+		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			HttpResponse response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
@@ -2518,6 +2590,6 @@ public class APIClient {
 		if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
 		}
-		return null;
+		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
 }

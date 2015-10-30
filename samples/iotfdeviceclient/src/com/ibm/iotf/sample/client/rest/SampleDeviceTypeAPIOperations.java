@@ -43,8 +43,8 @@ public class SampleDeviceTypeAPIOperations {
 	 * Example Json format to add a device type
 	 * 
 	 * {
-		  "id": "SampleDT1",
-		  "description": "SampleDT1",
+		  "id": "SampleDT",
+		  "description": "SampleDT",
 		  "deviceInfo": {
 		        "fwVersion": "1.0.0",
 		    "hwVersion": "1.0"
@@ -54,8 +54,12 @@ public class SampleDeviceTypeAPIOperations {
 		  }
 	 * }
 	 */
-	private final static String deviceTypeToBeAdded = "{\"id\": \"SampleDT1\",\"description\": "
-			+ "\"SampleDT1\",\"deviceInfo\": {\"fwVersion\": \"1.0.0\",\"hwVersion\": \"1.0\"},\"metadata\": {}}";
+	private final static String deviceTypeToBeAdded = "{\"id\": \"SampleDT\",\"description\": "
+			+ "\"SampleDT\",\"deviceInfo\": {\"fwVersion\": \"1.0.0\",\"hwVersion\": \"1.0\"},\"metadata\": {}}";
+	
+	private final static String deviceInfoToBeAdded = "{\"fwVersion\": \"1.0.0\",\"hwVersion\": \"1.0\"}";
+	
+	private final static String metaDataToBeAdded = "{\"hello\": \"I'm metadata\"}";
 	
 	private APIClient apiClient = null;
 	
@@ -88,7 +92,7 @@ public class SampleDeviceTypeAPIOperations {
 		sample.getAllDeviceTypes();
 		sample.addDeviceType();
 		sample.deleteDeviceType();
-		sample.addDeviceType();
+		sample.addDeviceTypeWithMoreParameters();
 		sample.getDeviceType();
 		sample.updateDeviceType();
 	}
@@ -99,7 +103,7 @@ public class SampleDeviceTypeAPIOperations {
 	 */
 	private void deleteDeviceType() throws IoTFCReSTException {
 		try {
-			boolean status = this.apiClient.deleteDeviceType("SampleDT1");
+			boolean status = this.apiClient.deleteDeviceType("SampleDT");
 			System.out.println(status);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
@@ -114,8 +118,29 @@ public class SampleDeviceTypeAPIOperations {
 	 */
 	private void addDeviceType() throws IoTFCReSTException {
 		try {
-			JsonElement input = new JsonParser().parse(deviceTypeToBeAdded);
-			JsonObject response = this.apiClient.addDeviceType((JsonObject) input);
+			JsonElement type = new JsonParser().parse(deviceTypeToBeAdded);
+			JsonObject response = this.apiClient.addDeviceType(type);
+			System.out.println(response);
+		} catch(IoTFCReSTException e) {
+			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
+		}
+	}
+	
+	/**
+	 * This sample showcases how to Create a device type using the Java Client Library. 
+	 * @throws IoTFCReSTException
+	 */
+	private void addDeviceTypeWithMoreParameters() throws IoTFCReSTException {
+		try {
+			JsonParser parser = new JsonParser();
+			JsonElement deviceInfo = parser.parse(deviceInfoToBeAdded);
+			JsonElement metadata = parser.parse(metaDataToBeAdded);
+			
+			JsonObject response = this.apiClient.addDeviceType("SampleDT", 
+					"sample description", deviceInfo, metadata);
+			
 			System.out.println(response);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
@@ -130,7 +155,7 @@ public class SampleDeviceTypeAPIOperations {
 	 */
 	private void getDeviceType() throws IoTFCReSTException {
 		try {
-			JsonObject response = this.apiClient.getDeviceType("SampleDT1");
+			JsonObject response = this.apiClient.getDeviceType("SampleDT");
 			System.out.println(response);
 		}  catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
@@ -147,7 +172,7 @@ public class SampleDeviceTypeAPIOperations {
 		try {
 			JsonObject json = new JsonObject();
 			json.addProperty("description", "Hello, I'm updated description");
-			JsonObject response = this.apiClient.updateDeviceType("SampleDT1", json);
+			JsonObject response = this.apiClient.updateDeviceType("SampleDT", json);
 			System.out.println(response);
 		}  catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
@@ -172,7 +197,7 @@ public class SampleDeviceTypeAPIOperations {
 		parameters.add(new BasicNameValuePair("_sort","id"));
 		
 		try {
-			JsonObject response = this.apiClient.getDeviceTypes(parameters);
+			JsonObject response = this.apiClient.getAllDeviceTypes(parameters);
 			
 			
 			// The response will contain more parameters that will be used to issue

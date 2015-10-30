@@ -136,6 +136,8 @@ public class SampleDeviceAPIOperations {
 			System.out.println(status);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 		
 	}
@@ -148,16 +150,22 @@ public class SampleDeviceAPIOperations {
 		try{
 			JsonParser parser = new JsonParser();
 			JsonElement input = parser.parse(deviceToBeAdded);
-			JsonObject response = this.apiClient.registerDevice(DEVICE_TYPE, (JsonObject) input);
+			JsonObject response = this.apiClient.registerDevice(DEVICE_TYPE, input);
 			System.out.println(response);
 			
 			// Lets add device with different API that accepts more args,
 			
+			JsonElement deviceInfo = parser.parse(deviceInfoToBeAdded);
+			JsonElement location = parser.parse(locationToBeAdded);
+			
 			response = this.apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, "Password", 
-					parser.parse(deviceInfoToBeAdded), parser.parse(locationToBeAdded), null);
+					deviceInfo, location, null);
+			
 			System.out.println(response);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 	}
 	
@@ -171,6 +179,8 @@ public class SampleDeviceAPIOperations {
 			System.out.println(response);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 	}
 	
@@ -184,6 +194,8 @@ public class SampleDeviceAPIOperations {
 			System.out.println(response);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 	}
 	
@@ -198,6 +210,8 @@ public class SampleDeviceAPIOperations {
 			System.out.println(response);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 	}
 	
@@ -211,6 +225,8 @@ public class SampleDeviceAPIOperations {
 			System.out.println(response);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 	}
 
@@ -229,6 +245,8 @@ public class SampleDeviceAPIOperations {
 			System.out.println(response);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 	}
 
@@ -260,6 +278,8 @@ public class SampleDeviceAPIOperations {
 			}
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 	}
 }

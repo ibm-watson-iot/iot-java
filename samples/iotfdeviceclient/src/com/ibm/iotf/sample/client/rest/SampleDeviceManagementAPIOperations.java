@@ -82,6 +82,7 @@ public class SampleDeviceManagementAPIOperations {
 		}
 		
 		SampleDeviceManagementAPIOperations sample = new SampleDeviceManagementAPIOperations(fileName);
+		sample.initiateMgmtRequest();
 		sample.getMgmtRequests();
 		sample.initiateMgmtRequest();
 		sample.deleteMgmtRequest();
@@ -103,6 +104,8 @@ public class SampleDeviceManagementAPIOperations {
 			}
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 		
 	}
@@ -118,6 +121,8 @@ public class SampleDeviceManagementAPIOperations {
 			System.out.println(response);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 	}
 	
@@ -140,6 +145,8 @@ public class SampleDeviceManagementAPIOperations {
 			System.out.println("Delete status: "+status);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 		
 	}
@@ -158,6 +165,8 @@ public class SampleDeviceManagementAPIOperations {
 			System.out.println(details);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 		
 	}

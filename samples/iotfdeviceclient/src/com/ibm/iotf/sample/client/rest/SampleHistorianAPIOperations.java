@@ -84,6 +84,7 @@ public class SampleHistorianAPIOperations {
 			parameters.add(new BasicNameValuePair("evt_type", "blink"));
 			parameters.add(new BasicNameValuePair("start", "1445420849839"));
 			JsonElement response = this.apiClient.getHistoricalEvents(parameters);
+
 			// The response will contain more parameters that will be used to issue
 			// the next request. The events element will contain the current list of devices
 			JsonArray events = response.getAsJsonObject().get("events").getAsJsonArray(); 
