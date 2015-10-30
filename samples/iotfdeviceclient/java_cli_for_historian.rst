@@ -162,7 +162,7 @@ Device Type operations
 Applications can use device type opertions to list all, create, delete, view and update device types in Internet of Things Foundation.
 
 Get all Device Types
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Method getAllDeviceTypes() can be used to retrieve all the registered device types in an organization from Internet of Things Foundation. For example,
 
@@ -192,7 +192,7 @@ The above snippet sorts the response based on device type id and uses the bookma
 Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the list of query parameters to control the output and also the response mode.
 
 Add a Device Type
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Method addDeviceType() can be used to register a device type to Internet of Things Foundation. For example,
 
@@ -226,7 +226,7 @@ Application can use a overloaded method that accepts more parameters to add a de
 Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response code and model.
 
 Delete a Device Type
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Method deleteDeviceType() can be used to delete a device type from Internet of Things Foundation. For example,
 
@@ -238,7 +238,7 @@ Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.i
 
 
 Get a Device Type
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Method getDeviceType() can be used to retrieve a device type from Internet of Things Foundation. For example,
 
@@ -249,7 +249,7 @@ Method getDeviceType() can be used to retrieve a device type from Internet of Th
 Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response code and response model.
 
 Update a Device Type
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Method updateDeviceType() can be used to modify one or more properties of a device type. The properties that needs to be modified should be passed in JSON format, For example,
 
@@ -262,6 +262,7 @@ Method updateDeviceType() can be used to modify one or more properties of a devi
 Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the Json format to be passed and the response.
 
 ----
+
 Examples
 -------------
 * `RegisteredApplicationSubscribeSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/RegisteredApplicationSubscribeSample.java>`__ - A sample application that shows how to subscribe for various events like, device events, device commands, device status and application status.
