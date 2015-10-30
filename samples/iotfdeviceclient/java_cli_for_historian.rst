@@ -170,7 +170,6 @@ Method getAllDeviceTypes() can be used to retrieve all the registered device typ
 
     JsonObject response = apiClient.getAllDeviceTypes(parameters);
     
-
 The reponse will contain more paramters and application needs to retrieve the JSON element *results* from the response to get the array of device types returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
 In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in org.apache.http.message.BasicNameValuePair as shown below,
@@ -486,7 +485,7 @@ Method getAllDiagnosticErrorCodes() can be used to retrieve all diagnostic Error
     JsonArray response = apiClient.getAllDiagnosticErrorCodes(DEVICE_TYPE, DEVICE_ID);
 
 Add a Diagnostic ErrorCode
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Method addDiagnosticLog() can be used to add an error code to the list of error codes for the device. The list may be pruned as the new entry is added. For example,
 
@@ -504,6 +503,91 @@ An overloaded method can be used to add errorcode in JSON format as well,
     JsonParser parser = new JsonParser();
     JsonElement errorcode = parser.parse(errorcodeToBeAdded);
     boolean status = this.apiClient.addDiagnosticErrorCode(DEVICE_TYPE, DEVICE_ID, errorcode);
+
+----
+
+Connection problem determination
+----------------------------------
+
+Method getDeviceConnectLogs() can be used to list connection log events for a device to aid in diagnosing connectivity problems. The entries record successful connection, unsuccessful connection attempts, intentional disconnection and server-initiated disconnection.
+
+.. code:: java
+
+    JsonArray response = apiClient.getDeviceConnectLogs(DEVICE_TYPE, DEVICE_ID);
+
+Refer to the Problem Determination section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the possible response and errorcodes.
+
+----
+
+Historical Event Retrieval
+----------------------------------
+Application can use this operation to view events from all devices, view events from a device type and view events for a specific device.
+
+Refer to the Historical Event Retrieval section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the possible schema, response and errorcodes.
+
+View events from all devices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getHistoricalEvents() can be used to view events across all devices registered to the organization.
+
+.. code:: java
+
+    JsonElement response = apiClient.getHistoricalEvents();
+
+The reponse will contain more paramters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+
+In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in org.apache.http.message.BasicNameValuePair as shown below,
+
+.. code:: java
+
+    parameters.add(new BasicNameValuePair("evt_type", "blink"));
+    parameters.add(new BasicNameValuePair("start", "1445420849839"));
+    
+    JsonElement response = this.apiClient.getHistoricalEvents(parameters);
+
+The above snippet returns the events which are of type *blink* and received after time *1445420849839*.
+
+View events from a device type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getHistoricalEvents() can be used to view events from all the devices of a particular device type. 
+
+.. code:: java
+
+    JsonElement response = this.apiClient.getHistoricalEvents(DEVICE_TYPE);
+
+The reponse will contain more paramters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. As mentioned in the *view events from all devices* section, the overloaded method can be used to control the output.
+
+.. code:: java
+
+    parameters.add(new BasicNameValuePair("evt_type", "blink"));
+    parameters.add(new BasicNameValuePair("summarize", "{cpu,mem}"));
+    parameters.add(new BasicNameValuePair("summarize_type", "avg"));
+    
+    JsonElement response = this.apiClient.getHistoricalEvents("SampleDT", parameters);
+			
+The above snippet returns the events which are of device type *SampleDT*, event type *blink* and aggregates the fields *cpu* & *mem* and computes the average.
+
+View events from a device
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getHistoricalEvents() can be used to view events from a specific device.
+
+.. code:: java
+
+    JsonElement response = this.apiClient.getHistoricalEvents(DEVICE_TYPE, DEVICE_ID);
+
+The reponse will contain more paramters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. As mentioned in the *view events from all devices* section, the overloaded method can be used to control the output.
+
+.. code:: java
+
+    parameters.add(new BasicNameValuePair("evt_type", "blink"));
+    parameters.add(new BasicNameValuePair("summarize", "{cpu,mem}"));
+    parameters.add(new BasicNameValuePair("summarize_type", "avg"));
+    
+    JsonElement response = apiClient.getHistoricalEvents("SampleDT", "RasPi100", parameters);
+			
+The above snippet returns the events which are of device *RasPi100*, event type *blink* and aggregates the fields *cpu* & *mem* and computes the average.
 
 ----
 
