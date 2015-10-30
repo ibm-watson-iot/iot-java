@@ -74,11 +74,11 @@ Applications can use bulk opertions to get, add or remove devices in bulk from I
 Get Devices in bulk
 ~~~~~~~~~~~~~~~~~~~
 
-Method getDevices() can be used to retrieve all the registered devices in an organization from Internet of Things Foundation, each request can contain a maximum of 512KB. For example,
+Method getAllDevices() can be used to retrieve all the registered devices in an organization from Internet of Things Foundation, each request can contain a maximum of 512KB. For example,
 
 .. code:: java
 
-    JsonObject response = apiClient.getDevices();
+    JsonObject response = apiClient.getAllDevices();
     
 
 The reponse will contain more paramters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
@@ -95,7 +95,7 @@ In order to pass the *_bookmark* or any other condition, the overloaded method m
     parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
     parameters.add(new BasicNameValuePair("_sort","deviceId"));
     
-    JsonObject response = apiClient.getDevices(parameters);
+    JsonObject response = apiClient.getAllDevices(parameters);
 		
 The above snippet sorts the response based on device id and uses the bookmark to page through the results.
 
@@ -104,7 +104,7 @@ Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://doc
 Register Devices in bulk
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method bulkDevicesAdd() can be used to register one or more devices to Internet of Things Foundation, each request can contain a maximum of 512KB. For example,
+Method addMultipleDevices() can be used to register one or more devices to Internet of Things Foundation, each request can contain a maximum of 512KB. For example,
 
 .. code:: java
 
@@ -124,7 +124,7 @@ Method bulkDevicesAdd() can be used to register one or more devices to Internet 
     JsonArray arryOfDevicesToBeAdded = new JsonArray();
     arryOfDevicesToBeAdded.add(input);
     
-    JsonArray response = apiClient.bulkDevicesAdd(arryOfDevicesToBeAdded);
+    JsonArray response = apiClient.addMultipleDevices(arryOfDevicesToBeAdded);
     
 The response will contain the generated authentication tokens for all devices. Application must make sure to record these tokens when processing the response. The Internet of Things Foundation will not able to retrieve lost authentication tokens. 
 
@@ -133,7 +133,7 @@ Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://doc
 Delete Devices in bulk
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method bulkDevicesRemove() can be used delete multiple devices from Internet of Things Foundation, each request can contain a maximum of 512KB. For example,
+Method deleteMultipleDevices() can be used to delete multiple devices from Internet of Things Foundation, each request can contain a maximum of 512KB. For example,
 
 .. code:: java
 
@@ -150,7 +150,7 @@ Method bulkDevicesRemove() can be used delete multiple devices from Internet of 
     arryOfDevicesToBeDeleted.add(device1);
     arryOfDevicesToBeDeleted.add(device2);
     
-    JsonArray devices = apiClient.bulkDevicesRemove(arryOfDevicesToBeDeleted);
+    JsonArray devices = apiClient.deleteMultipleDevices(arryOfDevicesToBeDeleted);
 	
 Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response codes and model.
 
@@ -260,6 +260,155 @@ Method updateDeviceType() can be used to modify one or more properties of a devi
     JsonObject response = this.apiClient.updateDeviceType("SampleDT", json);
 
 Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the Json format to be passed and the response.
+
+----
+
+Device operations
+----------------------------------------------------
+
+Applications can use device opertions to list, add, remove, view, update, view location and view management information of a device in Internet of Things Foundation.
+
+Get Devices of a particular Device Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDevices() can be used to retrieve all the devices of a particular device type in an organization from Internet of Things Foundation. For example,
+
+.. code:: java
+
+    JsonObject response = apiClient.getDevices("SampleDT");
+    
+The reponse will contain more paramters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+
+In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in org.apache.http.message.BasicNameValuePair as shown below,
+
+.. code:: java
+
+    import org.apache.http.message.BasicNameValuePair;
+    
+    ...
+    
+    ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
+    parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
+    parameters.add(new BasicNameValuePair("_sort","deviceId"));
+    
+    JsonObject response = apiClient.getDevices("SampleDT", parameters);
+		
+The above snippet sorts the response based on device id and uses the bookmark to page through the results.
+
+Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the list of query parameters to control the output and also the response mode.
+
+Add a Device
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Method registerDevice() can be used to register a device to Internet of Things Foundation. For example,
+
+.. code:: java
+
+    // A sample JSON respresentation of different properties of a Device to be added
+    
+    private final static String locationToBeAdded = "{\"longitude\": 0, \"latitude\": 0, \"elevation\": "
+			+ "0,\"measuredDateTime\": \"2015-23-07T11:23:23+00:00\"}";
+	
+    private final static String deviceInfoToBeAdded = "{\"serialNumber\": "
+			+ "\"10087\",\"manufacturer\": \"IBM\",\"model\": \"7865\",\"deviceClass\": "
+			+ "\"A\",\"description\": \"My RasPi100 Device\",\"fwVersion\": \"1.0.0\","
+			+ "\"hwVersion\": \"1.0\",\"descriptiveLocation\": \"EGL C\"}";
+    ....
+		
+    JsonParser parser = new JsonParser();
+    JsonElement deviceInfo = parser.parse(deviceInfoToBeAdded);
+    JsonElement location = parser.parse(locationToBeAdded);
+    JsonObject response = this.apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, "Password", 
+					deviceInfo, location, null);
+
+Application can use a overloaded method that accepts entire device properties in one JSON element and registers the device,
+
+.. code:: java
+
+    JsonParser parser = new JsonParser();
+    // deviceToBeAdded contains the JSON representation of device properties
+    JsonElement input = parser.parse(deviceToBeAdded); 
+    
+    JsonObject response = apiClient.registerDevice(DEVICE_TYPE, input);
+    
+Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response code and model.
+
+Delete a Device
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method deleteDevice() can be used to delete a device from Internet of Things Foundation. For example,
+
+.. code:: java
+
+    status = apiClient.deleteDevice("SampleDT", "RasPi100");
+    
+Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response code.
+
+
+Get a Device
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDevice() can be used to retrieve a device from Internet of Things Foundation. For example,
+
+.. code:: java
+
+    JsonObject response = apiClient.getDevice("SampleDT", "RasPi100");
+    
+Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response code and response model.
+
+Update a Device
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method updateDevice() can be used to modify one or more properties of a device. The properties that needs to be modified should be passed in JSON format, For example, to update the device metadata,
+
+.. code:: java
+    
+    JsonObject metadata = new JsonObject();
+    metadata.addProperty("Hi", "Hello, I'm updated metadata");
+    JsonObject updatedMetadata = new JsonObject();
+    updatedMetadata.add("metadata", metadata);
+    
+    JsonObject response = apiClient.updateDevice("Sample DT", "RasPi100", updatedMetadata);
+
+Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the Json format to be passed and the response.
+
+Get Location Information
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDeviceLocation() can be used to get the location information of a device. For example, 
+
+.. code:: java
+    
+    JsonObject response = apiClient.getDeviceLocation("Sample DT", "RasPi100");
+
+Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the Json format to be passed and the response.
+
+Update Location Information
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method updateDeviceLocation() can be used to modify the location information for a device. If no date is supplied, the entry is added with the current date and time. For example,
+
+.. code:: java
+    
+    private final static String newlocationToBeAdded = "{\"longitude\": 10, \"latitude\": 20, \"elevation\": 0}";
+    
+    ...
+    
+    JsonElement newLocation = new JsonParser().parse(newlocationToBeAdded);
+    JsonObject response = apiClient.updateDeviceLocation("SampleDT", "RasPi100", newLocation);
+
+Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the Json format to be passed and the response.
+
+Get Device Management Information
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDeviceMgmtInformation() can be used to get the device management information for a device. For example, 
+
+.. code:: java
+    
+    JsonObject response = apiClient.getDeviceMgmtInformation("Sample DT", "RasPi100");
+
+Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the Json format to be passed and the response.
 
 ----
 
