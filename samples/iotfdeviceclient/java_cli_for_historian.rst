@@ -71,6 +71,8 @@ Bulk device operations
 
 Applications can use bulk opertions to get, add or remove devices in bulk from Internet of Things Foundation.
 
+Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
+
 Get Devices in bulk
 ~~~~~~~~~~~~~~~~~~~
 
@@ -99,8 +101,6 @@ In order to pass the *_bookmark* or any other condition, the overloaded method m
 		
 The above snippet sorts the response based on device id and uses the bookmark to page through the results.
 
-Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the list of query parameters to control the output and also the response mode.
-
 Register Devices in bulk
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -128,8 +128,6 @@ Method addMultipleDevices() can be used to register one or more devices to Inter
     
 The response will contain the generated authentication tokens for all devices. Application must make sure to record these tokens when processing the response. The Internet of Things Foundation will not able to retrieve lost authentication tokens. 
 
-Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response codes and model.
-
 Delete Devices in bulk
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -152,14 +150,14 @@ Method deleteMultipleDevices() can be used to delete multiple devices from Inter
     
     JsonArray devices = apiClient.deleteMultipleDevices(arryOfDevicesToBeDeleted);
 	
-Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response codes and model.
-
 ----
 
 Device Type operations
 ----------------------------------------------------
 
 Applications can use device type opertions to list all, create, delete, view and update device types in Internet of Things Foundation.
+
+Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
 
 Get all Device Types
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -187,8 +185,6 @@ In order to pass the *_bookmark* or any other condition, the overloaded method m
     JsonObject response = apiClient.getAllDeviceTypes(parameters);
 		
 The above snippet sorts the response based on device type id and uses the bookmark to page through the results.
-
-Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the list of query parameters to control the output and also the response mode.
 
 Add a Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -222,8 +218,6 @@ Application can use a overloaded method that accepts more parameters to add a de
     JsonElement metadata = parser.parse(metaDataToBeAdded);
     JsonObject response = apiClient.addDeviceType("SampleDT", "sample description", deviceInfo, metadata);
     
-Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response code and model.
-
 Delete a Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -233,9 +227,6 @@ Method deleteDeviceType() can be used to delete a device type from Internet of T
 
     boolean status = this.apiClient.deleteDeviceType("SampleDT");
     
-Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response code.
-
-
 Get a Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -245,8 +236,6 @@ Method getDeviceType() can be used to retrieve a device type from Internet of Th
 
     JsonObject response = this.apiClient.getDeviceType("SampleDT");
     
-Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response code and response model.
-
 Update a Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -258,14 +247,14 @@ Method updateDeviceType() can be used to modify one or more properties of a devi
     json.addProperty("description", "Hello, I'm updated description");
     JsonObject response = this.apiClient.updateDeviceType("SampleDT", json);
 
-Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the Json format to be passed and the response.
-
 ----
 
 Device operations
 ----------------------------------------------------
 
 Applications can use device opertions to list, add, remove, view, update, view location and view management information of a device in Internet of Things Foundation.
+
+Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
 
 Get Devices of a particular Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -293,8 +282,6 @@ In order to pass the *_bookmark* or any other condition, the overloaded method m
     JsonObject response = apiClient.getDevices("SampleDT", parameters);
 		
 The above snippet sorts the response based on device id and uses the bookmark to page through the results.
-
-Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the list of query parameters to control the output and also the response mode.
 
 Add a Device
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -330,8 +317,6 @@ Application can use a overloaded method that accepts entire device properties in
     
     JsonObject response = apiClient.registerDevice(DEVICE_TYPE, input);
     
-Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response code and model.
-
 Delete a Device
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -341,9 +326,6 @@ Method deleteDevice() can be used to delete a device from Internet of Things Fou
 
     status = apiClient.deleteDevice("SampleDT", "RasPi100");
     
-Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response code.
-
-
 Get a Device
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -353,8 +335,6 @@ Method getDevice() can be used to retrieve a device from Internet of Things Foun
 
     JsonObject response = apiClient.getDevice("SampleDT", "RasPi100");
     
-Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the response code and response model.
-
 Update a Device
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -369,8 +349,6 @@ Method updateDevice() can be used to modify one or more properties of a device. 
     
     JsonObject response = apiClient.updateDevice("Sample DT", "RasPi100", updatedMetadata);
 
-Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the Json format to be passed and the response.
-
 Get Location Information
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -379,8 +357,6 @@ Method getDeviceLocation() can be used to get the location information of a devi
 .. code:: java
     
     JsonObject response = apiClient.getDeviceLocation("Sample DT", "RasPi100");
-
-Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the Json format to be passed and the response.
 
 Update Location Information
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -396,8 +372,6 @@ Method updateDeviceLocation() can be used to modify the location information for
     JsonElement newLocation = new JsonParser().parse(newlocationToBeAdded);
     JsonObject response = apiClient.updateDeviceLocation("SampleDT", "RasPi100", newLocation);
 
-Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the Json format to be passed and the response.
-
 Get Device Management Information
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -407,8 +381,6 @@ Method getDeviceMgmtInformation() can be used to get the device management infor
     
     JsonObject response = apiClient.getDeviceMgmtInformation("Sample DT", "RasPi100");
 
-Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the Json format to be passed and the response.
-
 ----
 
 Device diagnostic operations
@@ -416,6 +388,17 @@ Device diagnostic operations
 
 Applications can use Device diagnostic opertions to clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Foundation.
 
+Refer to the Device Diagnostics section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
+
+Get Diagnostic logs
+~~~~~~~~~~~~~~~~~~~~~~
+
+Method getAllDiagnosticLogs() can be used to get all diagnostic logs of the device. For example,
+
+.. code:: java
+
+    JsonArray response = apiClient.getAllDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
+    
 Clear Diagnostic logs 
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -425,15 +408,6 @@ Method clearDiagnosticLogs() can be used to clear the diagnostic logs of the dev
 
     boolean status = apiClient.clearDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
     
-Get Diagnostic logs
-~~~~~~~~~~~~~~~~~~~~~~
-
-Method getAllDiagnosticLogs() can be used to get all diagnostic logs of the device. For example,
-
-.. code:: java
-
-    JsonArray response = apiClient.getAllDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
-
 Add a Diagnostic log
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -448,6 +422,15 @@ Method addDiagnosticLog() can be used to add an entry in the log of diagnostic i
     
     JsonArray response = apiClient.getAllDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
 
+Get a Diagnostic log
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDiagnosticLog() can be used to retrieve a diagnostic log based on the log id. For example,
+
+.. code:: java
+
+    JsonObject log = apiClient.getDiagnosticLog(DEVICE_TYPE, DEVICE_ID, "<logid>");
+    
 Delete a Diagnostic log
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -457,14 +440,6 @@ Method deleteDiagnosticLog() can be used to delete a diagnostic log based on the
 
     boolean status = apiClient.deleteDiagnosticLog(DEVICE_TYPE, DEVICE_ID, "<logid>");
     
-Get a Diagnostic log
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Method getDiagnosticLog() can be used to retrieve a diagnostic log based on the log id. For example,
-
-.. code:: java
-
-    JsonObject log = apiClient.getDiagnosticLog(DEVICE_TYPE, DEVICE_ID, "<logid>");
 
 Clear Diagnostic ErrorCodes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -515,7 +490,7 @@ Method getDeviceConnectLogs() can be used to list connection log events for a de
 
     JsonArray response = apiClient.getDeviceConnectLogs(DEVICE_TYPE, DEVICE_ID);
 
-Refer to the Problem Determination section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the possible response and errorcodes.
+Refer to the Problem Determination section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
 
 ----
 
@@ -523,7 +498,7 @@ Historical Event Retrieval
 ----------------------------------
 Application can use this operation to view events from all devices, view events from a device type and view events for a specific device.
 
-Refer to the Historical Event Retrieval section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the possible schema, response and errorcodes.
+Refer to the Historical Event Retrieval section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
 
 View events from all devices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
