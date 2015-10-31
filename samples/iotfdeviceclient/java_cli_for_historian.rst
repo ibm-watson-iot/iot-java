@@ -45,7 +45,7 @@ The following code snippet shows how to construct the APIClient instance using t
 Response and Exception
 ----------------------
 
-Each method in the APIClient responds with either a valid response (JSON or boolean) in the case of sucess or com.ibm.iotf.client.IoTFCReSTException in the case of failure. The IoTFCReSTException contains the following properties that application can parse to get more information about the failure.
+Each method in the APIClient responds with either a valid response (JSON or boolean) in the case of success or com.ibm.iotf.client.IoTFCReSTException in the case of failure. The IoTFCReSTException contains the following properties that application can parse to get more information about the failure.
 
 * httpcode - HTTP Status Code
 * message - Exception message containing the reason for the failure
@@ -62,14 +62,14 @@ Applications can view the Organization details by using the following code snipp
 
     JsonObject orgDetail = apiClient.getOrganizationDetails();
 
-Refer to the Organization Configuration section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for more information about the possible response and errorcodes.
+Refer to the Organization Configuration section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
 
 ----
 
 Bulk device operations
 ----------------------------------------------------
 
-Applications can use bulk opertions to get, add or remove devices in bulk from Internet of Things Foundation.
+Applications can use bulk operations to get, add or remove devices in bulk from Internet of Things Foundation.
 
 Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
 
@@ -83,7 +83,7 @@ Method getAllDevices() can be used to retrieve all the registered devices in an 
     JsonObject response = apiClient.getAllDevices();
     
 
-The reponse will contain more paramters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
 In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in org.apache.http.message.BasicNameValuePair as shown below,
 
@@ -155,7 +155,7 @@ Method deleteMultipleDevices() can be used to delete multiple devices from Inter
 Device Type operations
 ----------------------------------------------------
 
-Applications can use device type opertions to list all, create, delete, view and update device types in Internet of Things Foundation.
+Applications can use device type operations to list all, create, delete, view and update device types in Internet of Things Foundation.
 
 Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
 
@@ -168,16 +168,12 @@ Method getAllDeviceTypes() can be used to retrieve all the registered device typ
 
     JsonObject response = apiClient.getAllDeviceTypes(parameters);
     
-The reponse will contain more paramters and application needs to retrieve the JSON element *results* from the response to get the array of device types returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device types returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
 In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in org.apache.http.message.BasicNameValuePair as shown below,
 
 .. code:: java
 
-    import org.apache.http.message.BasicNameValuePair;
-    
-    ...
-    
     ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
     parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
     parameters.add(new BasicNameValuePair("_sort","id"));
@@ -252,7 +248,7 @@ Method updateDeviceType() can be used to modify one or more properties of a devi
 Device operations
 ----------------------------------------------------
 
-Applications can use device opertions to list, add, remove, view, update, view location and view management information of a device in Internet of Things Foundation.
+Applications can use device operations to list, add, remove, view, update, view location and view management information of a device in Internet of Things Foundation.
 
 Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
 
@@ -265,16 +261,12 @@ Method getDevices() can be used to retrieve all the devices of a particular devi
 
     JsonObject response = apiClient.getDevices("SampleDT");
     
-The reponse will contain more paramters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
 In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in org.apache.http.message.BasicNameValuePair as shown below,
 
 .. code:: java
 
-    import org.apache.http.message.BasicNameValuePair;
-    
-    ...
-    
     ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
     parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
     parameters.add(new BasicNameValuePair("_sort","deviceId"));
@@ -386,7 +378,7 @@ Method getDeviceMgmtInformation() can be used to get the device management infor
 Device diagnostic operations
 ----------------------------------------------------
 
-Applications can use Device diagnostic opertions to clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Foundation.
+Applications can use Device diagnostic operations to clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Foundation.
 
 Refer to the Device Diagnostics section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
 
@@ -468,7 +460,7 @@ Method addDiagnosticLog() can be used to add an error code to the list of error 
 
     boolean status = this.apiClient.addDiagnosticErrorCode(DEVICE_TYPE, DEVICE_ID, 10, new Date());
 
-An overloaded method can be used to add errorcode in JSON format as well,
+An overloaded method can be used to add rhe error code in JSON format as well,
 
 .. code:: java
 
@@ -509,7 +501,7 @@ Method getHistoricalEvents() can be used to view events across all devices regis
 
     JsonElement response = apiClient.getHistoricalEvents();
 
-The reponse will contain more paramters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+The response will contain more parameters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
 In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in org.apache.http.message.BasicNameValuePair as shown below,
 
@@ -531,7 +523,7 @@ Method getHistoricalEvents() can be used to view events from all the devices of 
 
     JsonElement response = this.apiClient.getHistoricalEvents(DEVICE_TYPE);
 
-The reponse will contain more paramters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. As mentioned in the *view events from all devices* section, the overloaded method can be used to control the output.
+The response will contain more parameters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. As mentioned in the *view events from all devices* section, the overloaded method can be used to control the output.
 
 .. code:: java
 
@@ -552,7 +544,7 @@ Method getHistoricalEvents() can be used to view events from a specific device.
 
     JsonElement response = this.apiClient.getHistoricalEvents(DEVICE_TYPE, DEVICE_ID);
 
-The reponse will contain more paramters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. As mentioned in the *view events from all devices* section, the overloaded method can be used to control the output.
+The response will contain more parameters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. As mentioned in the *view events from all devices* section, the overloaded method can be used to control the output.
 
 .. code:: java
 
