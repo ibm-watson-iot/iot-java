@@ -166,7 +166,7 @@ Method getAllDeviceTypes() can be used to retrieve all the registered device typ
 
 .. code:: java
 
-    JsonObject response = apiClient.getAllDeviceTypes(parameters);
+    JsonObject response = apiClient.getAllDeviceTypes();
     
 The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device types returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
@@ -556,6 +556,51 @@ The response will contain more parameters and application needs to retrieve the 
 			
 The above snippet returns the events which are of device *RasPi100*, event type *blink* and aggregates the fields *cpu* & *mem* and computes the average.
 
+----
+
+Device Management request operations
+----------------------------------------------------
+
+Applications can use the device management operations to list all device management requests, initiate a request, clear request status, get details of a request, get list of request statuses for each affected device and get request status for a specific device.
+
+Get all Device management requests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getAllMgmtRequests() can be used to retrieve the list of device management requests, which can be in progress or recently completed. For example,
+
+.. code:: java
+
+    JsonObject response = apiClient.getAllMgmtRequests(parameters);
+    
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device types returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+
+In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
+
+.. code:: java
+
+    ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
+    parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
+    
+    JsonObject response = apiClient.getAllMgmtRequests(parameters);
+		
+The above snippet uses the bookmark to page through the results.
+
+Initiate a Device management request
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method initiateMgmtRequest() can be used to initiate a device management request, such as reboot. For example,
+
+.. code:: java
+
+    // Json representation of a reboot request
+    private static final String rebootRequestToBeInitiated = "{\"action\": \"device/reboot\","
+			+ "\"devices\": [ {\"typeId\": \"SampleDT\","
+			+ "\"deviceId\": \"RasPi100\"}]}";
+    ....
+    
+    JsonObject reboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
+    boolean response = this.apiClient.initiateMgmtRequest(reboot);
+    
 ----
 
 Examples
