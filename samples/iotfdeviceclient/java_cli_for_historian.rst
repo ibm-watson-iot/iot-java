@@ -85,7 +85,7 @@ Method getAllDevices() can be used to retrieve all the registered devices in an 
 
 The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
-In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in org.apache.http.message.BasicNameValuePair as shown below,
+In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
 
 .. code:: java
 
@@ -170,7 +170,7 @@ Method getAllDeviceTypes() can be used to retrieve all the registered device typ
     
 The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device types returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
-In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in org.apache.http.message.BasicNameValuePair as shown below,
+In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
 
 .. code:: java
 
@@ -263,7 +263,7 @@ Method getDevices() can be used to retrieve all the devices of a particular devi
     
 The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
-In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in org.apache.http.message.BasicNameValuePair as shown below,
+In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
 
 .. code:: java
 
@@ -503,7 +503,7 @@ Method getHistoricalEvents() can be used to view events across all devices regis
 
 The response will contain more parameters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
-In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in org.apache.http.message.BasicNameValuePair as shown below,
+In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
 
 .. code:: java
 
@@ -558,51 +558,11 @@ The above snippet returns the events which are of device *RasPi100*, event type 
 
 ----
 
-Device Management request operations
-----------------------------------------------------
-
-Applications can use the device management operations to list all device management requests, initiate a request, clear request status, get details of a request, get list of request statuses for each affected device and get request status for a specific device.
-
-Get all Device management requests
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Method getAllMgmtRequests() can be used to retrieve the list of device management requests, which can be in progress or recently completed. For example,
-
-.. code:: java
-
-    JsonObject response = apiClient.getAllMgmtRequests(parameters);
-    
-The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device types returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
-
-In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
-
-.. code:: java
-
-    ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
-    parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
-    
-    JsonObject response = apiClient.getAllMgmtRequests(parameters);
-		
-The above snippet uses the bookmark to page through the results.
-
-Initiate a Device management request
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Method initiateMgmtRequest() can be used to initiate a device management request, such as reboot. For example,
-
-.. code:: java
-
-    // Json representation of a reboot request
-    private static final String rebootRequestToBeInitiated = "{\"action\": \"device/reboot\","
-			+ "\"devices\": [ {\"typeId\": \"SampleDT\","
-			+ "\"deviceId\": \"RasPi100\"}]}";
-    ....
-    
-    JsonObject reboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
-    boolean response = this.apiClient.initiateMgmtRequest(reboot);
-    
-----
-
 Examples
 -------------
-* `RegisteredApplicationSubscribeSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/RegisteredApplicationSubscribeSample.java>`__ - A sample application that shows how to subscribe for various events like, device events, device commands, device status and application status.
+* `SampleBulkAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleBulkAPIOperations.java>`__ - Sample that showcases how to get, add or remove devices in bulk from Internet of Things Foundation.
+* `SampleDeviceTypeAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceTypeAPIOperations.java>`__ - Sample that showcases various Device Type API operations like list all, create, delete, view and update device types in Internet of Things Foundation.
+* `SampleDeviceAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceAPIOperations.java>`__ - A sample that showcases various Device operations like list, add, remove, view, update, view location and view management information of a device in Internet of Things Foundation.
+* `SampleDeviceDiagnosticsAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceDiagnosticsAPIOperations.java>`__ - A sample that showcases various Device Diagnostic operations like clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Foundation.
+* `SampleHistorianAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleHistorianAPIOperations.java>`__ - A sample that showcases how to retrieve historical events from Internet of Things Foundation.
+
