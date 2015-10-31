@@ -12,7 +12,7 @@
  *****************************************************************************
  */
 
-package com.ibm.iotf.sample.client.rest;
+package com.ibm.iotf.sample.client.application.api;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -27,7 +27,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.sample.util.Utility;
 
 /**

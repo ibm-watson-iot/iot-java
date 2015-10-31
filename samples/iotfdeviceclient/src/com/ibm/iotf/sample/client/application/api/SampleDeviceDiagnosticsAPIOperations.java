@@ -11,7 +11,7 @@
  * Sathiskumar Palaniappan - Initial Contribution
  *****************************************************************************
  */
-package com.ibm.iotf.sample.client.rest;
+package com.ibm.iotf.sample.client.application.api;
 
 import java.util.Date;
 import java.util.Iterator;
@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.sample.util.Utility;
 
 /**
@@ -36,7 +35,7 @@ public class SampleDeviceDiagnosticsAPIOperations {
 	private final static String DEFAULT_PATH = "samples/iotfdeviceclient/src";
 	
 	private static final String DEVICE_TYPE = "SampleDT";
-	private static final String DEVICE_ID = "RasPi101";
+	private static final String DEVICE_ID = "RasPi01";
 	
 	/**
 	 * Sample Diagnostic Log in JSON Format

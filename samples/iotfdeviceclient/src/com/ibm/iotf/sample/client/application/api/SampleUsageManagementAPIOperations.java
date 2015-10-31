@@ -12,22 +12,13 @@
  *****************************************************************************
  */
 
-package com.ibm.iotf.sample.client.rest;
+package com.ibm.iotf.sample.client.application.api;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Properties;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.sample.util.Utility;
 
 /**

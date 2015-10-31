@@ -11,14 +11,10 @@
  * Sathiskumar Palaniappan - Initial Contribution
  *****************************************************************************
  */
-package com.ibm.iotf.sample.client.rest;
+package com.ibm.iotf.sample.client.application.api;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -26,7 +22,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.sample.util.Utility;
 
 /**
@@ -51,9 +46,9 @@ public class SampleDeviceManagementAPIOperations {
 	 * }
 	 */
 	
-	private static final String rebootRequestToBeInitiated = "{\"action\": \"device/reboot\",\"devices\": "
-			+ "[ {\"typeId\": \"SampleDT1\",\"deviceId\": "
-			+ "\"RasPi101\"}]}";
+	private static final String rebootRequestToBeInitiated = "{\"action\": \"device/reboot\","
+			+ "\"devices\": [ {\"typeId\": \"SampleDT\","
+			+ "\"deviceId\": \"RasPi100\"}]}";
 
 	private APIClient apiClient = null;
 	
@@ -83,7 +78,7 @@ public class SampleDeviceManagementAPIOperations {
 		
 		SampleDeviceManagementAPIOperations sample = new SampleDeviceManagementAPIOperations(fileName);
 		sample.initiateMgmtRequest();
-		sample.getMgmtRequests();
+		sample.getAllMgmtRequests();
 		sample.initiateMgmtRequest();
 		sample.deleteMgmtRequest();
 		sample.getMgmtRequest();
@@ -93,9 +88,9 @@ public class SampleDeviceManagementAPIOperations {
 	 * This sample showcases how to get a list of device management requests, which can be in progress or recently completed.
 	 * @throws IoTFCReSTException
 	 */
-	private void getMgmtRequests() throws IoTFCReSTException {
+	private void getAllMgmtRequests() throws IoTFCReSTException {
 		try {
-			JsonElement response = this.apiClient.getMgmtRequests();
+			JsonElement response = this.apiClient.getAllMgmtRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			for(Iterator<JsonElement> iterator = requests.iterator(); iterator.hasNext(); ) {
 				JsonElement request = iterator.next();
@@ -138,7 +133,7 @@ public class SampleDeviceManagementAPIOperations {
 	private void deleteMgmtRequest() throws IoTFCReSTException {
 		// Lets clear the first ID from the list
 		try {
-			JsonElement response = this.apiClient.getMgmtRequests();
+			JsonElement response = this.apiClient.getAllMgmtRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			JsonElement request = requests.get(0);
 			boolean status = this.apiClient.deleteMgmtRequest(request.getAsJsonObject().get("id").getAsString());
@@ -158,7 +153,7 @@ public class SampleDeviceManagementAPIOperations {
 	private void getMgmtRequest() throws IoTFCReSTException {
 		// Lets clear the first ID from the list
 		try {
-			JsonElement response = this.apiClient.getMgmtRequests();
+			JsonElement response = this.apiClient.getAllMgmtRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			JsonElement request = requests.get(0);
 			JsonObject details = this.apiClient.getMgmtRequest(request.getAsJsonObject().get("id").getAsString());

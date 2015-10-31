@@ -2186,8 +2186,22 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException 
 	 */
-	public JsonObject getMgmtRequests() throws IoTFCReSTException {
-		final String METHOD = "getMgmtRequests";
+	
+	public JsonObject getAllMgmtRequests() throws IoTFCReSTException {
+		return getAllMgmtRequests((ArrayList<NameValuePair>)null);
+	}
+	
+	
+	/**
+	 * Gets a list of device management requests, which can be in progress or recently completed.
+	 * 
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing the list of device management requests.
+	 * @throws IoTFCReSTException
+	 */
+	public JsonObject getAllMgmtRequests(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+		final String METHOD = "getAllMgmtRequests";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
@@ -2202,7 +2216,7 @@ public class APIClient {
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				String result = this.readContent(response, METHOD);

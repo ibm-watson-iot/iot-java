@@ -12,7 +12,7 @@
  *****************************************************************************
  */
 
-package com.ibm.iotf.sample.client.rest;
+package com.ibm.iotf.sample.client.application.api;
 
 import java.util.ArrayList;
 import java.util.Iterator;
