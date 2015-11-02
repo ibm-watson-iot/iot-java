@@ -110,10 +110,10 @@ Method addMultipleDevices() can be used to register one or more devices to Inter
 
     // A sample JSON respresentation of a device to be added
     
-    private final static String deviceToBeAdded = "{\"typeId\": \"SampleDT\",\"deviceId\": "
-			+ "\"RasPi100\",\"authToken\": \"password\",\"deviceInfo\": {\"serialNumber\": "
+    private final static String deviceToBeAdded = "{\"typeId\": \"iotsample-ardunio\",\"deviceId\": "
+			+ "\"ardunio01\",\"authToken\": \"password\",\"deviceInfo\": {\"serialNumber\": "
 			+ "\"10087\",\"manufacturer\": \"IBM\",\"model\": \"7865\",\"deviceClass\": "
-			+ "\"A\",\"description\": \"My RasPi01 Device\",\"fwVersion\": \"1.0.0\","
+			+ "\"A\",\"description\": \"My ardunio01 Device\",\"fwVersion\": \"1.0.0\","
 			+ "\"hwVersion\": \"1.0\",\"descriptiveLocation\": \"EGL C\"    },    "
 			+ "\"location\": {\"measuredDateTime\": \"2015-23-07T11:23:23+00:00\"    "
 			+ "},    \"metadata\": {}}";
@@ -136,8 +136,8 @@ Method deleteMultipleDevices() can be used to delete multiple devices from Inter
 .. code:: java
 
     // A sample JSON respresentation of a device to be deleted
-    private final static String deviceToBeDeleted1 = "{\"typeId\": \"SampleDT\", \"deviceId\": \"RasPi100\"}";
-    private final static String deviceToBeDeleted2 = "{\"typeId\": \"SampleDT\", \"deviceId\": \"RasPi101\"}";
+    private final static String deviceToBeDeleted1 = "{\"typeId\": \"iotsample-ardunio\", \"deviceId\": \"ardunio01\"}";
+    private final static String deviceToBeDeleted2 = "{\"typeId\": \"iotsample-ardunio\", \"deviceId\": \"ardunio02\"}";
     
     ....
     
@@ -191,8 +191,8 @@ Method addDeviceType() can be used to register a device type to Internet of Thin
 
     // A sample JSON respresentation of a device type to be added
     
-    private final static String deviceTypeToBeAdded = "{\"id\": \"SampleDT\",\"description\": "
-			+ "\"SampleDT\",\"deviceInfo\": {\"fwVersion\": \"1.0.0\",\"hwVersion\": \"1.0\"},\"metadata\": {}}";
+    private final static String deviceTypeToBeAdded = "{\"id\": \"iotsample-ardunio\",\"description\": "
+			+ "\"iotsample-ardunio\",\"deviceInfo\": {\"fwVersion\": \"1.0.0\",\"hwVersion\": \"1.0\"},\"metadata\": {}}";
     
     ....
 		
@@ -212,7 +212,7 @@ Application can use a overloaded method that accepts more parameters to add a de
     JsonParser parser = new JsonParser();
     JsonElement deviceInfo = parser.parse(deviceInfoToBeAdded);
     JsonElement metadata = parser.parse(metaDataToBeAdded);
-    JsonObject response = apiClient.addDeviceType("SampleDT", "sample description", deviceInfo, metadata);
+    JsonObject response = apiClient.addDeviceType("iotsample-ardunio", "sample description", deviceInfo, metadata);
     
 Delete a Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -221,7 +221,7 @@ Method deleteDeviceType() can be used to delete a device type from Internet of T
 
 .. code:: java
 
-    boolean status = this.apiClient.deleteDeviceType("SampleDT");
+    boolean status = this.apiClient.deleteDeviceType("iotsample-ardunio");
     
 Get a Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -230,7 +230,7 @@ Method getDeviceType() can be used to retrieve a device type from Internet of Th
 
 .. code:: java
 
-    JsonObject response = this.apiClient.getDeviceType("SampleDT");
+    JsonObject response = this.apiClient.getDeviceType("iotsample-ardunio");
     
 Update a Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -241,7 +241,7 @@ Method updateDeviceType() can be used to modify one or more properties of a devi
     
     JsonObject json = new JsonObject();
     json.addProperty("description", "Hello, I'm updated description");
-    JsonObject response = this.apiClient.updateDeviceType("SampleDT", json);
+    JsonObject response = this.apiClient.updateDeviceType("iotsample-ardunio", json);
 
 ----
 
@@ -259,7 +259,7 @@ Method getDevices() can be used to retrieve all the devices of a particular devi
 
 .. code:: java
 
-    JsonObject response = apiClient.getDevices("SampleDT");
+    JsonObject response = apiClient.getDevices("iotsample-ardunio");
     
 The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
@@ -271,7 +271,7 @@ In order to pass the *_bookmark* or any other condition, the overloaded method m
     parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
     parameters.add(new BasicNameValuePair("_sort","deviceId"));
     
-    JsonObject response = apiClient.getDevices("SampleDT", parameters);
+    JsonObject response = apiClient.getDevices("iotsample-ardunio", parameters);
 		
 The above snippet sorts the response based on device id and uses the bookmark to page through the results.
 
@@ -289,14 +289,14 @@ Method registerDevice() can be used to register a device to Internet of Things F
 	
     private final static String deviceInfoToBeAdded = "{\"serialNumber\": "
 			+ "\"10087\",\"manufacturer\": \"IBM\",\"model\": \"7865\",\"deviceClass\": "
-			+ "\"A\",\"description\": \"My RasPi100 Device\",\"fwVersion\": \"1.0.0\","
+			+ "\"A\",\"description\": \"My ardunio01 Device\",\"fwVersion\": \"1.0.0\","
 			+ "\"hwVersion\": \"1.0\",\"descriptiveLocation\": \"EGL C\"}";
     ....
 		
     JsonParser parser = new JsonParser();
     JsonElement deviceInfo = parser.parse(deviceInfoToBeAdded);
     JsonElement location = parser.parse(locationToBeAdded);
-    JsonObject response = this.apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, "Password", 
+    JsonObject response = this.apiClient.registerDevice(iotsample-ardunio, ardunio01, "Password", 
 					deviceInfo, location, null);
 
 Application can use a overloaded method that accepts entire device properties in one JSON element and registers the device,
@@ -307,7 +307,7 @@ Application can use a overloaded method that accepts entire device properties in
     // deviceToBeAdded contains the JSON representation of device properties
     JsonElement input = parser.parse(deviceToBeAdded); 
     
-    JsonObject response = apiClient.registerDevice(DEVICE_TYPE, input);
+    JsonObject response = apiClient.registerDevice(iotsample-ardunio, input);
     
 Delete a Device
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -316,7 +316,7 @@ Method deleteDevice() can be used to delete a device from Internet of Things Fou
 
 .. code:: java
 
-    status = apiClient.deleteDevice("SampleDT", "RasPi100");
+    status = apiClient.deleteDevice("iotsample-ardunio", "ardunio01");
     
 Get a Device
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -325,7 +325,7 @@ Method getDevice() can be used to retrieve a device from Internet of Things Foun
 
 .. code:: java
 
-    JsonObject response = apiClient.getDevice("SampleDT", "RasPi100");
+    JsonObject response = apiClient.getDevice("iotsample-ardunio", "ardunio01");
     
 Update a Device
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -339,7 +339,7 @@ Method updateDevice() can be used to modify one or more properties of a device. 
     JsonObject updatedMetadata = new JsonObject();
     updatedMetadata.add("metadata", metadata);
     
-    JsonObject response = apiClient.updateDevice("Sample DT", "RasPi100", updatedMetadata);
+    JsonObject response = apiClient.updateDevice("iotsample-ardunio", "ardunio01", updatedMetadata);
 
 Get Location Information
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -348,7 +348,7 @@ Method getDeviceLocation() can be used to get the location information of a devi
 
 .. code:: java
     
-    JsonObject response = apiClient.getDeviceLocation("Sample DT", "RasPi100");
+    JsonObject response = apiClient.getDeviceLocation("iotsample-ardunio", "ardunio01");
 
 Update Location Information
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -362,7 +362,7 @@ Method updateDeviceLocation() can be used to modify the location information for
     ...
     
     JsonElement newLocation = new JsonParser().parse(newlocationToBeAdded);
-    JsonObject response = apiClient.updateDeviceLocation("SampleDT", "RasPi100", newLocation);
+    JsonObject response = apiClient.updateDeviceLocation("iotsample-ardunio", "ardunio01", newLocation);
 
 Get Device Management Information
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -371,7 +371,7 @@ Method getDeviceManagementInformation() can be used to get the device management
 
 .. code:: java
     
-    JsonObject response = apiClient.getDeviceManagementInformation("Sample DT", "RasPi100");
+    JsonObject response = apiClient.getDeviceManagementInformation("iotsample-ardunio", "ardunio01");
 
 ----
 
@@ -389,7 +389,7 @@ Method getAllDiagnosticLogs() can be used to get all diagnostic logs of the devi
 
 .. code:: java
 
-    JsonArray response = apiClient.getAllDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
+    JsonArray response = apiClient.getAllDiagnosticLogs(iotsample-ardunio, ardunio01);
     
 Clear Diagnostic logs 
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -398,7 +398,7 @@ Method clearDiagnosticLogs() can be used to clear the diagnostic logs of the dev
 
 .. code:: java
 
-    boolean status = apiClient.clearDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
+    boolean status = apiClient.clearDiagnosticLogs(iotsample-ardunio, ardunio01);
     
 Add a Diagnostic log
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -412,7 +412,7 @@ Method addDiagnosticLog() can be used to add an entry in the log of diagnostic i
 
     ....
     
-    JsonArray response = apiClient.getAllDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
+    JsonArray response = apiClient.getAllDiagnosticLogs(iotsample-ardunio, ardunio01);
 
 Get a Diagnostic log
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -421,7 +421,7 @@ Method getDiagnosticLog() can be used to retrieve a diagnostic log based on the 
 
 .. code:: java
 
-    JsonObject log = apiClient.getDiagnosticLog(DEVICE_TYPE, DEVICE_ID, "<logid>");
+    JsonObject log = apiClient.getDiagnosticLog(iotsample-ardunio, ardunio01, "<logid>");
     
 Delete a Diagnostic log
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -430,7 +430,7 @@ Method deleteDiagnosticLog() can be used to delete a diagnostic log based on the
 
 .. code:: java
 
-    boolean status = apiClient.deleteDiagnosticLog(DEVICE_TYPE, DEVICE_ID, "<logid>");
+    boolean status = apiClient.deleteDiagnosticLog(iotsample-ardunio, ardunio01, "<logid>");
     
 
 Clear Diagnostic ErrorCodes
@@ -440,7 +440,7 @@ Method clearDiagnosticErrorCodes() can be used to clear the list of error codes 
 
 .. code:: java
 
-    boolean status = apiClient.clearDiagnosticErrorCodes(DEVICE_TYPE, DEVICE_ID);
+    boolean status = apiClient.clearDiagnosticErrorCodes(iotsample-ardunio, ardunio01);
     
 Get Diagnostic ErrorCodes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -449,7 +449,7 @@ Method getAllDiagnosticErrorCodes() can be used to retrieve all diagnostic Error
 
 .. code:: java
 
-    JsonArray response = apiClient.getAllDiagnosticErrorCodes(DEVICE_TYPE, DEVICE_ID);
+    JsonArray response = apiClient.getAllDiagnosticErrorCodes(iotsample-ardunio, ardunio01);
 
 Add a Diagnostic ErrorCode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -458,7 +458,7 @@ Method addDiagnosticLog() can be used to add an error code to the list of error 
 
 .. code:: java
 
-    boolean status = this.apiClient.addDiagnosticErrorCode(DEVICE_TYPE, DEVICE_ID, 10, new Date());
+    boolean status = this.apiClient.addDiagnosticErrorCode(iotsample-ardunio, ardunio01, 10, new Date());
 
 An overloaded method can be used to add rhe error code in JSON format as well,
 
@@ -469,7 +469,7 @@ An overloaded method can be used to add rhe error code in JSON format as well,
 	
     JsonParser parser = new JsonParser();
     JsonElement errorcode = parser.parse(errorcodeToBeAdded);
-    boolean status = this.apiClient.addDiagnosticErrorCode(DEVICE_TYPE, DEVICE_ID, errorcode);
+    boolean status = this.apiClient.addDiagnosticErrorCode(iotsample-ardunio, ardunio01, errorcode);
 
 ----
 
@@ -480,7 +480,7 @@ Method getDeviceConnectionLogs() can be used to list connection log events for a
 
 .. code:: java
 
-    JsonArray response = apiClient.getDeviceConnectionLogs(DEVICE_TYPE, DEVICE_ID);
+    JsonArray response = apiClient.getDeviceConnectionLogs(iotsample-ardunio, ardunio01);
 
 Refer to the Problem Determination section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
@@ -521,7 +521,7 @@ Method getHistoricalEvents() can be used to view events from all the devices of 
 
 .. code:: java
 
-    JsonElement response = this.apiClient.getHistoricalEvents(DEVICE_TYPE);
+    JsonElement response = this.apiClient.getHistoricalEvents(iotsample-ardunio);
 
 The response will contain more parameters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. As mentioned in the *view events from all devices* section, the overloaded method can be used to control the output.
 
@@ -531,9 +531,9 @@ The response will contain more parameters and application needs to retrieve the 
     parameters.add(new BasicNameValuePair("summarize", "{cpu,mem}"));
     parameters.add(new BasicNameValuePair("summarize_type", "avg"));
     
-    JsonElement response = this.apiClient.getHistoricalEvents("SampleDT", parameters);
+    JsonElement response = this.apiClient.getHistoricalEvents("iotsample-ardunio", parameters);
 			
-The above snippet returns the events which are of device type *SampleDT*, event type *blink* and aggregates the fields *cpu* & *mem* and computes the average.
+The above snippet returns the events which are of device type *iotsample-ardunio*, event type *blink* and aggregates the fields *cpu* & *mem* and computes the average.
 
 View events from a device
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -542,7 +542,7 @@ Method getHistoricalEvents() can be used to view events from a specific device.
 
 .. code:: java
 
-    JsonElement response = this.apiClient.getHistoricalEvents(DEVICE_TYPE, DEVICE_ID);
+    JsonElement response = this.apiClient.getHistoricalEvents(iotsample-ardunio, ardunio01);
 
 The response will contain more parameters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. As mentioned in the *view events from all devices* section, the overloaded method can be used to control the output.
 
@@ -552,9 +552,9 @@ The response will contain more parameters and application needs to retrieve the 
     parameters.add(new BasicNameValuePair("summarize", "{cpu,mem}"));
     parameters.add(new BasicNameValuePair("summarize_type", "avg"));
     
-    JsonElement response = apiClient.getHistoricalEvents("SampleDT", "RasPi100", parameters);
+    JsonElement response = apiClient.getHistoricalEvents("iotsample-ardunio", "ardunio01", parameters);
 			
-The above snippet returns the events which are of device *RasPi100*, event type *blink* and aggregates the fields *cpu* & *mem* and computes the average.
+The above snippet returns the events which are of device *ardunio01*, event type *blink* and aggregates the fields *cpu* & *mem* and computes the average.
 
 ----
 
@@ -596,8 +596,8 @@ Method initiateDeviceManagementRequest() can be used to initiate a device manage
 
     // Json representation of a reboot request
     private static final String rebootRequestToBeInitiated = "{\"action\": \"device/reboot\","
-			+ "\"devices\": [ {\"typeId\": \"SampleDT\","
-			+ "\"deviceId\": \"RasPi100\"}]}";
+			+ "\"devices\": [ {\"typeId\": \"iotsample-ardunio\","
+			+ "\"deviceId\": \"ardunio01\"}]}";
     ....
     
     JsonObject reboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
@@ -663,7 +663,7 @@ Method getDeviceManagementRequestStatusByDevice() can be used to get an individu
 .. code:: java
 
     // Pass the Request ID of a device management request along with Device type & Id
-    JsonObject response = apiClient.getDeviceManagementRequestStatusByDevice(id, DEVICE_TYPE, DEVICE_ID);
+    JsonObject response = apiClient.getDeviceManagementRequestStatusByDevice(id, iotsample-ardunio, ardunio01);
 
 ----
 
