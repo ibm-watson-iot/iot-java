@@ -62,7 +62,7 @@ Applications can view the Organization details by using the following code snipp
 
     JsonObject orgDetail = apiClient.getOrganizationDetails();
 
-Refer to the Organization Configuration section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
+Refer to the Organization Configuration section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 ----
 
@@ -71,7 +71,7 @@ Bulk device operations
 
 Applications can use bulk operations to get, add or remove devices in bulk from Internet of Things Foundation.
 
-Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
+Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 Get Devices in bulk
 ~~~~~~~~~~~~~~~~~~~
@@ -157,7 +157,7 @@ Device Type operations
 
 Applications can use device type operations to list all, create, delete, view and update device types in Internet of Things Foundation.
 
-Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
+Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 Get all Device Types
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -250,7 +250,7 @@ Device operations
 
 Applications can use device operations to list, add, remove, view, update, view location and view management information of a device in Internet of Things Foundation.
 
-Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
+Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 Get Devices of a particular Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -367,11 +367,11 @@ Method updateDeviceLocation() can be used to modify the location information for
 Get Device Management Information
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method getDeviceMgmtInformation() can be used to get the device management information for a device. For example, 
+Method getDeviceManagementInformation() can be used to get the device management information for a device. For example, 
 
 .. code:: java
     
-    JsonObject response = apiClient.getDeviceMgmtInformation("Sample DT", "RasPi100");
+    JsonObject response = apiClient.getDeviceManagementInformation("Sample DT", "RasPi100");
 
 ----
 
@@ -380,7 +380,7 @@ Device diagnostic operations
 
 Applications can use Device diagnostic operations to clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Foundation.
 
-Refer to the Device Diagnostics section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
+Refer to the Device Diagnostics section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 Get Diagnostic logs
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -476,13 +476,13 @@ An overloaded method can be used to add rhe error code in JSON format as well,
 Connection problem determination
 ----------------------------------
 
-Method getDeviceConnectLogs() can be used to list connection log events for a device to aid in diagnosing connectivity problems. The entries record successful connection, unsuccessful connection attempts, intentional disconnection and server-initiated disconnection.
+Method getDeviceConnectionLogs() can be used to list connection log events for a device to aid in diagnosing connectivity problems. The entries record successful connection, unsuccessful connection attempts, intentional disconnection and server-initiated disconnection.
 
 .. code:: java
 
-    JsonArray response = apiClient.getDeviceConnectLogs(DEVICE_TYPE, DEVICE_ID);
+    JsonArray response = apiClient.getDeviceConnectionLogs(DEVICE_TYPE, DEVICE_ID);
 
-Refer to the Problem Determination section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
+Refer to the Problem Determination section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 ----
 
@@ -490,7 +490,7 @@ Historical Event Retrieval
 ----------------------------------
 Application can use this operation to view events from all devices, view events from a device type and view events for a specific device.
 
-Refer to the Historical Event Retrieval section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the response model and code.
+Refer to the Historical Event Retrieval section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 View events from all devices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -557,6 +557,116 @@ The response will contain more parameters and application needs to retrieve the 
 The above snippet returns the events which are of device *RasPi100*, event type *blink* and aggregates the fields *cpu* & *mem* and computes the average.
 
 ----
+
+Device Management request operations
+----------------------------------------------------
+
+Applications can use the device management operations to list all device management requests, initiate a request, clear request status, get details of a request, get list of request statuses for each affected device and get request status for a specific device.
+
+Refer to the Device Management Requests section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+
+Get all Device management requests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getAllDeviceManagementRequests() can be used to retrieve the list of device management requests, which can be in progress or recently completed. For example,
+
+.. code:: java
+
+    JsonObject response = apiClient.getAllDeviceManagementRequests();
+    
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device types returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+
+In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
+
+.. code:: java
+
+    ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
+    parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
+    
+    JsonObject response = apiClient.getAllDeviceManagementRequests(parameters);
+		
+The above snippet uses the bookmark to page through the results.
+
+Initiate a Device management request
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method initiateDeviceManagementRequest() can be used to initiate a device management request, such as reboot. For example,
+
+.. code:: java
+
+    // Json representation of a reboot request
+    private static final String rebootRequestToBeInitiated = "{\"action\": \"device/reboot\","
+			+ "\"devices\": [ {\"typeId\": \"SampleDT\","
+			+ "\"deviceId\": \"RasPi100\"}]}";
+    ....
+    
+    JsonObject reboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
+    boolean response = this.apiClient.initiateDeviceManagementRequest(reboot);
+    
+Delete a Device management request
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method deleteDeviceManagementRequest() can be used to clear the status of a device management request. Application can use this operation to clear the status of a completed request, or an in-progress request which may never complete due to a problem. For example,
+
+.. code:: java
+
+    // Pass the Request ID of a device management request
+    boolean status = this.apiClient.deleteDeviceManagementRequest("id");
+    
+Get details of a Device management request
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDeviceManagementRequest() can be used to get the details of the device management request. For example,
+
+.. code:: java
+
+    // Pass the Request ID of a device management request
+    JsonObject details = this.apiClient.getDeviceManagementRequest("id");
+    
+
+Get status of a Device management request
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDeviceManagementRequestStatus() can be used to get a list of device management request device statuses. For example,
+
+.. code:: java
+
+    // Pass the Request ID of a device management request
+    JsonObject details = apiClient.getDeviceManagementRequestStatus(id);
+
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device statuses returned. Each row contains the status of the action whether the action is sucessful or not. The status is returned as integer and will contain one of the following possible values,
+
+* Success
+* In progress
+* Failure
+* Time out
+
+Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+
+In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
+
+.. code:: java
+
+    ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
+    parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
+    
+    // Pass the Request ID of a device management request
+    JsonObject details = apiClient.getDeviceManagementRequestStatus(id, parameters);
+
+The above snippet uses the bookmark to page through the results.
+
+Get status of a Device management request by Device
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDeviceManagementRequestStatusByDevice() can be used to get an individual device management request device status. For example,
+
+.. code:: java
+
+    // Pass the Request ID of a device management request
+    JsonObject details = apiClient.getDeviceManagementRequestStatusByDevice(id, DEVICE_TYPE, DEVICE_ID);
+
+----
+
 
 Examples
 -------------
