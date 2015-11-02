@@ -634,7 +634,7 @@ Method getDeviceManagementRequestStatus() can be used to get a list of device ma
     // Pass the Request ID of a device management request
     JsonObject details = apiClient.getDeviceManagementRequestStatus(id);
 
-The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device statuses returned. Each row contains the status of the action whether the action is sucessful or not. The status is returned as integer and will contain one of the following possible values,
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device statuses returned. Each row contains the status of the action whether the action is successful or not. The status is returned as integer and will contain one of the following possible values,
 
 * Success
 * In progress
@@ -662,11 +662,73 @@ Method getDeviceManagementRequestStatusByDevice() can be used to get an individu
 
 .. code:: java
 
-    // Pass the Request ID of a device management request
-    JsonObject details = apiClient.getDeviceManagementRequestStatusByDevice(id, DEVICE_TYPE, DEVICE_ID);
+    // Pass the Request ID of a device management request along with Device type & Id
+    JsonObject response = apiClient.getDeviceManagementRequestStatusByDevice(id, DEVICE_TYPE, DEVICE_ID);
 
 ----
 
+Usage management
+----------------------------------------------------
+
+Applications can use the usage management operations to retrieve the number of active devices over a period of time, retrieve amount of storage used by historical event data, retrieve total amount of data used.
+
+Refer to the Usage management section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+
+Get active devices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getActiveDevices() can be used to retrieve the number of active devices over a period of time. For example,
+
+.. code:: java
+    
+    String start = "2015-09-01";
+    String end = "2015-10-01";
+    JsonElement response = this.apiClient.getActiveDevices(start, end, true);
+
+The above snippet returns the devices that are active between 2015-09-01 to 2015-10-01 and breakdowns the response daily.
+
+Get Historical data usage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getHistoricalDataUsage() can be used to retrieve the amount of storage being used by historical event data for a specified period of time. For example,
+
+.. code:: java
+    
+    String start = "2015-09-01";
+    String end = "2015-10-01";
+    JsonElement response = this.apiClient.getHistoricalDataUsage(start, end, false);
+
+The above snippet returns the amount of storage being used by historical event data between 2015-09-01 to 2015-10-01 but without a daily breakdown.
+
+Get data traffic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDataTraffic() can be used to retrieve the amount of data used for a specified period of time. For example,
+
+.. code:: java
+    
+    String start = "2015-09-01";
+    String end = "2015-10-01";
+    JsonElement response = this.apiClient.getDataTraffic(start, end, false);
+
+The above snippet returns the amount of data traffic between 2015-09-01 to 2015-10-01 but without a daily breakdown.
+
+----
+
+Service status
+----------------------------------------------------
+
+Applications can use the Service status operation to retrieve the service status of an organization.
+
+Method getServiceStatus() can be used to Retrieve the organization-specific status of each of the services offered by the Internet of Things Foundation. 
+
+.. code:: java
+    
+    JsonElement response = this.apiClient.getServiceStatus();
+
+Refer to the Service status section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the response model and http status code.
+
+----
 
 Examples
 -------------
@@ -675,4 +737,6 @@ Examples
 * `SampleDeviceAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceAPIOperations.java>`__ - A sample that showcases various Device operations like list, add, remove, view, update, view location and view management information of a device in Internet of Things Foundation.
 * `SampleDeviceDiagnosticsAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceDiagnosticsAPIOperations.java>`__ - A sample that showcases various Device Diagnostic operations like clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Foundation.
 * `SampleHistorianAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleHistorianAPIOperations.java>`__ - A sample that showcases how to retrieve historical events from Internet of Things Foundation.
+* `SampleDeviceManagementAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceManagementAPIOperations.java>`__ - A sample that showcases various device management request operations that can be performed on Internet of Things Foundation.
+* `SampleUsageManagementAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleUsageManagementAPIOperations.java>`__ - A sample that showcases various Usage management operations that can be performed on Internet of Things Foundation.
 
