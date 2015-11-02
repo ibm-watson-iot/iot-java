@@ -260,7 +260,7 @@ public class SampleDeviceDiagnosticsAPIOperations {
 	private void getDeviceConnectionLogs() {
 		// Get the connection logs of device DEVICE_ID
 		try {
-			JsonArray response = this.apiClient.getDeviceConnectLogs(DEVICE_TYPE, DEVICE_ID);
+			JsonArray response = this.apiClient.getDeviceConnectionLogs(DEVICE_TYPE, DEVICE_ID);
 			for(Iterator<JsonElement> iterator = response.iterator(); iterator.hasNext(); ) {
 				JsonElement deviceElement = iterator.next();
 				JsonObject responseJson = deviceElement.getAsJsonObject();

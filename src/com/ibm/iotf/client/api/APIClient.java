@@ -393,8 +393,8 @@ public class APIClient {
 	 * @return JsonObject
 	 * @throws IOException 
 	 */
-	public JsonObject getDeviceMgmtInformation(String deviceType, String deviceId) throws IoTFCReSTException {
-		final String METHOD = "getDeviceMgmtInformation";
+	public JsonObject getDeviceManagementInformation(String deviceType, String deviceId) throws IoTFCReSTException {
+		final String METHOD = "getDeviceManagementInformation";
 		/**
 		 * Form the url based on this swagger documentation
 		 */
@@ -2013,8 +2013,8 @@ public class APIClient {
 	 * @return JsonArray
 	 * @throws IOException 
 	 */
-	public JsonArray getDeviceConnectLogs(String deviceType, String deviceId) throws IoTFCReSTException {
-		final String METHOD = "getDeviceConnectLogs";
+	public JsonArray getDeviceConnectionLogs(String deviceType, String deviceId) throws IoTFCReSTException {
+		final String METHOD = "getDeviceConnectionLogs";
 		/**
 		 * Form the url based on this swagger documentation
 		 */
@@ -2187,8 +2187,8 @@ public class APIClient {
 	 * @throws IoTFCReSTException 
 	 */
 	
-	public JsonObject getAllMgmtRequests() throws IoTFCReSTException {
-		return getAllMgmtRequests((ArrayList<NameValuePair>)null);
+	public JsonObject getAllDeviceManagementRequests() throws IoTFCReSTException {
+		return getAllDeviceManagementRequests((ArrayList<NameValuePair>)null);
 	}
 	
 	
@@ -2200,8 +2200,8 @@ public class APIClient {
 	 * @return JSON response containing the list of device management requests.
 	 * @throws IoTFCReSTException
 	 */
-	public JsonObject getAllMgmtRequests(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
-		final String METHOD = "getAllMgmtRequests";
+	public JsonObject getAllDeviceManagementRequests(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+		final String METHOD = "getAllDeviceManagementRequests";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
@@ -2246,8 +2246,8 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException 
 	 */
-	public boolean initiateMgmtRequest(JsonObject request) throws IoTFCReSTException {
-		final String METHOD = "initiateMgmtRequest";
+	public boolean initiateDeviceManagementRequest(JsonObject request) throws IoTFCReSTException {
+		final String METHOD = "initiateDeviceManagementRequest";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
@@ -2294,8 +2294,8 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException 
 	 */
-	public boolean deleteMgmtRequest(String requestId) throws IoTFCReSTException {
-		String METHOD = "deleteMgmtRequest";
+	public boolean deleteDeviceManagementRequest(String requestId) throws IoTFCReSTException {
+		String METHOD = "deleteDeviceManagementRequest";
 		/**
 		 * Form the url based on the swagger documentation
 		 * 
@@ -2337,8 +2337,8 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException 
 	 */
-	public JsonObject getMgmtRequest(String requestId) throws IoTFCReSTException {
-		final String METHOD = "getMgmtRequest";
+	public JsonObject getDeviceManagementRequest(String requestId) throws IoTFCReSTException {
+		final String METHOD = "getDeviceManagementRequest";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
@@ -2355,12 +2355,10 @@ public class APIClient {
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
-			if(code == 200 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
-				if(code == 200) {
-					return jsonResponse.getAsJsonObject();
-				}
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the Device management Request "
@@ -2369,15 +2367,134 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
-		} else if(code == 410) {
-			throw new IoTFCReSTException(500, "Request status no longer available");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "Request status not found");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	/**
+	 * Get a list of device management request device statuses
+	 * 
+	 * @param requestId String ID representing the management request
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing the device management request
+	 *  
+	 * @throws IoTFCReSTException 
+	 */
+	public JsonObject getDeviceManagementRequestStatus(String requestId, 
+			ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+		
+		final String METHOD = "getDeviceManagementRequestStatus";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(BASIC_API_V0002_URL).
+		   append("/mgmt/requests/").
+		   append(requestId).
+		   append("/deviceStatus");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, parameters);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the Device management Request "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "Request status not found", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
 	}
 	
+	/**
+	 * Get a list of device management request device statuses
+	 * 
+	 * @param requestId String ID representing the management request
+	 * @return JSON response containing the device management request
+	 *  
+	 * @throws IoTFCReSTException 
+	 */
+	public JsonObject getDeviceManagementRequestStatus(String requestId) throws IoTFCReSTException {
+		return getDeviceManagementRequestStatus(requestId, null);
+	}
 
+
+	/**
+	 * Get an individual device mangaement request device status
+	 * 
+	 * @param requestId String ID representing the management request
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing the device management request
+	 *  
+	 * @throws IoTFCReSTException 
+	 */
+	public JsonObject getDeviceManagementRequestStatusByDevice(String requestId, 
+			String deviceType, String deviceId) throws IoTFCReSTException {
+		
+		final String METHOD = "getDeviceManagementRequestStatusByDevice";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(BASIC_API_V0002_URL).
+		   append("/mgmt/requests/").
+		   append(requestId).
+		   append("/deviceStatus/").
+		   append(deviceType).
+		   append('/').
+		   append(deviceId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the Device management Request "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "Request status not found", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
 	/**
 	 * Retrieve the number of active devices over a period of time
 	 * 
@@ -2435,7 +2552,7 @@ public class APIClient {
 		if(code == 400) {
 			throw new IoTFCReSTException(code, "Bad Request", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}

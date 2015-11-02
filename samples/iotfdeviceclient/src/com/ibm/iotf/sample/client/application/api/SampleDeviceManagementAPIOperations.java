@@ -15,6 +15,10 @@ package com.ibm.iotf.sample.client.application.api;
 
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.ArrayList;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -82,6 +86,7 @@ public class SampleDeviceManagementAPIOperations {
 		sample.initiateMgmtRequest();
 		sample.deleteMgmtRequest();
 		sample.getMgmtRequest();
+		sample.getMgmtRequestDeviceStatus();
 	}
 
 	/**
@@ -90,7 +95,7 @@ public class SampleDeviceManagementAPIOperations {
 	 */
 	private void getAllMgmtRequests() throws IoTFCReSTException {
 		try {
-			JsonElement response = this.apiClient.getAllMgmtRequests();
+			JsonElement response = this.apiClient.getAllDeviceManagementRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			for(Iterator<JsonElement> iterator = requests.iterator(); iterator.hasNext(); ) {
 				JsonElement request = iterator.next();
@@ -112,7 +117,7 @@ public class SampleDeviceManagementAPIOperations {
 	private void initiateMgmtRequest() throws IoTFCReSTException {
 		try {
 			JsonObject reboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
-			boolean response = this.apiClient.initiateMgmtRequest(reboot);
+			boolean response = this.apiClient.initiateDeviceManagementRequest(reboot);
 			System.out.println(response);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
@@ -133,10 +138,10 @@ public class SampleDeviceManagementAPIOperations {
 	private void deleteMgmtRequest() throws IoTFCReSTException {
 		// Lets clear the first ID from the list
 		try {
-			JsonElement response = this.apiClient.getAllMgmtRequests();
+			JsonElement response = this.apiClient.getAllDeviceManagementRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			JsonElement request = requests.get(0);
-			boolean status = this.apiClient.deleteMgmtRequest(request.getAsJsonObject().get("id").getAsString());
+			boolean status = this.apiClient.deleteDeviceManagementRequest(request.getAsJsonObject().get("id").getAsString());
 			System.out.println("Delete status: "+status);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
@@ -153,11 +158,46 @@ public class SampleDeviceManagementAPIOperations {
 	private void getMgmtRequest() throws IoTFCReSTException {
 		// Lets clear the first ID from the list
 		try {
-			JsonElement response = this.apiClient.getAllMgmtRequests();
+			JsonElement response = this.apiClient.getAllDeviceManagementRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			JsonElement request = requests.get(0);
-			JsonObject details = this.apiClient.getMgmtRequest(request.getAsJsonObject().get("id").getAsString());
+			JsonObject details = this.apiClient.getDeviceManagementRequest(request.getAsJsonObject().get("id").getAsString());
 			System.out.println(details);
+		} catch(IoTFCReSTException e) {
+			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
+		}
+		
+	}
+	
+	/**
+	 * This sample showcases how to get list of device management request device statuses
+	 * @throws IoTFCReSTException
+	 */
+	private void getMgmtRequestDeviceStatus() throws IoTFCReSTException {
+		// Lets clear the first ID from the list
+		try {
+			JsonElement response = this.apiClient.getAllDeviceManagementRequests();
+			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
+			JsonElement request = requests.get(0);
+			String id = request.getAsJsonObject().get("id").getAsString();
+			
+			ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
+		    parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
+		    
+		    
+			JsonObject details = this.apiClient.getDeviceManagementRequestStatus(id);
+			
+			// The response will contain more parameters that will be used to issue
+			// the next request. The results element will contain the current list of devices
+			JsonArray devices = details.get("results").getAsJsonArray(); 
+			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
+				JsonElement deviceElement = iterator.next();
+				JsonObject responseJson = deviceElement.getAsJsonObject();
+				System.out.println(responseJson);
+			}
+
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response

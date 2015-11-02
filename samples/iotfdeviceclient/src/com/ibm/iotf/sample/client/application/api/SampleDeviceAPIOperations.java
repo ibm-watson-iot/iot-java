@@ -220,7 +220,7 @@ public class SampleDeviceAPIOperations {
 	 */
 	private void getDeviceManagementInformation() throws IoTFCReSTException {
 		try {
-			JsonObject response = this.apiClient.getDeviceMgmtInformation(DEVICE_TYPE, DEVICE_ID);
+			JsonObject response = this.apiClient.getDeviceManagementInformation(DEVICE_TYPE, DEVICE_ID);
 			System.out.println(response);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
