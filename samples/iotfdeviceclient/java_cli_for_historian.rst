@@ -1,5 +1,5 @@
 ===============================================================================
-Java Client Library - ReST API Support (**Update In Progress**)
+Java Client Library - Internet of Things Foundation API Support (**Update In Progress**)
 ===============================================================================
 
 Introduction
