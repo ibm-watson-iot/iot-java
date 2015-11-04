@@ -235,7 +235,7 @@ Method getDeviceType() can be used to retrieve a device type from Internet of Th
 Update a Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method updateDeviceType() can be used to modify one or more properties of a device type. The properties that needs to be modified should be passed in JSON format, For example,
+Method updateDeviceType() can be used to modify one or more properties of a device type. The properties that needs to be modified should be passed in JSON format, For example, following sample shows how to update the *description* of a device type,
 
 .. code:: java
     
@@ -330,7 +330,7 @@ Method getDevice() can be used to retrieve a device from Internet of Things Foun
 Update a Device
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method updateDevice() can be used to modify one or more properties of a device. The properties that needs to be modified should be passed in JSON format, For example, to update the device metadata,
+Method updateDevice() can be used to modify one or more properties of a device. The properties that needs to be modified should be passed in JSON format, For example, following sample shows how to update a device metadata,
 
 .. code:: java
     
@@ -603,7 +603,7 @@ Method initiateDeviceManagementRequest() can be used to initiate a device manage
     JsonObject reboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
     boolean response = this.apiClient.initiateDeviceManagementRequest(reboot);
 
-The above snippet triggers a reboot request on device ardunio01. Similarly use the following JSON message to initiate the firmware download,
+The above snippet triggers a reboot request on device *ardunio01*. Similarly use the following JSON message to initiate the firmware download,
 
 .. code:: js
 
@@ -635,7 +635,7 @@ The above snippet triggers a reboot request on device ardunio01. Similarly use t
 	]
     }
     
-Similarly use the following JSON message to initiate the firmware update process on ardunio01,
+And use the following JSON message to initiate the firmware update process on *ardunio01*,
 
 .. code:: js
 
@@ -649,7 +649,7 @@ Similarly use the following JSON message to initiate the firmware update process
  	]
     }
 
-Refer to `this recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-managed-device-to-ibm-iot-foundation/>` to know more about how to update a service on Raspberry Pi using this ibmiotf Java Client Library.
+Refer to `this recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-managed-device-to-ibm-iot-foundation/>`__ to know more about how to update a service on Raspberry Pi using this ibmiotf Java Client Library.
 
 Delete a Device management request
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
