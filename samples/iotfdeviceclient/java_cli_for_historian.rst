@@ -56,7 +56,7 @@ So in the case of failure, application needs to parse the response to see if the
 Organization details
 ----------------------------------------------------
 
-Applications can view the Organization details by using the following code snippet:
+Application can use method getOrganizationDetails() to view the Organization details:
 
 .. code:: java
 
@@ -76,7 +76,7 @@ Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://doc
 Get Devices in bulk
 ~~~~~~~~~~~~~~~~~~~
 
-Method getAllDevices() can be used to retrieve all the registered devices in an organization from Internet of Things Foundation, each request can contain a maximum of 512KB. For example,
+Method getAllDevices() can be used to retrieve all the registered devices in an organization from Internet of Things Foundation, each request can contain a maximum of 512KB. 
 
 .. code:: java
 
@@ -104,7 +104,7 @@ The above snippet sorts the response based on device id and uses the bookmark to
 Register Devices in bulk
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method addMultipleDevices() can be used to register one or more devices to Internet of Things Foundation, each request can contain a maximum of 512KB. For example,
+Method addMultipleDevices() can be used to register one or more devices to Internet of Things Foundation, each request can contain a maximum of 512KB. For example, the following sample shows how to add a device using the bulk operation.
 
 .. code:: java
 
@@ -131,7 +131,7 @@ The response will contain the generated authentication tokens for all devices. A
 Delete Devices in bulk
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method deleteMultipleDevices() can be used to delete multiple devices from Internet of Things Foundation, each request can contain a maximum of 512KB. For example,
+Method deleteMultipleDevices() can be used to delete multiple devices from Internet of Things Foundation, each request can contain a maximum of 512KB. For example, the following sample shows how to delete 2 devices using the bulk operation.
 
 .. code:: java
 
@@ -602,7 +602,55 @@ Method initiateDeviceManagementRequest() can be used to initiate a device manage
     
     JsonObject reboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
     boolean response = this.apiClient.initiateDeviceManagementRequest(reboot);
+
+The above snippet triggers a reboot request on device ardunio01. Similarly use the following JSON message to initiate the firmware download,
+
+.. code:: js
+
+    {
+	"action": "firmware/download",
+	"parameters": [
+	{
+	    "name": "version",
+	    "value": "<Firmware Version>"
+	},
+	{
+	    "name": "name",
+	    "value": "<Firmware Name>"
+	},
+	{
+	    "name": "verifier",
+            "value": "<MD5 checksum to verify the firmware image>"
+	},
+	{
+	    "name": "uri",
+	    "value": "<URL location from where the firmware to be download>"
+	}
+	],
+	"devices": [
+	{
+	    "typeId": "iotsample-ardunio",
+	    "deviceId": "ardunio01"
+	}
+	]
+    }
     
+Similarly use the following JSON message to initiate the firmware update process on ardunio01,
+
+.. code:: js
+
+    {
+ 	"action": "firmware/update",
+ 	"devices": [
+ 	{
+ 	    "typeId": "iotsample-ardunio",
+ 	    "deviceId": "ardunio01"
+ 	}
+ 	]
+    }
+
+Refer to `this recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-managed-device-to-ibm-iot-foundation/>` to know more about how to update a service on Raspberry Pi using this ibmiotf Java Client Library.
+
 Delete a Device management request
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -685,7 +733,7 @@ Method getActiveDevices() can be used to retrieve the number of active devices o
     String end = "2015-10-01";
     JsonElement response = this.apiClient.getActiveDevices(start, end, true);
 
-The above snippet returns the devices that are active between 2015-09-01 to 2015-10-01 and breakdowns the response daily.
+The above snippet returns the devices that are active between 2015-09-01 and 2015-10-01 with a daily breakdown.
 
 Get Historical data usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -698,7 +746,7 @@ Method getHistoricalDataUsage() can be used to retrieve the amount of storage be
     String end = "2015-10-01";
     JsonElement response = this.apiClient.getHistoricalDataUsage(start, end, false);
 
-The above snippet returns the amount of storage being used by historical event data between 2015-09-01 to 2015-10-01 but without a daily breakdown.
+The above snippet returns the amount of storage being used by historical event data between 2015-09-01 and 2015-10-01 without a daily breakdown.
 
 Get data traffic
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -711,16 +759,14 @@ Method getDataTraffic() can be used to retrieve the amount of data used for a sp
     String end = "2015-10-01";
     JsonElement response = this.apiClient.getDataTraffic(start, end, false);
 
-The above snippet returns the amount of data traffic between 2015-09-01 to 2015-10-01 but without a daily breakdown.
+The above snippet returns the amount of data traffic between 2015-09-01 and 2015-10-01 but without a daily breakdown.
 
 ----
 
 Service status
 ----------------------------------------------------
 
-Applications can use the Service status operation to retrieve the service status of an organization.
-
-Method getServiceStatus() can be used to Retrieve the organization-specific status of each of the services offered by the Internet of Things Foundation. 
+Method getServiceStatus() can be used to retrieve the organization-specific status of each of the services offered by the Internet of Things Foundation. 
 
 .. code:: java
     
