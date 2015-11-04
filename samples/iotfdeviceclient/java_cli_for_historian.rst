@@ -603,7 +603,7 @@ Method initiateDeviceManagementRequest() can be used to initiate a device manage
     JsonObject reboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
     boolean response = this.apiClient.initiateDeviceManagementRequest(reboot);
 
-The above snippet triggers a reboot request on device *ardunio01*. Similarly use the following JSON message to initiate the firmware download,
+The above snippet triggers a reboot request on device *ardunio01*. Similarly use the following JSON message to initiate a firmware download request,
 
 .. code:: js
 
@@ -635,7 +635,7 @@ The above snippet triggers a reboot request on device *ardunio01*. Similarly use
 	]
     }
     
-And use the following JSON message to initiate the firmware update process on *ardunio01*,
+And use the following JSON message to initiate a firmware update request on *ardunio01*,
 
 .. code:: js
 
