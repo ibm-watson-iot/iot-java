@@ -1,5 +1,7 @@
+id = <Unique application id>
 Organization-ID = <Your Organization ID>
-Device-Type = <Your Device Type>
-Device-ID = <Your Device ID>
-Authentication-Method = token
-Authentication-Token = <Your Device Token>
+Authentication-Method = apikey
+API-Key = <Your Organization's API Key>
+Authentication-Token = <Your Organization's Token>
+Device-Type = <Device Type on behalf the application publishes the event>
+Device-ID = <Device ID on behalf the application publishes the event>
