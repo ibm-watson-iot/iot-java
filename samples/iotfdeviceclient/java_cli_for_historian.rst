@@ -82,7 +82,7 @@ Method getAllDevices() can be used to retrieve all the registered devices in an 
     JsonObject response = apiClient.getAllDevices();
     
 
-The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of devices. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
 In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
 
@@ -167,7 +167,7 @@ Method getAllDeviceTypes() can be used to retrieve all the registered device typ
 
     JsonObject response = apiClient.getAllDeviceTypes();
     
-The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device types returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device types. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
 In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
 
@@ -260,7 +260,7 @@ Method getDevices() can be used to retrieve all the devices of a particular devi
 
     JsonObject response = apiClient.getDevices("iotsample-ardunio");
     
-The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of devices. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
 In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
 
@@ -500,7 +500,7 @@ Method getHistoricalEvents() can be used to view events across all devices regis
 
     JsonElement response = apiClient.getHistoricalEvents();
 
-The response will contain more parameters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+The response will contain more parameters and application needs to retrieve the JSON element *events* from the response to get the array of events. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
 In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
 
@@ -573,7 +573,7 @@ Method getAllDeviceManagementRequests() can be used to retrieve the list of devi
 
     JsonObject response = apiClient.getAllDeviceManagementRequests();
     
-The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device types returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device management requests. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
 In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
 
@@ -681,7 +681,7 @@ Method getDeviceManagementRequestStatus() can be used to get a list of device ma
     // Pass the Request ID of a device management request
     JsonObject details = apiClient.getDeviceManagementRequestStatus(id);
 
-The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device statuses returned. Each row contains the status of the action whether the action is successful or not. The status is returned as integer and will contain one of the following possible values,
+The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of device statuses. Each row contains the status of the action whether the action is successful or not. The status is returned as integer and will contain one of the following possible values,
 
 * Success
 * In progress
