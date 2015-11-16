@@ -654,7 +654,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException 
 	 */
-	public JsonObject getDevices(String deviceType, ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject retrieveDevices(String deviceType, ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
 		
 		final String METHOD = "getDevices(typeID)";
 		/**
@@ -715,8 +715,8 @@ public class APIClient {
 	 * 	 *  
 	 * @throws IoTFCReSTException 
 	 */
-	public JsonObject getDevices(String deviceType) throws IoTFCReSTException {
-		return getDevices(deviceType, (ArrayList)null);
+	public JsonObject retrieveDevices(String deviceType) throws IoTFCReSTException {
+		return retrieveDevices(deviceType, (ArrayList)null);
 	}
 
 
@@ -1531,7 +1531,7 @@ public class APIClient {
 	 * @return boolean to denote success or failure of operation
 	 * @throws IOException 
 	 */
-	public boolean clearDiagnosticLogs(String deviceType, String deviceId) throws IoTFCReSTException {
+	public boolean clearAllDiagnosticLogs(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "clearDiagnosticLogs";
 		
 		/**
@@ -1819,8 +1819,8 @@ public class APIClient {
 	 * @return boolean to denote success or failure of operation
 	 * @throws IOException 
 	 */
-	public boolean clearDiagnosticErrorCodes(String deviceType, String deviceId) throws IoTFCReSTException {
-		String METHOD = "clearDiagnosticErrorCodes";
+	public boolean clearAllDiagnosticErrorCodes(String deviceType, String deviceId) throws IoTFCReSTException {
+		String METHOD = "clearAllDiagnosticErrorCodes";
 		
 		/**
 		 * Form the url based on this swagger documentation

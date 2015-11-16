@@ -149,7 +149,7 @@ public class SampleDeviceDiagnosticsAPIOperations {
 
 	private void clearDiagnosticLogs() {
 		try {
-			boolean status = this.apiClient.clearDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
+			boolean status = this.apiClient.clearAllDiagnosticLogs(DEVICE_TYPE, DEVICE_ID);
 			System.out.println(status);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
@@ -203,7 +203,7 @@ public class SampleDeviceDiagnosticsAPIOperations {
 	 */
 	private void clearDiagnosticErrorCodes() {
 		try {
-			boolean status = this.apiClient.clearDiagnosticErrorCodes(DEVICE_TYPE, DEVICE_ID);
+			boolean status = this.apiClient.clearAllDiagnosticErrorCodes(DEVICE_TYPE, DEVICE_ID);
 			System.out.println(status);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());

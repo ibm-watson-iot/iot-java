@@ -265,7 +265,7 @@ public class SampleDeviceAPIOperations {
 			ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
 			parameters.add(new BasicNameValuePair("_sort","deviceId"));
 			
-			JsonObject response = this.apiClient.getDevices(DEVICE_TYPE, parameters);
+			JsonObject response = this.apiClient.retrieveDevices(DEVICE_TYPE, parameters);
 			
 			// The response will contain more parameters that will be used to issue
 			// the next request. The result element will contain the current list of devices
