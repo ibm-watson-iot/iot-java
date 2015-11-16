@@ -20,7 +20,6 @@ Constructor
 The constructor builds the client instance, and accepts a Properties object containing the following definitions:
 
 * org - Your organization ID
-* auth-method - Always "apikey"
 * auth-key - API key
 * auth-token - API key token
 
@@ -255,11 +254,11 @@ Refer to the Device section of the `IBM IoT Foundation API <https://docs.interne
 Get Devices of a particular Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method getDevices() can be used to retrieve all the devices of a particular device type in an organization from Internet of Things Foundation. For example,
+Method retrieveDevices() can be used to retrieve all the devices of a particular device type in an organization from Internet of Things Foundation. For example,
 
 .. code:: java
 
-    JsonObject response = apiClient.getDevices("iotsample-ardunio");
+    JsonObject response = apiClient.retrieveDevices("iotsample-ardunio");
     
 The response will contain more parameters and application needs to retrieve the JSON element *results* from the response to get the array of devices returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
 
@@ -271,7 +270,7 @@ In order to pass the *_bookmark* or any other condition, the overloaded method m
     parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
     parameters.add(new BasicNameValuePair("_sort","deviceId"));
     
-    JsonObject response = apiClient.getDevices("iotsample-ardunio", parameters);
+    JsonObject response = apiClient.retrieveDevices("iotsample-ardunio", parameters);
 		
 The above snippet sorts the response based on device id and uses the bookmark to page through the results.
 
@@ -394,11 +393,11 @@ Method getAllDiagnosticLogs() can be used to get all diagnostic logs of the devi
 Clear Diagnostic logs 
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Method clearDiagnosticLogs() can be used to clear the diagnostic logs of the device. For example,
+Method clearAllDiagnosticLogs() can be used to clear the diagnostic logs of the device. For example,
 
 .. code:: java
 
-    boolean status = apiClient.clearDiagnosticLogs(iotsample-ardunio, ardunio01);
+    boolean status = apiClient.clearAllDiagnosticLogs(iotsample-ardunio, ardunio01);
     
 Add a Diagnostic log
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -412,7 +411,9 @@ Method addDiagnosticLog() can be used to add an entry in the log of diagnostic i
 
     ....
     
-    JsonArray response = apiClient.getAllDiagnosticLogs(iotsample-ardunio, ardunio01);
+    JsonParser parser = new JsonParser();
+    JsonElement log = parser.parse(logToBeAdded);
+    boolean status = this.apiClient.addDiagnosticLog(DEVICE_TYPE, DEVICE_ID, log);
 
 Get a Diagnostic log
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -436,11 +437,11 @@ Method deleteDiagnosticLog() can be used to delete a diagnostic log based on the
 Clear Diagnostic ErrorCodes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method clearDiagnosticErrorCodes() can be used to clear the list of error codes of the device. The list is replaced with a single error code of zero. For example,
+Method clearAllDiagnosticErrorCodes() can be used to clear the list of error codes of the device. The list is replaced with a single error code of zero. For example,
 
 .. code:: java
 
-    boolean status = apiClient.clearDiagnosticErrorCodes(iotsample-ardunio, ardunio01);
+    boolean status = apiClient.clearAllDiagnosticErrorCodes(iotsample-ardunio, ardunio01);
     
 Get Diagnostic ErrorCodes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
