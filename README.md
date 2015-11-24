@@ -1,15 +1,16 @@
 Java Client Library - Introduction
 ============================================
 
-Use the Java client library for interacting with the [IBM Internet of Things Foundation] (https://internetofthings.ibmcloud.com) and to automate commands using Java 7 or Java 8. The client library can be used to simplify interactions with the IBM Internet of Things Foundation. The following libraries contain instructions and guidance on using the java ibmiotf client library to interact with devices and applications within your organizations.
+This Java Client Library can be used to simplify interactions with the [IBM Internet of Things Foundation] (https://internetofthings.ibmcloud.com). The documentation is divided into three sections:  
+
+- The [Devices section] (https://docs.internetofthings.ibmcloud.com/java/java_cli_devices.html) contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
+- The [Managed Device section] (https://docs.internetofthings.ibmcloud.com/java/java_deviceManagement.html) contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java ibmiotf Client Library and perform device management operations like firmware update, location update, and diagnostics update.
+- The [Applications section] (https://docs.internetofthings.ibmcloud.com/java/java_cli_app.html) details how applications can use the Java ibmiotf Client Library to interact with devices.
+
+This Java Client Library requires following version of Java,
 
 *  [Java 7] (http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html)
 *  [Java 8] (https://java.com/en/download/)
-
-This client library documentation is divided into two sections:  
-
-* The Devices section contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
-* The Managed Device section contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java ibmiotf Client Library and perform device management operations like firmware update, location update, and diagnostics update.
 
 Download
 -------------------------------------------------------------------------------
@@ -38,8 +39,3 @@ Dependencies
 -  [Joda-Time] (http://www.joda.org/joda-time/download.html) - The date and time library for Java 
 
 ----
-
-Documentation
--------------
-* [Device Client] (https://docs.internetofthings.ibmcloud.com/java/java_cli_devices.html)
-* [Managed Device] (https://docs.internetofthings.ibmcloud.com/java/java_deviceManagement.html)
