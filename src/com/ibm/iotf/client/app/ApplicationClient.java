@@ -76,10 +76,12 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	private boolean isSharedSubscriptionEnabled() {
 		boolean enabled = false;
 		String value = options.getProperty("Enable-Shared-Subscription");
+		if(value == null) {
+			value = options.getProperty("enable-shared-subscription");
+		}
 		if(value != null) {
 			enabled = Boolean.parseBoolean(trimedValue(value));
 		}
-		System.out.println(enabled);
 		return enabled;
 	}
 	
