@@ -1,7 +1,19 @@
 id = <Unique application id>
+
+
 Organization-ID = <Your Organization ID>
+
+
 Authentication-Method = apikey
+
+
 API-Key = <Your Organization's API Key>
+
+
 Authentication-Token = <Your Organization's Token>
+
+Enable-Shared-Subscription = <true or false>
+
 Device-Type = <Device Type on behalf the application publishes the event>
+
 Device-ID = <Device ID on behalf the application publishes the event>

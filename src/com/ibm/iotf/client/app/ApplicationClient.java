@@ -52,7 +52,11 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 			
 			throw new Exception("Invalid Auth Key");
 		}
-		this.clientId = "a" + CLIENT_ID_DELIMITER + getOrgId() + CLIENT_ID_DELIMITER + getAppId();
+		if(isSharedSubscriptionEnabled()) {
+			this.clientId = "A" + CLIENT_ID_DELIMITER + getOrgId() + CLIENT_ID_DELIMITER + getAppId();
+		} else {
+			this.clientId = "a" + CLIENT_ID_DELIMITER + getOrgId() + CLIENT_ID_DELIMITER + getAppId();
+		}
 		
 		if (getAuthMethod() == null) {
 			this.clientUsername = null;
@@ -69,6 +73,23 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		createClient(this);
 	}
 	
+	private boolean isSharedSubscriptionEnabled() {
+		boolean enabled = false;
+		String value = options.getProperty("Enable-Shared-Subscription");
+		if(value != null) {
+			enabled = Boolean.parseBoolean(trimedValue(value));
+		}
+		System.out.println(enabled);
+		return enabled;
+	}
+	
+	/**
+	 * A shared subscription application must create a non durable connection to IoTF
+	 */
+	protected boolean isDurableSession() {
+		return !isSharedSubscriptionEnabled();
+	}
+
 	/**
 	 * Returns the orgid for this client
 	 * 

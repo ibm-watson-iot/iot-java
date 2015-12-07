@@ -33,9 +33,9 @@ public class RegisteredDeviceEventPublish {
 		//Provide the device specific data, as well as Auth-key and token using Properties class		
 		Properties options = new Properties();
 
-		options.setProperty("org", "hrcl78");
-		options.setProperty("type", "ManagedDT");
-		options.setProperty("id", "RasPi01");
+		options.setProperty("org", "org");
+		options.setProperty("type", "type");
+		options.setProperty("id", "device-id");
 		options.setProperty("auth-method", "token");
 		options.setProperty("auth-token", "password");
 		

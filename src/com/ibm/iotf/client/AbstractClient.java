@@ -222,7 +222,9 @@ public abstract class AbstractClient {
 			mqttClientOptions = new MqttConnectOptions();
 			mqttClientOptions.setUserName(clientUsername);
 			mqttClientOptions.setPassword(clientPassword.toCharArray());
-			mqttClientOptions.setCleanSession(false);
+			if(isDurableSession()) {
+				mqttClientOptions.setCleanSession(false);
+			}
 			
 			/* This isn't needed as the production messaging.internetofthings.ibmcloud.com 
 			 * certificate should already be in trust chain.
@@ -254,6 +256,16 @@ public abstract class AbstractClient {
 		}
 	}
 	
+	/**
+	 * The child class must override if they don't want a durable session.
+	 * 
+	 * For example, the shared subscription doesn't work on durable session.
+	 * @return
+	 */
+	protected boolean isDurableSession() {
+		return true;
+	}
+
 	/**
 	 * Sleep for a variable period of time between connect attempts.
 	 * 
