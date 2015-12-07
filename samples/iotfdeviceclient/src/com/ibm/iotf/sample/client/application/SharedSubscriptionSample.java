@@ -25,7 +25,8 @@ import com.ibm.iotf.client.app.EventCallback;
 import com.ibm.iotf.sample.util.Utility;
 
 /**
- * This sample shows how one application can publish commands to the device
+ * This sample shows how to build a scalable applications which will load balance 
+ * messages across multiple instances of the application 
  *
  */
 public class SharedSubscriptionSample {
