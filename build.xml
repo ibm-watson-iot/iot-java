@@ -1,6 +1,6 @@
 <project name="iotf-client" default="build" basedir=".">
 	
-	<property name="version" value="0.0.4" />
+	<property name="version" value="0.0.5" />
 	
 	<!-- Ensure you set this to the path to your WLP install if you want to build the liberty sample application -->
 	
@@ -110,6 +110,7 @@
 		
 		<copy file="samples/iotfdeviceclient/src/device.prop" todir="${outputDir}"/>
 		<copy file="samples/iotfdeviceclient/src/application.prop" todir="${outputDir}"/>
+		<copy file="samples/iotfdeviceclient/src/sample.config" todir="${outputDir}"/>
 		<copy file="samples/iotfdevicemanagement/src/DMDeviceSample.properties" todir="${outputDir}"/>
 		
 		<!-- Build the accompanying samples jar -->
@@ -126,6 +127,7 @@
 			<zipfileset dir="${outputDir}">
 				<include name="*.jar" />
 				<include name="*.prop" />
+				<include name="*.config" />
 				<include name="*.properties" />
 			</zipfileset>
 		</zip>
@@ -136,6 +138,7 @@
 		<delete>
 		    <fileset dir="${outputDir}" includes="*.jar" />
 			<fileset dir="${outputDir}" includes="*.prop" />
+			<fileset dir="${outputDir}" includes="*.config" />
 		    <fileset dir="${outputDir}" includes="*.properties" />
 		</delete>
 		<delete dir="${basedir}/tmp" />			

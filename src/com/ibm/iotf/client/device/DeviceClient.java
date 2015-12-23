@@ -188,6 +188,11 @@ public class DeviceClient extends AbstractClient {
 		String timestamp = ISO8601_DATE_FORMAT.format(new Date());
 		payload.addProperty("ts", timestamp);
 		
+		// Handle null object
+		if(data == null) {
+			data = new JsonObject();
+		}
+		
 		JsonElement dataElement = gson.toJsonTree(data);
 		payload.add("d", dataElement);
 		

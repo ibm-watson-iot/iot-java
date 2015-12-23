@@ -23,5 +23,6 @@
 	<classpathentry kind="lib" path="lib/com.ibm.json4j_1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/common-lang3.jar"/>
 	<classpathentry kind="lib" path="lib/commons-net-3.3.jar"/>
+	<classpathentry kind="lib" path="lib/cloudant-client-1.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
