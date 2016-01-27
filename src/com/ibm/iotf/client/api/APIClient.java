@@ -71,9 +71,44 @@ public class APIClient {
 		}
 		
 		this.orgId = trimedValue(org);
+		
+		if(authKey == null && "gateway".equals(getAuthMethod(opt))) {
+			authKey = "g-" + this.orgId + '-' + this.getGWDeviceType(opt) + '-' + this.getGwDeviceId(opt);
+		}
 
 		sslContext = SSLContext.getInstance("TLSv1.2");
 		sslContext.init(null, null, null);
+	}
+	
+	private String getGWDeviceType(Properties options) {
+		String type = null;
+		type = options.getProperty("type");
+		if(type == null) {
+			type = options.getProperty("Device-Type");
+		}
+		return trimedValue(type);
+	}
+	
+	/*
+	 * old style - id
+	 * new style - Device-ID
+	 */
+	private String getGwDeviceId(Properties options) {
+		String id = null;
+		id = options.getProperty("id");
+		if(id == null) {
+			id = options.getProperty("Device-ID");
+		}
+		return trimedValue(id);
+	}
+	
+	private static String getAuthMethod(Properties opt) {
+		String method = opt.getProperty("auth-method");
+		if(method == null) {
+			method = opt.getProperty("Authentication-Method");
+		}
+		
+		return trimedValue(method);
 	}
 	
 	private static String trimedValue(String value) {
@@ -718,6 +753,67 @@ public class APIClient {
 	public JsonObject retrieveDevices(String deviceType) throws IoTFCReSTException {
 		return retrieveDevices(deviceType, (ArrayList)null);
 	}
+	
+	/**
+	 * This method returns all devices that are connected through the specified gateway(typeId, deviceId) to IoT Foundation.
+	 * 
+	 * 
+	 * <p> Refer to the
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/get_device_types_typeId_devices_deviceId_devices">link</a>
+	 * for more information about how to control the response.</p>
+	 * 
+	 * @param gatewayType Gateway Device type ID 
+	 * @param gatewayId Gateway Device ID
+	 * 
+	 * @return JSON response containing the list of devices.
+	 * <p> The response will contain more parameters that can be used to issue the next request. 
+	 * The result element will contain the current list of devices.</p>
+	 * 	 *  
+	 * @throws IoTFCReSTException 
+	 */
+	public JsonObject getDevicesConnectedThroughGateway(String gatewayType, String gatewayId) throws IoTFCReSTException {
+		final String METHOD = "getDevicesConnectedThroughGateway(typeID, deviceId)";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(BASIC_API_V0002_URL).
+		   append("/device/types/").
+		   append(gatewayType).
+		   append("/devices").
+		   append(gatewayId).append("/devices");
+				   
+		int code = 0;
+		HttpResponse response = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200) {
+				// success
+				String result = this.readContent(response, METHOD);
+				JsonElement jsonResponse = new JsonParser().parse(result);
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the device information "
+					+ "that are connected through the specified gateway, "
+					+ ":: "+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 403) {
+			throw new IoTFCReSTException(code, "Request is only allowed if the classId of the device type is 'Gateway'");
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "Device type or device not found");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
 
 
 
@@ -972,6 +1068,27 @@ public class APIClient {
 		throwException(response, METHOD);
 		return null;
 	}
+	
+	/**
+	 * Creates a gateway device type.
+	 * 
+	 * @param deviceType JSON object representing the gateway device type to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Device_Types/post_device_types">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return JSON object containing the response of device type.
+	 *  
+	 * @throws IoTFCReSTException 
+	 */
+
+	public JsonObject addGatewayDeviceType(JsonElement deviceType) throws IoTFCReSTException {
+		
+		if(deviceType != null && !deviceType.getAsJsonObject().has("classId")) {
+			deviceType.getAsJsonObject().addProperty("classId", "Gateway");
+		}
+		return this.addDeviceType(deviceType);
+	}
+
 
 	/**
 	 * 
@@ -1460,6 +1577,37 @@ public class APIClient {
 		}
 		throwException(response, METHOD);
 		return null;
+	}
+	
+	/**
+	 * Register a new device under the given gateway.
+	 *  
+	 * The response body will contain the generated authentication token for the device. 
+	 * The caller of the method must make sure to record the token when processing 
+	 * the response. The IBM IoT Foundation will not be able to retrieve lost authentication tokens.
+	 * 
+	 * @param typeId DeviceType ID
+	 * @param gatewayId The deviceId of the gateway 
+	 * @param gatewayTypeId The device type of the gateway  
+	 * 
+	 * @param device JSON representation of the device to be added. Refer to 
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/post_device_types_typeId_devices">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return JsonObject containing the generated authentication token for the device. 
+	 *  
+	 * @throws IoTFCReSTException 
+	 */
+
+	public JsonObject registerDeviceUnderGateway(String typeID, String gatewayId, 
+			String gatewayTypeId, JsonElement device) throws IoTFCReSTException {
+		
+		if(device != null) {
+			JsonObject deviceObj = device.getAsJsonObject();
+			deviceObj.addProperty("gatewayId", gatewayId);
+			deviceObj.addProperty("gatewayTypeId", gatewayTypeId);
+		}
+		return this.registerDevice(typeID, device);
 	}
 	
 	/**
