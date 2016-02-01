@@ -90,7 +90,8 @@ public class RasPiFirmwareHandlerSample extends DeviceFirmwareHandler {
 			
 			firmwareURL = new URL(deviceFirmware.getUrl());
 			urlConnection = firmwareURL.openConnection();
-			if(deviceFirmware.getName() != null) {
+			if(deviceFirmware.getName() != null &&
+					!"".equals(deviceFirmware.getName())) {
 				downloadedFirmwareName = deviceFirmware.getName();
 			} else {
 				// use the timestamp as the name

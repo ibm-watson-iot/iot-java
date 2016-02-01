@@ -18,7 +18,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
@@ -32,10 +31,7 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.devicemgmt.device.DeviceData;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.device.DeviceInfo;
-import com.ibm.iotf.devicemgmt.device.DeviceLocation;
 import com.ibm.iotf.devicemgmt.device.DeviceMetadata;
-import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
-import com.ibm.iotf.devicemgmt.device.DiagnosticLog;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.sample.devicemgmt.device.task.DiagnosticErrorCodeUpdateTask;
@@ -119,7 +115,7 @@ public class SampleRasPiDMAgent {
 	 */
 	private void scheduleLocationTask() {
 		if(locationTask == null) {
-			LocationUpdateTask locTask = new LocationUpdateTask(this.deviceData.getDeviceLocation());
+			LocationUpdateTask locTask = new LocationUpdateTask(this.dmClient);
 			this.locationTask = scheduledThreadPool.scheduleAtFixedRate(locTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("Location Update Task started successfully");
 		} else {
@@ -132,7 +128,7 @@ public class SampleRasPiDMAgent {
 	 */
 	private void scheduleErrorCodeTask() {
 		if(errorcodeTask == null) {
-			DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(this.deviceData.getDiagnosticErrorCode());
+			DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(this.dmClient);
 			this.errorcodeTask = scheduledThreadPool.scheduleAtFixedRate(ecTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("ErrorCode Update Task started successfully");
 		} else {
@@ -147,7 +143,7 @@ public class SampleRasPiDMAgent {
 	private void scheduleLogTask() {
 		
 		if(this.logTask == null) {
-			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(this.deviceData.getDiagnosticLog());
+			DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(this.dmClient);
 			this.logTask = scheduledThreadPool.scheduleAtFixedRate(logTask, 0, 30, TimeUnit.SECONDS);
 			System.out.println("Log Update Task started successfully");
 		} else {
@@ -179,11 +175,8 @@ public class SampleRasPiDMAgent {
 		/**
 		 * To create a DeviceData object, we will need the following objects:
 		 *   - DeviceInfo
-		 *   - DeviceMetadata
-		 *   - DeviceLocation (optional)
-		 *   - DiagnosticErrorCode (optional)
-		 *   - DiagnosticLog (optional)
-		 *   - DeviceFirmware (optional)
+		 *   - DeviceMetadata 
+		 *   - DeviceFirmware
 		 */
 		DeviceInfo deviceInfo = new DeviceInfo.Builder().
 				serialNumber(trimedValue(deviceProps.getProperty("DeviceInfo.serialNumber"))).
@@ -205,27 +198,6 @@ public class SampleRasPiDMAgent {
 				build();
 		
 		/**
-		 * Create a DeviceLocation object
-		 */
-		DeviceLocation location = new DeviceLocation.Builder(30.28565, -97.73921).
-												elevation(10).build();
-		
-		/**
-		 * Create a DeviceDiagnostic Object With default ErrorCode & Log
-		 */
-		
-		DiagnosticErrorCode errorCode = new DiagnosticErrorCode(0);
-		
-		DiagnosticLog log = new DiagnosticLog(
-				"Creating a Managed Client", 
-				new Date(),
-				DiagnosticLog.LogSeverity.informational);
-		
-		
-		log.send();
-		log.append("sample log", new Date(), DiagnosticLog.LogSeverity.informational);
-		log.clear();
-		/**
 		 * Create a DeviceMetadata object
 		 */
 		JsonObject data = new JsonObject();
@@ -235,10 +207,7 @@ public class SampleRasPiDMAgent {
 		this.deviceData = new DeviceData.Builder().
 						 deviceInfo(deviceInfo).
 						 deviceFirmware(firmware).
-						 deviceLocation(location).
-						 deviceErrorCode(errorCode).
-						 deviceLog(log).
-						 //metadata(metadata).
+						 metadata(metadata).
 						 build();
 		
 		// Options to connect to IoT Foundation
@@ -261,6 +230,8 @@ public class SampleRasPiDMAgent {
 	}
 	
 	private boolean sendManageRequest(int lifetime) throws MqttException {
+		dmClient.supportsDeviceActions(true);
+		dmClient.supportsFirmwareActions(true);
 		if(this.manageTask != null) {
 			manageTask.cancel(false);
 		}
@@ -292,44 +263,25 @@ public class SampleRasPiDMAgent {
 	}
 	
 	/**
-	 * This method does two things.
-	 * 
-	 * 1. Informs the Device management server that this device supports Firmware actions
-	 * 
-	 * 2. Adds a Firmware handler where the device agent will get notified
+	 * This method adds a Firmware handler where the device agent will get notified
 	 *    when there is a firmware action from the server. 
 	 */
 	private void addFirmwareHandler() throws Exception {
 		if(this.dmClient != null) {
 			RasPiFirmwareHandlerSample fwHandler = new RasPiFirmwareHandlerSample();
 			deviceData.addFirmwareHandler(fwHandler);
-			dmClient.supportsFirmwareActions(true);
-			
-			// Need to send another manage request as we need to
-			// inform IoTF that this device supports firmware actions now
-			this.sendManageRequest(0);
-			
 			System.out.println("Added Firmware Handler successfully !!");
 		}
 	}
 	
 	/**
-	 * This method does two things.
-	 * 
-	 * 1. Informs the Device management server that this device supports Firmware actions
-	 * 
-	 * 2. Adds a Firmware handler where the device agent will get notified
-	 *    when there is a firmware action from the server. 
+	 * This method adds a device action handler where the device agent will get notified
+	 * when there is a device action from the server. 
 	 */
 	private void addDeviceActionHandler() throws Exception {
 		if(this.dmClient != null) {
 			DeviceActionHandlerSample actionHandler = new DeviceActionHandlerSample();
 			deviceData.addDeviceActionHandler(actionHandler);
-			dmClient.supportsDeviceActions(true);
-			
-			// Need to send another manage request as we need to
-			// inform IoTF that this device supports device action now
-			this.sendManageRequest(0);
 			System.out.println("Added Device Action Handler successfully !!");
 		}
 	}

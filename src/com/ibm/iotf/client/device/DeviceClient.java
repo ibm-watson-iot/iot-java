@@ -66,7 +66,7 @@ public class DeviceClient extends AbstractClient {
 	 */
 	public DeviceClient(Properties options) throws Exception {
 		super(options);
-		System.out.println(options.toString());
+		LoggerUtility.fine(CLASS_NAME, "DeviceClient", "options   = " + options);
 		this.clientId = "d" + CLIENT_ID_DELIMITER + getOrgId() + CLIENT_ID_DELIMITER + getDeviceType() + CLIENT_ID_DELIMITER + getDeviceId();
 		
 		if (getAuthMethod() == null) {

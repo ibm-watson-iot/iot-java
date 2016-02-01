@@ -38,7 +38,7 @@ import com.ibm.iotf.client.gateway.GatewayClient;
  *   
  *          <br>sudo apt-get install librxtx-java</br><br>
  *          
- *  <p>Observe that the RXTX jar file is present in this location – /usr/share/java/RXTXcomm.jar.</p>
+ *  <p>Observe that the RXTX jar file is present in this location: /usr/share/java/RXTXcomm.jar.</p>
  *  
  *  <p>Ideally the Arduino Uno connects to Raspberry pi using the port "/dev/ttyACM0". 
  *  However the port might change at times, to find the exact port, 
@@ -51,7 +51,7 @@ import com.ibm.iotf.client.gateway.GatewayClient;
  *  then run the GatewaySample with the port name passes to it.</p>
  *  
  *  <p>Also, note that on Raspberry Pi, the RXTX library places its lock in the folder 
- *  /var/lock. If this doesn’t exist, communication will not work, although you won’t 
+ *  /var/lock. If this doesn't exist, communication will not work, although you won't 
  *  receive any obvious errors as to why. To create this directory if missing, open the 
  *  terminal application and create the lock directory as the root user or equivalent:</p>
  *  
@@ -100,7 +100,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	 * 3. Open the input and output streams for communication
 	 * 
 	 * 4. Add an event listener to receive events from the Arduino, 
-	 *    and tell it to call us back when there’s data available
+	 *    and tell it to call us back when there's data available
 	 */
 	public void initialize() {
 		System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0");

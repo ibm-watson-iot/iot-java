@@ -17,6 +17,7 @@ import java.util.Random;
 import java.util.TimerTask;
 
 import com.ibm.iotf.devicemgmt.device.DeviceLocation;
+import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
 /**
  * 
@@ -24,23 +25,25 @@ import com.ibm.iotf.devicemgmt.device.DeviceLocation;
  */
 public class LocationUpdateTask extends TimerTask {
 	
-	private DeviceLocation deviceLocation;
 	private Random random = new Random();
+	private ManagedDevice dmClient;
 	
-	public LocationUpdateTask(DeviceLocation location) {
-		this.deviceLocation = location;
+	public LocationUpdateTask(ManagedDevice dmClient) {
+		this.dmClient = dmClient;
 	}
 	
 	@Override
 	public void run() {
 		// ...update location
-		int rc = deviceLocation.update(random.nextDouble() + 30,   // latitude
-							  random.nextDouble() - 98,	  // longitude
-							  (double)random.nextInt(100));		  // elevation
+		double latitude = random.nextDouble() + 30;
+		double longitude = random.nextDouble() - 98;
+		double elevation = (double)random.nextInt(100);
+		int rc = dmClient.updateLocation(latitude, longitude, elevation);
 		if(rc == 200) {
-			System.out.println("Current location (" + deviceLocation.toString() + ")");
+			System.out.println("Updating random location (" + latitude + " " + longitude +" " + elevation + ")");
 		} else {
-			System.err.println("Failed to update the location");
+			System.err.println("Failed to update the location (" + 
+							latitude + " " + longitude +" " + elevation + "), rc ="+rc);
 		}
 	}
 	

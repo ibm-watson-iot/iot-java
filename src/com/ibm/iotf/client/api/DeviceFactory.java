@@ -296,8 +296,6 @@ public class DeviceFactory {
 
 		String response = connect("delete", url, jsonPacket);
 		
-		System.out.println(response);
-
 		if(response.equals(RESOURCE_NOT_FOUND)) {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Device didn't exist ");
 			return false;

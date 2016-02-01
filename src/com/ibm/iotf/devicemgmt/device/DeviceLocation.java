@@ -33,6 +33,10 @@ import com.ibm.iotf.devicemgmt.device.resource.Resource;
  */
 public class DeviceLocation extends Resource {
 	
+	public DeviceLocation() {
+		super(RESOURCE_NAME);
+	}
+
 	public static final String RESOURCE_NAME = "location";
 	
 	private NumberResource latitude;
@@ -46,39 +50,6 @@ public class DeviceLocation extends Resource {
 	private static final String ELEVATION = "elevation";
 	private static final String MEASUREDDATETIME = "measuredDateTime";
 	private static final String ACCURACY = "accuracy";
-	
-	/**
-	 * Create an <code>DeviceLocation</code> that can be used to communicate 
-	 * with IBM IoT Foundation.
-	 * 
-	 * @param latitude
-	 * @param longitude
-	 * @param elevation
-	 * @param accuracy
-	 * @param measuredDateTime  When the location information is retrieved
-	 */
-	private DeviceLocation(Builder builder) {
-		super(RESOURCE_NAME);
-		this.latitude = new NumberResource(LATITUDE, builder.latitude);
-		this.longitude = new NumberResource(LONGITUDE, builder.longitude);
-		
-		this.add(this.latitude);
-		this.add(this.longitude);
-		
-		if(this.elevation != null) {
-			this.elevation = new NumberResource(ELEVATION, builder.elevation);
-			this.add(this.elevation);
-		}
-		
-		this.measuredDateTime = new DateResource(MEASUREDDATETIME, builder.measuredDateTime);
-		this.add(this.measuredDateTime);
-
-		if(builder.accuracy != null) {
-			this.accuracy = new NumberResource(ACCURACY, builder.accuracy);
-			this.add(this.accuracy);
-		}
-		
-	}
 	
 	public double getLatitude() {
 		return this.latitude.getValue().doubleValue();
@@ -98,7 +69,6 @@ public class DeviceLocation extends Resource {
 
 	public Date getMeasuredDateTime() {
 		return this.measuredDateTime.getValue();
-	
 	}
 
 	public double getAccuracy() {
@@ -106,135 +76,6 @@ public class DeviceLocation extends Resource {
 			return this.accuracy.getValue().doubleValue();
 		}
 		return 0;
-	}
-
-	
-	public DeviceLocation getDeviceLocation() {
-		return this;
-	}
-	
-	/**
-	 * Update the location with information from the specified <code>DeviceLocation</code> object.
-	 * 
-	 * @param location <code>DeviceLocation</code> object.
-	 * @return code indicating whether the update is successful or not 
-	 *        (200 means success, otherwise unsuccessful)
-
-	 */
-	public int update(DeviceLocation location) {
-		return update(location.toJsonObject());
-	}
-	
-	/**
-	 * Update the location.
-	 * 
-	 * @param latitude	Latitude in decimal degrees using WGS84
-	 * @param longitude Longitude in decimal degrees using WGS84
-	 * @param elevation	Elevation in meters using WGS84
-	 * 
-	 * @return code indicating whether the update is successful or not 
-	 *        (200 means success, otherwise unsuccessful)
-
-	 */
-	public int update(Double latitude, Double longitude, Double elevation) {
-		return update(latitude, longitude, elevation, new Date());
-	}
-
-	/**
-	 * Update the location
-	 * 
-	 * @param latitude	Latitude in decimal degrees using WGS84
-	 * @param longitude Longitude in decimal degrees using WGS84
-	 * @param elevation	Elevation in meters using WGS84
-	 * @param measuredDateTime When the location information is retrieved
-	 * 
-	 * @return code indicating whether the update is successful or not 
-	 *        (200 means success, otherwise unsuccessful)
-
-	 */
-	public int update(Double latitude, Double longitude, Double elevation, Date measuredDateTime) {
-		return update(latitude, longitude, elevation, measuredDateTime, null);
-	}
-	
-	/**
-	 * Update the location
-	 * 
-	 * @param latitude	Latitude in decimal degrees using WGS84
-	 * @param longitude Longitude in decimal degrees using WGS84
-	 * @param elevation	Elevation in meters using WGS84
-	 * @param measuredDateTime When the location information is retrieved
-	 * @param accuracy	Accuracy of the position in meters
-	 * 
-	 * @return code indicating whether the update is successful or not 
-	 *        (200 means success, otherwise unsuccessful)
-
-	 */
-	public int update(Double latitude, Double longitude, Double elevation, Date measuredDateTime, Double accuracy) {
-		if(latitude != null) {
-			this.latitude.setValue(latitude);
-		}
-		
-		if(longitude != null) {
-			this.longitude.setValue(longitude);
-		}
-		
-		if(elevation != null) {
-			if(this.elevation == null) {
-				this.elevation = new NumberResource(ELEVATION, elevation);
-				this.add(this.elevation);
-			} else {
-				this.elevation.setValue(elevation);
-			}
-		}
-		
-		if(measuredDateTime != null ){
-			this.measuredDateTime.setValue(measuredDateTime);
-		} else {
-			this.measuredDateTime.setValue(new Date());
-		}
-		
-		if(accuracy != null) {
-			if(this.accuracy == null) {
-				this.accuracy = new NumberResource(ACCURACY, accuracy);
-				this.add(this.accuracy);
-			} else {
-				this.accuracy.setValue(accuracy);
-			}
-		}
-		fireEvent(true);
-		return this.getRC();
-	}
-	
-	/**
-	 * Notifies the IBM IoT Foundation server with the current location
-	 * @return
-	 */
-	public int sendLocation() {
-		fireEvent(true);
-		return this.getRC();
-	}
-	
-	/**
-	 * Return the <code>JsonObject</code> representation of the <code>DeviceLocation</code> object.
-	 * @return JsonObject object
-	 */
-	public JsonObject toJsonObject() {
-		JsonObject json = new JsonObject();
-		json.addProperty(this.latitude.getResourceName(), latitude.getValue());
-		json.addProperty(this.longitude.getResourceName(), longitude.getValue());
-		if(elevation != null) {
-			json.addProperty(this.elevation.getResourceName(), elevation.getValue());
-		}
-		
-		String utcTime = DateFormatUtils.formatUTC(measuredDateTime.getValue(), 
-				DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.getPattern());
-		
-		json.addProperty(this.measuredDateTime.getResourceName(), utcTime);
-		
-		if(accuracy != null) {
-			json.addProperty(this.accuracy.getResourceName(), accuracy.getValue());
-		}
-		return json;
 	}
 	
 	/**
@@ -244,44 +85,6 @@ public class DeviceLocation extends Resource {
 		return toJsonObject().toString();
 	}
 	
-	/**
-	 * A builder class that helps to construct the Location object
-	 *
-	 */
-	public static class Builder {
-		private Double latitude;
-		private Double longitude;
-		private Double elevation;
-		private Date measuredDateTime;
-		private Double accuracy;
-		
-		public Builder(double latitude, double longitude) {
-			this.latitude = latitude;
-			this.longitude = longitude;
-			this.measuredDateTime = new Date();
-		}
-		
-		public Builder elevation(double elevation) {
-			this.elevation = elevation;
-			return this;
-		}
-		
-		public Builder measuredDateTime(Date measuredDateTime) {
-			this.measuredDateTime = measuredDateTime;
-			return this;
-		}
-		
-		public Builder accuracy(double accuracy) {
-			this.accuracy = accuracy;
-			return this;
-		}
-		
-		public DeviceLocation build() {
-			DeviceLocation location = new DeviceLocation(this);
-			return location;
-		}
-	}
-
 	/**
 	 * Updates each of the resources with the new value
 	 * 
@@ -338,9 +141,32 @@ public class DeviceLocation extends Resource {
 				}
 			}
 		}
-		fireEvent(fireEvent);
-		
+		fireEvent(true);
 		return this.getRC();
 	}
+	
+	/**
+	 * Return the <code>JsonObject</code> representation of the <code>DeviceLocation</code> object.
+	 * @return JsonObject object
+	 */
+	public JsonObject toJsonObject() {
+		JsonObject json = new JsonObject();
+		json.addProperty(this.latitude.getResourceName(), latitude.getValue());
+		json.addProperty(this.longitude.getResourceName(), longitude.getValue());
+		if(elevation != null) {
+			json.addProperty(this.elevation.getResourceName(), elevation.getValue());
+		}
+		
+		String utcTime = DateFormatUtils.formatUTC(measuredDateTime.getValue(), 
+				DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.getPattern());
+		
+		json.addProperty(this.measuredDateTime.getResourceName(), utcTime);
+		
+		if(accuracy != null) {
+			json.addProperty(this.accuracy.getResourceName(), accuracy.getValue());
+		}
+		return json;
+	}
+	
 	
 }

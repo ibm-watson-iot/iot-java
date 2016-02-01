@@ -16,7 +16,7 @@ package com.ibm.iotf.sample.devicemgmt.device.task;
 import java.util.Random;
 import java.util.TimerTask;
 
-import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
+import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
 /**
  * Timer task that appends/clears Error code to IoT Foundation
@@ -25,30 +25,30 @@ import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
  */
 public class DiagnosticErrorCodeUpdateTask extends TimerTask {
 		
-	private DiagnosticErrorCode diagErr;
+	private ManagedDevice dmClient;
 	private Random random = new Random();
 	private int count = 0;
 		
-	public DiagnosticErrorCodeUpdateTask(DiagnosticErrorCode diagErr) {
-		this.diagErr = diagErr;
+	public DiagnosticErrorCodeUpdateTask(ManagedDevice dmClient) {
+		this.dmClient = dmClient;
 	}
 		
 	@Override
 	public void run() {
-		
-		int rc = diagErr.append(random.nextInt(500));
+		int errorCode = random.nextInt(500);
+		int rc = dmClient.addErrorCode(errorCode);
 		if(rc == 200) {
-			System.out.println("Current Errorcode (" + diagErr + ")");
+			System.out.println("Current Errorcode (" + errorCode + ")");
 		} else {
-			System.out.println("Errorcode addition failed!");
+			System.out.println("Errorcode addition failed!, rc = "+rc);
 		}
 			
 		if(count++ == 25) {
-			rc = diagErr.clear();
+			rc = dmClient.clearErrorCodes();
 			if(rc == 200) {
 				System.out.println("ErrorCodes are cleared successfully!");
 			} else {
-				System.out.println("Failed to clear the ErrorCodes!");
+				System.out.println("Failed to clear the ErrorCodes! rc = "+rc);
 			}
 				
 			this.count = 0;

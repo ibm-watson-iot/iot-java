@@ -35,10 +35,8 @@ import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.device.DeviceInfo;
 import com.ibm.iotf.devicemgmt.device.DeviceLocation;
 import com.ibm.iotf.devicemgmt.device.DeviceMetadata;
-import com.ibm.iotf.devicemgmt.device.DiagnosticErrorCode;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
-import com.ibm.iotf.devicemgmt.device.internal.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 
 /**
@@ -184,12 +182,6 @@ public class DeviceAttributesUpdateListenerSample implements PropertyChangeListe
 				build();
 		
 		/**
-		 * Create a DeviceLocation object
-		 */
-		DeviceLocation location = new DeviceLocation.Builder(30.28565, -97.73921).
-												elevation(10).build();
-		
-		/**
 		 * Create a DeviceMetadata object
 		 */
 		JsonObject data = new JsonObject();
@@ -198,11 +190,11 @@ public class DeviceAttributesUpdateListenerSample implements PropertyChangeListe
 		
 		this.deviceData = new DeviceData.Builder().
 						 deviceInfo(deviceInfo).
-						 deviceLocation(location).
 						 deviceFirmware(firmware).
 						 metadata(metadata).
 						 build();
 		
+		DeviceLocation location = new DeviceLocation();
 		// Add a listener for all possible attribute changes
 		location.addPropertyChangeListener(this);
 		firmware.addPropertyChangeListener(this);

@@ -13,6 +13,7 @@
  */
 package com.ibm.iotf.devicemgmt.device;
 
+import java.beans.PropertyChangeEvent;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,6 +26,8 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
@@ -41,7 +44,8 @@ import com.ibm.iotf.devicemgmt.device.handler.DMRequestHandler;
 import com.ibm.iotf.devicemgmt.device.internal.DeviceTopic;
 import com.ibm.iotf.devicemgmt.device.internal.ResponseCode;
 import com.ibm.iotf.devicemgmt.device.internal.ServerTopic;
-import com.ibm.iotf.devicemgmt.device.listener.DMListener;
+import com.ibm.iotf.devicemgmt.device.resource.NumberResource;
+import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -191,36 +195,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 
 	
-	private boolean registerDevice(long lifetime) {
-		final String METHOD = "registerDevice";
-		boolean success = false;
-		String organization = getOrgId();
-		if (organization == null || ("quickstart").equals(organization)) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Unable to create ManagedClient instance.  "
-					+ "QuickStart devices do not support device management");
-			
-			throw new RuntimeException("Unable to create ManagedClient instance.  "
-					+ "QuickStart devices do not support device management");
-		}
-		try {
-			success = this.manage(lifetime);
-			if(success) {
-				LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Device is connected as managed device");
-			} else {
-				LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Device is failed to connect as managed device");
-			}
-		} catch (MqttException ex) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Connecting the device as managed device "
-					+ "operation is Failed, Exception: "+ex.getMessage());
-			
-			RuntimeException e = new RuntimeException("Connecting the device as managed device "
-					+ "operation is Failed, Exception: "+ex.getMessage());
-			e.initCause(ex);
-			throw e;
-		}
-		return success;
-	}
-	
 	/**
 	 * <p>This method just connects to the IBM Internet of Things Foundation,
 	 * Device needs to make a call to manage() to participate in Device
@@ -323,7 +297,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		JsonObject jsonResponse = sendAndWait(topic, jsonPayload, REGISTER_TIMEOUT_VALUE);
 		if (jsonResponse != null && jsonResponse.get("rc").getAsInt() == 
 				ResponseCode.DM_SUCCESS.getCode()) {
-			DMListener.start(this);
 			DMRequestHandler.setRequestHandlers(this);
 			publishQueue = new LinkedBlockingQueue<JsonObject>();
 			Thread t = new Thread(this);
@@ -343,6 +316,202 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		
 		bManaged = success;
 		return success;
+	}
+	
+	/**
+	 * Update the location.
+	 * 
+	 * @param latitude	Latitude in decimal degrees using WGS84
+	 * @param longitude Longitude in decimal degrees using WGS84
+	 * @param elevation	Elevation in meters using WGS84
+	 * 
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+
+	 */
+	public int updateLocation(Double latitude, Double longitude, Double elevation) {
+		return updateLocation(latitude, longitude, elevation, new Date());
+	}
+
+	/**
+	 * Update the location
+	 * 
+	 * @param latitude	Latitude in decimal degrees using WGS84
+	 * @param longitude Longitude in decimal degrees using WGS84
+	 * @param elevation	Elevation in meters using WGS84
+	 * @param measuredDateTime When the location information is retrieved
+	 * 
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+
+	 */
+	public int updateLocation(Double latitude, Double longitude, Double elevation, Date measuredDateTime) {
+		return updateLocation(latitude, longitude, elevation, measuredDateTime, null);
+	}
+	
+	/**
+	 * Update the location
+	 * 
+	 * @param latitude	Latitude in decimal degrees using WGS84
+	 * @param longitude Longitude in decimal degrees using WGS84
+	 * @param elevation	Elevation in meters using WGS84
+	 * @param measuredDateTime When the location information is retrieved
+	 * @param accuracy	Accuracy of the position in meters
+	 * 
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+
+	 */
+	public int updateLocation(Double latitude, Double longitude, Double elevation, Date measuredDateTime, Double accuracy) {
+		final String METHOD = "updateLocation"; 
+		JsonObject jsonData = new JsonObject();
+
+		JsonObject json = new JsonObject();
+		json.addProperty("longitude", longitude);
+		json.addProperty("latitude", latitude);
+		if(elevation != null) {
+			json.addProperty("elevation", elevation);
+		}
+		String utcTime = DateFormatUtils.formatUTC(measuredDateTime, 
+				DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.getPattern());
+		json.addProperty("measuredDateTime", utcTime);
+		
+		if(accuracy != null) {
+			json.addProperty("accuracy", accuracy);
+		}
+		
+		jsonData.add("d", json);
+		
+		System.out.println(jsonData);
+		
+		try {
+			JsonObject response = sendAndWait(DeviceTopic.UPDATE_LOCATION, jsonData, REGISTER_TIMEOUT_VALUE);
+			if (response != null ) {
+				return response.get("rc").getAsInt();
+			}
+		} catch (MqttException e) {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.toString());
+		}
+
+		return 0;
+	}
+	
+	/**
+	 * Clear the Error Codes from IBM IoT Foundation for this device
+	 * @return code indicating whether the clear operation is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int clearErrorCodes() {
+		final String METHOD = "clearErrorCodes"; 
+		JsonObject jsonData = new JsonObject();
+		try {
+			JsonObject response = sendAndWait(DeviceTopic.CLEAR_DIAG_ERRCODES, 
+					jsonData, REGISTER_TIMEOUT_VALUE);
+			if (response != null ) {
+				return response.get("rc").getAsInt();
+			}
+		} catch (MqttException e) {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.toString());
+		}
+		return 0;
+	}
+	
+	/**
+	 * Clear the Logs from IBM IoT Foundation for this device
+	 * @return code indicating whether the clear operation is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int clearLogs() {
+		final String METHOD = "clearLogs"; 
+		JsonObject jsonData = new JsonObject();
+		try {
+			JsonObject response = sendAndWait(DeviceTopic.CLEAR_DIAG_LOG, 
+					jsonData, REGISTER_TIMEOUT_VALUE);
+			if (response != null ) {
+				return response.get("rc").getAsInt();
+			}
+		} catch (MqttException e) {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.toString());
+		}
+		return 0;
+	}
+	
+	/**
+	 * Adds the current errorcode to IBM IoT Foundation.
+	 * 
+	 * @param errorCode The "errorCode" is a current device error code that 
+	 * needs to be added to the Internet of Things Foundation.
+	 * 
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int addErrorCode(int errorCode) {
+		final String METHOD = "addErrorCode"; 
+		JsonObject jsonData = new JsonObject();
+		JsonObject errorObj = new JsonObject();
+		errorObj.addProperty("errorCode", errorCode);
+		jsonData.add("d", errorObj);
+		
+		try {
+			JsonObject response = sendAndWait(DeviceTopic.CREATE_DIAG_ERRCODES, jsonData, REGISTER_TIMEOUT_VALUE);
+			if (response != null ) {
+				return response.get("rc").getAsInt();
+			}
+		} catch (MqttException e) {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.toString());
+		}
+		return 0;
+	}
+	
+	/**
+	 * Appends a Log message to the Internet of Things Foundation.
+	 * @param message The Log message that needs to be added to the Internet of Things Foundation.
+	 * @param timestamp The Log timestamp
+	 * @param severity the Log severity
+	 * 
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int addLog(String message, Date timestamp, LogSeverity severity) {
+		return addLog(message, timestamp, severity, null);
+	}
+	
+	/**
+	 * The Log message that needs to be added to the Internet of Things Foundation.
+	 * 
+	 * @param message The Log message that needs to be added to the Internet of Things Foundation.
+	 * @param timestamp The Log timestamp
+	 * @param severity The Log severity
+	 * @param data The String data
+	 * 
+	 * @return code indicating whether the update is successful or not 
+	 *        (200 means success, otherwise unsuccessful)
+	 */
+	public int addLog(String message, Date timestamp, LogSeverity severity, String data) {
+		final String METHOD = "addLog"; 
+		JsonObject jsonData = new JsonObject();
+		JsonObject log = new JsonObject();
+		log.add("message", new JsonPrimitive(message));
+		log.add("severity", new JsonPrimitive(severity.getSeverity()));
+		String utcTime = DateFormatUtils.formatUTC(timestamp, 
+				DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.getPattern());
+		log.add("timestamp", new JsonPrimitive(utcTime));
+
+		if(data != null) {
+			byte[] encodedBytes = Base64.encodeBase64(data.getBytes());
+			log.add("data", new JsonPrimitive(new String(encodedBytes)));
+		}
+		jsonData.add("d", log);
+		
+		try {
+			JsonObject response = sendAndWait(DeviceTopic.ADD_DIAG_LOG, jsonData, REGISTER_TIMEOUT_VALUE);
+			if (response != null ) {
+				return response.get("rc").getAsInt();
+			}
+		} catch (MqttException e) {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.toString());
+		}
+		return 0;
 	}
 	
 	/**
@@ -371,7 +540,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		}
 
 		terminate();
-		DMListener.stop(this);
 		DMRequestHandler.clearRequestHandlers(this);
 		this.deviceData.terminateHandlers();
 		this.supportsDeviceActions = false;

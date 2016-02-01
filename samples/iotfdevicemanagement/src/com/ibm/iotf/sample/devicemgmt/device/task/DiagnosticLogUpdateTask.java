@@ -16,7 +16,8 @@ package com.ibm.iotf.sample.devicemgmt.device.task;
 import java.util.Date;
 import java.util.TimerTask;
 
-import com.ibm.iotf.devicemgmt.device.DiagnosticLog;
+import com.ibm.iotf.devicemgmt.device.LogSeverity;
+import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
 /**
  * Timer task that appends/clears Log information to IoT Foundation
@@ -25,30 +26,32 @@ import com.ibm.iotf.devicemgmt.device.DiagnosticLog;
  */
 public class DiagnosticLogUpdateTask extends TimerTask {
 	
-	private DiagnosticLog diagLog;
+	ManagedDevice dmClient;
 	private int count = 0;
 	
-	public DiagnosticLogUpdateTask(DiagnosticLog diagLog) {
-		this.diagLog = diagLog;
+	public DiagnosticLogUpdateTask(ManagedDevice dmClient) {
+		this.dmClient = dmClient;
 	}
 	
 	@Override
 	public void run() {
-		int rc = diagLog.append("Log event " + count++, new Date(), 
-				DiagnosticLog.LogSeverity.informational);
+		String message = "Log event " + count++;
+		Date timestamp = new Date();
+		LogSeverity severity = LogSeverity.informational;
+		int rc = dmClient.addLog(message, timestamp, severity);
 			
 		if(rc == 200) {
-			System.out.println("Current Log (" + diagLog + ")");
+			System.out.println("Current Log (" + message + " " + timestamp + " " + severity + ")");
 		} else {
-			System.out.println("Log Addition failed");
+			System.out.println("Log Addition failed!, rc = "+rc);
 		}
 			
 		if(count == 25) {
-			rc = diagLog.clear();
+			rc = this.dmClient.clearLogs();
 			if(rc == 200) {
 				System.out.println("Logs are cleared successfully");
 			} else {
-				System.out.println("Failed to clear the Logs");
+				System.out.println("Failed to clear the Logs, rc = "+rc);
 			}	
 		}
 	}

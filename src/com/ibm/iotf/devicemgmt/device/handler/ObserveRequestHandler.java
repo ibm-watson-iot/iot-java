@@ -82,14 +82,15 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 		JsonObject d = (JsonObject) jsonRequest.get("d");
 		JsonArray fields = (JsonArray) d.get("fields");
 		for (int i=0; i < fields.size(); i++) {
-			String name = fields.get(i).getAsString();
+			JsonObject field = fields.get(i).getAsJsonObject();
+			String name = field.get("field").getAsString();
 			JsonObject fieldResponse = new JsonObject();
 			Resource resource = getDMClient().getDeviceData().getResource(name);
 			if(resource != null) {
 				resource.addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, this);
 				fieldsMap.put(name, resource);
 			}
-			fieldResponse.add("field", fields.get(i));
+			fieldResponse.addProperty("field", name);
 			JsonElement value = resource.toJsonObject();
 			fieldResponse.add("value", value);
 			responseMap.put(name, value);
@@ -120,7 +121,11 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 				return;
 			}
 			field.add("value", trimedValue);
-			response.add("d", field);
+			JsonObject fields = new JsonObject();
+			JsonArray fieldsArray = new JsonArray();
+			fieldsArray.add(field);
+			fields.add("fields", fieldsArray);
+			response.add("d", fields);
 			notify(response);
 		}
 	}

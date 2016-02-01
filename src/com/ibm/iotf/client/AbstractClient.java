@@ -127,10 +127,9 @@ public abstract class AbstractClient {
 	 */	
 
 	protected void createClient(MqttCallback callback) {
-		System.out.println("Org ID          = " + getOrgId());
-		System.out.println("Client ID       = " + clientId);
-		System.out.println("Client Username = " + clientUsername);
-		System.out.println("Client Password = " + clientPassword);
+		LoggerUtility.fine(CLASS_NAME, "createClient", 
+				"Org ID          = " + getOrgId() +
+				"Client ID       = " + clientId);
 		this.mqttAsyncClient = null;
 		this.mqttClientOptions = new MqttConnectOptions();
 		this.mqttCallback = callback;

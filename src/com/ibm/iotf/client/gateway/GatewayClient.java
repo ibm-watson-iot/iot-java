@@ -412,7 +412,6 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * The Application client does not currently support subscriptions.
 	 */
 	public void messageArrived(String topic, MqttMessage msg) throws Exception {
-		System.out.println(msg);
 		final String METHOD = "messageArrived";
 		if (gwCommandCallback != null) {
 			/* Only check whether the message is a application command if a callback 

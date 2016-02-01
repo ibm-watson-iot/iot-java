@@ -13,7 +13,6 @@
  */
 package com.ibm.iotf.devicemgmt.device;
 
-import com.ibm.iotf.devicemgmt.device.internal.DeviceDiagnostic;
 import com.ibm.iotf.devicemgmt.device.internal.DeviceMgmt;
 import com.ibm.iotf.devicemgmt.device.resource.Resource;
 import com.ibm.iotf.devicemgmt.device.resource.StringResource;
@@ -36,7 +35,6 @@ public class DeviceData {
 	private String deviceId = null;
 	private DeviceInfo deviceInfo = null;
 	private DeviceLocation deviceLocation = null;
-	private DeviceDiagnostic deviceDiag = null;
 	private DeviceMgmt mgmt = null;
 	private DeviceMetadata metadata = null;
 	private DeviceAction deviceAction = null;
@@ -50,15 +48,11 @@ public class DeviceData {
 		this.typeId = builder.typeId;
 		this.deviceId = builder.deviceId;
 		this.deviceInfo = builder.deviceInfo;
-		this.deviceLocation = builder.deviceLocation;
+		this.deviceLocation = new DeviceLocation();
 		this.metadata = builder.metadata;
 
 		if(builder.deviceFirmware != null) {
 			this.mgmt = new DeviceMgmt(builder.deviceFirmware);
-		}
-		
-		if(builder.diagErr != null || builder.diagLog != null) {
-			this.deviceDiag = new DeviceDiagnostic(builder.diagErr, builder.diagLog);
 		}
 		
 		if(this.mgmt != null) {
@@ -71,10 +65,6 @@ public class DeviceData {
 		
 		if(this.deviceInfo != null) {
 			root.add(deviceInfo);
-		}
-		
-		if(this.deviceDiag != null) {
-			root.add(this.deviceDiag);
 		}
 		
 		if(this.metadata != null) {
@@ -203,9 +193,6 @@ public class DeviceData {
 		private String typeId = null;
 		private String deviceId = null;
 		private DeviceInfo deviceInfo = null;
-		private DeviceLocation deviceLocation = null;
-		private DiagnosticErrorCode diagErr = null;
-		private DiagnosticLog diagLog = null;
 		private DeviceFirmware deviceFirmware = null;
 		private DeviceMetadata metadata = null;
 		
@@ -223,21 +210,6 @@ public class DeviceData {
 		
 		public Builder deviceInfo(DeviceInfo deviceInfo) {
 			this.deviceInfo = deviceInfo;
-			return this;
-		}
-		
-		public Builder deviceLocation(DeviceLocation deviceLocation) {
-			this.deviceLocation = deviceLocation;
-			return this;
-		}
-		
-		public Builder deviceErrorCode(DiagnosticErrorCode diagErr) {
-			this.diagErr = diagErr;
-			return this;
-		}
-		
-		public Builder deviceLog(DiagnosticLog diagLog) {
-			this.diagLog = diagLog;
 			return this;
 		}
 		
@@ -311,28 +283,6 @@ public class DeviceData {
 	 */
 	public DeviceMetadata getMetadata() {
 		return this.metadata;
-	}
-
-	/**
-	 * Returns the DiagnosticErrorCode object
-	 * @return returns DiagnosticErrorCode or null
-	 */
-	public DiagnosticErrorCode getDiagnosticErrorCode() {
-		if(this.deviceDiag != null) {
-			return this.deviceDiag.getErrorCode();
-		}
-		return null;
-	}
-
-	/**
-	 * Returns the DiagnosticLog object
-	 * @return returns DiagnosticLog or null
-	 */
-	public DiagnosticLog getDiagnosticLog() {
-		if(this.deviceDiag != null) {
-			return this.deviceDiag.getLog();
-		}
-		return null;
 	}
 
 }
