@@ -5,7 +5,7 @@ Java Client Library - Applications
 Introduction
 -------------------------------------------------------------------------------
 
-This client library describes how to use applications with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <../java/javaintro.html/>`__. 
+This client library describes how to use applications with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://github.com/ibm-messaging/iot-java/blob/master/README.md>`__. 
 
 This client library is divided into three sections, all included within the library. This section contains information on how applications can use the Java ibmiotf Client Library to interact with devices.
 
