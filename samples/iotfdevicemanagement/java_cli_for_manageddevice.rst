@@ -650,8 +650,7 @@ Examples
 * `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__ - A sample implementation of FirmwareHandler for Raspberry Pi.
 * `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__ - A sample implementation of DeviceActionHandler
 * `ManagedDeviceWithLifetimeSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/ManagedDeviceWithLifetimeSample.java>`__ - A sample that shows how to send regular manage request with lifetime specified.
-* `DeviceAttributesUpdateListenerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceAttributesUpdateListenerSample.java>`__ - A sample listener code that shows how to listen for a various device attribute changes .
-* `NonBlockingDiagnosticsErrorCodeUpdateSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/NonBlockingDiagnosticsErrorCodeUpdateSample.java>`__ - A sample that shows how to add ErrorCode without waiting for response from the server.
+* `DeviceAttributesUpdateListenerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceAttributesUpdateListenerSample.java>`__ - A sample listener code that shows how to listen for a various device attribute changes.
 
 Recipe
 ----------
