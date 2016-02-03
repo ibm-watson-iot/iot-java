@@ -5,7 +5,7 @@ Java Client Library - Managed Device
 Introduction
 -------------
 
-This client library describes how to use devices with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <../java/javaintro.html>`__. 
+This client library describes how to use devices with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://github.com/ibm-messaging/iot-java/blob/master/README.md>`__. 
 
 This section contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java and perform device management operations like firmware update, location update, and diagnostics update.
 
@@ -16,7 +16,7 @@ The Applications section contains information on how applications can use the Ja
 
 Device Management
 -------------------------------------------------------------------------------
-The `device management <../reference/device_mgmt.html>`__ feature enhances the Internet of Things Foundation Connect service with new capabilities for managing devices. Device management makes a distinction between managed and unmanaged devices:
+The `device management <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html>`__ feature enhances the Internet of Things Foundation Connect service with new capabilities for managing devices. Device management makes a distinction between managed and unmanaged devices:
 
 * **Managed Devices** are defined as devices which have a management agent installed. The management agent sends and receives device metadata and responds to device management commands from the Internet of Things Foundation Connect. 
 * **Unmanaged Devices** are any devices which do not have a device management agent. All devices begin their lifecycle as unmanaged devices, and can transition to managed devices by sending a message from a device management agent to the Internet of Things Foundation Connect. 
@@ -28,7 +28,7 @@ Connecting to the Internet of Things Foundation Device Management Service
 
 Create DeviceData
 ------------------------------------------------------------------------
-The `device model <../reference/device_model.html>`__ describes the metadata and management characteristics of a device. The device database in the Internet of Things Foundation Connect is the master source of device information. Applications and managed devices are able to send updates to the database such as a location or the progress of a firmware update. Once these updates are received by the Internet of Things Foundation Connect, the device database is updated, making the information available to applications.
+The `device model <https://docs.internetofthings.ibmcloud.com/reference/device_model.html>`__ describes the metadata and management characteristics of a device. The device database in the Internet of Things Foundation Connect is the master source of device information. Applications and managed devices are able to send updates to the database such as a location or the progress of a firmware update. Once these updates are received by the Internet of Things Foundation Connect, the device database is updated, making the information available to applications.
 
 The device model in the ibmiotf client library is represented as DeviceData and to create a DeviceData one needs to create the following objects,
 
@@ -148,7 +148,7 @@ The device can use overloaded manage (lifetime) method to register the device fo
 
     managedDevice.manage(3600);
 
-Refer to the `documentation <../device_mgmt/operations/manage.html>`__ for more information about the manage operation.
+Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/manage-device#manage-device>`__ for more information about the manage operation.
 
 Unmanage
 -----------------------------------------------------
@@ -159,7 +159,7 @@ A device can invoke unmanage() method when it no longer needs to be managed. The
 
 	managedDevice.unmanage();
 
-Refer to the `documentation <../device_mgmt/operations/manage.html>`__ for more information about the Unmanage operation.
+Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/unmanage-device#unmanage-device>`__ for more information about the Unmanage operation.
 
 Location Update
 -----------------------------------------------------
@@ -203,7 +203,7 @@ Later, any new location can be updated by changing the properties of the DeviceL
 
 The update() method informs the Internet of Things Foundation Connect about the new location.
 
-Refer to the `documentation <../device_mgmt/operations/update.html>`__ for more information about the Location update.
+Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/update-location#update-location>`__ for more information about the Location update.
 
 Append/Clear ErrorCodes
 -----------------------------------------------
@@ -296,7 +296,7 @@ Also, the log messages can be cleared from Internet of Things Foundation Connect
 
 The device diagnostics operations are intended to provide information on device errors, and does not provide diagnostic information relating to the devices connection to the Internet of Things Foundation Connect.
 
-Refer to the `documentation <../device_mgmt/operations/diagnostics.html>`__ for more information about the Diagnostics operation.
+Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/update-location#update-location>`__ for more information about the Diagnostics operation.
 
 Firmware Actions
 -------------------------------------------------------------
@@ -504,7 +504,7 @@ The created handler needs to be added to the ManagedDevice instance so that the 
 	DeviceFirmwareHandlerSample fwHandler = new DeviceFirmwareHandlerSample();
 	deviceData.addFirmwareHandler(fwHandler);
 
-Refer to `this page <../device_mgmt/operations/firmware_actions.html>`__ for more information about the Firmware action.
+Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/requests.html#/firmware-actions#firmware-actions>`__ for more information about the Firmware action.
 
 Device Actions
 ------------------------------------
@@ -588,7 +588,7 @@ The created handler needs to be added to the ManagedDevice instance so that the 
 	DeviceActionHandlerSample actionHandler = new DeviceActionHandlerSample();
 	deviceData.addDeviceActionHandler(actionHandler);
 
-Refer to `this page <../device_mgmt/operations/device_actions.html>`__ for more information about the Device Action.
+Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/requests.html#/device-actions-reboot#device-actions-reboot>`__ for more information about the Device Action.
 
 Listen for Device attribute changes
 -----------------------------------------------------------------
@@ -639,7 +639,7 @@ Also, the device needs to implement the propertyChange() method where it receive
 		}
 	}
 
-Refer to `this page <../device_mgmt/operations/update.html>`__ for more information about updating the device attributes.
+Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/update-device-attributes#update-device-attributes>`__ for more information about updating the device attributes.
 
 Examples
 -------------
