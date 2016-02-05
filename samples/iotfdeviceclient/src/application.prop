@@ -1,8 +1,12 @@
+## Mandatory fields
 id = <Unique application id>
 Organization-ID = <Your Organization ID>
 Authentication-Method = apikey
 API-Key = <Your Organization's API Key>
 Authentication-Token = <Your Organization's Token>
-Enable-Shared-Subscription = <true or false>
+
+## Optional fields
 Device-Type = <Device Type on behalf the application publishes the event>
 Device-ID = <Device ID on behalf the application publishes the event>
+Shared-Subscription = <true or false>
+Clean-Session = <true or false>
