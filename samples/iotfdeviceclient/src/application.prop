@@ -9,4 +9,4 @@ Authentication-Token = <Your Organization's Token>
 Device-Type = <Device Type on behalf the application publishes the event>
 Device-ID = <Device ID on behalf the application publishes the event>
 Shared-Subscription = <true or false>
-Clean-Session = <true or false>
+Clean-Session = true

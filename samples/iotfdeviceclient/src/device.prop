@@ -6,4 +6,4 @@ Authentication-Method = token
 Authentication-Token = <Your Device Token>
 
 ## Optional fields
-Clean-Session = <true or false>
+Clean-Session = true
