@@ -21,9 +21,9 @@ import com.ibm.iotf.client.AbstractClient;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
- * A client, used by application, that handles connections with the IBM Internet of Things Foundation. <br>
+ * A client, used by application, that handles connections with the IBM Watson IoT Platform. <br>
  * 
- * This is a derived class from AbstractClient and can be used by end-applications to handle connections with IBM Internet of Things Foundation.
+ * This is a derived class from AbstractClient and can be used by end-applications to handle connections with IBM Watson IoT Platform.
  */
 public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
@@ -40,8 +40,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	private HashMap<String, Integer> subscriptions = new HashMap<String, Integer>();
 	
 	/**
-	 * Create an application client for the IBM Internet of Things Foundation. 
-	 * Connecting to specific org on IBM Internet of Things Foundation
+	 * Create an application client for the IBM Watson IoT Platform. 
+	 * Connecting to specific org on IBM Watson IoT Platform
 	 * @param options
 	 * 					An object of the class Properties
 	 * @throws Exception 
@@ -75,9 +75,9 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
 	private boolean isSharedSubscriptionEnabled() {
 		boolean enabled = false;
-		String value = options.getProperty("Enable-Shared-Subscription");
+		String value = options.getProperty("Shared-Subscription");
 		if(value == null) {
-			value = options.getProperty("enable-shared-subscription");
+			value = options.getProperty("shared-subscription");
 		}
 		if(value != null) {
 			enabled = Boolean.parseBoolean(trimedValue(value));
@@ -85,13 +85,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		return enabled;
 	}
 	
-	/**
-	 * A shared subscription application must create a non durable connection to IoTF
-	 */
-	protected boolean isDurableSession() {
-		return !isSharedSubscriptionEnabled();
-	}
-
 	/**
 	 * Returns the orgid for this client
 	 * 
@@ -146,7 +139,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Publish event, on the behalf of a device, to the IBM Internet of Things Foundation. <br> 
+	 * Publish event, on the behalf of a device, to the IBM Watson IoT Platform. <br> 
 	 * Note that data is published
 	 * at Quality of Service (QoS) 0, which means that a successful send does not guarantee
 	 * receipt even if the publish is successful.
@@ -166,7 +159,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Publish event, on the behalf of a device, to the IBM Internet of Things Foundation. <br>
+	 * Publish event, on the behalf of a device, to the IBM Watson IoT Platform. <br>
 	 * This method will attempt to create a JSON obejct out of the payload
 	 * 
 	 * @param deviceType
@@ -221,7 +214,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 
 	/**
-	 * Publish command to the IBM Internet of Things Foundation. <br>
+	 * Publish command to the IBM Watson IoT Platform. <br>
 	 * Note that data is published
 	 * at Quality of Service (QoS) 0, which means that a successful send does not guarantee
 	 * receipt even if the publish is successful.
@@ -241,7 +234,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 
 	/**
-	 * Publish command to the IBM Internet of Things Foundation. <br>
+	 * Publish command to the IBM Watson IoT Platform. <br>
 	 * This method will attempt to create a JSON obejct out of the payload
 	 * 
 	 * @param deviceType
@@ -294,9 +287,9 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		}
 		return true;
 	}
-
+	
 	/**
-	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device events of the IBM Watson IoT Platform. <br>
 	 * Quality of Service is set to 0
 	 * All events, for the given org are subscribed to
 	 */
@@ -305,7 +298,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 
 	/**
-	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device events of the IBM Watson IoT Platform. <br>
 	 * Quality of Service is set to 0 <br>
 	 * All events, for a given device type, are subscribed to
 	 * @param deviceType
@@ -316,7 +309,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 
 	/**
-	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device events of the IBM Watson IoT Platform. <br>
 	 * Quality of Service is set to 0 <br>
 	 * All events, of a given device type and device id , are subscribed to
 	 * @param deviceType
@@ -327,9 +320,21 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	public void subscribeToDeviceEvents(String deviceType, String deviceId) {
 		subscribeToDeviceEvents(deviceType, deviceId, "+", 0);
 	}
+	
+	/**
+	 * Unsubscribe from device events of the IBM Watson IoT Platform. <br>
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 */
+	public void unsubscribeFromDeviceEvents(String deviceType, String deviceId) {
+		unsubscribeFromDeviceEvents(deviceType, deviceId, "+");
+	}
 
 	/**
-	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device events of the IBM Watson IoT Platform. <br>
 	 * Quality of Service is set to 0
 	 * 
 	 * @param deviceType
@@ -344,7 +349,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 
 	/**
-	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device events of the IBM Watson IoT Platform. <br>
 	 * 
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -366,7 +371,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device events of the IBM Watson IoT Platform. <br>
 	 * Quality of Service is set to 0
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -389,7 +394,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Subscribe to device events of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device events of the IBM Watson IoT Platform. <br>
 	 * 
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -412,9 +417,30 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Unsubscribe from device events of the IBM Watson IoT Platform. <br>
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param event
+	 *            object of String which denotes event
+	 */
+	public void unsubscribeFromDeviceEvents(String deviceType, String deviceId, String event) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/json";
+			subscriptions.remove(newTopic);
+			mqttAsyncClient.unsubscribe(newTopic);
+
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
-	 * Unsubscribe from device events of the IBM Internet of Things Foundation. <br>
+	 * Unsubscribe from device events of the IBM Watson IoT Platform. <br>
 	 * 
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -424,10 +450,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 *            object of String which denotes event
 	 * @param format
 	 *            object of String which denotes format, typical example of format could be json
-	 * @param qos
-	 *            Quality of Service, in int - can have values 0,1,2
 	 */
-	public void unsubscribeFromDeviceEvents(String deviceType, String deviceId, String event, String format, int qos) {
+	public void unsubscribeFromDeviceEvents(String deviceType, String deviceId, String event, String format) {
 		try {
 			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/" + format;
 			subscriptions.remove(newTopic);
@@ -439,7 +463,63 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Subscribe to device commands, on the behalf of a device, from the IBM Internet of Things Foundation. <br>
+	 * Unsubscribe from device commands, from the IBM Watson IoT Platform.
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 */
+	public void unsubscribeFromDeviceCommands(String deviceType, String deviceId) {
+		unsubscribeFromDeviceCommands(deviceType, deviceId, "+");
+	}
+	
+	/**
+	 * Unsubscribe from device commands of the IBM Watson IoT Platform.
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param command
+	 *            object of String which denotes command name
+	 * @param format
+	 *            object of String which denotes format, typical example of format could be json
+	 */
+	public void unsubscribeFromDeviceCommands(String deviceType, String deviceId, String command, String format) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/" + format;
+			subscriptions.remove(newTopic);
+			mqttAsyncClient.unsubscribe(newTopic);
+
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Unsubscribe from device commands, from the IBM Watson IoT Platform.
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param command
+	 *            object of String which denotes the command name
+	 */
+	public void unsubscribeFromDeviceCommands(String deviceType, String deviceId, String command) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/json";
+			subscriptions.remove(newTopic);
+			mqttAsyncClient.unsubscribe(newTopic);
+
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Subscribe to device commands, on the behalf of a device, from the IBM Watson IoT Platform. <br>
 	 * Quality of Service is set to 0
 	 * All commands, for the given org are subscribed to
 	 */
@@ -448,7 +528,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 
 	/**
-	 * Subscribe to device commands, on the behalf of a device, from the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device commands, on the behalf of a device, from the IBM Watson IoT Platform. <br>
 	 * Quality of Service is set to 0 <br>
 	 * All commands, for a given device type, are subscribed to
 	 * @param deviceType
@@ -460,7 +540,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 
 		
 	/**
-	 * Subscribe to device commands, on the behalf of a device, from the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device commands, on the behalf of a device, from the IBM Watson IoT Platform. <br>
 	 * Quality of Service is set to 0 <br>
 	 * All commands, for a given device type and device id , are subscribed to
 	 * @param deviceType
@@ -473,7 +553,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 		
 	/**
-	 * Subscribe to device commands, on the behalf ofa device, for the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device commands, on the behalf ofa device, for the IBM Watson IoT Platform. <br>
 	 * Quality of Service is set to 0
 	 * 
 	 * @param deviceType
@@ -488,7 +568,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Subscribe to device commands, on the behalf of a device, of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device commands, on the behalf of a device, of the IBM Watson IoT Platform. <br>
 	 * 
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -510,7 +590,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 
 	/**
-	 * Subscribe to device commands, on the behalf of a device, for the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device commands, on the behalf of a device, for the IBM Watson IoT Platform. <br>
 	 * Quality of Service is set to 0
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -533,7 +613,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 
 	/**
-	 * Subscribe to device commands, on the behalf of a device, of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device commands, on the behalf of a device, of the IBM Watson IoT Platform. <br>
 	 * 
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -557,7 +637,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Subscribe to device status of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device status of the IBM Watson IoT Platform. <br>
 	 * All the devices, for an org, are monitored
 	 */
 	public void subscribeToDeviceStatus() {
@@ -565,7 +645,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 
 	/**
-	 * Subscribe to device status of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device status of the IBM Watson IoT Platform. <br>
 	 * All the devices of a given device type are subscribed to
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -575,7 +655,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Subscribe to device status of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to device status of the IBM Watson IoT Platform. <br>
 	 * 
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -593,14 +673,31 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Subscribe to application status of the IBM Internet of Things Foundation. <br>
+	 * Unsubscribe from device status of the IBM Watson IoT Platform. <br>
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 */
+	public void unSubscribeFromDeviceStatus(String deviceType, String deviceId) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/mon";
+			mqttAsyncClient.unsubscribe(newTopic);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Subscribe to application status of the IBM Watson IoT Platform. <br>
 	 */
 	public void subscribeToApplicationStatus() {
 		subscribeToApplicationStatus("+");
 	}
 	
 	/**
-	 * Subscribe to application status of the IBM Internet of Things Foundation. <br>
+	 * Subscribe to application status of the IBM Watson IoT Platform. <br>
 	 * 
 	 * @param appId object of String which denotes the application uniquely in the organization
 	 * 
@@ -614,11 +711,26 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Unsubscribe from application status of the IBM Watson IoT Platform. <br>
+	 * 
+	 * @param appId object of String which denotes the application uniquely in the organization
+	 * 
+	 */
+	public void unSubscribeFromApplicationStatus(String appId) {
+		try {
+			String newTopic = "iot-2/app/"+appId+"/mon";
+			mqttAsyncClient.unsubscribe(newTopic);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
 
 	
 	/**
 	 * If we lose connection trigger the connect logic to attempt to
-	 * reconnect to the IBM Internet of Things Foundation.
+	 * reconnect to the IBM Watson IoT Platform.
 	 */
 	public void connectionLost(Throwable e) {
 		final String METHOD = "connectionLost";
@@ -736,7 +848,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Publish an event to the IBM Internet of Things Foundation using HTTP(S) <br>
+	 * Publish an event to the IBM Watson IoT Platform using HTTP(S) <br>
 	 * 
  	 * @param deviceType	Device Type
 	 * @param deviceId		Device ID

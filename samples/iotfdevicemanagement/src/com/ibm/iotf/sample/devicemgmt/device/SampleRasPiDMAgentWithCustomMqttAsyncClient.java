@@ -34,12 +34,12 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
-import com.ibm.iotf.devicemgmt.device.DeviceData;
-import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
-import com.ibm.iotf.devicemgmt.device.DeviceInfo;
-import com.ibm.iotf.devicemgmt.device.DeviceMetadata;
+import com.ibm.iotf.devicemgmt.DeviceData;
+import com.ibm.iotf.devicemgmt.DeviceFirmware;
+import com.ibm.iotf.devicemgmt.DeviceInfo;
+import com.ibm.iotf.devicemgmt.DeviceMetadata;
+import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
-import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.sample.devicemgmt.device.task.DiagnosticErrorCodeUpdateTask;
 import com.ibm.iotf.sample.devicemgmt.device.task.DiagnosticLogUpdateTask;
 import com.ibm.iotf.sample.devicemgmt.device.task.LocationUpdateTask;
@@ -83,7 +83,6 @@ import com.ibm.iotf.sample.devicemgmt.device.task.ManageTask;
 public class SampleRasPiDMAgentWithCustomMqttAsyncClient {
 	private final static String PROPERTIES_FILE_NAME = "DMDeviceSample.properties";
 	private final static String DEFAULT_PATH = "samples/iotfmanagedclient/src";
-	private DeviceData deviceData;
 	private ManagedDevice dmClient;
 	private MqttAsyncClient mqttAsyncClient = null;
 	
@@ -215,7 +214,7 @@ public class SampleRasPiDMAgentWithCustomMqttAsyncClient {
 		data.addProperty("customField", "customValue");
 		DeviceMetadata metadata = new DeviceMetadata(data);
 		
-		this.deviceData = new DeviceData.Builder().
+		DeviceData deviceData = new DeviceData.Builder().
 						 typeId(trimedValue(deviceProps.getProperty("Device-Type"))).
 						 deviceId(trimedValue(deviceProps.getProperty("Device-ID"))).
 						 deviceInfo(deviceInfo).
@@ -263,8 +262,6 @@ public class SampleRasPiDMAgentWithCustomMqttAsyncClient {
 	}
 	
 	private boolean sendManageRequest(int lifetime) throws MqttException {
-		this.dmClient.supportsDeviceActions(true);
-		this.dmClient.supportsFirmwareActions(true);
 		if(this.manageTask != null) {
 			manageTask.cancel(false);
 		}
@@ -277,7 +274,7 @@ public class SampleRasPiDMAgentWithCustomMqttAsyncClient {
 											(lifetime - twoMinutes),
 											TimeUnit.SECONDS);
 		}
-		if (dmClient.manage(lifetime)) {
+		if (dmClient.sendManageRequest(lifetime, true, true)) {
 			return true;
 		} else {
 			System.err.println("Managed request failed!");
@@ -303,7 +300,7 @@ public class SampleRasPiDMAgentWithCustomMqttAsyncClient {
 	private void addFirmwareHandler() throws Exception {
 		if(this.dmClient != null) {
 			RasPiFirmwareHandlerSample fwHandler = new RasPiFirmwareHandlerSample();
-			deviceData.addFirmwareHandler(fwHandler);
+			dmClient.addFirmwareHandler(fwHandler);
 			System.out.println("Added Firmware Handler successfully !!");
 		}
 	}
@@ -315,14 +312,14 @@ public class SampleRasPiDMAgentWithCustomMqttAsyncClient {
 	private void addDeviceActionHandler() throws Exception {
 		if(this.dmClient != null) {
 			DeviceActionHandlerSample actionHandler = new DeviceActionHandlerSample();
-			deviceData.addDeviceActionHandler(actionHandler);
+			dmClient.addDeviceActionHandler(actionHandler);
 			System.out.println("Added Device Action Handler successfully !!");
 		}
 	}
 	
 	
 	private void sendUnManageRequest() throws MqttException {
-		dmClient.unmanage();
+		dmClient.sendUnmanageRequest();
 		
 		System.out.println("Stopping Tasks !!");
 		if(null != this.manageTask) {

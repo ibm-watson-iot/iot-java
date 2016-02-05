@@ -1,6 +1,6 @@
 <project name="iotf-client" default="build" basedir=".">
 	
-	<property name="version" value="0.0.7" />
+	<property name="version" value="0.0.8" />
 	
 	<!-- Ensure you set this to the path to your WLP install if you want to build the liberty sample application -->
 	
@@ -41,8 +41,15 @@
 						lib/com.ibm.iotf.samples-1.0.0.jar;lib/commons-net-3.3.jar;lib/commons-codec-1.6.jar;
 						lib/common-lang3.jar" 
 			destdir="${outputDir}/doc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" 
-			packagenames="com.ibm.iotf.client.app,com.ibm.iotf.client.device,com.ibm.iotf.client.api,
-						  com.ibm.iotf.client,com.ibm.iotf.devicemgmt.device" 
+			packagenames="com.ibm.iotf.client.app,
+						  com.ibm.iotf.client.device,
+						  com.ibm.iotf.client.gateway,
+						  com.ibm.iotf.client.api,
+						  com.ibm.iotf.client,
+						  com.ibm.iotf.devicemgmt,
+						  com.ibm.iotf.devicemgmt.device,
+						  com.ibm.iotf.client,
+						  com.ibm.iotf.devicemgmt.gateway" 
 			source="1.7" sourcepath="src" splitindex="true" use="true" version="true">
 		</javadoc>
 	</target>
@@ -118,9 +125,6 @@
 		</jar>
 		
 		<zip destfile="${outputDir}/com.ibm.iotf-${version}.zip">
-			<zipfileset dir="${outputDir}/doc" prefix="javadoc">
-				<include name="**/*" />
-			</zipfileset>
 			<zipfileset dir="lib" prefix="lib">
 				<include name="*.jar" />
 			</zipfileset>
@@ -129,6 +133,12 @@
 				<include name="*.prop" />
 				<include name="*.config" />
 				<include name="*.properties" />
+			</zipfileset>
+		</zip>
+		
+		<zip destfile="${outputDir}/javadoc-${version}.zip">
+			<zipfileset dir="${outputDir}/doc" prefix="javadoc">
+				<include name="**/*" />
 			</zipfileset>
 		</zip>
 	</target>

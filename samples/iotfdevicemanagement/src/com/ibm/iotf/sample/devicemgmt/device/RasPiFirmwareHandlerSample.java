@@ -28,10 +28,10 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.Scanner;
 
-import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
-import com.ibm.iotf.devicemgmt.device.DeviceFirmwareHandler;
-import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
-import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareUpdateStatus;
+import com.ibm.iotf.devicemgmt.DeviceFirmware;
+import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
+import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
+import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
 
 /**
  * This sample Firmware handler demonstrates how one can download and 

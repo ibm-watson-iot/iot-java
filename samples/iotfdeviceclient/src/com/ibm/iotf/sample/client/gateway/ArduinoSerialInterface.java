@@ -68,7 +68,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	
 	private GatewayClient gwClient;
 	
-	ArduinoSerialInterface(String deviceId, String deviceType, String port, GatewayClient gatewayClient) {
+	public ArduinoSerialInterface(String deviceId, String deviceType, String port, GatewayClient gatewayClient) {
 		this.deviceId = deviceId;
 		this.deviceType = deviceType;
 		this.gwClient = gatewayClient;
@@ -139,7 +139,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 			// add event listeners
 			serialPort.addEventListener(this);
 			serialPort.notifyOnDataAvailable(true);
-		} catch (Exception e) {
+		} catch (Exception | Error e) {
 			System.err.println(e.toString());
 		}
 	}

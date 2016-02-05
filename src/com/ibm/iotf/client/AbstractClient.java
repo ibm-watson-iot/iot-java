@@ -14,11 +14,8 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
-import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.net.util.Base64;
 import org.apache.http.Header;
@@ -40,7 +37,7 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
- * A client that handles connections with the IBM Internet of Things Foundation. <br>
+ * A client that handles connections with the IBM Watson IoT Platform. <br>
  * This is an abstract class which has to be extended
  */
 public abstract class AbstractClient {
@@ -97,9 +94,7 @@ public abstract class AbstractClient {
 	 */		
 	
 	public AbstractClient(Properties options) {
-		final String METHOD = "Constructor";
 		this.options = options;
-		LoggerUtility.fine(CLASS_NAME, METHOD, options.toString());
 	}
 	
 	/**
@@ -127,16 +122,16 @@ public abstract class AbstractClient {
 	 */	
 
 	protected void createClient(MqttCallback callback) {
-		LoggerUtility.fine(CLASS_NAME, "createClient", 
+		LoggerUtility.info(CLASS_NAME, "createClient", 
 				"Org ID          = " + getOrgId() +
-				"Client ID       = " + clientId);
+				"\nClient ID       = " + clientId);
 		this.mqttAsyncClient = null;
 		this.mqttClientOptions = new MqttConnectOptions();
 		this.mqttCallback = callback;
 	}
 	
 	/**
-	 * Connect to the IBM Internet of Things Foundation
+	 * Connect to the IBM Watson IoT Platform
 	 */
 	public void connect() {
 		final String METHOD = "connect";
@@ -150,21 +145,12 @@ public abstract class AbstractClient {
 			configureMqtts();
 		}
 		
-		//configureMqtt();
-		
 		while (tryAgain) {
 			connectAttempts++;
 			
-			LoggerUtility.info(CLASS_NAME, METHOD, "Connecting to " + mqttAsyncClient.getServerURI() + 
+			LoggerUtility.info(CLASS_NAME, METHOD, "Connecting device "+ getDeviceId() + " to " + mqttAsyncClient.getServerURI() + 
 					" (attempt #" + connectAttempts + ")...");
 			
-			if (clientUsername != null) {
-				LoggerUtility.fine(CLASS_NAME, METHOD, " * Username: " + mqttClientOptions.getUserName());
-			}
-			if (clientPassword != null) {
-				LoggerUtility.fine(CLASS_NAME, METHOD, " * Passowrd: " + 
-							String.valueOf(mqttClientOptions.getPassword()));
-			}
 			try {
 				mqttAsyncClient.connect(mqttClientOptions);
 				boolean connected = false;
@@ -186,7 +172,7 @@ public abstract class AbstractClient {
 			
 			if (mqttAsyncClient.isConnected()) {
 				LoggerUtility.info(CLASS_NAME, METHOD, "Successfully connected "
-						+ "to the IBM Internet of Things Foundation");
+						+ "to the IBM Watson IoT Platform");
 				
 				if (LoggerUtility.isLoggable(Level.FINEST)) {
 					LoggerUtility.log(Level.FINEST, CLASS_NAME, METHOD, 
@@ -221,9 +207,7 @@ public abstract class AbstractClient {
 			mqttClientOptions = new MqttConnectOptions();
 			mqttClientOptions.setUserName(clientUsername);
 			mqttClientOptions.setPassword(clientPassword.toCharArray());
-			if(isDurableSession()) {
-				mqttClientOptions.setCleanSession(false);
-			}
+			mqttClientOptions.setCleanSession(this.isCleanSession());
 			
 			/* This isn't needed as the production messaging.internetofthings.ibmcloud.com 
 			 * certificate should already be in trust chain.
@@ -256,13 +240,21 @@ public abstract class AbstractClient {
 	}
 	
 	/**
-	 * The child class must override if they don't want a durable session.
 	 * 
-	 * For example, the shared subscription doesn't work on durable session.
+	 * Check whether the clean session is disabled
+	 * 
 	 * @return
 	 */
-	protected boolean isDurableSession() {
-		return true;
+	private boolean isCleanSession() {
+		boolean enabled = true;
+		String value = options.getProperty("Clean-Session");
+		if(value == null) {
+			value = options.getProperty("clean-session");
+		}
+		if(value != null) {
+			enabled = Boolean.parseBoolean(trimedValue(value));
+		} 
+		return enabled;
 	}
 
 	/**
@@ -303,15 +295,15 @@ public abstract class AbstractClient {
 	}
 	
 	/**
-	 * Disconnect the device from the IBM Internet of Things Foundation
+	 * Disconnect the device from the IBM Watson IoT Platform
 	 */
 	public void disconnect() {
 		final String METHOD = "disconnect";
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Disconnecting from the IBM Internet of Things Foundation ...");
+		LoggerUtility.fine(CLASS_NAME, METHOD, "Disconnecting from the IBM Watson IoT Platform ...");
 		try {
 			mqttAsyncClient.disconnect();
 			LoggerUtility.info(CLASS_NAME, METHOD, "Successfully disconnected "
-					+ "from from the IBM Internet of Things Foundation");
+					+ "from from the IBM Watson IoT Platform");
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
@@ -319,10 +311,10 @@ public abstract class AbstractClient {
 	
 	
 	/**
-	 * Determine whether this device is currently connected to the IBM Internet
-	 * of Things Foundation.
+	 * Determine whether this device is currently connected to the IBM Watson Internet
+	 * of Things Platform.
 	 * 
-	 * @return Whether the device is connected to the IBM Internet of Things Foundation
+	 * @return Whether the device is connected to the IBM Watson IoT Platform
 	 */
 	public boolean isConnected() {
 		final String METHOD = "isConnected";
@@ -383,6 +375,19 @@ public abstract class AbstractClient {
 			org = options.getProperty("Organization-ID");
 		}
 		return trimedValue(org);
+	}
+	
+	/*
+	 * old style - id
+	 * new style - Device-ID
+	 */
+	public String getDeviceId() {
+		String id = null;
+		id = options.getProperty("id");
+		if(id == null) {
+			id = options.getProperty("Device-ID");
+		}
+		return trimedValue(id);
 	}
 
 	

@@ -24,7 +24,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
@@ -36,16 +38,29 @@ import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
- * A client, used by Gateway, that handles connections with the IBM Watson IoT Platform. <br>
+ * A client, used by Gateway, that simplifies the Gateway interactions with IBM Watson IoT Platform. <br>
  * 
- * This is a derived class from AbstractClient and can be used by Gateways 
- * to handle connections with IBM Watson IoT Platform.
+ * <p>Gateways are a specialized class of devices in Watson IoT Platform which serve as access points to the 
+ * Watson IoT Platform for other devices. Gateway devices have additional permission when compared to 
+ * regular devices and can perform the following  functions:</p>
+ * 
+ * <ul class="simple">
+ * <li>Register new devices to Watson IoT Platform
+ * <li>Send and receive its own sensor data like a directly connected device,
+ * <li>Send and receive data on behalf of the devices connected to it
+ * <li>Run a device management agent, so that it can be managed, also manage the devices connected to it
+ * </ul>
+ * 
+ * <p>Refer to the <a href="https://docs.internetofthings.ibmcloud.com/gateways/mqtt.html">documentation</a> for more information about the 
+ * Gateway support in Watson IoT Platform.</p>
+ * 
+ * This is a derived class from AbstractClient.
  */
 public class GatewayClient extends AbstractClient implements MqttCallback{
 	
 	private static final String CLASS_NAME = GatewayClient.class.getName();
 	
-	//private static final Pattern GATEWAY_NOTIFICATION_PATTERN = Pattern.compile("iotdm-1/notify");
+	private static final Pattern GATEWAY_NOTIFICATION_PATTERN = Pattern.compile("iot-2/type/+/id/+/notify");
 	private static final Pattern GATEWAY_COMMAND_PATTERN = Pattern.compile("iot-2/type/(.+)/id/(.+)/cmd/(.+)/fmt/(.+)");
 	
 	private CommandCallback gwCommandCallback = null;
@@ -55,10 +70,19 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	private APIClient apiClient = null;
 	
 	/**
-	 * Create a Gateway client for the IBM Watson IoT Platform. 
-	 * Connecting to specific org on IBM Watson IoT Platform
-	 * @param options
-	 * 					An object of the class Properties
+	 * <p>Create a Gateway client for the IBM Watson IoT Platform using the properties file passed. The
+	 * properties must have the following definitions,</p>
+	 * 
+	 * <ul class="simple">
+	 * <li>org - Your organization ID.
+	 * <li>type - The type of your Gateway device.
+	 * <li>id - The ID of your Gateway.
+	 * <li>auth-method - Method of authentication (The only value currently supported is "token").
+	 * <li>auth-token - API key token.
+	 * </ul>
+	 * @param options The Properties object creates definitions which are used to interact 
+	 * with the Watson Internet of Things Platform module.
+	 * 
 	 * @throws Exception 
 	 */
 	public GatewayClient(Properties options) throws Exception {
@@ -72,7 +96,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		
 		this.clientId = "g" + CLIENT_ID_DELIMITER + getOrgId() + 
 				CLIENT_ID_DELIMITER + this.getGWDeviceType()  
-				+ CLIENT_ID_DELIMITER + getGwDeviceId();
+				+ CLIENT_ID_DELIMITER + getGWDeviceId();
 		
 		if (getAuthMethod() == null) {
 			this.clientUsername = null;
@@ -91,15 +115,37 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		this.apiClient = new APIClient(options);
 	}
 	
+	/**
+	 * This constructor allows external user to pass the existing MqttAsyncClient 
+	 * @param mqttAsyncClient
+	 */
+	protected GatewayClient(MqttAsyncClient mqttAsyncClient) {
+		super(mqttAsyncClient);
+	}
+
+	/**
+	 * This constructor allows external user to pass the existing MqttClient 
+	 * @param mqttClient
+	 */
+	protected GatewayClient(MqttClient mqttClient) {
+		super(mqttClient);
+	}
+
+	/**
+	 * Returns the {@link com.ibm.iotf.client.api.APIClient} that allows the users to interact with 
+	 * Watson IoT Platform API's to perform one or more operations like, registering a device, 
+	 * getting the list of devices connected through the Gateway and etc..
+	 * 
+	 * @return APIClient
+	 */
 	public APIClient api() {
 		return this.apiClient;
 	}
 	
 	/**
-	 * Returns the orgid for this client
+	 * Returns the IBM Watson IoT Platform Organization ID for this client.
 	 * 
-	 * @return orgid
-	 * 						String orgid
+	 * @return orgid Organization ID
 	 */
 	public String getOrgId() {
 		// Check if org id is provided by the user
@@ -124,13 +170,8 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * old style - id
 	 * new style - Device-ID
 	 */
-	private String getGwDeviceId() {
-		String id = null;
-		id = options.getProperty("id");
-		if(id == null) {
-			id = options.getProperty("Device-ID");
-		}
-		return trimedValue(id);
+	protected String getGWDeviceId() {
+		return this.getDeviceId();
 	}
 
 	/**
@@ -138,7 +179,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * @return authKey
 	 * 					String authKey
 	 */
-	public String getAuthKey() {
+	private String getAuthKey() {
 		String authKeyPassed = options.getProperty("auth-key");
 		if(authKeyPassed == null) {
 			authKeyPassed = options.getProperty("API-Key");
@@ -147,20 +188,30 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	}
 	
 	
+	/**
+	 * <p>Connects the Gateway to IBM Watson Internet of Things Platform. 
+	 * After the successful connection to the IBM Watson IoT Platform, 
+	 * the Gateway client can perform the following operations,</p>
+	 * 
+	 * <ul class="simple">
+	 * <li>Publish events for itself and on behalf of devices connected behind the Gateway.
+	 * <li>Subscribe to commands for itself and on behalf of devices behind the Gateway.
+	 * </ul>
+	 */
 	@Override
 	public void connect() {
 		super.connect();
-		subscribeToGWCommands();
-		//subscribeToGWNotification();
+		subscribeToGatewayCommands();
+		//subscribeToGatewayNotification();
 	}
 	
 	/**
-	 * While Gateway publishes events on behalf of the devices connected behind, 
-	 * the can publish its own events as well. This method publishes event with the 
-	 * specified name and specified QOS.<br>
+	 * <p>While Gateway publishes events on behalf of the devices connected behind, 
+	 * the Gateway can publish its own events as well. This method publishes the event with the 
+	 * specified name and specified QOS.</p>
 	 * 
-	 * Note that data is published at Quality of Service (QoS) 0, which means that 
-	 * a successful send does not guarantee receipt even if the publish has been successful.
+	 * <p>Note that data is published at Quality of Service (QoS) 0, which means that 
+	 * a successful send does not guarantee receipt even if the publish has been successful.</p>
 	 * 
 	 * @param event
 	 *            Name of the dataset under which to publish the data
@@ -169,13 +220,13 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishGatewayEvent(String event, Object data) {
-		return publishDeviceEvent(this.getGWDeviceType(), this.getGwDeviceId(), event, data, 0);
+		return publishDeviceEvent(this.getGWDeviceType(), this.getGWDeviceId(), event, data, 0);
 	}
 
 	/**
-	 * While Gateway publishes events on behalf of the devices connected behind, 
-	 * the can publish its own events as well. This method publishes event with the 
-	 * specified name and specified QOS.
+	 * <p>While Gateway publishes events on behalf of the devices connected to it, 
+	 * the Gateway can publish its own events as well. This method publishes event with the 
+	 * specified name and specified QOS.</p>
 	 * 
 	 * This method allows QoS to be passed as an argument
 	 * 
@@ -188,13 +239,12 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * @return Whether the send was successful.
 	 */	
 	public boolean publishGatewayEvent(String event, Object data, int qos) {
-		return publishDeviceEvent(this.getGWDeviceType(), this.getGwDeviceId(), event, data, qos);
+		return publishDeviceEvent(this.getGWDeviceType(), this.getGWDeviceId(), event, data, qos);
 	}
 	
 	/**
-	 * Publish event, on the behalf of a device, to the IBM Watson IoT Platform. <br> 
-	 * Note that data is published
-	 * at Quality of Service (QoS) 0, which means that a successful send does not guarantee
+	 * <p>Publish the event on behalf of a device to the IBM Watson IoT Platform. </p> 
+	 * Note that data is published at Quality of Service (QoS) 0, which means that a successful send does not guarantee
 	 * receipt even if the publish is successful.
 	 * 
 	 * @param deviceType
@@ -212,8 +262,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Publish event, on the behalf of a device, to the IBM Watson IoT Platform. <br>
-	 * This method will attempt to create a JSON obejct out of the payload
+	 * Publish an event on the behalf of a device to the IBM Watson IoT Platform. <br>
 	 * 
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -261,14 +310,22 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		return true;
 	}
 
-	private void subscribeToGWCommands() {
-		subscribeToDeviceCommands(this.getGWDeviceType(), this.getGwDeviceId());
+	/*
+	 * This method reconnects when the connection is lost due to n/w interruption
+	 */
+	protected void reconnect() {
+		super.connect();
+		subscribeToGatewayCommands();
+	}
+	
+	private void subscribeToGatewayCommands() {
+		subscribeToDeviceCommands(this.getGWDeviceType(), this.getGWDeviceId());
 	}
 	
 	/**
-	 * Subscribe to device commands, on the behalf of a device, from the IBM Watson IoT Platform. <br>
-	 * Quality of Service is set to 0 <br>
-	 * All commands, for a given device type and device id , are subscribed to
+	 * <p>Subscribe to device commands, on the behalf of a device, to the IBM Watson IoT Platform. <br>
+	 * Note that the, Quality of Service is set to 0. </p>
+	 * This method subscribes to all commands, for a given device type and device id.
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
 	 * @param deviceId
@@ -277,10 +334,22 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	public void subscribeToDeviceCommands(String deviceType, String deviceId) {
 		subscribeToDeviceCommands(deviceType, deviceId, "+", 0);
 	}
+	
+	/**
+	 * Unsubscribe from device commands, on the behalf of a device, from the IBM Watson IoT Platform.
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 */
+	public void unsubscribeFromDeviceCommands(String deviceType, String deviceId) {
+		unsubscribeFromDeviceCommands(deviceType, deviceId, "+");
+	}
 		
 	/**
-	 * Subscribe to device commands, on the behalf ofa device, for the IBM Watson IoT Platform. <br>
-	 * Quality of Service is set to 0
+	 * Subscribe to device commands, on the behalf of a device, to the IBM Watson IoT Platform. <br>
+	 * Quality of Service is set to 0.
 	 * 
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -294,7 +363,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * Subscribe to device commands, on the behalf of a device, of the IBM Watson IoT Platform. <br>
+	 * Subscribe to device commands, on the behalf of a device, to the IBM Watson IoT Platform. <br>
 	 * 
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -315,11 +384,32 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		}
 	}
 	
-	/*private void subscribeToGWNotification() {
-		String newTopic = "iotdm-1/notify";
-		subscriptions.put(newTopic, 2);
+	/**
+	 * Unsubscribe from device commands, on the behalf of a device, from the IBM Watson IoT Platform.
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param command
+	 *            object of String which denotes the command name
+	 */
+	public void unsubscribeFromDeviceCommands(String deviceType, String deviceId, String command) {
 		try {
-			mqttAsyncClient.subscribe(newTopic, 2);
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/json";
+			subscriptions.remove(newTopic);
+			mqttAsyncClient.unsubscribe(newTopic);
+
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/*private void subscribeToGatewayNotification() {
+		String newTopic = "iot-2/type/"+this.getGWDeviceType() +"/id/" +this.getGWDeviceId() + "/notify";
+		subscriptions.put(newTopic, 0);
+		try {
+			mqttAsyncClient.subscribe(newTopic, 0);
 		} catch (MqttException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -327,7 +417,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	}*/
 
 	/**
-	 * Subscribe to device commands, on the behalf of a device, for the IBM Watson IoT Platform. <br>
+	 * Subscribe to device commands, on the behalf of a device, to the IBM Watson IoT Platform. <br>
 	 * Quality of Service is set to 0
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -350,7 +440,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	}
 
 	/**
-	 * Subscribe to device commands, on the behalf of a device, of the IBM Watson IoT Platform. <br>
+	 * Subscribe to device commands, on the behalf of a device, to the IBM Watson IoT Platform. <br>
 	 * 
 	 * @param deviceType
 	 *            object of String which denotes deviceType 
@@ -374,8 +464,33 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * If we lose connection, trigger the connect logic to attempt to
-	 * reconnect to the IBM Watson IoT Platform.
+	 * Unsubscribe from device commands, on the behalf of a device, from the IBM Watson IoT Platform.
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param command
+	 *            object of String which denotes command name
+	 * @param format
+	 *            object of String which denotes format, typical example of format could be json
+	 */
+	public void unsubscribeFromDeviceCommands(String deviceType, String deviceId, String command, String format) {
+		try {
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/"+ command +"/fmt/" + format;
+			subscriptions.remove(newTopic);
+			mqttAsyncClient.unsubscribe(newTopic);
+
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * <p>This method is called by the MQTT library when the connection to the 
+	 * IBM Watson Platform is lost. </p> 
+	 * 
+	 * This Watson IoT library will start the reconnect process, and application doesn't need to worry 
 	 */
 	public void connectionLost(Throwable e) {
 		final String METHOD = "connectionLost";
@@ -397,7 +512,9 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * A completed deliver does not guarantee that the message is recieved by the service
+	 * <p>This method is called by the MQTT library when a message is delivered successfully.</p> 
+	 * 
+	 * A completed delivery does not guarantee that the message is received by the service
 	 * because devices send messages with Quality of Service (QoS) 0. The message count
 	 * represents the number of messages that were sent by the device without an error on
 	 * from the perspective of the device.
@@ -409,7 +526,10 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * The Application client does not currently support subscriptions.
+	 * <p>This method is called by the MQTT library when a message(command) is sent by the IBM Watson IoT Platform.
+	 * </p>
+	 * The message(command) will be processed by this class and corresponding callback method will be called if
+	 * registered.
 	 */
 	public void messageArrived(String topic, MqttMessage msg) throws Exception {
 		final String METHOD = "messageArrived";
@@ -440,11 +560,20 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		}
 	}
 
+	/**
+	 * <p>Register the {@link com.ibm.iotf.client.gateway.CommandCallback} class to the Gateway, so that the 
+	 * {@link com.ibm.iotf.client.gateway.CommandCallback#processCommand()} method gets called when 
+	 * command is received for the given subscription.</p> 
+	 * 
+	 * The messages are returned as an instance of the {@link com.ibm.iotf.client.gateway.Command}. 
+	 * 
+	 * @param callback an instance of {@link com.ibm.iotf.client.gateway.CommandCallback}
+	 */
 	public void setCommandCallback(CommandCallback callback) {
 		this.gwCommandCallback  = callback;
 	}
 
-	private String getGWDeviceType() {
+	protected String getGWDeviceType() {
 		String type = null;
 		type = options.getProperty("type");
 		if(type == null) {

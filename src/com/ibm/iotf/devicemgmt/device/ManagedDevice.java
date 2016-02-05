@@ -13,7 +13,6 @@
  */
 package com.ibm.iotf.devicemgmt.device;
 
-import java.beans.PropertyChangeEvent;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.HashMap;
@@ -39,13 +38,19 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.client.device.DeviceClient;
-import com.ibm.iotf.devicemgmt.device.DeviceData;
-import com.ibm.iotf.devicemgmt.device.handler.DMRequestHandler;
-import com.ibm.iotf.devicemgmt.device.internal.DeviceTopic;
-import com.ibm.iotf.devicemgmt.device.internal.ResponseCode;
-import com.ibm.iotf.devicemgmt.device.internal.ServerTopic;
-import com.ibm.iotf.devicemgmt.device.resource.NumberResource;
-import com.ibm.iotf.devicemgmt.device.resource.Resource;
+import com.ibm.iotf.devicemgmt.DeviceActionHandler;
+import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
+import com.ibm.iotf.devicemgmt.LogSeverity;
+import com.ibm.iotf.devicemgmt.internal.ManagedClient;
+import com.ibm.iotf.devicemgmt.internal.DMAgentTopic;
+import com.ibm.iotf.devicemgmt.internal.DMServerTopic;
+import com.ibm.iotf.devicemgmt.DeviceData;
+import com.ibm.iotf.devicemgmt.handler.DMRequestHandler;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceDMAgentTopic;
+import com.ibm.iotf.devicemgmt.device.internal.DeviceDMServerTopic;
+import com.ibm.iotf.devicemgmt.internal.ResponseCode;
+import com.ibm.iotf.devicemgmt.resource.Resource;
+import com.ibm.iotf.sample.devicemgmt.device.DeviceActionHandlerSample;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -80,9 +85,12 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	
 	private final SynchronousQueue<JsonObject> queue = new SynchronousQueue<JsonObject>();
 	
-	private boolean running = false;
+	private volatile boolean running = false;
 	private BlockingQueue<JsonObject> publishQueue;
 	JsonObject dummy = new JsonObject();
+
+	private DeviceFirmwareHandler fwHandler = null;
+	private DeviceActionHandler actionHandler = null;
 	
 	//Map to handle duplicate responses
 	private Map<String, MqttMessage> requests = new HashMap<String, MqttMessage>();
@@ -90,11 +98,12 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	//Device specific information
 	private DeviceData deviceData = null;
 	
-	private boolean supportsDeviceActions = false;
-	private boolean supportsFirmwareActions = false;
+	private boolean supportDeviceActions = false;
+	private boolean supportFirmwareActions = false;
 	private boolean bManaged = false;
 	private Date dormantTime;
-	private ServerTopic responseSubscription = null;
+	private String responseSubscription = null;
+	private ManagedDeviceClient client;
 	
     /**
      * Constructor that creates a ManagedDevice object, but does not connect to 
@@ -124,6 +133,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		deviceData.setTypeId(typeId);
 		deviceData.setDeviceId(deviceId);
 		this.deviceData = deviceData;
+		this.client = new ManagedDeviceClient(this);
 	}
 	
 	/**
@@ -135,6 +145,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 */
 	public ManagedDevice(MqttClient client, DeviceData deviceData) throws Exception {
 		super(client);
+		this.client = new ManagedDeviceClient(this);
 		setDeviceData(deviceData);
 	}
 	
@@ -147,6 +158,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 */
 	public ManagedDevice(MqttAsyncClient client, DeviceData deviceData) throws Exception {
 		super(client);
+		this.client = new ManagedDeviceClient(this);
 		setDeviceData(deviceData);
 	}
 	
@@ -169,31 +181,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		this.deviceData = deviceData;
 	}
 	
-	public DeviceData getDeviceData() {
+	private DeviceData getDeviceData() {
 		return deviceData;
 	}
-	
-	/**
-	 * Sets whether the device can participate in Reboot & Factory reset activities
-	 * 
-	 * @param supportsDeviceActions boolean value indicating whether the device
-	 * supports device action or not
-	 */
-	public void supportsDeviceActions(boolean supportsDeviceActions) {
-		this.supportsDeviceActions = supportsDeviceActions;
-	}
-	
-	/**
-	 * Sets whether the device can participate in Firmware activities
-	 * 
-	 * @param supportsFirmwareActions boolean value indicating whether the device
-	 * supports Firmware action or not
-	 */
-
-	public void supportsFirmwareActions(boolean supportsFirmwareActions) {
-		this.supportsFirmwareActions = supportsFirmwareActions;
-	}
-
 	
 	/**
 	 * <p>This method just connects to the IBM Internet of Things Foundation,
@@ -217,90 +207,75 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	/**
 	 * <p>Send a device manage request to IoT Foundation</p>
 	 * 
-	 * <p>A device uses this request to become a managed device. 
+	 * <p>A Device uses this request to become a managed device. 
 	 * It should be the first device management request sent by the 
-	 * device after connecting to the Internet of Things Foundation. 
+	 * Device after connecting to the IBM Watson IoT Platform. 
 	 * It would be usual for a device management agent to send this 
 	 * whenever is starts or restarts.</p>
 	 * 
 	 * <p>This method connects the device to IoT Foundation connect if its not connected already</p>
 	 * 
-	 * <p>This method sends a manage request with lifetime 0 and hence
-	 * the device will never become dormant. </p>
-	 * 
-	 * <p>Use overloaded method manage(long) to specify lifetime</p>
-	 * 
-	 * @return
-	 * @throws MqttException
-	 */
-	public boolean manage() throws MqttException {
-		return this.manage(0);
-	}
-	
-	/**
-	 * <p>Send a device manage request to IoT Foundation</p>
-	 * 
-	 * <p>A device uses this request to become a managed device. 
-	 * It should be the first device management request sent by the 
-	 * device after connecting to the Internet of Things Foundation. 
-	 * It would be usual for a device management agent to send this 
-	 * whenever is starts or restarts.</p>
-	 * 
-	 * <p>This method connects the device to IoT Foundation connect if 
-	 * its not connected already</p>
-	 * 
 	 * @param lifetime The length of time in seconds within 
 	 *        which the device must send another Manage device request.
 	 *        if set to 0, the managed device will not become dormant. 
 	 *        When set, the minimum supported setting is 3600 (1 hour).
-	 *        
-	 * @return True if successful
+	 * 
+	 * @param supportFirmwareActions Tells whether the device supports firmware actions or not.
+	 *        The device must add a firmware handler to handle the firmware requests.
+	 * 
+	 * @param supportDeviceActions Tells whether the device supports Device actions or not.
+	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
+	 * 
+	 * @return
 	 * @throws MqttException
 	 */
-	public boolean manage(long lifetime) throws MqttException {
+	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions, 
+			boolean supportDeviceActions) throws MqttException {
 		
 		final String METHOD = "manage";
 		
-		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "lifetime value (" + lifetime + ")");
+		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "lifetime(" + lifetime + "), " +
+				"supportFirmwareActions("+ supportFirmwareActions + "), "+
+				"supportDeviceActions("+supportDeviceActions+")");
 		
 		boolean success = false;
-		DeviceTopic topic = DeviceTopic.MANAGE;
+		String topic = client.getDMAgentTopic().getManageTopic();
 		
 		if (!this.isConnected()) {
 			this.connect();
 		}
 		
+		this.supportDeviceActions = supportDeviceActions;
+		this.supportFirmwareActions = supportFirmwareActions;
 		JsonObject jsonPayload = new JsonObject();
-		if (deviceData.getDeviceInfo() != null  || deviceData.getMetadata() != null) {
-			
-			JsonObject supports = new JsonObject();
-			supports.add("deviceActions", new JsonPrimitive(this.supportsDeviceActions));
-			supports.add("firmwareActions", new JsonPrimitive(this.supportsFirmwareActions));
-			
-			JsonObject data = new JsonObject();
-			data.add("supports", supports);
-			if (deviceData.getDeviceInfo() != null) {
-				data.add("deviceInfo", deviceData.getDeviceInfo().toJsonObject());
-			}
-			if (deviceData.getMetadata() != null) {
-				data.add("metadata", deviceData.getMetadata().getMetadata());
-			}
-			data.add("lifetime", new JsonPrimitive(lifetime));
-			jsonPayload.add("d", data);
-		} else {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Cannot send manage request "
-					+ "as either deviceInfo or metadata is not set !!");
-			
-			return false;
+		JsonObject supports = new JsonObject();
+		supports.add("deviceActions", new JsonPrimitive(supportDeviceActions));
+		supports.add("firmwareActions", new JsonPrimitive(supportFirmwareActions));
+		
+		JsonObject data = new JsonObject();
+		data.add("supports", supports);
+		if (deviceData.getDeviceInfo() != null) {
+			data.add("deviceInfo", deviceData.getDeviceInfo().toJsonObject());
 		}
+		if (deviceData.getMetadata() != null) {
+			data.add("metadata", deviceData.getMetadata().getMetadata());
+		}
+		if(lifetime > 0) {
+			data.add("lifetime", new JsonPrimitive(lifetime));
+		}
+		jsonPayload.add("d", data);
+		
 
 		JsonObject jsonResponse = sendAndWait(topic, jsonPayload, REGISTER_TIMEOUT_VALUE);
 		if (jsonResponse != null && jsonResponse.get("rc").getAsInt() == 
 				ResponseCode.DM_SUCCESS.getCode()) {
-			DMRequestHandler.setRequestHandlers(this);
-			publishQueue = new LinkedBlockingQueue<JsonObject>();
-			Thread t = new Thread(this);
-			t.start();
+			DMRequestHandler.setRequestHandlers(this.client);
+			if(!running) {
+				publishQueue = new LinkedBlockingQueue<JsonObject>();
+				Thread t = new Thread(this);
+				t.start();
+				running = true;
+			}
 			/*
 			 * set the dormant time to a local variable, in case if the connection is
 			 * lost due to n/w interruption, we need to send another manage request
@@ -334,7 +309,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 
 	/**
-	 * Update the location
+	 * Update the location of the device. This method converts the 
+	 * date in the required format. The caller just need to pass the date in java.util.Date format
 	 * 
 	 * @param latitude	Latitude in decimal degrees using WGS84
 	 * @param longitude Longitude in decimal degrees using WGS84
@@ -350,7 +326,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 	
 	/**
-	 * Update the location
+	 * Update the location of the device. This method converts the 
+	 * date in the required format. The caller just need to pass the date in java.util.Date format
 	 * 
 	 * @param latitude	Latitude in decimal degrees using WGS84
 	 * @param longitude Longitude in decimal degrees using WGS84
@@ -382,10 +359,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		
 		jsonData.add("d", json);
 		
-		System.out.println(jsonData);
-		
 		try {
-			JsonObject response = sendAndWait(DeviceTopic.UPDATE_LOCATION, jsonData, REGISTER_TIMEOUT_VALUE);
+			JsonObject response = sendAndWait(client.getDMAgentTopic().getUpdateLocationTopic(), 
+					jsonData, REGISTER_TIMEOUT_VALUE);
 			if (response != null ) {
 				return response.get("rc").getAsInt();
 			}
@@ -405,7 +381,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		final String METHOD = "clearErrorCodes"; 
 		JsonObject jsonData = new JsonObject();
 		try {
-			JsonObject response = sendAndWait(DeviceTopic.CLEAR_DIAG_ERRCODES, 
+			JsonObject response = sendAndWait(client.getDMAgentTopic().getClearDiagErrorCodesTopic(), 
 					jsonData, REGISTER_TIMEOUT_VALUE);
 			if (response != null ) {
 				return response.get("rc").getAsInt();
@@ -425,7 +401,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		final String METHOD = "clearLogs"; 
 		JsonObject jsonData = new JsonObject();
 		try {
-			JsonObject response = sendAndWait(DeviceTopic.CLEAR_DIAG_LOG, 
+			JsonObject response = sendAndWait(client.getDMAgentTopic().getClearDiagLogsTopic(), 
 					jsonData, REGISTER_TIMEOUT_VALUE);
 			if (response != null ) {
 				return response.get("rc").getAsInt();
@@ -453,7 +429,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		jsonData.add("d", errorObj);
 		
 		try {
-			JsonObject response = sendAndWait(DeviceTopic.CREATE_DIAG_ERRCODES, jsonData, REGISTER_TIMEOUT_VALUE);
+			JsonObject response = sendAndWait(client.getDMAgentTopic().getAddErrorCodesTopic(), 
+					jsonData, REGISTER_TIMEOUT_VALUE);
 			if (response != null ) {
 				return response.get("rc").getAsInt();
 			}
@@ -482,8 +459,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @param message The Log message that needs to be added to the Internet of Things Foundation.
 	 * @param timestamp The Log timestamp
 	 * @param severity The Log severity
-	 * @param data The String data
-	 * 
+	 * @param data The optional diagnostic string data - 
+	 *             The library will encode the data in base64 format as required by the Platform 
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
 	 */
@@ -504,7 +481,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		jsonData.add("d", log);
 		
 		try {
-			JsonObject response = sendAndWait(DeviceTopic.ADD_DIAG_LOG, jsonData, REGISTER_TIMEOUT_VALUE);
+			JsonObject response = sendAndWait(client.getDMAgentTopic().getAddDiagLogTopic(), 
+					jsonData, REGISTER_TIMEOUT_VALUE);
 			if (response != null ) {
 				return response.get("rc").getAsInt();
 			}
@@ -526,11 +504,11 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * 		True if the unmanage command is successful
 	 * @throws MqttException
 	 */
-	public boolean unmanage() throws MqttException {
+	public boolean sendUnmanageRequest() throws MqttException {
 		
 		final String METHOD = "unmanage";
 		boolean success = false;
-		DeviceTopic topic = DeviceTopic.UNMANAGE;
+		String topic = client.getDMAgentTopic().getUnmanageTopic();
 
 		JsonObject jsonPayload = new JsonObject();
 		JsonObject jsonResponse = sendAndWait(topic, jsonPayload, REGISTER_TIMEOUT_VALUE);
@@ -540,10 +518,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		}
 
 		terminate();
-		DMRequestHandler.clearRequestHandlers(this);
-		this.deviceData.terminateHandlers();
-		this.supportsDeviceActions = false;
-		this.supportsFirmwareActions = false;
+		DMRequestHandler.clearRequestHandlers(this.client);
+		this.terminateHandlers();
 		
 		if (responseSubscription != null) {
 			this.unsubscribe(this.responseSubscription);
@@ -568,14 +544,14 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @param listener The IMqttMessageListener for the given topic
 	 * @throws MqttException
 	 */
-	public void subscribe(ServerTopic topic, int qos, IMqttMessageListener listener) throws MqttException {
+	public void subscribe(String topic, int qos, IMqttMessageListener listener) throws MqttException {
 		final String METHOD = "subscribe";
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic(" + topic + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
-				mqttAsyncClient.subscribe(topic.getName(), qos, listener);
+				mqttAsyncClient.subscribe(topic, qos, listener).waitForCompletion();
 			} else if(mqttClient != null) {
-				mqttClient.subscribe(topic.getName(), qos, listener);
+				mqttClient.subscribe(topic, qos, listener);
 			}
 		} else {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Will not subscribe to topic(" + topic +
@@ -599,7 +575,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topics(" + topics + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
-				mqttAsyncClient.subscribe(topics, qos, listeners);
+				mqttAsyncClient.subscribe(topics, qos, listeners).waitForCompletion();
 			} else if(mqttClient != null) {
 				mqttClient.subscribe(topics, qos, listeners);
 			}
@@ -618,14 +594,14 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @param topic topic to be unsubscribed
 	 * @throws MqttException
 	 */
-	public void unsubscribe(ServerTopic topic) throws MqttException {
+	public void unsubscribe(String topic) throws MqttException {
 		final String METHOD = "unsubscribe";
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic(" + topic + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
-				mqttAsyncClient.unsubscribe(topic.getName());
+				mqttAsyncClient.unsubscribe(topic);
 			} else if (mqttClient != null) {
-				mqttClient.unsubscribe(topic.getName());
+				mqttClient.unsubscribe(topic);
 			}
 		} else {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Will not unsubscribe from topic(" + 
@@ -657,7 +633,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		}
 	}
 	
-	protected IMqttDeliveryToken publish(DeviceTopic topic, MqttMessage message) throws MqttException {
+	protected IMqttDeliveryToken publish(String topic, MqttMessage message) throws MqttException {
 		final String METHOD = "publish";
 		IMqttDeliveryToken token = null;
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic(" + topic + ")");
@@ -665,9 +641,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			if (isConnected()) {
 				try {
 					if (this.mqttAsyncClient != null) {
-						token = mqttAsyncClient.publish(topic.getName(), message);
+						token = mqttAsyncClient.publish(topic, message);
 					} else if (mqttClient != null) {
-						mqttClient.publish(topic.getName(), message);
+						mqttClient.publish(topic, message);
 					}
 				} catch(MqttException ex) {
 					String payload = null;
@@ -716,10 +692,10 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @param qos The Quality Of Service
 	 * @throws MqttException
 	 */
-	public void publish(DeviceTopic topic, JsonObject payload, int qos) throws MqttException {
+	public void publish(String topic, JsonObject payload, int qos) throws MqttException {
 		final String METHOD = "publish3";
 		JsonObject jsonPubMsg = new JsonObject();
-		jsonPubMsg.addProperty("topic", topic.getName());
+		jsonPubMsg.addProperty("topic", topic);
 		jsonPubMsg.add("qos", new JsonPrimitive(qos));
 		jsonPubMsg.add("payload", payload);		
 		publishQueue.add(jsonPubMsg);
@@ -737,7 +713,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		MqttMessage message = new MqttMessage();
 		message.setPayload(payload.toString().getBytes("UTF-8"));
 		message.setQos(qos);
-		publish(DeviceTopic.get(topic), message);
+		publish(topic, message);
 	}
 	
 	/**
@@ -759,7 +735,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @return response in Json format
 	 * @throws MqttException
 	 */
-	public JsonObject sendAndWait(DeviceTopic topic, JsonObject jsonPayload, long timeout) throws MqttException {
+	public JsonObject sendAndWait(String topic, JsonObject jsonPayload, long timeout) throws MqttException {
 		
 		final String METHOD = "sendAndWait";
 		
@@ -770,7 +746,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				") payload (" + jsonPayload.toString() + ") reqId (" + uuid + ")" );
 		
 		if (responseSubscription == null) {
-			responseSubscription = ServerTopic.RESPONSE;
+			responseSubscription = client.getDMServerTopic().getDMServerTopic();
 			subscribe(responseSubscription, 1, this);
 		}
 	
@@ -824,7 +800,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	public void disconnect() {
 		if(this.bManaged == true) {
 			try {
-				unmanage();
+				sendUnmanageRequest();
 			} catch (MqttException e) {
 			}
 			this.bManaged = false;
@@ -861,7 +837,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			try {
 				
 				LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "lifetime (" + lifetime + ")");
-				this.manage(lifetime);
+				sendManageRequest(lifetime, this.supportFirmwareActions, this.supportDeviceActions);
 				
 				if(tokens != null) {
 					LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Republishing messages start");
@@ -884,7 +860,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		final String METHOD = "messageArrived";
-		if (topic.equals(ServerTopic.RESPONSE.getName())) {
+		if (topic.equals(this.client.getDMServerTopic().getDMServerTopic())) {
 			LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, 
 					"Received response from IoT Foundation, topic (" + topic + ")");
 			
@@ -939,5 +915,133 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		} catch (InterruptedException e) {
 		}
 	}
+
+	private class ManagedDeviceClient implements ManagedClient {
+		
+		private ManagedDevice dmClient;
+		private DMAgentTopic deviceDMAgentTopic;
+		private DMServerTopic deviceDMServerTopic;
+		
+		private ManagedDeviceClient(ManagedDevice dmClient) {
+			this.dmClient = dmClient;
+			deviceDMAgentTopic = DeviceDMAgentTopic.getInstance();
+			deviceDMServerTopic = DeviceDMServerTopic.getInstance();
+		}
+
+
+		@Override
+		public void subscribe(String topic, int qos,
+				IMqttMessageListener iMqttMessageListener) throws MqttException {
+			dmClient.subscribe(topic, qos, iMqttMessageListener);
+		}
+
+		@Override
+		public void unsubscribe(String topic) throws MqttException {
+			dmClient.unsubscribe(topic);
+		}
+
+		@Override
+		public void publish(String response, JsonObject payload, int qos)
+				throws MqttException {
+			dmClient.publish(response, payload, qos);
+		}
+
+		@Override
+		public DeviceData getDeviceData() {
+			return dmClient.getDeviceData();
+		}
+
+		@Override
+		public void subscribe(String[] topics, int[] qos,
+				IMqttMessageListener[] listener) throws MqttException {
+			dmClient.subscribe(topics, qos, listener);
+		}
+
+		@Override
+		public void unsubscribe(String[] topics) throws MqttException {
+			dmClient.unsubscribe(topics);
+		}
+
+		@Override
+		public DMAgentTopic getDMAgentTopic() {
+			return this.deviceDMAgentTopic;
+		}
+
+		@Override
+		public DMServerTopic getDMServerTopic() {
+			return this.deviceDMServerTopic;
+		}
+	}
+	
+	/**
+	 * <p>Adds a firmware handler for this device, 
+	 * that is of type {@link com.ibm.iotf.devicemgmt.DeviceFirmwareHandler}</p>
+	 * 
+	 * <p>If the device supports firmware update, the abstract class 
+	 * {@link com.ibm.iotf.devicemgmt.DeviceFirmwareHandler} should be extended by the device code.
+	 * The {@link com.ibm.iotf.devicemgmt.DeviceFirmwareHandler#downloadFirmware} and 
+	 * {@link com.ibm.iotf.devicemgmt.DeviceFirmwareHandler#updateFirmware}
+	 * must be implemented to handle the firmware actions.</p>
+	 * 
+	 * @param fwHandler {@link com.ibm.iotf.devicemgmt.DeviceFirmwareHandler} that handles the Firmware actions
+	 * @throws Exception throws an exception if a handler is already added
+	 *
+	 */
+	public void addFirmwareHandler(DeviceFirmwareHandler fwHandler) throws Exception {
+		final String METHOD = "addFirmwareHandler";
+		if(this.fwHandler != null) {
+			LoggerUtility.severe(CLASS_NAME, METHOD, "Firmware Handler is already set, "
+					+ "so can not add the new firmware handler !");
+			
+			throw new Exception("Firmware Handler is already set, "
+					+ "so can not add the new firmware handler !");
+		}
+		
+		DeviceData deviceData = this.getDeviceData();
+		deviceData.getDeviceFirmware().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, fwHandler);
+		this.fwHandler = fwHandler;
+		fwHandler.start();
+	}
+
+	/**
+	 * <p>Adds a device action handler which is of type {@link com.ibm.iotf.devicemgmt.DeviceActionHandler}</p>
+	 * 
+	 * <p>If the device supports device actions like reboot and factory reset,
+	 * the abstract class {@link com.ibm.iotf.devicemgmt.DeviceActionHandler}
+	 * should be extended by the device code. The {@link com.ibm.iotf.devicemgmt.DeviceActionHandler#handleReboot} and 
+	 * {@link com.ibm.iotf.devicemgmt.DeviceActionHandler#handleFactoryReset}
+	 * must be implemented to handle the actions.</p>
+	 *  
+	 * @param actionHandler {@link com.ibm.iotf.devicemgmt.DeviceActionHandler} that handles the Reboot and Factory reset actions
+	 * @throws Exception throws an exception if a handler is already added
+	 */
+	public void addDeviceActionHandler(DeviceActionHandlerSample actionHandler) throws Exception {
+		final String METHOD = "addDeviceActionHandler";
+		if(this.actionHandler != null) {
+			LoggerUtility.severe(CLASS_NAME, METHOD, "Action Handler is already set, "
+					+ "so can not add the new Action handler !");
+			
+			throw new Exception("Action Handler is already set, "
+					+ "so can not add the new Action handler !");
+		}
+		
+		DeviceData deviceData = this.getDeviceData();
+		deviceData.getDeviceAction().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, actionHandler);
+		this.actionHandler = actionHandler;
+		actionHandler.start();
+	}
+	
+	private void terminateHandlers() {
+		if(this.fwHandler != null) {
+			fwHandler.terminate();
+			fwHandler = null;
+		}
+		
+		if(this.actionHandler != null) {
+			actionHandler.terminate();
+			actionHandler = null;
+		}
+	}
+
 
 }

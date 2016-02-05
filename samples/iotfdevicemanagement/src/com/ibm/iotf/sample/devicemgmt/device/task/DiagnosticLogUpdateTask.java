@@ -16,8 +16,9 @@ package com.ibm.iotf.sample.devicemgmt.device.task;
 import java.util.Date;
 import java.util.TimerTask;
 
-import com.ibm.iotf.devicemgmt.device.LogSeverity;
+import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+
 
 /**
  * Timer task that appends/clears Log information to IoT Foundation

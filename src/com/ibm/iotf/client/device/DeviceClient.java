@@ -85,19 +85,6 @@ public class DeviceClient extends AbstractClient {
 	}
 	
 	/*
-	 * old style - id
-	 * new style - Device-ID
-	 */
-	public String getDeviceId() {
-		String id = null;
-		id = options.getProperty("id");
-		if(id == null) {
-			id = options.getProperty("Device-ID");
-		}
-		return trimedValue(id);
-	}
-
-	/*
 	 * old style - type
 	 * new style - Device-Type
 	 */

@@ -16,8 +16,9 @@ package com.ibm.iotf.sample.devicemgmt.device.task;
 import java.util.Random;
 import java.util.TimerTask;
 
-import com.ibm.iotf.devicemgmt.device.DeviceLocation;
+import com.ibm.iotf.devicemgmt.DeviceLocation;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+
 
 /**
  * 

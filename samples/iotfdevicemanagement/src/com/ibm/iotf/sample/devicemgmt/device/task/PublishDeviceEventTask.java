@@ -18,6 +18,7 @@ import java.util.Random;
 import com.google.gson.JsonObject;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
+
 /**
  * This method publishes a sample device event
  * 

@@ -16,8 +16,8 @@ package com.ibm.iotf.sample.devicemgmt.device;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import com.ibm.iotf.devicemgmt.device.DeviceAction;
-import com.ibm.iotf.devicemgmt.device.DeviceActionHandler;
+import com.ibm.iotf.devicemgmt.DeviceAction;
+import com.ibm.iotf.devicemgmt.DeviceActionHandler;
 
 /**
  * This sample Device action handler demonstrates how one can reboot the device 

@@ -6,6 +6,8 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
+
+
 /**
  * 
  * Timer task that sends the manage command before the lifetime
@@ -25,7 +27,7 @@ public class ManageTask implements Runnable {
 	@Override
 	public void run() {
 		try {
-			boolean status = managedDevice.manage(lifetime);
+			boolean status = managedDevice.sendManageRequest(lifetime, true, true);
 			System.out.println("Resent the manage request at time "+new Date() +
 					" status("+status+")");
 		} catch (MqttException e) {

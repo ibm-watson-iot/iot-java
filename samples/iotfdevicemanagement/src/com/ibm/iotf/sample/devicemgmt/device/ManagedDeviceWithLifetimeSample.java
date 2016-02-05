@@ -25,10 +25,11 @@ import java.util.TimerTask;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
-import com.ibm.iotf.devicemgmt.device.DeviceData;
-import com.ibm.iotf.devicemgmt.device.DeviceInfo;
-import com.ibm.iotf.devicemgmt.device.DeviceMetadata;
+import com.ibm.iotf.devicemgmt.DeviceData;
+import com.ibm.iotf.devicemgmt.DeviceInfo;
+import com.ibm.iotf.devicemgmt.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+
 
 /**
  * A sample device code that shows how to register the device with a lifetime parameter,
@@ -168,7 +169,7 @@ public class ManagedDeviceWithLifetimeSample {
 		@Override
 		public void run() {
 			try {
-				dmClient.manage(lifetime);
+				dmClient.sendManageRequest(lifetime, false, true);
 			} catch (MqttException e) {
 				e.printStackTrace();
 			}
@@ -193,7 +194,7 @@ public class ManagedDeviceWithLifetimeSample {
 	 * @throws MqttException
 	 */
 	private void sendManageRequest() throws MqttException {
-		if (dmClient.manage(lifetime)) {
+		if (dmClient.sendManageRequest(lifetime, true, true)) {
 			
 			// Schedule a task that sends a manage request repeatedly  
 			if(lifetime > 0) {

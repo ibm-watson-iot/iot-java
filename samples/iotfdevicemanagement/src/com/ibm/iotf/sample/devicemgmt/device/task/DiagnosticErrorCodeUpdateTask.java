@@ -18,6 +18,8 @@ import java.util.TimerTask;
 
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
+
+
 /**
  * Timer task that appends/clears Error code to IoT Foundation
  * 

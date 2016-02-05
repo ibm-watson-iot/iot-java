@@ -14,6 +14,8 @@
 
 package com.ibm.iotf.sample.client.gateway;
 
+import com.google.gson.JsonElement;
+
 /**
  * This class defines a command interface to push the command to the device
  * connected to Gateway.
@@ -23,4 +25,5 @@ package com.ibm.iotf.sample.client.gateway;
  */
 public interface DeviceInterface {
 	public void sendCommand(String cmd);
+
 }

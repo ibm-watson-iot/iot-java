@@ -19,7 +19,9 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import com.ibm.iotf.client.Message;
 
-
+/**
+ * The Command class  
+ */
 public class Command extends Message {
 
 	private String type;

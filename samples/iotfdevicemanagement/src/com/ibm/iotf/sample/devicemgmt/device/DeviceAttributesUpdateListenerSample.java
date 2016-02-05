@@ -30,14 +30,14 @@ import java.util.Timer;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
-import com.ibm.iotf.devicemgmt.device.DeviceData;
-import com.ibm.iotf.devicemgmt.device.DeviceFirmware;
-import com.ibm.iotf.devicemgmt.device.DeviceInfo;
-import com.ibm.iotf.devicemgmt.device.DeviceLocation;
-import com.ibm.iotf.devicemgmt.device.DeviceMetadata;
+import com.ibm.iotf.devicemgmt.DeviceData;
+import com.ibm.iotf.devicemgmt.DeviceFirmware;
+import com.ibm.iotf.devicemgmt.DeviceInfo;
+import com.ibm.iotf.devicemgmt.DeviceLocation;
+import com.ibm.iotf.devicemgmt.DeviceMetadata;
+import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
-import com.ibm.iotf.devicemgmt.device.DeviceFirmware.FirmwareState;
-import com.ibm.iotf.devicemgmt.device.resource.Resource;
+import com.ibm.iotf.devicemgmt.resource.Resource;
 
 /**
  * A sample device code that listens for the update message from IBM IoT Foundation. 
@@ -233,7 +233,7 @@ public class DeviceAttributesUpdateListenerSample implements PropertyChangeListe
 	 * @throws MqttException
 	 */
 	private void sendManageRequest() throws MqttException {
-		if (dmClient.manage(0)) {
+		if (dmClient.sendManageRequest(0, true, true)) {
 			System.out.println("Device connected as Managed device now!");
 		} else {
 			System.err.println("Managed request failed!");
