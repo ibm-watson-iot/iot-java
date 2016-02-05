@@ -3,9 +3,10 @@ Java Client Library - Introduction
 
 This Java Client Library can be used to simplify interactions with the [IBM Internet of Things Foundation] (https://internetofthings.ibmcloud.com). The documentation is divided into three sections:  
 
-- The [Devices section] (https://docs.internetofthings.ibmcloud.com/java/java_cli_devices.html) contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
-- The [Managed Device section] (https://docs.internetofthings.ibmcloud.com/java/java_deviceManagement.html) contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java ibmiotf Client Library and perform device management operations like firmware update, location update, and diagnostics update.
-- The [Applications section] (https://docs.internetofthings.ibmcloud.com/java/java_cli_app.html) details how applications can use the Java ibmiotf Client Library to interact with devices.
+- The [Devices section] (https://docs.internetofthings.ibmcloud.com/devices/libraries/java.html) contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
+- The [Managed Device section] (https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/java_cli_for_manageddevice.rst) contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java ibmiotf Client Library and perform device management operations like firmware update, location update, and diagnostics update.
+- The [Applications section] (https://docs.internetofthings.ibmcloud.com/applications/libraries/java.html) details how applications can use the Java ibmiotf Client Library to interact with devices.
+- The [API section] (https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/java_cli_for_historian.rst)  contains information on how applications can use the Java ibmiotf Client Library to interact with the organization in the Internet of Things Foundation through ReST APIs
 
 This Java Client Library requires following version of Java,
 
