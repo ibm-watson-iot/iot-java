@@ -148,7 +148,7 @@ public abstract class AbstractClient {
 		while (tryAgain) {
 			connectAttempts++;
 			
-			LoggerUtility.info(CLASS_NAME, METHOD, "Connecting device "+ getDeviceId() + " to " + mqttAsyncClient.getServerURI() + 
+			LoggerUtility.info(CLASS_NAME, METHOD, "Connecting client "+ this.clientId + " to " + mqttAsyncClient.getServerURI() + 
 					" (attempt #" + connectAttempts + ")...");
 			
 			try {
