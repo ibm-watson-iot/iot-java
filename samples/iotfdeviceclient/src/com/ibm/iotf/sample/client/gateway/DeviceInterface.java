@@ -14,7 +14,8 @@
 
 package com.ibm.iotf.sample.client.gateway;
 
-import com.google.gson.JsonElement;
+import com.ibm.iotf.devicemgmt.DeviceAction;
+import com.ibm.iotf.devicemgmt.DeviceFirmware;
 
 /**
  * This class defines a command interface to push the command to the device
@@ -25,5 +26,11 @@ import com.google.gson.JsonElement;
  */
 public interface DeviceInterface {
 	public void sendCommand(String cmd);
+
+	public void setFirmwareName(String downloadedFirmwareName);
+
+	public void updateFirmware(DeviceFirmware deviceFirmware);
+
+	public void reboot(DeviceAction action);
 
 }

@@ -13,71 +13,66 @@
  */
 package com.ibm.iotf.sample.devicemgmt.gateway;
 
+import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import javax.management.InstanceNotFoundException;
-import javax.management.MalformedObjectNameException;
-import javax.management.ReflectionException;
+import java.util.Scanner;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 
-import com.google.gson.JsonObject;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceInfo;
+import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
-import com.ibm.iotf.sample.client.SystemObject;
 import com.ibm.iotf.sample.client.gateway.ArduinoSerialInterface;
 import com.ibm.iotf.sample.client.gateway.GatewayCommandCallback;
-import com.ibm.iotf.sample.devicemgmt.device.DeviceActionHandlerSample;
-import com.ibm.iotf.sample.devicemgmt.device.RasPiFirmwareHandlerSample;
-import com.ibm.iotf.sample.devicemgmt.gateway.task.DiagnosticErrorCodeUpdateTask;
-import com.ibm.iotf.sample.devicemgmt.gateway.task.DiagnosticLogUpdateTask;
-import com.ibm.iotf.sample.devicemgmt.gateway.task.ManageTask;
 import com.ibm.iotf.sample.util.Utility;
 
 /**
- * A sample device management agent code that shows the following core DM capabilities,
+ * <p>The following Gateway Device Management(DM) capabilities are demonstrated in this sample
+ * by managing the Arduino Uno device through the Raspberry Pi Gateway.</p>
  * 
- * 1. Managed device
- * 2. Firmware update
- * 3. Device Reboot
- * 4. Location update 
- * 5. Diagnostic ErrorCode addition & clear
- * 6. Diagnostic Log addition & clear 
- * 7. unmanage
+ * <ul class="simple">
+ * <li>Manage - Manage the Gateway and the attached Arduino Uno device
+ * <li>Firmware update - Update the sketch code of Arduino Uno via the Gateway
+ * <li>Device Reboot - Reboot both the Raspberry Pi Gateway and Arduino Uno device
+ * <li>Location Update - Update the location of Gateway and Arduino Uno device
+ * <li>Diagnostic update - Updates the Errorcode and Log information of Gateway and Arduino Uno to Watson IoT platform
+ * <li>Unmanage - Move the Gateway and Arduino Uno from managed state to unmanage state
+ * </ul>
+ *  
+ *  <p>This sample adds a gateway management agent on top of the sample presented in the 
+ *  Gateway recipe to demonstrate the end to end capabilities of the Gateway. 
+ *  i.e, perform DM operations while sending and receiving sensor events and commands 
+ *  for the Gateway and attached devices. The management agent running on the Raspberry Pi 
+ *  Gateway will connect the Gateway and Arduino Uno device as managed devices to 
+ *  IBM Watson IoT Platform, in the first step, such that they can participate in the 
+ *  DM activities. The agent then listen for the DM requests from the Watson IoT Platform 
+ *  DM server, upon receiving the request, it completes the action and responds to the server 
+ *  about the completion status. Also, the agent can update the diagnostic information 
+ *  whenever there is an error and update the location of the Gateway/attached devices 
+ *  frequently to Watson IoT Platform.</p> 
  * 
- * This sample connects the device as manage device to IBM Watson IoT Platform in the first step such
- * that this device can participate in DM activities,
- * 
- * And performs the following activities based on user input
+ * Performs the following activities based on user input<br>
  * 
  *
- * manage [lifetime in seconds] :: Request to make the device as Managed device in IoTF
- * unmanage :: Request to make the device unmanaged
- * firmware :: Adds a Firmware Handler that listens for the firmware actions from IoTF)
- * reboot :: Adds a Device action Handler that listens for reboot from IoTF)
- * location :: Starts a task that updates a random location at every 30 seconds)
- * errorcode :: Starts a task that appends/clears a ErrorCode at every 30 seconds)
- * log :: Starts a task that appends/clears a Log message at every 30 seconds)
- * quit :: quit this program)
-	 
- * This sample takes a properties file where the device informations and Firmware
- * informations are present. There is a default properties file in the sample folder, this
- * class takes the default properties file if one not specified by user.
+ * manage [gateway|device] [lifetime] :: Request to make the gateway/device as Managed device in WIoTP<br>
+ * unmanage [gateway|device]          :: Request to make the gateway/device unmanaged<br>
+ * location [gateway|device]          :: updates a random location of the device/gateway<br>
+ * errorcode [gateway|device]         :: appends/clears a simulated ErrorCode<br>
+ * log [gateway|device]               :: appends/clears a simulated Log message<br>
+ * display                            :: Toggle the Arduino Uno event display on the console<br>
+ * quit                               :: quit this sample<br>
  * 
- * Refer to this link https://docs.internetofthings.ibmcloud.com/reference/device_mgmt.html
+ * 	 
+ * <p>This sample takes a properties file where the device informations and Firmware
+ * informations are present. There is a default properties file in the sample folder, this
+ * class takes the default properties file if one not specified by user.</p>
+ * 
+ * Refer to this link https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html
  * for more information about IBM IBM Watson IoT Platform's DM capabilities 
  */
 public class ManagedRasPiGateway {
-	private static final int gatewayLifetime = 36000;
-	private static final  int deviceLifetime = 42000;
-	
-	private ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(2);
-	
 	private final static String PROPERTIES_FILE_NAME = "DMDeviceSample.properties";
 	private final static String DEFAULT_PATH = "samples/iotfdeviceclient/src";
 	
@@ -87,8 +82,9 @@ public class ManagedRasPiGateway {
 	private final static String DEFAULT_SERIAL_PORT = "/dev/ttyACM0";
 	
 	private ManagedGateway mgdGateway;
-	SystemObject obj = new SystemObject();
+	private ArduinoSerialInterface arduino;
 	private String port;
+	private Random random = new Random();
 
 	/**
 	 * When the GatewayClient connects, it automatically subscribes to any commands for this Gateway. 
@@ -108,13 +104,6 @@ public class ManagedRasPiGateway {
 		mgdGateway.setCommandCallback(callback);
 		mgdGateway.subscribeToDeviceCommands(DEVICE_TYPE, ARDUINO_DEVICE_ID);
 		try {
-			ArduinoSerialInterface arduino = new ArduinoSerialInterface(
-										ARDUINO_DEVICE_ID, 
-										DEVICE_TYPE, 
-										this.port, 
-										this.mgdGateway);
-			arduino.initialize();
-		
 			callback.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
 			Thread t = new Thread(callback);
 			t.start();
@@ -133,37 +122,21 @@ public class ManagedRasPiGateway {
 		ManagedRasPiGateway sample = new ManagedRasPiGateway();
 		try {
 			sample.createManagedClient(fileName);
-			sample.sendGatewayManageRequest();
-			
-			sample.sendDeviceManageRequest();
-			sample.addCommandCallback();
-			
-			sample.updateGatewayLocation();
-			sample.updateDeviceLocation();
-			
-			// Start Errorcode tasks
-			sample.scheduleGatewayErrorCodeTask();
-			sample.scheduleDeviceErrorCodeTask();
-			
-			// Start Diagnostic Logs task
-			sample.scheduleGatewayLogTask();
-			sample.scheduleDeviceLogTask();
+			sample.createArduinoDeviceInterface();
 			
 			// Add the handlers
 			sample.addDeviceActionHandler();
 			sample.addFirmwareHandler();
-			
-			
-			/**
-			 * Try to publish a Gateway Event for every second. As like devices, the Gateway
-			 * also can have attached sensors and publish events.
-			 */
-			while(true) {
-				sample.publishGatewayEvent();			
-				try {
-					Thread.sleep(1000);
-				} catch(InterruptedException ie) {}
+
+			sample.addCommandCallback();
+			try {
+				sample.arduino.initialize();
+			} catch(java.lang.UnsatisfiedLinkError e) {
+				e.printStackTrace();
+				System.err.println("Please specify the path of RxTx library and run");
 			}
+			sample.userAction();
+			
 
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -214,48 +187,68 @@ public class ManagedRasPiGateway {
 	}
 	
 	/**
-	 * ErrorCode Update Task - Appends a random errorcode at every 30th second
+	 * Appends a random errorcode to the Gateway
 	 * 
-	 * Also clears the same at every 25th interval
 	 */
-	private void scheduleGatewayErrorCodeTask() {
-		DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(this.mgdGateway);
-		scheduledThreadPool.scheduleAtFixedRate(ecTask, 0, 30, TimeUnit.SECONDS);
+	private void appendGatewayErrorCode() {
+		int errorCode = random.nextInt(500);
+		int rc = this.mgdGateway.addGatewayErrorCode(errorCode);
+		if(rc == 200) {
+			System.out.println("Current Gateway Errorcode (" + errorCode + ")");
+		} else {
+			System.out.println("Errorcode addition failed for Gateway!, rc = "+rc);
+		}
 	}
 	
 	/**
-	 * ErrorCode Update Task - Appends a random errorcode at every 30th second
+	 * Appends a random errorcode for the Device
 	 * 
-	 * Also clears the same at every 25th interval
 	 */
-	private void scheduleDeviceErrorCodeTask() {
-		DiagnosticErrorCodeUpdateTask ecTask = new DiagnosticErrorCodeUpdateTask(this.mgdGateway, 
-				DEVICE_TYPE, ARDUINO_DEVICE_ID);
-		scheduledThreadPool.scheduleAtFixedRate(ecTask, 0, 30, TimeUnit.SECONDS);
+	private void appendDeviceErrorCode() {
+		int errorCode = random.nextInt(500);
+		int rc = this.mgdGateway.addDeviceErrorCode(DEVICE_TYPE, ARDUINO_DEVICE_ID, errorCode);
+		if(rc == 200) {
+			System.out.println("Current Device Errorcode (" + errorCode + ")");
+		} else {
+			System.out.println("Errorcode addition failed for Device!, rc = "+rc);
+		}
 	}
 	
-	
-	/**
-	 * Log Update Task - Appends a random log information at every 30th second
-	 * Also clears the same at every 25th interval
-	 */
-	
-	private void scheduleGatewayLogTask() {
-		DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(this.mgdGateway);
-		scheduledThreadPool.scheduleAtFixedRate(logTask, 0, 30, TimeUnit.SECONDS);
-	}
-	
-	/**
-	 * Log Update Task - Appends a random log information at every 30th second
-	 * Also clears the same at every 25th interval
-	 */
-	
-	private void scheduleDeviceLogTask() {
-		DiagnosticLogUpdateTask logTask = new DiagnosticLogUpdateTask(
-				this.mgdGateway, DEVICE_TYPE, ARDUINO_DEVICE_ID);
-		scheduledThreadPool.scheduleAtFixedRate(logTask, 0, 30, TimeUnit.SECONDS);
-	}
 
+	/**
+	 * Appends a random Log message to the Gateway
+	 * 
+	 */
+	private void appendGatewayLog() {
+		String message = "Log event " + random.nextInt(500);
+		Date timestamp = new Date();
+		LogSeverity severity = LogSeverity.informational;
+		int rc = mgdGateway.addGatewayLog(message, timestamp, severity);
+			
+		if(rc == 200) {
+			System.out.println("Current Gateway Log (" + message + " " + timestamp + " " + severity + ")");
+		} else {
+			System.out.println("Gateway Log Addition failed!, rc = "+rc);
+		}
+	}
+	
+	/**
+	 * Appends a random Log message for the Device
+	 * 
+	 */
+	private void appendDeviceLog() {
+		String message = "Log event " + random.nextInt(500);
+		Date timestamp = new Date();
+		LogSeverity severity = LogSeverity.warning;
+		int rc = mgdGateway.addDeviceLog(DEVICE_TYPE, ARDUINO_DEVICE_ID, message, timestamp, severity);
+			
+		if(rc == 200) {
+			System.out.println("Current device("+ARDUINO_DEVICE_ID+") Log (" + message + " " + timestamp + " " + severity + ")");
+		} else {
+			System.out.println("Device("+ARDUINO_DEVICE_ID+") Log Addition failed!, rc = "+rc);
+		}
+		
+	}
 	
 	private String trimedValue(String value) {
 		if(value == null || value == "") {
@@ -282,8 +275,7 @@ public class ManagedRasPiGateway {
 		Properties deviceProps = Utility.loadPropertiesFile(PROPERTIES_FILE_NAME, propertiesFile);
 		
 		/**
-		 * To create a DeviceData object, we will need the following objects:
-		 *   - DeviceInfo
+		 * Let us create the DeviceData object with the DeviceInfo object
 		 */
 		DeviceInfo deviceInfo = new DeviceInfo.Builder().
 				serialNumber(trimedValue(deviceProps.getProperty("DeviceInfo.serialNumber"))).
@@ -300,49 +292,28 @@ public class ManagedRasPiGateway {
 						 		  deviceInfo(deviceInfo).
 						 		  build();
 		
-		// Options to connect to IBM Watson IoT Platform
-		Properties options = new Properties();
-		
-		options.setProperty("Organization-ID", trimedValue(deviceProps.getProperty("Organization-ID")));
-		options.setProperty("Device-Type", trimedValue(deviceProps.getProperty("Device-Type")));
-		options.setProperty("Device-ID", trimedValue(deviceProps.getProperty("Device-ID")));
-		options.setProperty("Authentication-Method", trimedValue(deviceProps.getProperty("Authentication-Method")));
-		options.setProperty("Authentication-Token", trimedValue(deviceProps.getProperty("Authentication-Token")));
-
-		this.port = options.getProperty("port");
+		this.port = deviceProps.getProperty("port");
 		if(this.port == null) {
 			this.port = this.DEFAULT_SERIAL_PORT;
 		}
-		mgdGateway = new ManagedGateway(options, deviceData);
+		mgdGateway = new ManagedGateway(deviceProps, deviceData);
 		
 		// Connect to Watson IoT Platform
 		mgdGateway.connect();
 	}
 	
 	/**
-	 * While Raspberry Pi Gateway publishes events on behalf of the Arduino, the Raspberry Pi Gateway 
-	 * can publish its own events as well. 
-	 * 
-	 * The sample publishes a blink event every second, that has the CPU and memory utilization of 
-	 * this sample Gateway process.
+	 * Create the Arduino device interface object used to interact with Arduino Uno device
 	 */
-	private void publishGatewayEvent() {
-		//Generate a JSON object of the event to be published
-		JsonObject event = new JsonObject();
-		event.addProperty("name", SystemObject.getName());
-		try {
-			event.addProperty("cpu",  obj.getProcessCpuLoad());
-		} catch (MalformedObjectNameException e) {
-			e.printStackTrace();
-		} catch (InstanceNotFoundException e) {
-			e.printStackTrace();
-		} catch (ReflectionException e) {
-			e.printStackTrace();
-		}
-		event.addProperty("mem",  obj.getMemoryUsed());
-			
-		mgdGateway.publishGatewayEvent("blink", event, 2);
+	private void createArduinoDeviceInterface() {
+		this.arduino = new ArduinoSerialInterface(
+				ARDUINO_DEVICE_ID, 
+				DEVICE_TYPE, 
+				this.port, 
+				this.mgdGateway);
+		
 	}
+	
 	
 	private void disconnect() {
 		//Disconnect cleanly
@@ -354,12 +325,15 @@ public class ManagedRasPiGateway {
 	 * can participate in the DM activities
 	 * 
 	 * @return status of the manage request
-	 * @throws MqttException
+	 * @throws Exception 
 	 */
-	private boolean sendGatewayManageRequest() throws MqttException {
-		boolean status = mgdGateway.sendGatewayManageRequest(gatewayLifetime, true, true);
-		System.out.println("Status of Gateway manage request = "+ status);
-		
+	private boolean sendGatewayManageRequest(int lifetime) throws Exception {
+		boolean status = mgdGateway.sendGatewayManageRequest(lifetime, true, true);
+		if(status == true) {
+			System.out.println("Gateway is connected as managed device now !!");
+		} else {
+			System.out.println("Gateway manage request failed!!");
+		}
 		return status;
 	}
 	
@@ -368,11 +342,15 @@ public class ManagedRasPiGateway {
 	 * Raspberry Pi gateway
 	 * 
 	 * @return status of the manage request
-	 * @throws MqttException
+	 * @throws Exception 
 	 */
-	private boolean sendDeviceManageRequest() throws MqttException {
-		boolean status = mgdGateway.sendDeviceManageRequest(DEVICE_TYPE, ARDUINO_DEVICE_ID, deviceLifetime, true, true);
-		System.out.println("Status of device manage request = "+ status);
+	private boolean sendDeviceManageRequest(int lifetime) throws Exception {
+		boolean status = mgdGateway.sendDeviceManageRequest(DEVICE_TYPE, ARDUINO_DEVICE_ID, lifetime, true, true);
+		if(status == true) {
+			System.out.println("Arduino Uno device is connected as managed device now !!");
+		} else {
+			System.out.println("Arduino Uno manage request failed!!");
+		}
 		return status;
 	}
 	
@@ -383,6 +361,8 @@ public class ManagedRasPiGateway {
 	private void addFirmwareHandler() throws Exception {
 		if(this.mgdGateway != null) {
 			GatewayFirmwareHandlerSample fwHandler = new GatewayFirmwareHandlerSample();
+			fwHandler.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
+			fwHandler.setGatewayDeviceId(this.mgdGateway.getGWDeviceId());
 			mgdGateway.addFirmwareHandler(fwHandler);
 			System.out.println("Added Firmware Handler successfully !!");
 		}
@@ -395,19 +375,171 @@ public class ManagedRasPiGateway {
 	private void addDeviceActionHandler() throws Exception {
 		if(this.mgdGateway != null) {
 			GatewayActionHandlerSample actionHandler = new GatewayActionHandlerSample();
+			actionHandler.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
 			mgdGateway.addDeviceActionHandler(actionHandler);
 			System.out.println("Added Device Action Handler successfully !!");
 		}
 	}
 	
-	private void sendUnManageRequest() throws MqttException {
-		mgdGateway.sendGatewayUnmanageRequet();
+	/**
+	 * Moves the Gateway from managed state to unmanaged state
+	 * 
+	 * @return status of the Unmanage request
+	 * @throws MqttException
+	 */
+	private boolean sendGatewayUnmanageRequest() throws MqttException {
+		boolean status = mgdGateway.sendGatewayUnmanageRequet();
+		System.out.println("Status of Gateway Unmanage request = "+ status);
 		
-		System.out.println("Stopping Tasks !!");
+		return status;
+	}
+	
+	/**
+	 * Moves the Arduino Uno device from managed state to unmanaged state
+	 * 
+	 * @return status of the Unmanage request
+	 * @throws MqttException
+	 */
+	private boolean sendDeviceUnmanageRequest() throws MqttException {
+		boolean status = mgdGateway.sendDeviceUnmanageRequet(DEVICE_TYPE, ARDUINO_DEVICE_ID);
+		System.out.println("Status of device unmanage request = "+ status);
+		return status;
+	}
+	
+	private void userAction() {
+    	Scanner in = new Scanner(System.in);
+    	final String DEVICE = "device";
+    	final String GATEWAY = "device";
+    	TYPE type = TYPE.GATEWAY_AND_DEVICE;
+    	printOptions();
+    	while(true) {
+    		try {
+	    		System.out.println("Enter the command ");
+	    		type = TYPE.GATEWAY_AND_DEVICE;
+	            String input = in.nextLine();
+	            String[] parameters = input.split(" ");
+	            if(parameters.length == 2) {
+        			if(DEVICE.equalsIgnoreCase(parameters[1])) {
+        				type = TYPE.DEVICE;
+        			} else if(GATEWAY.equalsIgnoreCase(parameters[1])) {
+        				type = TYPE.GATEWAY;
+        			}
+	            }
+	            
+	            switch(parameters[0]) {
+	            
+	            case "manage":
+	            	int lifetime = 0;
+	            	if(parameters.length == 2 && type == TYPE.GATEWAY_AND_DEVICE) {
+	            		// User has entered a lifetime paramter
+	            		try {
+	            			lifetime = Integer.parseInt(parameters[1]);
+	            		} catch(Exception e) {
+	            			// Ignore any invalid numbers.
+	            		}
+	            	} else if(parameters.length == 3) {
+	            		// User has entered a lifetime paramter
+	            		try {
+	            			lifetime = Integer.parseInt(parameters[2]);
+	            		} catch(Exception e) {
+	            			// Ignore any invalid numbers.
+	            		}
+	            	}
+	            	
+           			if(type == TYPE.GATEWAY || type == TYPE.GATEWAY_AND_DEVICE) {
+           				this.sendGatewayManageRequest(lifetime);
+           			} 
+           			if(type == TYPE.DEVICE || type == TYPE.GATEWAY_AND_DEVICE) {
+           				this.sendDeviceManageRequest(lifetime);
+            		}
+            		break;
+	            
+	            	case "unmanage":
+	            		if(type == TYPE.GATEWAY || type == TYPE.GATEWAY_AND_DEVICE) {
+	           				this.sendGatewayUnmanageRequest();
+	            		}
+	            		if(type == TYPE.DEVICE || type == TYPE.GATEWAY_AND_DEVICE) {
+	           				this.sendDeviceUnmanageRequest();
+	            		}
+	            		break;
+	            		
+	            	case "location":
+	            		if(type == TYPE.GATEWAY || type == TYPE.GATEWAY_AND_DEVICE) {
+	            			updateGatewayLocation();
+	            		}
+	            		if(type == TYPE.DEVICE || type == TYPE.GATEWAY_AND_DEVICE) {
+	           				updateDeviceLocation();
+	            		}
+	        			break;
+	
+	            	case "errorcode":
+	            		if(type == TYPE.GATEWAY || type == TYPE.GATEWAY_AND_DEVICE) {
+	            			appendGatewayErrorCode();
+	            		}
+	            		if(type == TYPE.DEVICE || type == TYPE.GATEWAY_AND_DEVICE) {
+	           				appendDeviceErrorCode();
+	            		}
+	            		break;
+	            		
+	            	case "log":
+	            		if(type == TYPE.GATEWAY || type == TYPE.GATEWAY_AND_DEVICE) {
+	            			appendGatewayLog();
+	            		}
+	            		if(type == TYPE.DEVICE || type == TYPE.GATEWAY_AND_DEVICE) {
+	           				appendDeviceLog();
+	            		}
+	            		break;
+	            		
+	            	case "quit":
+	            		this.terminate();
+	            		break;
+	            		
+	            	case "display":
+	            		this.arduino.toggleDisplay();
+	            		break;
+	
+	
+	            	default:
+	            		System.out.println("Unknown command received :: "+input);
+	            		printOptions();
+	            		
+	            }
+    		} catch(Exception e) {
+    			System.out.println("Operation failed with exception "+e.getMessage());
+    			e.printStackTrace();
+    			printOptions();
+    			continue;
+    		}
+    	}
+    }
+	
+	private enum TYPE {
+		GATEWAY_AND_DEVICE(0), GATEWAY(1), DEVICE(2); 
 		
-		scheduledThreadPool.shutdownNow();
+		private final int type;
 		
-		System.out.println("Tasks Stopped!!");
+		private TYPE(int type) {
+			this.type = type;
+		}
+	}
+	
+	private static void printOptions() {
+		System.out.println("List of device management operations that this agent can perform are:");
+		System.out.println("manage [gateway|device][lifetime] :: Request to make the gateway/device as Managed device in WIoTP");
+		System.out.println("unmanage [gateway|device]         :: Request to make the gateway/device unmanaged ");
+		System.out.println("location [gateway|device]         :: updates a random location of the device/gateway");
+		System.out.println("errorcode [gateway|device]        :: appends/clears a simulated ErrorCode");
+		System.out.println("log [gateway|device]              :: appends/clears a simulated Log message");
+		System.out.println("display                           :: Toggle the Arduino Uno event display on the console");
+		System.out.println("quit                              :: quit this sample");
+	}
+	
+	private void terminate() throws Exception {
+		if(this.mgdGateway != null) {
+			mgdGateway.disconnect();
+			System.out.println("Bye !!");
+			System.exit(-1);
+		}
 	}
 
 }

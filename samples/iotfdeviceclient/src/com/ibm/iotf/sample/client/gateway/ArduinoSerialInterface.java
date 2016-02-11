@@ -15,6 +15,8 @@ package com.ibm.iotf.sample.client.gateway;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -25,10 +27,19 @@ import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener; 
 
 import java.util.Enumeration;
+import java.util.Properties;
+
+import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.ibm.iotf.client.gateway.GatewayClient;
+import com.ibm.iotf.devicemgmt.DeviceAction;
+import com.ibm.iotf.devicemgmt.DeviceFirmware;
+import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
+import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
+import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
+import com.ibm.iotf.sample.devicemgmt.gateway.GatewayFirmwareHandlerSample;
 
 /**
  *  <p>This class shows how to use the java RXTX library for serial communication 
@@ -84,10 +95,13 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	private BufferedReader input;
 	/** The output stream to the port */
 	private BufferedWriter output;
+	private String downloadedFirmwareName;
+	private volatile boolean bDisplay = true;
 	/** Milliseconds to block while waiting for port open */
 	private static final int TIME_OUT = 2000;
 	/** Default bits per second for COM port. */
 	private static final int DATA_RATE = 9600;
+	private static final String CLASS_NAME = ArduinoSerialInterface.class.getName();
 
 	/**
 	 * This method does the following,
@@ -193,7 +207,8 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 			if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
 				try {
 					line = input.readLine();
-					System.out.println(line);
+					if(bDisplay)
+						System.out.println(line);
 				} catch (Exception e) {
 					System.err.println(e.toString());
 				}
@@ -219,4 +234,121 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 			e.printStackTrace();
 		}
 	}
+
+	@Override
+	public void setFirmwareName(String downloadedFirmwareName) {
+		this.downloadedFirmwareName = downloadedFirmwareName;
+		
+	}
+
+	/**
+	 * <p>A sample firmware update method that installs the arduino.hex sketch
+	 * to Arduino Uno with the following command,</p>
+	 * 
+	 * <p>avrdude -q -V -p atmega328p -C /etc/avrdude.conf -c arduino -b 115200 -P /dev/ttyACM0 -U flash:w:arduino_v1.hex:i</p>
+	 * 
+	 */
+	@Override
+	public void updateFirmware(DeviceFirmware deviceFirmware) {
+		
+		System.out.println(CLASS_NAME + ": Firmware update start... for device = "+deviceFirmware.getDeviceId());
+			
+		final String INSTALL_LOG_FILE = "install.log";
+		// Code to update the firmware on the Raspberry Pi Gateway
+		ProcessBuilder pkgInstaller = null;
+		Process p = null;
+		
+		Properties prop = new Properties();
+		try {
+			FileInputStream in = new FileInputStream("avrdude.properties");
+			prop.load(in);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		
+		close();
+		
+		// Build a command that will push the hex file to Arduino Uno
+		try {
+			pkgInstaller = new ProcessBuilder("avrdude", "-q", "-V", 
+														 "-p", prop.getProperty("partno"),
+														 "-C", prop.getProperty("Config"),
+														 "-c", "arduino",
+														 "-b", "115200",
+														 "-P", this.port,
+														 "-U", "flash:w:"+ downloadedFirmwareName +":i");
+			pkgInstaller.redirectErrorStream(true);
+			pkgInstaller.redirectOutput(new File(INSTALL_LOG_FILE));
+			try {
+				p = pkgInstaller.start();
+				boolean status = GatewayFirmwareHandlerSample.waitForCompletion(p, 5);
+				System.out.println(GatewayFirmwareHandlerSample.getInstallLog(INSTALL_LOG_FILE));
+				if(status == false) {
+					p.destroy();
+					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
+					return;
+				}
+				
+				System.out.println("Firmware Update command "+status);
+				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
+				deviceFirmware.setState(FirmwareState.IDLE);
+			} catch (IOException e) {
+				e.printStackTrace();
+				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
+			}
+		} catch (OutOfMemoryError oom) {
+			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.OUT_OF_MEMORY);
+		}
+		
+		/**
+		 * Delete the temporary firmware file
+		 */
+		GatewayFirmwareHandlerSample.deleteFile(downloadedFirmwareName);
+		GatewayFirmwareHandlerSample.deleteFile(INSTALL_LOG_FILE);
+		
+		this.downloadedFirmwareName = null;
+		System.out.println(CLASS_NAME + ": Firmware update End...");
+		this.initialize();
+	}
+
+	/**
+	 * A sample method to handle the Arduino's reboot request from the DM server.
+	 * 
+	 * <p>In this case its assumed that the sketch program running in Arduino Uno
+	 * will reboot when it receives 0 in the serial port.</p>
+	 * 
+	 * This method just sends a 0 and reinitializes the connection to Arduino Uno.
+	 */
+	@Override
+	public void reboot(DeviceAction action) {
+		// The Arduino is programmed to reboot when it receive a command 0
+		sendCommand("0");
+		// close the streams and wait for a 10 seconds for the Arduino Uno to restart
+		close();
+		try {
+			Thread.sleep(1000 * 10);
+		} catch(InterruptedException ie) {}
+		
+		this.initialize();
+		// We must send a manage request inorder to complete the reboot request successfully
+		try {
+			ManagedGateway gateway = ((ManagedGateway) this.gwClient);
+			gateway.sendDeviceManageRequest(this.deviceType, this.deviceId, 0, true, true);
+		} catch (MqttException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * To trun on/off the sensor event output in the console (System.out)
+	 */
+	public void toggleDisplay() {
+		this.bDisplay = !this.bDisplay;
+	}
+	
 }

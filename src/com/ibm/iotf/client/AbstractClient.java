@@ -122,9 +122,8 @@ public abstract class AbstractClient {
 	 */	
 
 	protected void createClient(MqttCallback callback) {
-		LoggerUtility.info(CLASS_NAME, "createClient", 
-				"Org ID          = " + getOrgId() +
-				"\nClient ID       = " + clientId);
+		LoggerUtility.info(CLASS_NAME, "createClient", "Org ID    = " + getOrgId() +
+				"\n         Client ID    = " + clientId);
 		this.mqttAsyncClient = null;
 		this.mqttClientOptions = new MqttConnectOptions();
 		this.mqttCallback = callback;
@@ -155,7 +154,7 @@ public abstract class AbstractClient {
 				mqttAsyncClient.connect(mqttClientOptions);
 				boolean connected = false;
 				// Wait up to 10 seconds for Mqtt connection is made
-				for (int i=0; i<10; i++) {
+				for (int i=0; i<60; i++) {
 					connected = mqttAsyncClient.isConnected();	
 					if (connected) {
 						break;

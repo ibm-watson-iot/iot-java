@@ -1,30 +1,40 @@
 /**
  *****************************************************************************
- Copyright (c) 2015 IBM Corporation and other Contributors.
+ Copyright (c) 2016 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
- Mike Tran - Initial Contribution
- Sathiskumar Palaniappan - Initial Contribution
+  Sathiskumar Palaniappan - Initial Contribution
  *****************************************************************************
  *
  */
 package com.ibm.iotf.sample.devicemgmt.gateway;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.ibm.iotf.devicemgmt.DeviceAction;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
+import com.ibm.iotf.sample.client.gateway.DeviceInterface;
 
 /**
- * This sample Gateway action handler demonstrates how one can reboot the device 
+ * This sample Gateway action handler demonstrates how one can reboot the Gateway and the 
+ * attached Arduino Uno device. 
  * 
  */
 public class GatewayActionHandlerSample extends DeviceActionHandler {
 	
+	private Map<String, DeviceInterface> deviceMap = new HashMap<String, DeviceInterface>();
+	private String gatewayDeviceId;
+	
+	public void addDeviceInterface(String deviceId, DeviceInterface device) {
+		deviceMap.put(deviceId, device);
+	}
+
 	public GatewayActionHandlerSample() {
 	}
 
@@ -36,10 +46,46 @@ public class GatewayActionHandlerSample extends DeviceActionHandler {
 	@Override
 	public void handleReboot(DeviceAction action) {
 		
-		ProcessBuilder processBuilder = null;
-		Process p = null;
-		
-		System.out.println("reboot command received for device ="+action.getDeviceId());
+		DeviceInterface device = this.deviceMap.get(action.getDeviceId());
+		if(device != null) {
+			device.reboot(action);
+		} else if(action.getDeviceId().equals(gatewayDeviceId)) {
+			ProcessBuilder processBuilder = null;
+			Process p = null;
+			
+			String osname = System.getProperty("os.name");
+			
+			if(osname.startsWith("Windows")) {
+				processBuilder = new ProcessBuilder("shutdown", "-r");
+			} else {
+				processBuilder = new ProcessBuilder("sudo", "shutdown", "-r", "now");
+			}
+	
+			processBuilder.redirectErrorStream(true);
+			processBuilder.inheritIO();
+			
+			
+			boolean status = false;
+			try {
+				p = processBuilder.start();
+				// wait for say 2 minutes before giving it up
+				status = waitForCompletion(p, 2);
+				System.out.println("Executed restart command "+status);
+			} catch (IOException e) {
+				action.setMessage(e.getMessage());
+			} catch (InterruptedException e) {
+				action.setMessage(e.getMessage());
+			}
+			
+			System.out.println("Executed restart command status ("+status+")");
+			if(status == false) {
+				action.setStatus(DeviceAction.Status.FAILED);
+			}
+		} else {
+			System.err.println("Device "+action.getDeviceId() +" not found");
+			action.setStatus(DeviceAction.Status.FAILED);
+			return;
+		}
 	}
 
 	/**
@@ -54,7 +100,7 @@ public class GatewayActionHandlerSample extends DeviceActionHandler {
 		 * This sample doesn't support factory reset, so respond accordingly
 		 */
 		action.setStatus(DeviceAction.Status.UNSUPPORTED);
-		System.out.println("factory reet command received for device ="+action.getDeviceId());
+		System.out.println("factory reset command received for device ="+action.getDeviceId());
 	}
 	
 	/**
@@ -86,6 +132,10 @@ public class GatewayActionHandlerSample extends DeviceActionHandler {
 		} catch(Exception e) {}
 	
 		return false;
+	}
+	
+	public void setGatewayDeviceId(String gwDeviceId) {
+		this.gatewayDeviceId = gwDeviceId;
 	}
 
 }

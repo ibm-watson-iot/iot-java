@@ -1,12 +1,11 @@
 /**
  *****************************************************************************
- Copyright (c) 2015 IBM Corporation and other Contributors.
+ Copyright (c) 2016 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
- Mike Tran - Initial Contribution
  Sathiskumar Palaniappan - Initial Contribution
  *****************************************************************************
  *
@@ -26,24 +25,30 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
+import com.ibm.iotf.sample.client.gateway.DeviceInterface;
 
 /**
  * This sample Firmware handler demonstrates how one can download and 
  * apply a firmware image in simple steps.
  * 
  * 1. downloadFirmware method is invoked whenever there is a Firmware download
- *    request from the IoT Foundation server. In this example, we try to download
- *    a debian file using HTTP methods.
+ *    request from the Watson IoT Platform. In this example, we try to download
+ *    the firmware file using HTTP methods. It could be a arduino.hex file for Arduino Uno
+ *    device attached to the Raspberry Pi Gateway, or the debian package for the Raspberry Pi 
+ *    Gateway itself.
  *   
  * 2. updateFirmware method is invoked whenever there is a update firmware request
- *    from the IoT Foundation server. In this example, it tries to install the 
- *    debian package that is download.
+ *    from the Watson IoT Platform. In this example, it tries to install the 
+ *    debian package that is downloaded if its a Gateway, and calls the appropriate
+ *    method in ArduinoInterface if its for Arduino Uno device.
  */
 public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 	
@@ -51,6 +56,8 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 	private static final String DEPENDENCY_ERROR_MSG = "dependency problems - leaving unconfigured";
 	private static final String ERROR_MSG = "Errors were encountered while processing";
 	private static final String INSTALL_LOG_FILE = "install.log";
+	
+	private String gatewayDownloadFirmwareName = null;
 	
 	private enum InstalStatus {
 		SUCCESS(0),
@@ -65,13 +72,18 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 		
 	}
 	
-	private String downloadedFirmwareName;
+	private Map<String, DeviceInterface> deviceMap = new HashMap<String, DeviceInterface>();
+	private String gatewayDeviceId;
+	
+	public void addDeviceInterface(String deviceId, DeviceInterface device) {
+		deviceMap.put(deviceId, device);
+	}
 	
 	public GatewayFirmwareHandlerSample() {
 	}
 
 	/**
-	 * A sample method that downloads a firmware image (a debian file) from a HTTP server
+	 * A sample method that downloads a firmware image from a HTTP server
 	 * 
 	 */
 	@Override
@@ -82,6 +94,9 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 		URL firmwareURL = null;
 		URLConnection urlConnection = null;
 		
+		String downloadedFirmwareName = "";
+		
+		DeviceInterface device = this.deviceMap.get(deviceFirmware.getDeviceId());
 		/**
 		 * start downloading the firmware image
 		 */
@@ -95,7 +110,7 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 				downloadedFirmwareName = deviceFirmware.getName();
 			} else {
 				// use the timestamp as the name
-				downloadedFirmwareName = "firmware_" +new Date().getTime()+".deb";
+				downloadedFirmwareName = deviceFirmware.getDeviceId() + "firmware_" + new Date().getTime() + ".deb";
 			}
 			
 			File file = new File(downloadedFirmwareName);
@@ -158,7 +173,13 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 		if(success == true) {
 			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
 			deviceFirmware.setState(FirmwareState.DOWNLOADED);
-		} else {
+			if(device != null) {
+				device.setFirmwareName(downloadedFirmwareName);
+			} else {
+				// this firmware request is for gateway
+				gatewayDownloadFirmwareName = downloadedFirmwareName;
+			}
+		} else if(gatewayDeviceId.equals(deviceFirmware.getDeviceId())){
 			deviceFirmware.setState(FirmwareState.IDLE);
 		}
 		
@@ -211,10 +232,23 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 		try {
 			System.out.println(CLASS_NAME + ": Firmware update start... for device = "+deviceFirmware.getDeviceId());
 			
+			/**
+			 * Call the Arduino Uno device interface to update the firmware if its
+			 * targetted for Arduino uno device.
+			 */
+			DeviceInterface device = this.deviceMap.get(deviceFirmware.getDeviceId());
+			if(device != null) {
+				device.updateFirmware(deviceFirmware);
+				return;
+			}
+			
+			
+			// Code to update the firmware on the Raspberry Pi Gateway
 			ProcessBuilder pkgInstaller = null;
 			ProcessBuilder dependencyInstaller = null;
 			Process p = null;
-			pkgInstaller = new ProcessBuilder("sudo", "dpkg", "-i", this.downloadedFirmwareName);
+			
+			pkgInstaller = new ProcessBuilder("sudo", "dpkg", "-i", this.gatewayDownloadFirmwareName);
 			pkgInstaller.redirectErrorStream(true);
 			pkgInstaller.redirectOutput(new File(INSTALL_LOG_FILE));
 			
@@ -235,8 +269,8 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 				InstalStatus instalStatus = ParseInstallLog();
 				if(instalStatus == InstalStatus.DEPENDENCY_ERROR) {
 					System.err.println("Following dependency error occured while "
-							+ "installing the image "+this.downloadedFirmwareName);
-					System.err.println(getInstallLog());
+							+ "installing the image " + this.gatewayDownloadFirmwareName);
+					System.err.println(getInstallLog(INSTALL_LOG_FILE));
 					
 					System.out.println("Trying to update the dependency with the following command...");
 					System.out.println("sudo apt-get -fy install");
@@ -244,8 +278,8 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 					status = waitForCompletion(p, 5);
 				} else if(instalStatus == InstalStatus.ERROR) {
 					System.err.println("Following error occured while "
-							+ "installing the image "+this.downloadedFirmwareName);
-					System.err.println(getInstallLog());
+							+ "installing the image " + this.gatewayDownloadFirmwareName);
+					System.err.println(getInstallLog(INSTALL_LOG_FILE));
 					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
 					return;
 				}
@@ -266,16 +300,10 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 		/**
 		 * Delete the temporary firmware file
 		 */
-		try {
-			Path path = new File(downloadedFirmwareName).toPath();
-			Files.deleteIfExists(path);
-			path = new File(INSTALL_LOG_FILE).toPath();
-			Files.deleteIfExists(path);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		downloadedFirmwareName = null;
+		deleteFile(gatewayDownloadFirmwareName);
+		deleteFile(INSTALL_LOG_FILE);
+		
+		gatewayDownloadFirmwareName = null;
 		System.out.println(CLASS_NAME + ": Firmware update End...");
 	}
 	
@@ -295,7 +323,7 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 	 * @return
 	 * @throws InterruptedException 
 	 */
-	private static boolean waitForCompletion(Process process, int minutes) throws InterruptedException {
+	public static boolean waitForCompletion(Process process, int minutes) throws InterruptedException {
 		long timeToWait = (60 * minutes);
 		
 		int exitValue = -1;
@@ -341,8 +369,8 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 		return InstalStatus.SUCCESS;
 	}
 	
-	private static String getInstallLog() throws FileNotFoundException {
-		File file = new File(INSTALL_LOG_FILE);
+	public static String getInstallLog(String fileName) throws FileNotFoundException {
+		File file = new File(fileName);
 	    Scanner scanner = new Scanner(file);
 	    StringBuilder sb = new StringBuilder();
 	    while (scanner.hasNextLine()) {
@@ -352,6 +380,23 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 	    }
 	    scanner.close();
 	    return sb.toString();
+	}
+	
+	public static void deleteFile(String fileName) {
+		/**
+		 * Delete the temporary firmware file
+		 */
+		try {
+			Path path = new File(fileName).toPath();
+			Files.deleteIfExists(path);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void setGatewayDeviceId(String gwDeviceId) {
+		this.gatewayDeviceId = gwDeviceId;
+		
 	}
 
 }

@@ -139,7 +139,6 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		ManagedClient mc = new ManagedGatewayDevice(this, deviceData);
 		this.gateway = (ManagedGatewayDevice) mc;
 		this.gatewayKey = typeId + ':' + deviceId;
-		this.devicesMap.put(gatewayKey, mc);
 	}
 	
 	/**
@@ -151,9 +150,8 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 */
 	public ManagedGateway(MqttClient client, DeviceData deviceData) throws Exception {
 		super(client);
-		ManagedClient mc = new ManagedGatewayDevice(this, deviceData);
+		this.gateway = new ManagedGatewayDevice(this, deviceData);
 		this.gatewayKey = deviceData.getTypeId() + ':' + deviceData.getDeviceId();
-		this.devicesMap.put(gatewayKey, mc);
 	}
 	
 	/**
@@ -165,9 +163,8 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 */
 	public ManagedGateway(MqttAsyncClient client, DeviceData deviceData) throws Exception {
 		super(client);
-		ManagedClient mc = new ManagedGatewayDevice(this, deviceData);
+		this.gateway = new ManagedGatewayDevice(this, deviceData);
 		this.gatewayKey = deviceData.getTypeId() + ':' + deviceData.getDeviceId();
-		this.devicesMap.put(gatewayKey, mc);
 	}
 	
 	private String getGWTypeId() {
@@ -438,7 +435,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			}
 			mc = new ManagedGatewayDevice(this, deviceData, supportsFirmwareActions, supportDeviceActions);
 		}
-
+		
 		if(reponseSubscription == false) {
 			subscribe(GATEWAY_RESPONSE_TOPIC, 1, this);
 			reponseSubscription = true;
@@ -459,11 +456,11 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			
 		JsonObject data = new JsonObject();
 		data.add("supports", supports);
-		if (mc.deviceData.getDeviceInfo() != null) {
-			data.add("deviceInfo", mc.deviceData.getDeviceInfo().toJsonObject());
+		if (mc.getDeviceData().getDeviceInfo() != null) {
+			data.add("deviceInfo", mc.getDeviceData().getDeviceInfo().toJsonObject());
 		}
-		if (mc.deviceData.getMetadata() != null) {
-			data.add("metadata", mc.deviceData.getMetadata().getMetadata());
+		if (mc.getDeviceData().getMetadata() != null) {
+			data.add("metadata", mc.getDeviceData().getMetadata().getMetadata());
 		}
 		data.add("lifetime", new JsonPrimitive(lifetime));
 		jsonPayload.add("d", data);
@@ -489,11 +486,11 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			success = true;
 			this.devicesMap.put(key, mc);
 			if(this.fwHandler != null) {
-				deviceData.getDeviceFirmware().addPropertyChangeListener(
+				mc.getDeviceData().getDeviceFirmware().addPropertyChangeListener(
 						Resource.ChangeListenerType.INTERNAL, fwHandler);
 			}
 			if(this.actionHandler != null) {
-				deviceData.getDeviceAction().addPropertyChangeListener(
+				mc.getDeviceData().getDeviceAction().addPropertyChangeListener(
 						Resource.ChangeListenerType.INTERNAL, actionHandler);
 			}
 		}
@@ -957,7 +954,11 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 					"The device is not a managed device, so can not send the request");
 			return false;
 		}
-		
+		return sendUnManageRequest(mc);
+	}
+	
+	private boolean sendUnManageRequest(ManagedGatewayDevice mc) throws MqttException {
+		final String METHOD = "sendUnManageRequest";
 		boolean success = false;
 		String topic = mc.gatewayDMAgentTopic.getUnmanageTopic();
 
@@ -1250,7 +1251,8 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			ManagedGatewayDevice mc = (ManagedGatewayDevice) this.devicesMap.get(itr.next());
 			if(mc != null && mc.bManaged == true) {
 				try {
-					this.sendDeviceUnmanageRequet(mc.getTypeId(), mc.getTypeId());
+					this.sendUnManageRequest(mc);
+					itr.remove();
 				} catch (MqttException e) {
 					e.printStackTrace();
 				}
@@ -1395,7 +1397,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	public void addFirmwareHandler(DeviceFirmwareHandler fwHandler) throws Exception {
 		final String METHOD = "addFirmwareHandler";
 		if(this.fwHandler != null) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Firmware Handler is already set, "
+			LoggerUtility.warn(CLASS_NAME, METHOD, "Firmware Handler is already set, "
 					+ "so can not add the new firmware handler !");
 			
 			throw new Exception("Firmware Handler is already set, "
