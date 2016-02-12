@@ -272,12 +272,13 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 		// Build a command that will push the hex file to Arduino Uno
 		try {
 			pkgInstaller = new ProcessBuilder("avrdude", "-q", "-V", 
-														 "-p", prop.getProperty("partno"),
-														 "-C", prop.getProperty("Config"),
-														 "-c", "arduino",
-														 "-b", "115200",
-														 "-P", this.port,
-														 "-U", "flash:w:"+ downloadedFirmwareName +":i");
+											  "-p", trimedValue(prop.getProperty("partno", "atmega328p")),
+											  "-C", trimedValue(prop.getProperty("Config", "/etc/avrdude.conf")),
+											  "-c", "arduino",
+											  "-b", "115200",
+											  "-P", this.port,
+											  "-U", "flash:w:"+ downloadedFirmwareName +":i");
+			
 			pkgInstaller.redirectErrorStream(true);
 			pkgInstaller.redirectOutput(new File(INSTALL_LOG_FILE));
 			try {
@@ -349,6 +350,13 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	 */
 	public void toggleDisplay() {
 		this.bDisplay = !this.bDisplay;
+	}
+	
+	private static String trimedValue(String value) {
+		if(value != null) {
+			return value.trim();
+		}
+		return value;
 	}
 	
 }
