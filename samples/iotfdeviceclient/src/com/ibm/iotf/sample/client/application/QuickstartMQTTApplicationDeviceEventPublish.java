@@ -23,7 +23,7 @@ import com.ibm.iotf.sample.client.SystemObject;
 /**
  * 
  * This sample shows how an application publish a device event 
- * using MQTT to IBM IoT Foundation Quickstart on behalf of the device.
+ * using MQTT to IBM Watson IoT Platform Quickstart on behalf of the device.
  *
  */
 public class QuickstartMQTTApplicationDeviceEventPublish {

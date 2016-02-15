@@ -917,7 +917,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * Moves the Gateway from managed state to unmanaged state
 	 * 
 	 * A device uses this request when it no longer needs to be managed. 
-	 * This means IoTF will no longer send new device management requests 
+	 * This means Watson IoT Platform will no longer send new device management requests 
 	 * to this device and device management requests from this device will 
 	 * be rejected apart from a Manage device request
 	 * 
@@ -933,7 +933,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * Moves the device connected via the Gateway from managed state to unmanaged state
 	 * 
 	 * A device uses this request when it no longer needs to be managed. 
-	 * This means IoTF will no longer send new device management requests 
+	 * This means Watson IoT Platform will no longer send new device management requests 
 	 * to this device and device management requests from this device will 
 	 * be rejected apart from a Manage device request
 	 * 
@@ -1233,7 +1233,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			}
 		}
 		if (jsonResponse == null) {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "NO RESPONSE from IoTF for request: " + jsonPayload.toString());
+			LoggerUtility.warn(CLASS_NAME, METHOD, "NO RESPONSE from Watson IoT Platform for request: " + jsonPayload.toString());
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Connected(" + isConnected() + ")");
 		}
 		return jsonResponse;

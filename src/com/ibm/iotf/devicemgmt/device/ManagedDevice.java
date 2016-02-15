@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015 IBM Corporation and other Contributors.
+ Copyright (c) 2015-16 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -54,17 +54,17 @@ import com.ibm.iotf.sample.devicemgmt.device.DeviceActionHandlerSample;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
- * A managed device class, used by device, that connects the device as managed device to IBM IoT Foundation and
+ * A managed device class, used by device, that connects the device as managed device to IBM Watson IoT Platform and
  * enables devices to perform one or more Device Management operations,
  * 
- * <p>The device management feature enhances the Internet of Things Foundation service with new capabilities 
+ * <p>The device management feature enhances the Watson IoT Platform service with new capabilities 
  * for managing devices.</p>
  * 
  * <p> What does Device Management add? </p>
  * <ul class="simple">
  * <li>Control and management of device lifecycles for both individual and batches of devices.</li>
  * <li>Device metadata and status information, enabling the creation of device dashboards and other tools.</li>
- * <li>Diagnostic information, both for connectivity to the Internet of Things Foundation service, and device diagnostics.</li>
+ * <li>Diagnostic information, both for connectivity to the Watson IoT Platform service, and device diagnostics.</li>
  * <li>Device management commands, like firmware update, and device reboot.</li>
  * </ul> 
  * <p> This is a derived class from DeviceClient and can be used by embedded devices to perform both <b>Device operations 
@@ -107,9 +107,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	
     /**
      * Constructor that creates a ManagedDevice object, but does not connect to 
-     * IBM IoT Foundation connect yet
+     * IBM Watson IoT Platform connect yet
      * 
-     * @param options      List of options to connect to IBM IoT Foundation Connect
+     * @param options      List of options to connect to IBM Watson IoT Platform Connect
      * @param deviceData   The Device Model
      * @throws Exception   If the essential parameters are not set
      */
@@ -139,7 +139,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	/**
 	 * Constructs a ManagedDevice Object
 	 * 	
-	 * @param client      MqttClient which encapsulates the connection to IBM IoT Foundation connect 
+	 * @param client      MqttClient which encapsulates the connection to IBM Watson IoT Platform connect 
 	 * @param deviceData  The Device Model
      * @throws Exception   If the essential parameters are not set
 	 */
@@ -152,7 +152,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	/**
 	 * Constructs a ManagedDevice Object
 	 * 	
-	 * @param client      MqttAsyncClient which encapsulates the connection to IBM IoT Foundation connect 
+	 * @param client      MqttAsyncClient which encapsulates the connection to IBM Watson IoT Platform connect 
 	 * @param deviceData  The Device Model
      * @throws Exception   If the essential parameters are not set
 	 */
@@ -186,7 +186,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 	
 	/**
-	 * <p>This method just connects to the IBM Internet of Things Foundation,
+	 * <p>This method just connects to the IBM Watson IoT Platform,
 	 * Device needs to make a call to manage() to participate in Device
 	 * Management activities.<p> 
 	 * 
@@ -205,7 +205,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	
 	
 	/**
-	 * <p>Send a device manage request to IoT Foundation</p>
+	 * <p>Send a device manage request to Watson IoT Platform</p>
 	 * 
 	 * <p>A Device uses this request to become a managed device. 
 	 * It should be the first device management request sent by the 
@@ -213,7 +213,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * It would be usual for a device management agent to send this 
 	 * whenever is starts or restarts.</p>
 	 * 
-	 * <p>This method connects the device to IoT Foundation connect if its not connected already</p>
+	 * <p>This method connects the device to Watson IoT Platform connect if its not connected already</p>
 	 * 
 	 * @param lifetime The length of time in seconds within 
 	 *        which the device must send another Manage device request.
@@ -373,7 +373,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 	
 	/**
-	 * Clear the Error Codes from IBM IoT Foundation for this device
+	 * Clear the Error Codes from IBM Watson IoT Platform for this device
 	 * @return code indicating whether the clear operation is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
 	 */
@@ -393,7 +393,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 	
 	/**
-	 * Clear the Logs from IBM IoT Foundation for this device
+	 * Clear the Logs from IBM Watson IoT Platform for this device
 	 * @return code indicating whether the clear operation is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
 	 */
@@ -413,10 +413,10 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 	
 	/**
-	 * Adds the current errorcode to IBM IoT Foundation.
+	 * Adds the current errorcode to IBM Watson IoT Platform.
 	 * 
 	 * @param errorCode The "errorCode" is a current device error code that 
-	 * needs to be added to the Internet of Things Foundation.
+	 * needs to be added to the Watson IoT Platform.
 	 * 
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
@@ -441,8 +441,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 	
 	/**
-	 * Appends a Log message to the Internet of Things Foundation.
-	 * @param message The Log message that needs to be added to the Internet of Things Foundation.
+	 * Appends a Log message to the Watson IoT Platform.
+	 * @param message The Log message that needs to be added to the Watson IoT Platform.
 	 * @param timestamp The Log timestamp
 	 * @param severity the Log severity
 	 * 
@@ -454,9 +454,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 	
 	/**
-	 * The Log message that needs to be added to the Internet of Things Foundation.
+	 * The Log message that needs to be added to the Watson IoT Platform.
 	 * 
-	 * @param message The Log message that needs to be added to the Internet of Things Foundation.
+	 * @param message The Log message that needs to be added to the Watson IoT Platform.
 	 * @param timestamp The Log timestamp
 	 * @param severity The Log severity
 	 * @param data The optional diagnostic string data - 
@@ -496,7 +496,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * Moves the device from managed state to unmanaged state
 	 * 
 	 * A device uses this request when it no longer needs to be managed. 
-	 * This means IoTF will no longer send new device management requests 
+	 * This means Watson IoT Platform will no longer send new device management requests 
 	 * to this device and device management requests from this device will 
 	 * be rejected apart from a Manage device request
 	 * 
@@ -537,7 +537,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * <p>Subscribe the given listener to the given topic</p>
 	 * 
 	 * <p> This method is used by the library to subscribe to each of the topic 
-	 * where IBM IoT Foundation will send the DM requests</p>
+	 * where IBM Watson IoT Platform will send the DM requests</p>
 	 *  
 	 * @param topic topic to be subscribed
 	 * @param qos Quality of Service for the subscription
@@ -563,7 +563,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * <p>Subscribe the given listeners to the given topics</p>
 	 * 
 	 * <p> This method is used by the library to subscribe to each of the topic 
-	 * where IBM IoT Foundation will send the DM requests</p>
+	 * where IBM Watson IoT Platform will send the DM requests</p>
 	 *  
 	 * @param topics List of topics to be subscribed
 	 * @param qos Quality of Service for the subscription
@@ -589,7 +589,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * <p>UnSubscribe the library from the given topic</p>
 	 * 
 	 * <p> This method is used by the library to unsubscribe each of the topic 
-	 * where IBM IoT Foundation will send the DM requests</p>
+	 * where IBM Watson IoT Platform will send the DM requests</p>
 	 *  
 	 * @param topic topic to be unsubscribed
 	 * @throws MqttException
@@ -613,7 +613,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * <p>UnSubscribe the library from the given topics</p>
 	 * 
 	 * <p> This method is used by the library to unsubscribe each of the topic 
-	 * where IBM IoT Foundation will send the DM requests</p>
+	 * where IBM Watson IoT Platform will send the DM requests</p>
 	 *  
 	 * @param topics topics to be unsubscribed
 	 * @throws MqttException
@@ -682,10 +682,10 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 	
 	/**
-	 * <p>Publish the Device management response to IBm IoT Foundation </p>
+	 * <p>Publish the Device management response to IBm Watson IoT Platform </p>
 	 *  
 	 * <p>This method is used by the library to respond to each of the Device Management commands from
-	 *  IBM IoT Foundation</p>
+	 *  IBM Watson IoT Platform</p>
 	 * 
 	 * @param topic Topic where the response to be published
 	 * @param payload the Payload
@@ -717,10 +717,10 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 	
 	/**
-	 * <p>Send the message and waits for the response from IBM IoT Foundation<p>
+	 * <p>Send the message and waits for the response from IBM Watson IoT Platform<p>
 	 *  
 	 * <p>This method is used by the library to send following messages to
-	 *  IBM IoT Foundation</p>
+	 *  IBM Watson IoT Platform</p>
 	 *  
 	 *  <ul class="simple">
 	 * <li>Manage 
@@ -786,7 +786,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			}
 		}
 		if (jsonResponse == null) {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "NO RESPONSE from IoTF for request: " + jsonPayload.toString());
+			LoggerUtility.warn(CLASS_NAME, METHOD, "NO RESPONSE from Watson IoT Platform for request: " + jsonPayload.toString());
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Connected(" + isConnected() + ")");
 		}
 		return jsonResponse;
@@ -794,7 +794,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	
 	
 	/**
-	 * Disconnects from IBM IoT Foundation
+	 * Disconnects from IBM Watson IoT Platform
 	 */
 	@Override
 	public void disconnect() {
@@ -862,7 +862,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		final String METHOD = "messageArrived";
 		if (topic.equals(this.client.getDMServerTopic().getDMServerTopic())) {
 			LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, 
-					"Received response from IoT Foundation, topic (" + topic + ")");
+					"Received response from Watson IoT Platform, topic (" + topic + ")");
 			
 			String responsePayload = new String (message.getPayload(), "UTF-8");
 			JsonObject jsonResponse = new JsonParser().parse(responsePayload).getAsJsonObject();

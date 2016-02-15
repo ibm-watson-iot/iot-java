@@ -71,7 +71,7 @@ import com.ibm.iotf.sample.devicemgmt.gateway.GatewayFirmwareHandlerSample;
  */
 public class ArduinoSerialInterface implements SerialPortEventListener, DeviceInterface {
 	/**
-	 * IoT Foundation related paramteres
+	 * Watson IoT Platform related paramteres
 	 */
 	private String deviceId;
 	private String deviceType;
@@ -227,7 +227,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 			if(status == false) {
 				System.err.println("Failed to publish the temperature from Arduino");
 			} else {
-				//System.out.println("Successfully published the temperature from Ardunio to IoT Foundation");
+				//System.out.println("Successfully published the temperature from Ardunio to Watson IoT Platform");
 			}
 		} catch(Exception e) {
 			System.err.println("Failed to parse the sensor readings from Arduino "+e.getMessage());
@@ -336,6 +336,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 		
 		this.initialize();
 		// We must send a manage request inorder to complete the reboot request successfully
+		System.out.println("The Arduino Uno device is reset successfully !!");
 		try {
 			ManagedGateway gateway = ((ManagedGateway) this.gwClient);
 			gateway.sendDeviceManageRequest(this.deviceType, this.deviceId, 0, true, true);

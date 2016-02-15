@@ -26,7 +26,7 @@ import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.sample.util.Utility;
 
 /**
- * This sample showcases various ReST operations that can be performed on IoT Foundation to
+ * This sample showcases various ReST operations that can be performed on Watson IoT Platform to
  * add/update/get/delete device diagnostics.
  */
 public class SampleDeviceDiagnosticsAPIOperations {
@@ -85,7 +85,7 @@ public class SampleDeviceDiagnosticsAPIOperations {
 			fileName = Utility.getDefaultFilePath(PROPERTIES_FILE_NAME, DEFAULT_PATH);
 		}
 		
-		// Make sure that we have device added to the IBM IoT Foundation already
+		// Make sure that we have device added to the IBM Watson IoT Platform already
 		SampleDeviceDiagnosticsAPIOperations sample = new SampleDeviceDiagnosticsAPIOperations(fileName);
 		
 		sample.addDiagnosticLog();

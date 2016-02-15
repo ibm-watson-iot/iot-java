@@ -27,7 +27,7 @@ import com.ibm.iotf.client.app.StatusCallback;
 
 /**
  * This sample shows how an application subscribe to device status 
- * (like connect & disconnect from IBM IoT Foundation) and device events. 
+ * (like connect & disconnect from IBM Watson IoT Platform) and device events. 
  * 
  */
 public class RegisteredApplicationSubscribeSample {

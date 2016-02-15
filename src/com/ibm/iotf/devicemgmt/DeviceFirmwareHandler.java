@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015 IBM Corporation and other Contributors.
+ Copyright (c) 2015-16 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -17,10 +17,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Logger;
-
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
 import com.ibm.iotf.util.LoggerUtility;
@@ -83,6 +79,7 @@ public abstract class DeviceFirmwareHandler extends Thread implements PropertyCh
 								}
 							}
 						}
+						evt.firmware.setVerifier(null);
 					}
 				}
 			} catch (InterruptedException e) {

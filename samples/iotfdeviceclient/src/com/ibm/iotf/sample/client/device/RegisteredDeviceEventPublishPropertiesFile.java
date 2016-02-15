@@ -14,7 +14,7 @@
 
 /**
  * This sample shows how we can write a device client which publishes events, in a Registered mode, using a properties file <br>
- * It uses the Java Client Library for IBM IoT Foundation
+ * It uses the Java Client Library for IBM Watson IoT Platform
  * This sample code should be executed in a JRE running on the device
  * 
  */
@@ -42,7 +42,7 @@ public class RegisteredDeviceEventPublishPropertiesFile {
 			e.printStackTrace();
 		}
 		
-		//Connect to the IBM IoT Foundation	
+		//Connect to the IBM Watson IoT Platform	
 		myClient.connect();
 		
 		//Generate a JSON object of the event to be published

@@ -50,7 +50,7 @@ import com.ibm.iotf.sample.devicemgmt.device.task.ManageTask;
  * 6. Diagnostic Log addition & clear 
  * 7. unmanage
  * 
- * This sample connects the device as manage device to IoT Foundation in the first step such
+ * This sample connects the device as manage device to Watson IoT Platform in the first step such
  * that this device can participate in DM activities,
  * 
  * And performs the following activities based on user input
@@ -70,7 +70,7 @@ import com.ibm.iotf.sample.devicemgmt.device.task.ManageTask;
  * class takes the default properties file if one not specified by user.
  * 
  * Refer to this link https://docs.internetofthings.ibmcloud.com/reference/device_mgmt.html
- * for more information about IBM IoT Foundation's DM capabilities 
+ * for more information about IBM Watson IoT Platform's DM capabilities 
  */
 public class SampleRasPiDMAgent {
 	private final static String PROPERTIES_FILE_NAME = "DMDeviceSample.properties";
@@ -209,7 +209,7 @@ public class SampleRasPiDMAgent {
 						 //metadata(metadata).
 						 build();
 		
-		// Options to connect to IoT Foundation
+		// Options to connect to Watson IoT Platform
 		Properties options = new Properties();
 		
 		options.setProperty("Organization-ID", trimedValue(deviceProps.getProperty("Organization-ID")));
@@ -222,7 +222,7 @@ public class SampleRasPiDMAgent {
 	}
 	
 	/**
-	 * This method connects the device to the IoT Foundation
+	 * This method connects the device to the Watson IoT Platform
 	 */
 	private void connect() throws Exception {		
 		dmClient.connect();

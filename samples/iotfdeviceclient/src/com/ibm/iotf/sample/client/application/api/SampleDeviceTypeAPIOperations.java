@@ -30,7 +30,7 @@ import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.sample.util.Utility;
 
 /**
- * This sample showcases various ReST operations that can be performed on IoT Foundation to
+ * This sample showcases various ReST operations that can be performed on Watson IoT Platform to
  * add/update/get/delete device type(s)
  */
 public class SampleDeviceTypeAPIOperations {

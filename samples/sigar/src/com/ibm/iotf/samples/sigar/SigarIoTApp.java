@@ -170,7 +170,7 @@ public class SigarIoTApp implements Runnable {
 		sc.nextLine();
 		sc.close();
 		
-		System.out.println("Closing connection to the IBM Internet of Things Foundation");
+		System.out.println("Closing connection to the IBM Watson IoT Platform");
 		// Let the device thread know it can terminate
 		a.quit();
 	}

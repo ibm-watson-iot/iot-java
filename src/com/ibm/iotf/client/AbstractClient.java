@@ -1,3 +1,15 @@
+/**
+ *****************************************************************************
+ Copyright (c) 2015-16 IBM Corporation and other Contributors.
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the Eclipse Public License v1.0
+ which accompanies this distribution, and is available at
+ http://www.eclipse.org/legal/epl-v10.html
+ Contributors:
+ Sathiskumar Palaniappan - Extended from DeviceClient
+ *****************************************************************************
+ *
+ */
 package com.ibm.iotf.client;
 
 import java.io.BufferedReader;
@@ -151,21 +163,10 @@ public abstract class AbstractClient {
 					" (attempt #" + connectAttempts + ")...");
 			
 			try {
-				mqttAsyncClient.connect(mqttClientOptions);
-				boolean connected = false;
-				// Wait up to 10 seconds for Mqtt connection is made
-				for (int i=0; i<60; i++) {
-					connected = mqttAsyncClient.isConnected();	
-					if (connected) {
-						break;
-					}
-					Thread.sleep(1000);
-				}
+				mqttAsyncClient.connect(mqttClientOptions).waitForCompletion(1000 * 60);
 			} catch (MqttSecurityException e) {
 				e.printStackTrace();
 			} catch (MqttException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			

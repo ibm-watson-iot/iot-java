@@ -31,7 +31,7 @@ import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.sample.util.Utility;
 
 /**
- * This sample showcases various bulk ReST operations that can be performed on IoT Foundation.
+ * This sample showcases various bulk ReST operations that can be performed on Watson IoT Platform.
  */
 public class SampleBulkAPIOperations {
 	
@@ -139,7 +139,7 @@ public class SampleBulkAPIOperations {
 	}
 
 	/**
-	 * This sample showcases how to add array of devices to IBM IoT Foundation.
+	 * This sample showcases how to add array of devices to IBM Watson IoT Platform.
 	 * @throws Exception
 	 */
 	private void addDevices() throws IoTFCReSTException {

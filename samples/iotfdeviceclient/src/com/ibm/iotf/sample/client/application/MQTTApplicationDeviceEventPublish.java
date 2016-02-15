@@ -29,7 +29,7 @@ import com.ibm.iotf.sample.util.Utility;
 /**
  * 
  * This sample shows how an application publish a device event 
- * using MQTT to IBM IoT Foundation on behalf of the device.
+ * using MQTT to IBM Watson IoT Platform on behalf of the device.
  *
  */
 public class MQTTApplicationDeviceEventPublish {

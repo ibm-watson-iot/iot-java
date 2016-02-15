@@ -138,7 +138,7 @@ public class ManagedDeviceWithLifetimeSample {
 						 metadata(metadata).
 						 build();
 		
-		// Options to connect to IoT Foundation
+		// Options to connect to Watson IoT Platform
 		Properties options = new Properties();
 		options.setProperty("Organization-ID", trimedValue(deviceProps.getProperty("Organization-ID")));
 		options.setProperty("Device-Type", trimedValue(deviceProps.getProperty("Device-Type")));
@@ -150,7 +150,7 @@ public class ManagedDeviceWithLifetimeSample {
 	}
 	
 	/**
-	 * This method connects the device to the IoT Foundation so that
+	 * This method connects the device to the Watson IoT Platform so that
 	 * we can do one or more Device Management activities 
 	 */
 	private void connect() throws Exception {
@@ -183,11 +183,11 @@ public class ManagedDeviceWithLifetimeSample {
 	}
 	
 	/**
-	 * Send a device manage request to IoT Foundation
+	 * Send a device manage request to Watson IoT Platform
 	 * 
 	 * A device uses this request to become a managed device. 
 	 * It should be the first device management request sent by the 
-	 * device after connecting to the Internet of Things Foundation. 
+	 * device after connecting to the Watson IoT Platform. 
 	 * It would be usual for a device management agent to send this 
 	 * whenever is starts or restarts.
 	 * 

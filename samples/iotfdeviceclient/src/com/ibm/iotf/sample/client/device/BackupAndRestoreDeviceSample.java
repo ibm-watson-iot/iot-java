@@ -100,7 +100,7 @@ public class BackupAndRestoreDeviceSample {
 	}
 	
 	/**
-	 * Create the Device client instance and connect to IBM IoT Foundation
+	 * Create the Device client instance and connect to IBM Watson IoT Platform
 	 * @param fileName
 	 */
 	private void createDeviceClient(String fileName) {
@@ -112,7 +112,7 @@ public class BackupAndRestoreDeviceSample {
 		try {
 			//Instantiate the class by passing the properties file
 			myDeviceClient = new DeviceClient(props);
-			// Connect to IBM IoT Foundation
+			// Connect to IBM Watson IoT Platform
 			myDeviceClient.connect();
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015 IBM Corporation and other Contributors.
+ Copyright (c) 2015-16 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -28,7 +28,7 @@ import com.ibm.iotf.devicemgmt.resource.Resource;
 
 /**
  * A bean class which represents the location of a device.  When a property is changed, 
- * the IBM Internet of Things Foundation will be notified.
+ * the IBM Watson IoT Platform will be notified.
  *
  */
 public class DeviceLocation extends Resource {

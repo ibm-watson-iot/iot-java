@@ -24,7 +24,7 @@ import com.ibm.iotf.devicemgmt.resource.Resource;
 import com.ibm.iotf.devicemgmt.resource.StringResource;
 
 /**
- * Device Info as specified in IoTF Device Model, The following attributes provide the
+ * Device Info as specified in Watson IoT Platform Device Model, The following attributes provide the
  * information about the device,
  * <ul class="simple">
  *   <li>serialNumber

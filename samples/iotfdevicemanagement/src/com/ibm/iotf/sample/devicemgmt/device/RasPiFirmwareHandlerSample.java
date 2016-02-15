@@ -38,11 +38,11 @@ import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
  * apply a firmware image in simple steps.
  * 
  * 1. downloadFirmware method is invoked whenever there is a Firmware download
- *    request from the IoT Foundation server. In this example, we try to download
+ *    request from the Watson IoT Platform server. In this example, we try to download
  *    a debian file using HTTP methods.
  *   
  * 2. updateFirmware method is invoked whenever there is a update firmware request
- *    from the IoT Foundation server. In this example, it tries to install the 
+ *    from the Watson IoT Platform server. In this example, it tries to install the 
  *    debian package that is download.
  */
 public class RasPiFirmwareHandlerSample extends DeviceFirmwareHandler {

@@ -21,7 +21,7 @@ import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
 
 /**
- * Timer task that appends/clears Log information to IoT Foundation
+ * Timer task that appends/clears Log information to Watson IoT Platform
  * 
  *  Clears the error at every 25th iteration
  */

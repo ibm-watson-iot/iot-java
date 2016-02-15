@@ -21,7 +21,7 @@ import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
 
 /**
- * Timer task that appends/clears Error code to IoT Foundation
+ * Timer task that appends/clears Error code to Watson IoT Platform
  * 
  *  Clears the error at every 25th iteration
  */

@@ -14,7 +14,7 @@
 
 /**
  * This sample shows how we can write a device client which subscribes to commands, in a Registered mode <br>
- * It uses the Java Client Library for IBM IoT Foundation
+ * It uses the Java Client Library for IBM Watson IoT Platform
  * This sample code should be executed in a JRE running on the device
  * 
  */
@@ -64,7 +64,7 @@ public class RegisteredDeviceCommandSubscribe {
 		//Pass the above implemented CommandCallback as an argument to this device client
 		myClient.setCommandCallback(new MyNewCommandCallback());
 
-		//Connect to the IBM IoT Foundation	
+		//Connect to the IBM Watson IoT Platform	
 		myClient.connect();
 	}
 }

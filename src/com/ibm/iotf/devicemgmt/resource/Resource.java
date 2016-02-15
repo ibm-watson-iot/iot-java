@@ -23,7 +23,7 @@ import com.google.gson.JsonElement;
  * 
  * An internal class that provides a a tree like resource model
  * to handle update or establish observe relation on fields/objects
- * requested by IoT Foundation 
+ * requested by Watson IoT Platform 
  */
 public abstract class Resource<T> {
 	
@@ -48,7 +48,7 @@ public abstract class Resource<T> {
 	public final static int RESPONSE_TIMEOUT =  1000 * 60 * 2;
 	
 	// Internal listeners are the library classes that listens for the
-	// attribute change that needs to be sent to the IBM IoT Foundation
+	// attribute change that needs to be sent to the IBM Watson IoT Platform
 	private PropertyChangeSupport pcsInternal = new PropertyChangeSupport(this);
 	
 	// Externals are those that will be added by the device code 
@@ -228,7 +228,7 @@ public abstract class Resource<T> {
 	public abstract int update(JsonElement json, boolean fireEvent);
 	
 	/**
-	 * Requests that IoT Foundation to respond when it receives update notification.
+	 * Requests that Watson IoT Platform to respond when it receives update notification.
 	 * This implies that the update call will be blocked until a response is received or timed out.
 	 * @param responseRequired
 	 */
@@ -246,7 +246,7 @@ public abstract class Resource<T> {
 	}
 	
 	/**
-	 * Used by the client library to set return code received in the response from IoT Foundation.
+	 * Used by the client library to set return code received in the response from Watson IoT Platform.
 	 * @param rc
 	 */
 	public void setRC(int rc) {

@@ -129,7 +129,7 @@ public class BackupAndRestoreApplicationSample {
 	}
 	
 	/**
-	 * Create the Application client instance and connect to IBM IoT Foundation
+	 * Create the Application client instance and connect to IBM Watson IoT Platform
 	 * @param fileName
 	 */
 	private void createApplicationClient(String fileName) {
@@ -144,7 +144,7 @@ public class BackupAndRestoreApplicationSample {
 		try {
 			//Instantiate the class by passing the properties file
 			myAppClient = new ApplicationClient(props);
-			// Connect to IBM IoT Foundation
+			// Connect to IBM Watson IoT Platform
 			myAppClient.connect();
 		} catch (Exception e) {
 			e.printStackTrace();

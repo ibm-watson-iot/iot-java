@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015 IBM Corporation and other Contributors.
+ Copyright (c) 2015-16 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -24,7 +24,7 @@ import com.ibm.iotf.devicemgmt.resource.Resource;
 import com.ibm.iotf.devicemgmt.resource.StringResource;
 
 /**
- * Device Firmware as specified in IoTF Device Model. 
+ * Device Firmware as specified in Watson IoT Platform Device Model. 
  * The following attributes are present as part of the Device Firmware,
  * <ul class="simple">
  * <li>mgmt.firmware.version

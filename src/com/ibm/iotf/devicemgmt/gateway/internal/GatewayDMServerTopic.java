@@ -15,7 +15,7 @@ package com.ibm.iotf.devicemgmt.gateway.internal;
 import com.ibm.iotf.devicemgmt.internal.DMServerTopic;
 
 /**
- * List of Service topics where the IBM IoT Foundation server
+ * List of Service topics where the IBM Watson IoT Platform server
  * initiates a device management request or responds to client request
  */
 public class GatewayDMServerTopic implements DMServerTopic {

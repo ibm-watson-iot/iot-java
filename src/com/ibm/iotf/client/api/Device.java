@@ -2,7 +2,7 @@ package com.ibm.iotf.client.api;
 
 
 /**
- * A bean class which represents a device registered (or to be registered) with the IBM Internet of Things Foundation. <br>
+ * A bean class which represents a device registered (or to be registered) with the IBM Watson IoT Platform. <br>
  * This class has only accessors and mutators
  */
 public class Device {

@@ -755,7 +755,7 @@ public class APIClient {
 	}
 	
 	/**
-	 * This method returns all devices that are connected through the specified gateway(typeId, deviceId) to IoT Foundation.
+	 * This method returns all devices that are connected through the specified gateway(typeId, deviceId) to Watson IoT Platform.
 	 * 
 	 * 
 	 * <p> Refer to the
@@ -1138,7 +1138,7 @@ public class APIClient {
 	/**
 	 * Deletes a device type.
 	 * 
-	 * @param typeId DeviceType to be deleted from IBM IoT Foundation
+	 * @param typeId DeviceType to be deleted from IBM Watson IoT Platform
 	 *   
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Device_Types/delete_device_types_typeId">link</a> 
 	 * for more information about the schema to be used
@@ -1465,7 +1465,7 @@ public class APIClient {
 	 * @param deviceType String representing device type.
 	 * @param deviceId String representing device id.
 	 * @param authToken String representing the authentication token of the device (can be null). If its null
-	 * the IBM IoT Foundation will generate a token.
+	 * the IBM Watson IoT Platform will generate a token.
 	 * @param deviceInfo JsonObject representing the device Info (can be null).
 	 * @param location JsonObject representing the location of the device (can be null).
 	 * @param metadata JsonObject representing the device metadata (can be null).
@@ -1514,7 +1514,7 @@ public class APIClient {
 	 *  
 	 * The response body will contain the generated authentication token for the device. 
 	 * The caller of the method must make sure to record the token when processing 
-	 * the response. The IBM IoT Foundation will not be able to retrieve lost authentication tokens.
+	 * the response. The IBM Watson IoT Platform will not be able to retrieve lost authentication tokens.
 	 * 
 	 * @param typeId DeviceType ID 
 	 * 
@@ -1584,7 +1584,7 @@ public class APIClient {
 	 *  
 	 * The response body will contain the generated authentication token for the device. 
 	 * The caller of the method must make sure to record the token when processing 
-	 * the response. The IBM IoT Foundation will not be able to retrieve lost authentication tokens.
+	 * the response. The IBM Watson IoT Platform will not be able to retrieve lost authentication tokens.
 	 * 
 	 * @param typeId DeviceType ID
 	 * @param gatewayId The deviceId of the gateway 
@@ -2213,7 +2213,7 @@ public class APIClient {
 	 * Register multiple new devices, each request can contain a maximum of 512KB. 
 	 * The response body will contain the generated authentication tokens for all devices. 
 	 * The caller of the method must make sure to record these tokens when processing 
-	 * the response. The IBM IoT Foundation will not be able to retrieve lost authentication tokens
+	 * the response. The IBM Watson IoT Platform will not be able to retrieve lost authentication tokens
 	 * 
 	 * @param arryOfDevicesToBeAdded Array of JSON devices to be added. Refer to 
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Bulk_Operations/post_bulk_devices_add">link</a> 

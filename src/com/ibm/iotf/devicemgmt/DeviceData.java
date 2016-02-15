@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015 IBM Corporation and other Contributors.
+ Copyright (c) 2015-16 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -16,16 +16,15 @@ package com.ibm.iotf.devicemgmt;
 import com.ibm.iotf.devicemgmt.internal.DeviceMgmt;
 import com.ibm.iotf.devicemgmt.resource.Resource;
 import com.ibm.iotf.devicemgmt.resource.StringResource;
-import com.ibm.iotf.util.LoggerUtility;
 
 /**
  * <p><code>DeviceData</code> defines the device model.</p>
  * 
  * <p>The device model describes the metadata and management characteristics of a device. 
- * The device database in the Internet of Things Foundation is the master source of 
+ * The device database in the Watson IoT Platform is the master source of 
  * device information. Applications and managed devices are able to send updates to 
  * the database such as a location or the progress of a firmware update.
- * Once these updates are received by the Internet of Things Foundation, 
+ * Once these updates are received by the Watson IoT Platform, 
  * the device database is updated, making the information available to applications.</p>
  */
 public class DeviceData {
@@ -176,6 +175,9 @@ public class DeviceData {
 	 */
 	public void setTypeId(String typeId) {
 		this.typeId = typeId;
+		if(this.mgmt != null && this.mgmt.getDeviceFirmware() != null) {
+			mgmt.getDeviceFirmware().setTypeId(typeId);
+		}
 	}
 	
 	/**
@@ -185,6 +187,9 @@ public class DeviceData {
 	 */
 	public void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;
+		if(this.mgmt != null && this.mgmt.getDeviceFirmware() != null) {
+			mgmt.getDeviceFirmware().setDeviceId(deviceId);
+		}
 	}
 
 

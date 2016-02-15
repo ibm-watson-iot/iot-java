@@ -23,7 +23,7 @@ import com.ibm.iotf.sample.util.Utility;
 
 /**
  * 
- * This sample shows how a device can publish events using MQTT to IBM IoT Foundation, 
+ * This sample shows how a device can publish events using MQTT to IBM Watson IoT Platform, 
  * Also, this sample adds a counter in the event.
  *
  */
@@ -48,7 +48,7 @@ public class DeviceEventPublishWithCounter {
 		
 		DeviceClient myClient = null;
 		try {
-			//Instantiate and connect to IBM IoT Foundation
+			//Instantiate and connect to IBM Watson IoT Platform
 			myClient = new DeviceClient(deviceProps);
 			myClient.connect();
 		} catch (Exception e) {

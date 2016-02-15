@@ -32,7 +32,7 @@ import com.ibm.iotf.sample.util.Utility;
  *  and send the LED blink command back.
  *  
  *  The Application sample uses the com.ibm.iotf.client.app.ApplicationClient class 
- *  from the IoTF Java Client Library that simplifies the application interactions 
+ *  from the Watson IoT Platform Java Client Library that simplifies the application interactions 
  *  with IBM Watson IoT Platform. 
  *  
  *  The corresponding Gateway code is available here - refer to SampleRaspiGateway.java 

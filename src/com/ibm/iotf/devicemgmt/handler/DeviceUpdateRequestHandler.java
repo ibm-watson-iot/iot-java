@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015 IBM Corporation and other Contributors.
+ Copyright (c) 2015-16 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -31,7 +31,7 @@ import com.ibm.iotf.util.LoggerUtility;
 /**
  * 
  * <br>Update device attributes
- * <br>IoTF can send this request to a device to update values of one or more device attributes. 
+ * <br>Watson IoT Platform can send this request to a device to update values of one or more device attributes. 
  * Supported update targets are location, metadata, device information and firmware.
  * <p>Topic
  *	<li>iotdm-1/device/update
@@ -105,7 +105,7 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 	}
 	
 	/**
-	 * This method handles all the update requests from IBM IoT Foundation
+	 * This method handles all the update requests from IBM Watson IoT Platform
 	 */
 	@Override
 	public void handleRequest(JsonObject jsonRequest) {

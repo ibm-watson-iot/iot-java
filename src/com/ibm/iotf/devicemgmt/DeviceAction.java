@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015 IBM Corporation and other Contributors.
+ Copyright (c) 2015-16 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -74,7 +74,7 @@ public class DeviceAction {
 	 * <p>Set the failure status of the current device action
 	 * <br>
 	 * The Device Action handler must use this method to report 
-	 * the failure status back to IBM IoT Foundation whenever
+	 * the failure status back to IBM Watson IoT Platform whenever
 	 * there is a failure.</p>
 	 * 
 	 * @param status Failure status of the current device action
@@ -85,13 +85,13 @@ public class DeviceAction {
 	
 	/**
 	 * <p>Set the failure message of the current device action that needs to be 
-	 * sent to the IBM IoT Foundation.
+	 * sent to the IBM Watson IoT Platform.
 	 * <br>
 	 * The Device Action handler must use this method to report 
-	 * the failure message back to IBM IoT Foundation whenever
+	 * the failure message back to IBM Watson IoT Platform whenever
 	 * there is a failure.</p>
 	 * 
-	 * @param message failure message that needs to be sent to IBM IoT Foundation
+	 * @param message failure message that needs to be sent to IBM Watson IoT Platform
 	 */
 	public void setMessage(String message) {
 		this.message = message;

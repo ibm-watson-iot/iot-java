@@ -31,9 +31,9 @@ import com.ibm.iotf.util.LoggerUtility;
 
 
 /**
- * A client, used by device, that handles connections with the IBM Internet of Things Foundation. <br>
+ * A client, used by device, that handles connections with the IBM Watson IoT Platform. <br>
  * 
- * This is a derived class from AbstractClient and can be used by embedded devices to handle connections with IBM Internet of Things Foundation.
+ * This is a derived class from AbstractClient and can be used by embedded devices to handle connections with IBM Watson IoT Platform.
  */
 public class DeviceClient extends AbstractClient {
 	
@@ -59,7 +59,7 @@ public class DeviceClient extends AbstractClient {
 		super(mqttClient);
 	}
 	/**
-	 * Create a device client for the IBM Internet of Things Foundation. <br>
+	 * Create a device client for the IBM Watson IoT Platform. <br>
 	 * 
 	 * Connecting to a specific account on the IoTF.
 	 * @throws Exception 
@@ -107,7 +107,7 @@ public class DeviceClient extends AbstractClient {
 	}
 	
 	/**
-	 * Connect to the IBM Internet of Things Foundation
+	 * Connect to the IBM Watson IoT Platform
 	 * 
 	 */	
 	@Override
@@ -137,7 +137,7 @@ public class DeviceClient extends AbstractClient {
 	}
 	
 	/**
-	 * Publish data to the IBM Internet of Things Foundation.<br>
+	 * Publish data to the IBM Watson IoT Platform.<br>
 	 * Note that data is published
 	 * at Quality of Service (QoS) 0, which means that a successful send does not guarantee
 	 * receipt even if the publish has been successful.
@@ -153,7 +153,7 @@ public class DeviceClient extends AbstractClient {
 	}
 
 	/**
-	 * Publish data to the IBM Internet of Things Foundation.<br>
+	 * Publish data to the IBM Watson IoT Platform.<br>
 	 * 
 	 * This method allows QoS to be passed as an argument
 	 * 
@@ -211,7 +211,7 @@ public class DeviceClient extends AbstractClient {
 	
 		/**
 		 * If we lose connection trigger the connect logic to attempt to
-		 * reconnect to the IBM Internet of Things Foundation.
+		 * reconnect to the IBM Watson IoT Platform.
 		 * 
 		 * @param exception
 		 *            Throwable which caused the connection to get lost
@@ -267,7 +267,7 @@ public class DeviceClient extends AbstractClient {
 	}
 	
 	/**
-	 * Publish an event to the IBM Internet of Things Foundation using HTTP(S)<br>
+	 * Publish an event to the IBM Watson IoT Platform using HTTP(S)<br>
 	 * 
 	 * @param eventName  Name of the dataset under which to publish the data
 	 * @param payload Object to be added to the payload as the dataset

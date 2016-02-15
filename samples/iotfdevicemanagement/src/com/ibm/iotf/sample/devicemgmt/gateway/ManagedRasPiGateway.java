@@ -1,12 +1,11 @@
 /**
  *****************************************************************************
- Copyright (c) 2015 IBM Corporation and other Contributors.
+ Copyright (c) 2016 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
- Mike Tran - Initial Contribution
  Sathiskumar Palaniappan - Initial Contribution
  *****************************************************************************
  *
@@ -376,6 +375,7 @@ public class ManagedRasPiGateway {
 		if(this.mgdGateway != null) {
 			GatewayActionHandlerSample actionHandler = new GatewayActionHandlerSample();
 			actionHandler.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
+			actionHandler.setGatewayDeviceId(this.mgdGateway.getGWDeviceId());
 			mgdGateway.addDeviceActionHandler(actionHandler);
 			System.out.println("Added Device Action Handler successfully !!");
 		}
@@ -409,7 +409,7 @@ public class ManagedRasPiGateway {
 	private void userAction() {
     	Scanner in = new Scanner(System.in);
     	final String DEVICE = "device";
-    	final String GATEWAY = "device";
+    	final String GATEWAY = "gateway";
     	TYPE type = TYPE.GATEWAY_AND_DEVICE;
     	printOptions();
     	while(true) {

@@ -22,7 +22,7 @@ import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
 /**
  * 
- * Timer task that updates the device location to IoT Foundation 
+ * Timer task that updates the device location to Watson IoT Platform 
  */
 public class LocationUpdateTask extends TimerTask {
 	

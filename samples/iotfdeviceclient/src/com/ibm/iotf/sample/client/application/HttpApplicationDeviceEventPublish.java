@@ -30,7 +30,7 @@ import com.ibm.iotf.sample.util.Utility;
 /**
  * 
  * This sample shows how an application publish a device event 
- * using HTTP(s) to IBM IoT Foundation on behalf of the device.
+ * using HTTP(s) to IBM Watson IoT Platform on behalf of the device.
  *
  */
 public class HttpApplicationDeviceEventPublish {

@@ -29,7 +29,7 @@ import com.ibm.iotf.sample.client.SystemObject;
 import com.ibm.iotf.sample.util.Utility;
 
 /**
- * <p>The Gateway sample uses the com.ibm.iotf.client.gateway.GatewayClient class from the IoTF Java Client Library 
+ * <p>The Gateway sample uses the com.ibm.iotf.client.gateway.GatewayClient class from the Watson IoT Platform Java Client Library 
  * that simplifies the Gateway interactions with IBM Watson IoT Platform. </p>
  * 
  * <p>The Gateway support is demonstrated in this sample by connecting the Arduino Uno to Raspberry Pi 

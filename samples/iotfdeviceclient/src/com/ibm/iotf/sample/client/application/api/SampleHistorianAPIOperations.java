@@ -27,7 +27,7 @@ import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.sample.util.Utility;
 
 /**
- * This sample showcases various ReST operations that can be performed on IoT Foundation to
+ * This sample showcases various ReST operations that can be performed on Watson IoT Platform to
  * retrieve the historical events.
  */
 
@@ -65,7 +65,7 @@ public class SampleHistorianAPIOperations {
 			fileName = Utility.getDefaultFilePath(PROPERTIES_FILE_NAME, DEFAULT_PATH);
 		}
 		
-		// Make sure that the device is added to IBM IoT Foundation already
+		// Make sure that the device is added to IBM Watson IoT Platform already
 		SampleHistorianAPIOperations sample = new SampleHistorianAPIOperations(fileName);
 		
 		sample.getAllHistoricalEventsByDeviceType();

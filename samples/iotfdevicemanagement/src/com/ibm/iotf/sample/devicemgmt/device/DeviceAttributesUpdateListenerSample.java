@@ -40,11 +40,11 @@ import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.resource.Resource;
 
 /**
- * A sample device code that listens for the update message from IBM IoT Foundation. 
+ * A sample device code that listens for the update message from IBM Watson IoT Platform. 
  * The library code updates these attributes in the corresponding objects and 
  * notifies the sample code if interested,
  * 
- * The IBM Internet of Things Foundation can send the following update request to a device to update 
+ * The IBM Watson IoT Platform can send the following update request to a device to update 
  * values of one or more device attributes. 
  * 
  * iotdm-1/device/update
@@ -60,7 +60,7 @@ import com.ibm.iotf.devicemgmt.resource.Resource;
  * mgmt.firmware
  * 
  * 
- * This sample shows how one can listen for the incoming update message from IBM IoT Foundation
+ * This sample shows how one can listen for the incoming update message from IBM Watson IoT Platform
  * 
  * This sample takes a properties file where the device informations and location
  * informations are present. There is a default properties file in the sample folder, this
@@ -201,7 +201,7 @@ public class DeviceAttributesUpdateListenerSample implements PropertyChangeListe
 		deviceInfo.addPropertyChangeListener(this);
 		metadata.addPropertyChangeListener(this);
 		
-		// Options to connect to IoT Foundation
+		// Options to connect to Watson IoT Platform
 		Properties options = new Properties();
 		options.setProperty("Organization-ID", trimedValue(deviceProps.getProperty("Organization-ID")));
 		options.setProperty("Device-Type", trimedValue(deviceProps.getProperty("Device-Type")));
@@ -214,7 +214,7 @@ public class DeviceAttributesUpdateListenerSample implements PropertyChangeListe
 	}
 	
 	/**
-	 * This method connects the device to the IoT Foundation so that
+	 * This method connects the device to the Watson IoT Platform so that
 	 * we can do one or more Device Management activities 
 	 */
 	private void connect() throws Exception {		
@@ -222,11 +222,11 @@ public class DeviceAttributesUpdateListenerSample implements PropertyChangeListe
 	}
 	
 	/**
-	 * Send a device manage request to IoT Foundation
+	 * Send a device manage request to Watson IoT Platform
 	 * 
 	 * A device uses this request to become a managed device. 
 	 * It should be the first device management request sent by the 
-	 * device after connecting to the Internet of Things Foundation. 
+	 * device after connecting to the Watson IoT Platform. 
 	 * It would be usual for a device management agent to send this 
 	 * whenever is starts or restarts.
 	 * 

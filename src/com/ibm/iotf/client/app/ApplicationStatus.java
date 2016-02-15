@@ -5,7 +5,7 @@ import java.io.UnsupportedEncodingException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * Class that handles application status, of applications using IBM Internet of Things Foundation
+ * Class that handles application status, of applications using IBM Watson IoT Platform
  */
 public class ApplicationStatus extends Status {
 

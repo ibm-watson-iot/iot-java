@@ -78,7 +78,7 @@ import com.ibm.iotf.sample.devicemgmt.device.task.PublishDeviceEventTask;
  * class takes the default properties file if one not specified by user.
  * 
  * Refer to this link https://docs.internetofthings.ibmcloud.com/reference/device_mgmt.html
- * for more information about IBM IoT Foundation's DM capabilities 
+ * for more information about IBM Watson IoT Platform's DM capabilities 
  */
 public class SampleRasPiDMAgentWithCustomMqttClient {
 	private final static String PROPERTIES_FILE_NAME = "DMDeviceSample.properties";
