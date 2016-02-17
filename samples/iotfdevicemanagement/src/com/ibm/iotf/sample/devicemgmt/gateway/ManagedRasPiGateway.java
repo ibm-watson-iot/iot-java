@@ -19,6 +19,11 @@ import java.util.Scanner;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.ibm.iotf.client.IoTFCReSTException;
+import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceInfo;
 import com.ibm.iotf.devicemgmt.LogSeverity;
@@ -84,6 +89,7 @@ public class ManagedRasPiGateway {
 	private ArduinoSerialInterface arduino;
 	private String port;
 	private Random random = new Random();
+	private APIClient apiClient;
 
 	/**
 	 * When the GatewayClient connects, it automatically subscribes to any commands for this Gateway. 
@@ -112,6 +118,48 @@ public class ManagedRasPiGateway {
 		
 	}
 	
+	/**
+	 * This sample showcases how to Create a device type using the Java Client Library. 
+	 * @throws IoTFCReSTException
+	 */
+	private void addDeviceType() throws IoTFCReSTException {
+		try {
+			JsonObject response = this.apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+			System.out.println(response);
+		} catch(IoTFCReSTException e) {
+			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
+		}
+	}
+	
+	/**
+	 * Add a device under the given gateway using the Java Client Library.
+	 * @throws IoTFCReSTException
+	 */
+	private void addDevice(String deviceId) throws IoTFCReSTException {
+		try{
+			
+			String deviceToBeAdded = "{\"deviceId\": \"" + deviceId +
+						"\",\"authToken\": \"qwert123\"}";
+
+			System.out.println(deviceToBeAdded);
+			JsonParser parser = new JsonParser();
+			JsonElement input = parser.parse(deviceToBeAdded);
+			JsonObject response = this.apiClient.registerDeviceUnderGateway(
+							DEVICE_TYPE, 
+							this.mgdGateway.getGWDeviceId(), 
+							this.mgdGateway.getGWTypeId(), 
+							input);
+			System.out.println(response);
+			
+		} catch(IoTFCReSTException e) {
+			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
+		}
+	}	
+	
 
 	public static void main(String[] args) throws Exception {
 		
@@ -122,6 +170,10 @@ public class ManagedRasPiGateway {
 		try {
 			sample.createManagedClient(fileName);
 			sample.createArduinoDeviceInterface();
+			
+			sample.addDeviceType();
+			sample.addDevice(ARDUINO_DEVICE_ID);
+			
 			
 			// Add the handlers
 			sample.addDeviceActionHandler();
@@ -222,6 +274,12 @@ public class ManagedRasPiGateway {
 		String message = "Log event " + random.nextInt(500);
 		Date timestamp = new Date();
 		LogSeverity severity = LogSeverity.informational;
+		int randomValue = this.random.nextInt();
+		if(randomValue % 10 == 0) {
+			severity = LogSeverity.error;
+		} else if(randomValue % 10 >= 5) {
+			severity = LogSeverity.warning;
+		}
 		int rc = mgdGateway.addGatewayLog(message, timestamp, severity);
 			
 		if(rc == 200) {
@@ -238,7 +296,13 @@ public class ManagedRasPiGateway {
 	private void appendDeviceLog() {
 		String message = "Log event " + random.nextInt(500);
 		Date timestamp = new Date();
-		LogSeverity severity = LogSeverity.warning;
+		LogSeverity severity = LogSeverity.informational;
+		int randomValue = this.random.nextInt();
+		if(randomValue % 10 == 0) {
+			severity = LogSeverity.error;
+		} else if(randomValue % 10 >= 5) {
+			severity = LogSeverity.warning;
+		}
 		int rc = mgdGateway.addDeviceLog(DEVICE_TYPE, ARDUINO_DEVICE_ID, message, timestamp, severity);
 			
 		if(rc == 200) {
@@ -299,6 +363,15 @@ public class ManagedRasPiGateway {
 		
 		// Connect to Watson IoT Platform
 		mgdGateway.connect();
+		
+		// We need to create APIclint to register the Arduino Uno device if its not registered already
+		Properties options = new Properties();
+		options.put("Organization-ID", deviceProps.getProperty("Organization-ID"));
+		options.put("id", "app" + (Math.random() * 10000));		
+		options.put("Authentication-Method","apikey");
+		options.put("API-Key", deviceProps.getProperty("API-Key"));		
+		options.put("Authentication-Token", deviceProps.getProperty("API-Token"));
+		this.apiClient = new APIClient(options);
 	}
 	
 	/**

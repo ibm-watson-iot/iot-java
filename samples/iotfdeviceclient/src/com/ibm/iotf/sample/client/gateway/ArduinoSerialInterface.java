@@ -26,6 +26,7 @@ import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent; 
 import gnu.io.SerialPortEventListener; 
 
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -36,6 +37,7 @@ import com.google.gson.JsonParser;
 import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.devicemgmt.DeviceAction;
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
+import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
 import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
@@ -266,6 +268,13 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 			e.printStackTrace();
 		}
 
+		ManagedGateway gateway = ((ManagedGateway) this.gwClient);
+		
+		Date timestamp = new Date();
+		String message = "Firmware Update Event start";
+		LogSeverity severity = LogSeverity.informational;
+		// Inform the server about the status through Diaglog if needed
+		int rc = gateway.addDeviceLog(this.deviceType, this.deviceId, message, timestamp, severity);
 		
 		close();
 		
@@ -284,12 +293,20 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 			try {
 				p = pkgInstaller.start();
 				boolean status = GatewayFirmwareHandlerSample.waitForCompletion(p, 5);
-				System.out.println(GatewayFirmwareHandlerSample.getInstallLog(INSTALL_LOG_FILE));
+				String log = GatewayFirmwareHandlerSample.getInstallLog(INSTALL_LOG_FILE);
+				System.out.println(log);
+				// Inform the server about the status through Diaglog if needed
+				gateway.addDeviceLog(this.deviceType, this.deviceId, log, timestamp, severity);
 				if(status == false) {
 					p.destroy();
 					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
+					// Inform the server about the error through Diaglog if needed
+					gateway.addDeviceLog(this.deviceType, this.deviceId, "UNSUPPORTED_IMAGE", timestamp, LogSeverity.error);
 					return;
 				}
+				message = "Firmware Update end, status = "+status;
+				// Inform the server about the status through Diaglog if needed
+				gateway.addDeviceLog(this.deviceType, this.deviceId, message, timestamp, severity);
 				
 				System.out.println("Firmware Update command "+status);
 				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);

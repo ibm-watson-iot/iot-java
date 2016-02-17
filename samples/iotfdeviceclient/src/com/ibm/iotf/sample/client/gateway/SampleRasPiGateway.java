@@ -24,6 +24,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
+import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.sample.client.SystemObject;
 import com.ibm.iotf.sample.util.Utility;
@@ -79,6 +80,7 @@ public class SampleRasPiGateway {
 	private String gwDeviceId;
 	private String gwDeviceType;
 	private String port;
+	private APIClient apiClient;
 	
 	public SampleRasPiGateway() {
 		
@@ -108,9 +110,34 @@ public class SampleRasPiGateway {
 				this.port = this.DEFAULT_SERIAL_PORT;
 			}
 			gwClient.connect();
+			
+			Properties options = new Properties();
+			options.put("Organization-ID", props.getProperty("Organization-ID"));
+			options.put("id", "app" + (Math.random() * 10000));		
+			options.put("Authentication-Method","apikey");
+			options.put("API-Key", props.getProperty("API-Key"));		
+			options.put("Authentication-Token", props.getProperty("API-Token"));
+			
+			this.apiClient = new APIClient(options);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
+		}
+	}
+	
+	/**
+	 * This sample showcases how to Create a device type using the Java Client Library. 
+	 * @throws IoTFCReSTException
+	 */
+	private void addDeviceType() throws IoTFCReSTException {
+		try {
+			JsonObject response = this.apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+			System.out.println(response);
+		} catch(IoTFCReSTException e) {
+			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
 		}
 	}
 	
@@ -122,12 +149,12 @@ public class SampleRasPiGateway {
 		try{
 			
 			String deviceToBeAdded = "{\"deviceId\": \"" + deviceId +
-						"\",\"authToken\": \"qsdew12\"}";
+						"\",\"authToken\": \"qwert123\"}";
 
 			System.out.println(deviceToBeAdded);
 			JsonParser parser = new JsonParser();
 			JsonElement input = parser.parse(deviceToBeAdded);
-			JsonObject response = this.gwClient.api().
+			JsonObject response = this.apiClient.
 					registerDeviceUnderGateway(DEVICE_TYPE, this.gwDeviceId, this.gwDeviceType, input);
 			System.out.println(response);
 			
@@ -136,8 +163,7 @@ public class SampleRasPiGateway {
 			// Print if there is a partial response
 			System.out.println(e.getResponse());
 		}
-	}
-	
+	}	
 	/**
 	 * While Raspberry Pi Gateway publishes events on behalf of the Arduino, the Raspberry Pi Gateway 
 	 * can publish its own events as well. 
@@ -185,14 +211,18 @@ public class SampleRasPiGateway {
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setCommandCallback(callback);
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, ARDUINO_DEVICE_ID);
-		
+				
 		ArduinoSerialInterface arduino = new ArduinoSerialInterface(
 										ARDUINO_DEVICE_ID, 
 										DEVICE_TYPE, 
 										this.port, 
 										this.gwClient);
-		arduino.initialize();
-		
+		try {
+			arduino.initialize();
+		} catch(Error e) {
+			e.printStackTrace();
+		}
+		callback.setGatewayId(this.gwDeviceId);
 		callback.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
 		Thread t = new Thread(callback);
 		t.start();
@@ -212,9 +242,10 @@ public class SampleRasPiGateway {
 		 * 1. Auto registration: The Device gets added automatically
 		 * 2. API: Using the Watson IoT Platform API
 		 * 
-		 * Enable this line if you want to add the device using the Watson Platform API.
+		 * In this case we will add the device using the Watson Platform API.
 		 */
-		//sample.addDevice(ARDUINO_DEVICE_ID);
+		sample.addDeviceType();
+		sample.addDevice(ARDUINO_DEVICE_ID);
 		sample.addCommandCallback();
 
 		System.out.println("Gateway Started");

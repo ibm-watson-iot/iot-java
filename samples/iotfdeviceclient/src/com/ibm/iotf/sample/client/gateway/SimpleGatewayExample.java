@@ -24,6 +24,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
+import com.ibm.iotf.client.api.APIClient;
+import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.sample.client.SystemObject;
 import com.ibm.iotf.sample.util.Utility;
@@ -38,14 +40,14 @@ public class SimpleGatewayExample {
 	private final static String PROPERTIES_FILE_NAME = "device.prop";
 	private final static String DEFAULT_PATH = "samples/iotfdeviceclient/src";
 	
-	private final static String DEVICE_TYPE = "iotsample-deviceType";
-	private final static String SIMULATOR_DEVICE_ID = "SimulatorDevice01";
+	private final static String DEVICE_TYPE = "iotsampleType";
+	private final static String SIMULATOR_DEVICE_ID = "Arduino01";
 	
 	private GatewayClient gwClient = null;
 	SystemObject obj = new SystemObject();
 	private String gwDeviceId;
 	private String gwDeviceType;
-	
+	private APIClient apiClient;	
 	
 	public SimpleGatewayExample() {
 		
@@ -71,6 +73,16 @@ public class SimpleGatewayExample {
 			this.gwDeviceId = props.getProperty("Device-ID");
 			this.gwDeviceType = props.getProperty("Device-Type");
 			gwClient.connect();
+			
+			Properties options = new Properties();
+			options.put("Organization-ID", props.getProperty("Organization-ID"));
+			options.put("id", "app" + (Math.random() * 10000));		
+			options.put("Authentication-Method","apikey");
+			options.put("API-Key", props.getProperty("API-Key"));		
+			options.put("Authentication-Token", props.getProperty("API-Token"));
+			
+			this.apiClient = new APIClient(options);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -100,6 +112,7 @@ public class SimpleGatewayExample {
 		event.addProperty("mem",  obj.getMemoryUsed());
 			
 		gwClient.publishGatewayEvent("blink", event, 2);
+		System.out.println("Publish Gateway event:: "+event);
 	}
 	
 	/**
@@ -122,6 +135,7 @@ public class SimpleGatewayExample {
 		event.addProperty("mem",  obj.getMemoryUsed());
 			
 		gwClient.publishDeviceEvent(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "blink", event, 2);
+		System.out.println("Publish Device event:: "+event);
 	}
 	
 	private void disconnect() {
@@ -129,6 +143,44 @@ public class SimpleGatewayExample {
 		gwClient.disconnect();
 	}
 	
+	/**
+	 * This sample showcases how to Create a device type using the Java Client Library. 
+	 * @throws IoTFCReSTException
+	 */
+	private void addDeviceType() throws IoTFCReSTException {
+		try {
+			JsonObject response = this.apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+			System.out.println(response);
+		} catch(IoTFCReSTException e) {
+			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
+		}
+	}
+	
+	/**
+	 * Add a device under the given gateway using the Java Client Library.
+	 * @throws IoTFCReSTException
+	 */
+	private void addDevice(String deviceId) throws IoTFCReSTException {
+		try{
+			
+			String deviceToBeAdded = "{\"deviceId\": \"" + deviceId +
+						"\",\"authToken\": \"qwert123\"}";
+
+			System.out.println(deviceToBeAdded);
+			JsonParser parser = new JsonParser();
+			JsonElement input = parser.parse(deviceToBeAdded);
+			JsonObject response = this.apiClient.
+					registerDeviceUnderGateway(DEVICE_TYPE, this.gwDeviceId, this.gwDeviceType, input);
+			System.out.println(response);
+			
+		} catch(IoTFCReSTException e) {
+			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
+		}
+	}
 
 	public static void main(String[] args) throws IoTFCReSTException {
 		
@@ -136,6 +188,8 @@ public class SimpleGatewayExample {
 		
 		String fileName = Utility.getDefaultFilePath(PROPERTIES_FILE_NAME, DEFAULT_PATH);
 		sample.createGatewayClient(fileName);
+		sample.addDeviceType();
+		sample.addDevice(SIMULATOR_DEVICE_ID);
 
 		System.out.println("Gateway Started");
 		

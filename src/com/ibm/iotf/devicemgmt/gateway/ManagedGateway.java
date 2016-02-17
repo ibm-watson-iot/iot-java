@@ -167,7 +167,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		this.gatewayKey = deviceData.getTypeId() + ':' + deviceData.getDeviceId();
 	}
 	
-	private String getGWTypeId() {
+	public String getGWTypeId() {
 		if(gateway != null) {
 			return this.gateway.getTypeId();
 		}

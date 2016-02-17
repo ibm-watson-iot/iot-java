@@ -38,6 +38,11 @@ public class GatewayCommandCallback implements CommandCallback, Runnable {
 	protected final static JsonParser JSON_PARSER = new JsonParser();
 	
 	private static String LED_DATAPOINT_NAME = "led";
+	private String gatewayId = null;
+	
+	public void setGatewayId(String gatewayId) {
+		this.gatewayId = gatewayId;
+	}
 	
 	// A queue to hold & process the commands
 	private BlockingQueue<Command> queue = new LinkedBlockingQueue<Command>();
@@ -67,6 +72,13 @@ public class GatewayCommandCallback implements CommandCallback, Runnable {
 				cmd = queue.take();
 				DeviceInterface device = deviceMap.get(cmd.getDeviceId());
 				
+				// check if this command is for the gateway
+				if(device == null && cmd.getDeviceId().equals(this.gatewayId)) {
+					System.out.println("Got command for this gateway:: "+cmd);
+					return;
+				} else {
+					System.out.println("Got command for the device:: "+cmd.getDeviceId());
+				}
 				String value = null;
 				try {
 					JsonObject payloadJson = JSON_PARSER.parse(cmd.getPayload()).getAsJsonObject();
