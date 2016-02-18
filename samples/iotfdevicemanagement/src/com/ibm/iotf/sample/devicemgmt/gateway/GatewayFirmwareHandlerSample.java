@@ -179,7 +179,7 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 				// this firmware request is for gateway
 				gatewayDownloadFirmwareName = downloadedFirmwareName;
 			}
-		} else if(gatewayDeviceId.equals(deviceFirmware.getDeviceId())){
+		} else {
 			deviceFirmware.setState(FirmwareState.IDLE);
 		}
 		
@@ -307,14 +307,7 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 		System.out.println(CLASS_NAME + ": Firmware update End...");
 	}
 	
-	/**
-	 * Since JDK7 doesn't take any timeout parameter, we provide an workaround
-	 * that wakes up every second and checks for the completion status of the process.
-	 * @param process
-	 * @param minutes
-	 * @return
-	 * @throws InterruptedException 
-	 */
+	
 	/**
 	 * Since JDK7 doesn't take any timeout parameter, we provide an workaround
 	 * that wakes up every second and checks for the completion status of the process.

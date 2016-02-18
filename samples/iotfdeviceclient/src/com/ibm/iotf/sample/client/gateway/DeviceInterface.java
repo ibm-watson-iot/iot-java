@@ -25,6 +25,7 @@ import com.ibm.iotf.devicemgmt.DeviceFirmware;
  *
  */
 public interface DeviceInterface {
+	
 	public void sendCommand(String cmd);
 
 	public void setFirmwareName(String downloadedFirmwareName);
@@ -32,5 +33,7 @@ public interface DeviceInterface {
 	public void updateFirmware(DeviceFirmware deviceFirmware);
 
 	public void reboot(DeviceAction action);
+
+	public void toggleDisplay();
 
 }

@@ -50,12 +50,18 @@ public class APIClient {
 	private SSLContext sslContext = null;
 	private String orgId = null;
 	public APIClient(Properties opt) throws NoSuchAlgorithmException, KeyManagementException {
-		String authKeyPassed = opt.getProperty("auth-key");
-		if(authKeyPassed == null) {
-			authKeyPassed = opt.getProperty("API-Key");
-		}
+		boolean isGateway = false;
+		String authKeyPassed = null;
+		if("gateway".equals(getAuthMethod(opt))) {
+			isGateway = true;
+		} else {
+			authKeyPassed = opt.getProperty("auth-key");
+			if(authKeyPassed == null) {
+				authKeyPassed = opt.getProperty("API-Key");
+			}
 		
-		authKey = trimedValue(authKeyPassed);
+			authKey = trimedValue(authKeyPassed);
+		}
 		
 		String token = opt.getProperty("auth-token");
 		if(token == null) {
@@ -72,34 +78,12 @@ public class APIClient {
 		
 		this.orgId = trimedValue(org);
 		
-		if(authKey == null && "gateway".equals(getAuthMethod(opt))) {
-			authKey = "g-" + this.orgId + '-' + this.getGWDeviceType(opt) + '-' + this.getGwDeviceId(opt);
+		if(isGateway) {
+			authKey = "g-" + this.orgId + '-' + this.getGWDeviceType(opt) + '-' + this.getGWDeviceId(opt);
 		}
 
 		sslContext = SSLContext.getInstance("TLSv1.2");
 		sslContext.init(null, null, null);
-	}
-	
-	private String getGWDeviceType(Properties options) {
-		String type = null;
-		type = options.getProperty("type");
-		if(type == null) {
-			type = options.getProperty("Device-Type");
-		}
-		return trimedValue(type);
-	}
-	
-	/*
-	 * old style - id
-	 * new style - Device-ID
-	 */
-	private String getGwDeviceId(Properties options) {
-		String id = null;
-		id = options.getProperty("id");
-		if(id == null) {
-			id = options.getProperty("Device-ID");
-		}
-		return trimedValue(id);
 	}
 	
 	private static String getAuthMethod(Properties opt) {
@@ -109,6 +93,34 @@ public class APIClient {
 		}
 		
 		return trimedValue(method);
+	}
+	
+	/*
+	 * old style - id
+	 * new style - Device-ID
+	 */
+	protected String getGWDeviceId(Properties options) {
+		String id = null;
+		id = options.getProperty("Gateway-ID");
+		if(id == null) {
+			id = options.getProperty("Device-ID");
+		}
+		if(id == null) {
+			id = options.getProperty("id");
+		}
+		return trimedValue(id);
+	}
+	
+	protected String getGWDeviceType(Properties options) {
+		String type = null;
+		type = options.getProperty("Gateway-Type");
+		if(type == null) {
+			type = options.getProperty("Device-Type");
+		}
+		if(type == null) {
+			type = options.getProperty("type");
+		}
+		return trimedValue(type);
 	}
 	
 	private static String trimedValue(String value) {
@@ -232,7 +244,7 @@ public class APIClient {
 			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
 			throw e;
 		}
-		LoggerUtility.info(CLASS_NAME, method, line);
+		LoggerUtility.fine(CLASS_NAME, method, line);
 		try {
 			if(br != null)
 				br.close();
@@ -1061,7 +1073,7 @@ public class APIClient {
 			throw new IoTFCReSTException(403, "The authentication method is invalid or "
 					+ "the API key used does not exist");
 		} else if (code == 409) {
-			throw new IoTFCReSTException(403, "The device type already exists", jsonResponse);  
+			throw new IoTFCReSTException(409, "The device type already exists", jsonResponse);  
 		} else if (code == 500) {
 			throw new IoTFCReSTException(500, "Unexpected error");
 		}

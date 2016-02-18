@@ -389,7 +389,6 @@ public abstract class AbstractClient {
 		}
 		return trimedValue(id);
 	}
-
 	
 	public static String trimedValue(String value) {
 		if(value != null) {

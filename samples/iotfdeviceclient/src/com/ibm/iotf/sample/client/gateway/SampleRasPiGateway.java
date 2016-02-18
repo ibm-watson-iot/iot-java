@@ -67,7 +67,7 @@ import com.ibm.iotf.sample.util.Utility;
  */
 public class SampleRasPiGateway {
 	
-	private final static String PROPERTIES_FILE_NAME = "device.prop";
+	private final static String PROPERTIES_FILE_NAME = "gateway.prop";
 	private final static String DEFAULT_PATH = "samples/iotfdeviceclient/src";
 	
 	private final static String DEVICE_TYPE = "iotsample-deviceType";
@@ -151,10 +151,9 @@ public class SampleRasPiGateway {
 			String deviceToBeAdded = "{\"deviceId\": \"" + deviceId +
 						"\",\"authToken\": \"qwert123\"}";
 
-			System.out.println(deviceToBeAdded);
 			JsonParser parser = new JsonParser();
 			JsonElement input = parser.parse(deviceToBeAdded);
-			JsonObject response = this.apiClient.
+			JsonObject response = this.gwClient.api().
 					registerDeviceUnderGateway(DEVICE_TYPE, this.gwDeviceId, this.gwDeviceType, input);
 			System.out.println(response);
 			
@@ -187,6 +186,7 @@ public class SampleRasPiGateway {
 		event.addProperty("mem",  obj.getMemoryUsed());
 			
 		gwClient.publishGatewayEvent("blink", event, 2);
+		System.out.println("Gateway event :: "+event);
 	}
 	
 	private void disconnect() {
@@ -212,16 +212,13 @@ public class SampleRasPiGateway {
 		gwClient.setCommandCallback(callback);
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, ARDUINO_DEVICE_ID);
 				
-		ArduinoSerialInterface arduino = new ArduinoSerialInterface(
+		DeviceInterface arduino = ArduinoInterface.createDevice(
 										ARDUINO_DEVICE_ID, 
 										DEVICE_TYPE, 
 										this.port, 
 										this.gwClient);
-		try {
-			arduino.initialize();
-		} catch(Error e) {
-			e.printStackTrace();
-		}
+		
+		arduino.toggleDisplay(); // activate the console display 
 		callback.setGatewayId(this.gwDeviceId);
 		callback.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
 		Thread t = new Thread(callback);

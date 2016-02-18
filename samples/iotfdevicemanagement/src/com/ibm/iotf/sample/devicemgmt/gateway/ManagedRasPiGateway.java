@@ -28,7 +28,8 @@ import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceInfo;
 import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
-import com.ibm.iotf.sample.client.gateway.ArduinoSerialInterface;
+import com.ibm.iotf.sample.client.gateway.ArduinoInterface;
+import com.ibm.iotf.sample.client.gateway.DeviceInterface;
 import com.ibm.iotf.sample.client.gateway.GatewayCommandCallback;
 import com.ibm.iotf.sample.util.Utility;
 
@@ -77,7 +78,7 @@ import com.ibm.iotf.sample.util.Utility;
  * for more information about IBM IBM Watson IoT Platform's DM capabilities 
  */
 public class ManagedRasPiGateway {
-	private final static String PROPERTIES_FILE_NAME = "DMDeviceSample.properties";
+	private final static String PROPERTIES_FILE_NAME = "DMGatewaySample.properties";
 	private final static String DEFAULT_PATH = "samples/iotfdeviceclient/src";
 	
 	private final static String DEVICE_TYPE = "iotsample-deviceType";
@@ -86,7 +87,7 @@ public class ManagedRasPiGateway {
 	private final static String DEFAULT_SERIAL_PORT = "/dev/ttyACM0";
 	
 	private ManagedGateway mgdGateway;
-	private ArduinoSerialInterface arduino;
+	private DeviceInterface arduino;      // Represents either Arduino Uno simulator or hardware
 	private String port;
 	private Random random = new Random();
 	private APIClient apiClient;
@@ -127,9 +128,11 @@ public class ManagedRasPiGateway {
 			JsonObject response = this.apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
 			System.out.println(response);
 		} catch(IoTFCReSTException e) {
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			if(e.getHttpCode() != 409) { // 409 : device type is already present
+				System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+				// Print if there is a partial response
+				System.out.println(e.getResponse());
+			}
 		}
 	}
 	
@@ -154,9 +157,12 @@ public class ManagedRasPiGateway {
 			System.out.println(response);
 			
 		} catch(IoTFCReSTException e) {
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			if(e.getHttpCode() != 409) { // 409 : device is already present
+				
+				System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+				// Print if there is a partial response
+				System.out.println(e.getResponse());
+			}
 		}
 	}	
 	
@@ -180,12 +186,7 @@ public class ManagedRasPiGateway {
 			sample.addFirmwareHandler();
 
 			sample.addCommandCallback();
-			try {
-				sample.arduino.initialize();
-			} catch(java.lang.UnsatisfiedLinkError e) {
-				e.printStackTrace();
-				System.err.println("Please specify the path of RxTx library and run");
-			}
+			sample.arduino.toggleDisplay(); // activate the console display 
 			sample.userAction();
 			
 
@@ -378,7 +379,7 @@ public class ManagedRasPiGateway {
 	 * Create the Arduino device interface object used to interact with Arduino Uno device
 	 */
 	private void createArduinoDeviceInterface() {
-		this.arduino = new ArduinoSerialInterface(
+		this.arduino = ArduinoInterface.createDevice(
 				ARDUINO_DEVICE_ID, 
 				DEVICE_TYPE, 
 				this.port, 

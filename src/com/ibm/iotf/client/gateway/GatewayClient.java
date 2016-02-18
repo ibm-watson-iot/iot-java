@@ -112,6 +112,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		}
 		createClient(this);
 		options.setProperty("auth-method", "gateway");
+		
 		this.apiClient = new APIClient(options);
 	}
 	
@@ -163,7 +164,6 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 			}
 		}
 		return orgid;
-
 	}
 	
 	/*
@@ -171,9 +171,26 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * new style - Device-ID
 	 */
 	protected String getGWDeviceId() {
-		return this.getDeviceId();
+		String id = null;
+		id = options.getProperty("Gateway-ID");
+		if(id == null) {
+			return getDeviceId();
+		}
+		return trimedValue(id);
 	}
-
+	
+	protected String getGWDeviceType() {
+		String type = null;
+		type = options.getProperty("Gateway-Type");
+		if(type == null) {
+			type = options.getProperty("type");
+		}
+		if(type == null) {
+			type = options.getProperty("Device-Type");
+		}
+		return trimedValue(type);
+	}
+	
 	/**
 	 * Accessor method to retrieve auth key
 	 * @return authKey
@@ -572,15 +589,5 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	public void setCommandCallback(CommandCallback callback) {
 		this.gwCommandCallback  = callback;
 	}
-
-	protected String getGWDeviceType() {
-		String type = null;
-		type = options.getProperty("type");
-		if(type == null) {
-			type = options.getProperty("Device-Type");
-		}
-		return trimedValue(type);
-	}
-
 
 }

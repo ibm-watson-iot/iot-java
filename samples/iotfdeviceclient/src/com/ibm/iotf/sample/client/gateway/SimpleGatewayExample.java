@@ -31,17 +31,18 @@ import com.ibm.iotf.sample.client.SystemObject;
 import com.ibm.iotf.sample.util.Utility;
 
 /**
- * <p>The Gateway sample uses the com.ibm.iotf.client.gateway.GatewayClient class from the Watson IoT Platform Java Client Library 
+ * <p>The Gateway sample uses the com.ibm.iotf.client.gateway.GatewayClient class 
+ * from the Watson IoT Platform Java Client Library 
  * that simplifies the Gateway interactions with IBM Watson IoT Platform. </p>
  * 
  */
 public class SimpleGatewayExample {
 	
-	private final static String PROPERTIES_FILE_NAME = "device.prop";
+	private final static String PROPERTIES_FILE_NAME = "gateway.prop";
 	private final static String DEFAULT_PATH = "samples/iotfdeviceclient/src";
 	
 	private final static String DEVICE_TYPE = "iotsampleType";
-	private final static String SIMULATOR_DEVICE_ID = "Arduino01";
+	private final static String SIMULATOR_DEVICE_ID = "Arduino02";
 	
 	private GatewayClient gwClient = null;
 	SystemObject obj = new SystemObject();
@@ -63,15 +64,15 @@ public class SimpleGatewayExample {
 	 */
 	private void createGatewayClient(String fileName) {
 		/**
-		 * Load properties file "device.prop"
+		 * Load properties file "gateway.prop"
 		 */
 		Properties props = Utility.loadPropertiesFile(PROPERTIES_FILE_NAME, fileName);
 		
 		try {
 			//Instantiate & connect the Gateway by passing the properties file
 			gwClient = new GatewayClient(props);
-			this.gwDeviceId = props.getProperty("Device-ID");
-			this.gwDeviceType = props.getProperty("Device-Type");
+			this.gwDeviceId = props.getProperty("Gateway-ID");
+			this.gwDeviceType = props.getProperty("Gateway-Type");
 			gwClient.connect();
 			
 			Properties options = new Properties();
@@ -171,7 +172,7 @@ public class SimpleGatewayExample {
 			System.out.println(deviceToBeAdded);
 			JsonParser parser = new JsonParser();
 			JsonElement input = parser.parse(deviceToBeAdded);
-			JsonObject response = this.apiClient.
+			JsonObject response = this.gwClient.api().
 					registerDeviceUnderGateway(DEVICE_TYPE, this.gwDeviceId, this.gwDeviceType, input);
 			System.out.println(response);
 			

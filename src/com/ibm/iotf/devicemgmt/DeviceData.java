@@ -64,9 +64,13 @@ public class DeviceData {
 			root.add(deviceLocation);
 		}
 		
-		if(this.deviceInfo != null) {
-			root.add(deviceInfo);
+		// deviceinfo will be required to update the firmware name 
+		// and version 
+		if(this.deviceInfo == null) {
+			this.deviceInfo = new DeviceInfo.Builder().build();
 		}
+		
+		root.add(deviceInfo);
 		
 		if(this.metadata != null) {
 			root.add(this.metadata);

@@ -78,6 +78,10 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	private String deviceId;
 	private String deviceType;
 	private String port;
+	private boolean updateInProgress;
+	
+	// This indicates whether its a simulator or connected to actual Arduino Uno hardware
+	private boolean simulator;
 	
 	private GatewayClient gwClient;
 	
@@ -98,7 +102,8 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	/** The output stream to the port */
 	private BufferedWriter output;
 	private String downloadedFirmwareName;
-	private volatile boolean bDisplay = true;
+	private volatile boolean bDisplay = false;
+	private boolean failed;
 	/** Milliseconds to block while waiting for port open */
 	private static final int TIME_OUT = 2000;
 	/** Default bits per second for COM port. */
@@ -118,26 +123,26 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	 * 4. Add an event listener to receive events from the Arduino, 
 	 *    and tell it to call us back when there's data available
 	 */
-	public void initialize() {
+	public boolean initialize() {
 		System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0");
 
-		CommPortIdentifier portId = null;
-		Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
-
-		//First, Find an instance of serial port as set in PORT_NAMES.
-		while (portEnum.hasMoreElements()) {
-			CommPortIdentifier currPortId = (CommPortIdentifier) portEnum.nextElement();
-			if (currPortId.getName().equals(this.port)) {
-					portId = currPortId;
-					break;
-			}
-		}
-		if (portId == null) {
-			System.out.println("Could not find COM port.");
-			return;
-		}
-
 		try {
+			CommPortIdentifier portId = null;
+			Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
+	
+			//First, Find an instance of serial port as set in PORT_NAMES.
+			while (portEnum.hasMoreElements()) {
+				CommPortIdentifier currPortId = (CommPortIdentifier) portEnum.nextElement();
+				if (currPortId.getName().equals(this.port)) {
+						portId = currPortId;
+						break;
+				}
+			}
+			if (portId == null) {
+				System.out.println("Could not find COM port.");
+				return false;
+			}
+
 			// open serial port, and use class name for the appName.
 			serialPort = (SerialPort) portId.open(this.getClass().getName(),
 					TIME_OUT);
@@ -156,8 +161,10 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 			serialPort.addEventListener(this);
 			serialPort.notifyOnDataAvailable(true);
 		} catch (Exception | Error e) {
-			System.err.println(e.toString());
+			System.out.println(" Got the following error "+e.getMessage());
+			return false;
 		}
+		return true;
 	}
 
 	/**
@@ -176,7 +183,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	 * on the output stream that we opened earlier:
 	 */
 	public void sendCommand(String cmd) {
-		if(this.output != null) {
+		if(this.output != null && updateInProgress == false) {
 			try {
 				System.out.println("writing the cmd to arduino "+cmd);
 				this.output.write(cmd);
@@ -233,7 +240,6 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 			}
 		} catch(Exception e) {
 			System.err.println("Failed to parse the sensor readings from Arduino "+e.getMessage());
-			e.printStackTrace();
 		}
 	}
 
@@ -252,7 +258,14 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	 */
 	@Override
 	public void updateFirmware(DeviceFirmware deviceFirmware) {
+		// Let us check whether the download is proper
+		if(downloadedFirmwareName == null) {
+			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
+			deviceFirmware.setState(FirmwareState.IDLE);
+			return;
+		}
 		
+		updateInProgress = true;  // don't accept any command to blink LED
 		System.out.println(CLASS_NAME + ": Firmware update start... for device = "+deviceFirmware.getDeviceId());
 			
 		final String INSTALL_LOG_FILE = "install.log";
@@ -280,14 +293,13 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 		
 		// Build a command that will push the hex file to Arduino Uno
 		try {
-			pkgInstaller = new ProcessBuilder("avrdude", "-q", "-V", 
+			pkgInstaller = new ProcessBuilder("avrdude", "-V", 
 											  "-p", trimedValue(prop.getProperty("partno", "atmega328p")),
 											  "-C", trimedValue(prop.getProperty("Config", "/etc/avrdude.conf")),
 											  "-c", "arduino",
 											  "-b", "115200",
 											  "-P", this.port,
 											  "-U", "flash:w:"+ downloadedFirmwareName +":i");
-			
 			pkgInstaller.redirectErrorStream(true);
 			pkgInstaller.redirectOutput(new File(INSTALL_LOG_FILE));
 			try {
@@ -296,19 +308,19 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 				String log = GatewayFirmwareHandlerSample.getInstallLog(INSTALL_LOG_FILE);
 				System.out.println(log);
 				// Inform the server about the status through Diaglog if needed
-				gateway.addDeviceLog(this.deviceType, this.deviceId, log, timestamp, severity);
+				gateway.addDeviceLog(this.deviceType, this.deviceId, log, new Date(), severity);
 				if(status == false) {
 					p.destroy();
 					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
 					// Inform the server about the error through Diaglog if needed
-					gateway.addDeviceLog(this.deviceType, this.deviceId, "UNSUPPORTED_IMAGE", timestamp, LogSeverity.error);
+					gateway.addDeviceLog(this.deviceType, this.deviceId, "UNSUPPORTED_IMAGE", new Date(), LogSeverity.error);
 					return;
 				}
 				message = "Firmware Update end, status = "+status;
 				// Inform the server about the status through Diaglog if needed
-				gateway.addDeviceLog(this.deviceType, this.deviceId, message, timestamp, severity);
+				gateway.addDeviceLog(this.deviceType, this.deviceId, message, new Date(), severity);
 				
-				System.out.println("Firmware Update command "+status);
+				System.out.println("Firmware Update status "+status);
 				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
 				deviceFirmware.setState(FirmwareState.IDLE);
 			} catch (IOException e) {
@@ -331,7 +343,41 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 		this.downloadedFirmwareName = null;
 		System.out.println(CLASS_NAME + ": Firmware update End...");
 		this.initialize();
+		updateInProgress = false;
 	}
+	
+	/**
+	 * Since JDK7 doesn't take any timeout parameter, we provide an workaround
+	 * that wakes up every second and checks for the completion status of the process.
+	 * @param process
+	 * @param minutes
+	 * @return
+	 * @throws InterruptedException 
+	 */
+	public boolean waitForCompletion(Process process, int minutes) throws InterruptedException {
+		long timeToWait = (60 * minutes);
+		
+		int exitValue = -1;
+		for(int i = 0; i < timeToWait; i++) {
+			try {
+				exitValue = process.exitValue();
+			} catch(IllegalThreadStateException  e) {
+				// Process is still running
+			}
+			if(exitValue == 0) {
+				return true;
+			}
+			// Try to check the status
+			Thread.sleep(1000);
+		}
+		// Destroy the process forcibly
+		try {
+			process.destroy();
+		} catch(Exception e) {}
+	
+		return false;
+	}
+
 
 	/**
 	 * A sample method to handle the Arduino's reboot request from the DM server.
@@ -345,6 +391,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	public void reboot(DeviceAction action) {
 		// The Arduino is programmed to reboot when it receive a command 0
 		sendCommand("0");
+		updateInProgress = true;
 		// close the streams and wait for a 10 seconds for the Arduino Uno to restart
 		close();
 		try {
@@ -361,6 +408,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		updateInProgress = false;
 	}
 
 	/**
@@ -376,5 +424,5 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 		}
 		return value;
 	}
-	
+
 }

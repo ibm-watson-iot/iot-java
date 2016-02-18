@@ -86,6 +86,8 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	private final Map<String, ManagedClient> devicesMap = new HashMap<String, ManagedClient>();
 	private final BlockingQueue<JsonObject> publishQueue = new LinkedBlockingQueue<JsonObject>();
 	
+	private static final Pattern GATEWAY_COMMAND_PATTERN = Pattern.compile("iot-2/type/(.+)/id/(.+)/cmd/(.+)/fmt/(.+)");
+	
 	private static final Pattern GATEWAY_RESPONSE_PATTERN = Pattern.compile("iotdm-1/type/(.+)/id/(.+)/response");
 	private static final String GATEWAY_RESPONSE_TOPIC = "iotdm-1/type/+/id/+/response";
 	
@@ -1346,6 +1348,12 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 				}
 			}
 		} else {
+			// check if its the command for gateway/device
+			matcher = GATEWAY_COMMAND_PATTERN.matcher(topic);
+			if (matcher.matches()) {
+				super.messageArrived(topic, message);
+				return;
+			}
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Unknown topic (" + topic + ")");
 		}
 	}
