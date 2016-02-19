@@ -116,9 +116,11 @@
 		</jar>
 		
 		<copy file="samples/iotfdeviceclient/src/device.prop" todir="${outputDir}"/>
+		<copy file="samples/iotfdeviceclient/src/gateway.prop" todir="${outputDir}"/>
 		<copy file="samples/iotfdeviceclient/src/application.prop" todir="${outputDir}"/>
 		<copy file="samples/iotfdeviceclient/src/sample.config" todir="${outputDir}"/>
 		<copy file="samples/iotfdevicemanagement/src/DMDeviceSample.properties" todir="${outputDir}"/>
+		<copy file="samples/iotfdevicemanagement/src/DMGatewaySample.properties" todir="${outputDir}"/>
 		<copy file="samples/iotfdevicemanagement/src/avrdude.properties" todir="${outputDir}"/>
 		
 		<!-- Build the accompanying samples jar -->
