@@ -75,6 +75,9 @@ public class SimpleGatewayExample {
 			this.gwDeviceType = props.getProperty("Gateway-Type");
 			gwClient.connect();
 			
+			/**
+			 * We need APIClient to register the devicetype in Watson IoT Platform 
+			 */
 			Properties options = new Properties();
 			options.put("Organization-ID", props.getProperty("Organization-ID"));
 			options.put("id", "app" + (Math.random() * 10000));		
@@ -163,7 +166,7 @@ public class SimpleGatewayExample {
 	 * Add a device under the given gateway using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
-	private void addDevice(String deviceId) throws IoTFCReSTException {
+	private void addDevice(String deviceType, String deviceId) throws IoTFCReSTException {
 		try{
 			
 			String deviceToBeAdded = "{\"deviceId\": \"" + deviceId +
@@ -173,7 +176,7 @@ public class SimpleGatewayExample {
 			JsonParser parser = new JsonParser();
 			JsonElement input = parser.parse(deviceToBeAdded);
 			JsonObject response = this.gwClient.api().
-					registerDeviceUnderGateway(DEVICE_TYPE, this.gwDeviceId, this.gwDeviceType, input);
+					registerDeviceUnderGateway(deviceType, this.gwDeviceId, this.gwDeviceType, input);
 			System.out.println(response);
 			
 		} catch(IoTFCReSTException e) {
@@ -190,7 +193,7 @@ public class SimpleGatewayExample {
 		String fileName = Utility.getDefaultFilePath(PROPERTIES_FILE_NAME, DEFAULT_PATH);
 		sample.createGatewayClient(fileName);
 		sample.addDeviceType();
-		sample.addDevice(SIMULATOR_DEVICE_ID);
+		sample.addDevice(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
 
 		System.out.println("Gateway Started");
 		

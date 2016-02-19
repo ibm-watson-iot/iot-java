@@ -29,10 +29,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
+import com.ibm.iotf.devicemgmt.LogSeverity;
+import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
 import com.ibm.iotf.sample.client.gateway.DeviceInterface;
 
 /**
@@ -73,7 +76,7 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 	}
 	
 	private Map<String, DeviceInterface> deviceMap = new HashMap<String, DeviceInterface>();
-	private String gatewayDeviceId;
+	private ManagedGateway gateway;
 	
 	public void addDeviceInterface(String deviceId, DeviceInterface device) {
 		deviceMap.put(deviceId, device);
@@ -105,6 +108,8 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 			
 			firmwareURL = new URL(deviceFirmware.getUrl());
 			urlConnection = firmwareURL.openConnection();
+			int fileSize = urlConnection.getContentLength();
+			
 			if(deviceFirmware.getName() != null &&
 					!"".equals(deviceFirmware.getName())) {
 				downloadedFirmwareName = deviceFirmware.getName();
@@ -117,12 +122,39 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 			BufferedInputStream bis = new BufferedInputStream(urlConnection.getInputStream());
 			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file.getName()));
 			
+			// count the download size to send the progress report as DiagLog to Watson IoT Platform
+			int downloadedSize = 0;
+			
 			int data = bis.read();
+			downloadedSize += 1;
 			if(data != -1) {
 				bos.write(data);
 				byte[] block = new byte[1024];
 				while (true) {
 					int len = bis.read(block, 0, block.length);
+					downloadedSize += len;
+					
+					if(fileSize > 0) {
+						int progress = (int) (((float)downloadedSize / fileSize) * 100);
+						String message = "Firmware Download progress: "+progress + "%";
+						if(device != null) {
+							// This download is for device, so send device log
+							device.sendLog(message, new Date(), LogSeverity.informational);
+						} else {
+							gateway.addGatewayLog(message, new Date(), LogSeverity.informational);
+						}
+						System.out.println(message);
+					} else {
+						// If we can't retrieve the filesize, let us update how much we have download so far
+						String message = "Downloaded : "+ downloadedSize + " bytes so far";
+						if(device != null) {
+							// This download is for device, so send device log
+							device.sendLog(message, new Date(), LogSeverity.informational);
+						} else {
+							gateway.addGatewayLog(message, new Date(), LogSeverity.informational);
+						}
+						System.out.println(message);
+					}
 					if(len != -1) {
 						bos.write(block, 0, len);
 					} else {
@@ -387,9 +419,8 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 		}
 	}
 
-	public void setGatewayDeviceId(String gwDeviceId) {
-		this.gatewayDeviceId = gwDeviceId;
-		
+	public void setGateway(ManagedGateway gwClient) {
+		this.gateway = gwClient;
 	}
 
 }

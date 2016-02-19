@@ -96,7 +96,7 @@ public class ArduinoSimulatorInterface extends Thread implements DeviceInterface
 				
 				if(this.firmwareUpdated) {
 					count++;
-					event.addProperty("counter", count);
+					event.addProperty("count", count);
 				}
 				boolean status = this.gwClient.publishDeviceEvent(this.deviceType, this.deviceId, "status", event);
 				if(status == false) {
@@ -139,6 +139,8 @@ public class ArduinoSimulatorInterface extends Thread implements DeviceInterface
 		// Inform the server about the status through Diaglog if needed
 		gateway.addDeviceLog(this.deviceType, this.deviceId, message, timestamp, severity);
 		
+		System.out.println("Progress ::");
+		
 		for(int i = 1; i < 21; i++) {
 			try {
 				Thread.sleep(200);
@@ -147,7 +149,7 @@ public class ArduinoSimulatorInterface extends Thread implements DeviceInterface
 			}
 			// Inform the server about the progress through Diaglog if needed
 			gateway.addDeviceLog(this.deviceType, this.deviceId, "progress " + (i * 5) , new Date(), severity);
-			System.out.println("Progress :: "+ (i * 5));
+			System.out.print("  "+ (i * 5) + "%");
 		}
 
 		// Inform the server about the status through Diaglog if needed
@@ -203,4 +205,9 @@ public class ArduinoSimulatorInterface extends Thread implements DeviceInterface
 		this.bDisplay = !this.bDisplay;
 	}
 	
+	@Override
+	public void sendLog(String message, Date date, LogSeverity severity) {
+		ManagedGateway gw = (ManagedGateway)this.gwClient;
+		gw.addDeviceLog(this.deviceType, this.deviceId, message, date, severity);
+	}
 }

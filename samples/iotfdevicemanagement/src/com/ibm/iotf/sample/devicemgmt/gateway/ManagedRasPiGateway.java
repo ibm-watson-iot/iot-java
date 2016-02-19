@@ -140,7 +140,7 @@ public class ManagedRasPiGateway {
 	 * Add a device under the given gateway using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
-	private void addDevice(String deviceId) throws IoTFCReSTException {
+	private void addDevice(String deviceType, String deviceId) throws IoTFCReSTException {
 		try{
 			
 			String deviceToBeAdded = "{\"deviceId\": \"" + deviceId +
@@ -150,7 +150,7 @@ public class ManagedRasPiGateway {
 			JsonParser parser = new JsonParser();
 			JsonElement input = parser.parse(deviceToBeAdded);
 			JsonObject response = this.apiClient.registerDeviceUnderGateway(
-							DEVICE_TYPE, 
+							deviceType, 
 							this.mgdGateway.getGWDeviceId(), 
 							this.mgdGateway.getGWTypeId(), 
 							input);
@@ -178,7 +178,7 @@ public class ManagedRasPiGateway {
 			sample.createArduinoDeviceInterface();
 			
 			sample.addDeviceType();
-			sample.addDevice(ARDUINO_DEVICE_ID);
+			sample.addDevice(DEVICE_TYPE, ARDUINO_DEVICE_ID);
 			
 			
 			// Add the handlers
@@ -365,7 +365,7 @@ public class ManagedRasPiGateway {
 		// Connect to Watson IoT Platform
 		mgdGateway.connect();
 		
-		// We need to create APIclint to register the Arduino Uno device if its not registered already
+		// We need to create APIclint to register the device type of Arduino Uno device, if its not registered already
 		Properties options = new Properties();
 		options.put("Organization-ID", deviceProps.getProperty("Organization-ID"));
 		options.put("id", "app" + (Math.random() * 10000));		
@@ -435,7 +435,7 @@ public class ManagedRasPiGateway {
 		if(this.mgdGateway != null) {
 			GatewayFirmwareHandlerSample fwHandler = new GatewayFirmwareHandlerSample();
 			fwHandler.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
-			fwHandler.setGatewayDeviceId(this.mgdGateway.getGWDeviceId());
+			fwHandler.setGateway(this.mgdGateway);
 			mgdGateway.addFirmwareHandler(fwHandler);
 			System.out.println("Added Firmware Handler successfully !!");
 		}

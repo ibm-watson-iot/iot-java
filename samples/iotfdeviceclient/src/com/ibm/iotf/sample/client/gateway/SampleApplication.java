@@ -172,7 +172,6 @@ public class SampleApplication {
 			}
 		}
 
-
 		public void processEvent(Event event) {
 			try {
 				queue.put(event);

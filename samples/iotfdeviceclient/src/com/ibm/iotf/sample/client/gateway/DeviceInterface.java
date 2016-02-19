@@ -14,8 +14,11 @@
 
 package com.ibm.iotf.sample.client.gateway;
 
+import java.util.Date;
+
 import com.ibm.iotf.devicemgmt.DeviceAction;
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
+import com.ibm.iotf.devicemgmt.LogSeverity;
 
 /**
  * This class defines a command interface to push the command to the device
@@ -35,5 +38,7 @@ public interface DeviceInterface {
 	public void reboot(DeviceAction action);
 
 	public void toggleDisplay();
+
+	public void sendLog(String message, Date date, LogSeverity informational);
 
 }

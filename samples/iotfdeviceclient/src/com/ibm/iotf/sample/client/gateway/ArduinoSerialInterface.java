@@ -80,9 +80,6 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	private String port;
 	private boolean updateInProgress;
 	
-	// This indicates whether its a simulator or connected to actual Arduino Uno hardware
-	private boolean simulator;
-	
 	private GatewayClient gwClient;
 	
 	public ArduinoSerialInterface(String deviceId, String deviceType, String port, GatewayClient gatewayClient) {
@@ -103,7 +100,6 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	private BufferedWriter output;
 	private String downloadedFirmwareName;
 	private volatile boolean bDisplay = false;
-	private boolean failed;
 	/** Milliseconds to block while waiting for port open */
 	private static final int TIME_OUT = 2000;
 	/** Default bits per second for COM port. */
@@ -423,6 +419,12 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 			return value.trim();
 		}
 		return value;
+	}
+
+	@Override
+	public void sendLog(String message, Date date, LogSeverity severity) {
+		ManagedGateway gw = (ManagedGateway)this.gwClient;
+		gw.addDeviceLog(this.deviceType, this.deviceId, message, date, severity);
 	}
 
 }

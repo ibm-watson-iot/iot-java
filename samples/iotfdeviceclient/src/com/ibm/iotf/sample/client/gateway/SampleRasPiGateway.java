@@ -111,6 +111,9 @@ public class SampleRasPiGateway {
 			}
 			gwClient.connect();
 			
+			/**
+			 * We need APIClient to register the devicetype in Watson IoT Platform 
+			 */
 			Properties options = new Properties();
 			options.put("Organization-ID", props.getProperty("Organization-ID"));
 			options.put("id", "app" + (Math.random() * 10000));		
@@ -145,7 +148,7 @@ public class SampleRasPiGateway {
 	 * Add a device under the given gateway using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
-	private void addDevice(String deviceId) throws IoTFCReSTException {
+	private void addDevice(String deviceType, String deviceId) throws IoTFCReSTException {
 		try{
 			
 			String deviceToBeAdded = "{\"deviceId\": \"" + deviceId +
@@ -154,7 +157,7 @@ public class SampleRasPiGateway {
 			JsonParser parser = new JsonParser();
 			JsonElement input = parser.parse(deviceToBeAdded);
 			JsonObject response = this.gwClient.api().
-					registerDeviceUnderGateway(DEVICE_TYPE, this.gwDeviceId, this.gwDeviceType, input);
+					registerDeviceUnderGateway(deviceType, this.gwDeviceId, this.gwDeviceType, input);
 			System.out.println(response);
 			
 		} catch(IoTFCReSTException e) {
@@ -242,7 +245,7 @@ public class SampleRasPiGateway {
 		 * In this case we will add the device using the Watson Platform API.
 		 */
 		sample.addDeviceType();
-		sample.addDevice(ARDUINO_DEVICE_ID);
+		sample.addDevice(DEVICE_TYPE, ARDUINO_DEVICE_ID);
 		sample.addCommandCallback();
 
 		System.out.println("Gateway Started");
