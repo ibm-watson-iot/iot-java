@@ -165,8 +165,18 @@ public abstract class AbstractClient {
 			try {
 				mqttAsyncClient.connect(mqttClientOptions).waitForCompletion(1000 * 60);
 			} catch (MqttSecurityException e) {
-				e.printStackTrace();
+				System.err.println(e.getMessage());
+				System.err.println("Looks like one or more connection parameters are wrong !!!");
+				System.exit(-1);
+				
 			} catch (MqttException e) {
+				Throwable t = e.getCause();
+				if(t != null && t instanceof java.net.UnknownHostException) {
+					// We must give up as the host doesn't exist.
+					System.err.println(t.getMessage());
+					System.err.println("Disconnecting as the host is unreachable !!!");
+					System.exit(-1);
+				}
 				e.printStackTrace();
 			}
 			
