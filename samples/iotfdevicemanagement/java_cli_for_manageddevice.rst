@@ -5,41 +5,39 @@ Java Client Library - Managed Device
 Introduction
 -------------
 
-This client library describes how to use devices with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://github.com/ibm-messaging/iot-java/blob/master/README.md>`__. 
+This client library describes how to use devices with the Java WIoTP client library. For help with getting started with this module, see `Java Client Library - Introduction <https://github.com/ibm-messaging/iot-java/blob/master/README.md>`__. 
 
-This section contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java and perform device management operations like firmware update, location update, and diagnostics update.
+This section contains information on how devices can connect to the Internet of Things Platform Device Management service using Java and perform device management operations like firmware update, location update, and diagnostics update.
 
-The Device section contains information on how devices can publish events and handle commands using the Java ibmiotf Client Library. 
+The Device section contains information on how devices can publish events and handle commands using the Java WIoTP Client Library. 
 
-The Applications section contains information on how applications can use the Java ibmiotf Client Library to interact with devices. 
+The Applications section contains information on how applications can use the Java WIoTP Client Library to interact with devices. 
 
 
 Device Management
 -------------------------------------------------------------------------------
-The `device management <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html>`__ feature enhances the Internet of Things Foundation Connect service with new capabilities for managing devices. Device management makes a distinction between managed and unmanaged devices:
+The `device management <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html>`__ feature enhances the IBM Watson Internet of Things Platform service with new capabilities for managing devices. Device management makes a distinction between managed and unmanaged devices:
 
-* **Managed Devices** are defined as devices which have a management agent installed. The management agent sends and receives device metadata and responds to device management commands from the Internet of Things Foundation Connect. 
-* **Unmanaged Devices** are any devices which do not have a device management agent. All devices begin their lifecycle as unmanaged devices, and can transition to managed devices by sending a message from a device management agent to the Internet of Things Foundation Connect. 
+* **Managed Devices** are defined as devices which have a management agent installed. The management agent sends and receives device metadata and responds to device management commands from the IBM Watson Internet of Things Platform. 
+* **Unmanaged Devices** are any devices which do not have a device management agent. All devices begin their lifecycle as unmanaged devices, and can transition to managed devices by sending a message from a device management agent to the IBM Watson Internet of Things Platform. 
 
 
 ---------------------------------------------------------------------------
-Connecting to the Internet of Things Foundation Device Management Service
+Connecting to the Internet of Things Platform Device Management Service
 ---------------------------------------------------------------------------
 
 Create DeviceData
 ------------------------------------------------------------------------
-The `device model <https://docs.internetofthings.ibmcloud.com/reference/device_model.html>`__ describes the metadata and management characteristics of a device. The device database in the Internet of Things Foundation Connect is the master source of device information. Applications and managed devices are able to send updates to the database such as a location or the progress of a firmware update. Once these updates are received by the Internet of Things Foundation Connect, the device database is updated, making the information available to applications.
+The `device model <https://docs.internetofthings.ibmcloud.com/reference/device_model.html>`__ describes the metadata and management characteristics of a device. The device database in the IBM Watson Internet of Things Platform is the master source of device information. Applications and managed devices are able to send updates to the database such as a location or the progress of a firmware update. Once these updates are received by the IBM Watson Internet of Things Platform, the device database is updated, making the information available to applications.
 
-The device model in the ibmiotf client library is represented as DeviceData and to create a DeviceData one needs to create the following objects,
+The device model in the WIoTP client library is represented as DeviceData and to create a DeviceData one needs to create the following objects,
 
-* DeviceInfo (mandatory)
-* DeviceLocation (required if the device supports location update)
-* DiagnosticErrorCode (required if the device wants to update the ErrorCode)
-* DiagnosticLog (required if the device wants to update Log information)
-* DeviceFirmware (required if the device supports Firmware Actions)
+* DeviceInfo (Optional)
+* DeviceLocation (Optional, required only if the device wants to be notified about the location set by the application through Watson IoT Platform API)
+* DeviceFirmware (Optional)
 * DeviceMetadata (optional)
 
-The following code snippet shows how to create the mandatory object DeviceInfo along with an optional object DeviceMetadata with sample data:
+The following code snippet shows how to create the object DeviceInfo along with DeviceMetadata with sample data:
 
 .. code:: java
 
@@ -71,7 +69,7 @@ The following code snippet shows how to create the DeviceData object with the ab
 				 build();
 Construct ManagedDevice
 -------------------------------------------------------------------------------
-ManagedDevice - A device class that connects the device as managed device to Internet of Things Foundation Connect and enables the device to perform one or more Device Management operations. Also the ManagedDevice instance can be used to do normal device operations like publishing device events and listening for commands from application.
+ManagedDevice - A device class that connects the device as managed device to IBM Watson Internet of Things Platform and enables the device to perform one or more Device Management operations. Also the ManagedDevice instance can be used to do normal device operations like publishing device events and listening for commands from application.
 
 ManagedDevice exposes 2 different constructors to support different user patterns, 
 
@@ -85,7 +83,7 @@ Constructs a ManagedDevice instance by accepting the DeviceData and the followin
 * Authentication-Method - Method of authentication (The only value currently supported is "token"). 
 * Authentication-Token - API key token
 
-All these properties are required to interact with the Internet of Things Foundation Connect. 
+All these properties are required to interact with the IBM Watson Internet of Things Platform. 
 
 The following code shows how to create a ManagedDevice instance:
 
@@ -100,7 +98,7 @@ The following code shows how to create a ManagedDevice instance:
 	
 	ManagedDevice managedDevice = new ManagedDevice(options, deviceData);
  
-The existing users of DeviceClient might observe that the names of these properties have changed slightly. These names have been changed to mirror the names in the Internet of Things Foundation Connect Dashboard, but the existing users who want to migrate from the DeviceClient to the ManagedDevice can still use the old format and construct the ManagedDevice instance as follows:
+The existing users of DeviceClient might observe that the names of these properties have changed slightly. These names have been changed to mirror the names in the IBM Watson Internet of Things Platform Dashboard, but the existing users who want to migrate from the DeviceClient to the ManagedDevice can still use the old format and construct the ManagedDevice instance as follows:
 
 .. code:: java
 
@@ -136,165 +134,82 @@ Note this constructor helps the custom device users to create a ManagedDevice in
 
 Manage	
 ------------------------------------------------------------------
-The device can invoke manage() method to participate in device management activities. The manage request will initiate a connect request internally if the device is not connected to the Internet of Things Foundation Connect already:
+The device can invoke sendManageRequest() method to participate in device management activities. The manage request will initiate a connect request internally if the device is not connected to the IBM Watson Internet of Things Platform already:
 
 .. code:: java
 
-	managedDevice.manage();
+	managedDevice.manage(0, true, true);
 	
-The device can use overloaded manage (lifetime) method to register the device for a given timeframe. The timeframe specifies the length of time within which the device must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant.
+As shown, this method accepts following 3 parameters,
 
-.. code:: java
+* *lifetime* The length of time in seconds within which the device must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant. If set to 0, the managed device will not become dormant. When set, the minimum supported setting is 3600 (1 hour).
+* *supportFirmwareActions* Tells whether the device supports firmware actions or not. The device must add a firmware handler to handle the firmware requests.
+* *supportDeviceActions* Tells whether the device supports Device actions or not. The device must add a Device action handler to handle the reboot and factory reset requests.
 
-    managedDevice.manage(3600);
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/manage-device#manage-device>`__ for more information about the manage operation.
 
 Unmanage
 -----------------------------------------------------
 
-A device can invoke unmanage() method when it no longer needs to be managed. The Internet of Things Foundation Connect will no longer send new device management requests to this device and all device management requests from this device will be rejected other than a **Manage device** request.
+A device can invoke sendUnmanageRequest() method when it no longer needs to be managed. The IBM Watson Internet of Things Platform will no longer send new device management requests to this device and all device management requests from this device will be rejected other than a **Manage device** request.
 
 .. code:: java
 
-	managedDevice.unmanage();
+	managedDevice.sendUnmanageRequest();
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/unmanage-device#unmanage-device>`__ for more information about the Unmanage operation.
 
 Location Update
 -----------------------------------------------------
 
-Devices that can determine their location can choose to notify the Internet of Things Foundation Connect about location changes. In order to update the location, the device needs to create DeviceData instance with the DeviceLocation object first.
+Devices that can determine their location can choose to notify the IBM Watson Internet of Things Platform about location changes. The Device can invoke one of the overloaded updateLocation() method to update the location of the device. 
 
 .. code:: java
 
-    // Construct the location object with latitude, longitude and elevation
-    DeviceLocation deviceLocation = new DeviceLocation.Builder(30.28565, -97.73921).
-								elevation(10).
-								build();
-    DeviceData deviceData = new DeviceData.Builder().
-				 deviceInfo(deviceInfo).
-				 deviceLocation(deviceLocation).
-				 metadata(metadata).
-				 build();
-	
-    
-Once the device is connected to Internet of Things Foundation Connect, the location can be updated by invoking the following method:
-
-.. code:: java
-
-	int rc = deviceLocation.sendLocation();
-	if(rc == 200) {
-	    	System.out.println("Current location (" + deviceLocation.toString() + ")");
-	} else {
-            	System.err.println("Failed to update the location");
-	}
-
-Later, any new location can be updated by changing the properties of the DeviceLocation object:
-
-.. code:: java
-
-	int rc = deviceLocation.update(40.28, -98.33, 11);
-	if(rc == 200) {
-		System.out.println("Current location (" + deviceLocation.toString() + ")");
-	} else {
-		System.err.println("Failed to update the location");
-	}
-
-The update() method informs the Internet of Things Foundation Connect about the new location.
+    // update the location with latitude, longitude and elevation
+    int rc = managedDevice.updateLocation(30.28565, -97.73921, 10);
+    if(rc == 200) {
+        System.out.println("Location updated successfully !!");
+    } else {
+     	System.err.println("Failed to update the location !!");
+    }
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/update-location#update-location>`__ for more information about the Location update.
 
 Append/Clear ErrorCodes
 -----------------------------------------------
 
-Devices can choose to notify the Internet of Things Foundation Connect about changes in their error status. In order to send the ErrorCodes the device needs to construct a DiagnosticErrorCode object as follows:
+Devices can choose to notify the IBM Watson Internet of Things Platform about changes in their error status. The Device can invoke  addErrorCode() method to add the current errorcode to Watson IoT Platform.
 
 .. code:: java
 
-	DiagnosticErrorCode errorCode = new DiagnosticErrorCode(0);
-	
-	DeviceData deviceData = new DeviceData.Builder().
-				 deviceInfo(deviceInfo).
-				 deviceErrorCode(errorCode).
-				 metadata(metadata).
-				 build();
+	int rc = managedDevice.addErrorCode(300);
 
-Once the device is connected to Internet of Things Foundation Connect, the ErrorCode can be sent by calling the send() method as follows:
+Also, the ErrorCodes can be cleared from IBM Watson Internet of Things Platform by calling the clearErrorCodes() method as follows:
 
 .. code:: java
 
-	errorCode.send();
-
-Later, any new ErrorCodes can be easily added to the Internet of Things Foundation Connect by calling the append method as follows:
-
-.. code:: java
-
-	int rc = errorCode.append(500);
-	if(rc == 200) {
-		System.out.println("Current Errorcode (" + errorCode + ")");
-	} else {
-		System.out.println("Errorcode addition failed!");
-	}
-
-Also, the ErrorCodes can be cleared from Internet of Things Foundation Connect by calling the clear() method as follows:
-
-.. code:: java
-
-	int rc = errorCode.clear();
-	if(rc == 200) {
-		System.out.println("ErrorCodes are cleared successfully!");
-	} else {
-		System.out.println("Failed to clear the ErrorCodes!");
-	}
+	int rc = managedDevice.clearErrorCodes();
 
 Append/Clear Log messages
 -----------------------------
-Devices can choose to notify the Internet of Things Foundation Connect about changes by adding a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. In order to send log messages, the device needs to construct a DiagnosticLog object as follows:
+Devices can choose to notify the IBM Watson Internet of Things Platform about changes by adding a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. The Devices can invoke addLog() method to send log messages,
+
+.. code:: java
+	// An example Log event
+	String message = "Firmware Download Progress (%): " + 50;
+	Date timestamp = new Date();
+	LogSeverity severity = LogSeverity.informational;
+	int rc = managedDevice.addLog(message, timestamp, severity);
+	
+Also, the log messages can be cleared from IBM Watson Internet of Things Platform by calling the clearLogs() method as follows:
 
 .. code:: java
 
-	DiagnosticLog log = new DiagnosticLog(
-				"Simple Log Message", 
-				new Date(),
-				DiagnosticLog.LogSeverity.informational);
-		
-	DeviceData deviceData = new DeviceData.Builder().
-				 deviceInfo(deviceInfo).
-				 deviceLog(log).
-				 metadata(metadata).
-				 build();
+	rc = managedDevice.clearLogs();
 
-Once the device is connected to Internet of Things Foundation Connect, the log message can be sent by calling the send() method as follows:
-
-.. code:: java
-
-	log.send();
-
-Later, any new log messages can be easily added to the Internet of Things Foundation Connect by calling the append method as follows:
-
-.. code:: java
-
-	int rc = log.append("sample log", new Date(), DiagnosticLog.LogSeverity.informational);
-			
-	if(rc == 200) {
-		System.out.println("Current Log (" + log + ")");
-	} else {
-		System.out.println("Log Addition failed");
-	}
-
-Also, the log messages can be cleared from Internet of Things Foundation Connect by calling the clear method as follows:
-
-.. code:: java
-
-	rc = log.clear();
-	if(rc == 200) {
-		System.out.println("Logs are cleared successfully");
-	} else {
-		System.out.println("Failed to clear the Logs")
-	}	
-
-The device diagnostics operations are intended to provide information on device errors, and does not provide diagnostic information relating to the devices connection to the Internet of Things Foundation Connect.
+The device diagnostics operations are intended to provide information on device errors, and does not provide diagnostic information relating to the devices connection to the IBM Watson Internet of Things Platform.
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/update-location#update-location>`__ for more information about the Diagnostics operation.
 
@@ -307,9 +222,9 @@ The firmware update process is separated into two distinct actions:
 
 The device needs to do the following activities to support Firmware Actions:
 
-**1. Construct DeviceFirmware Object**
+**1. Construct DeviceFirmware Object (Optional)**
 
-In order to perform Firmware actions the device needs to construct the DeviceFirmware object and add it to DeviceData as follows:
+In order to perform Firmware actions the device can optionally construct the DeviceFirmware object and add it to DeviceData as follows:
 
 .. code:: java
 
@@ -331,18 +246,17 @@ In order to perform Firmware actions the device needs to construct the DeviceFir
 	managedDevice.connect();
 		
 
-The DeviceFirmware object represents the current firmware of the device and will be used to report the status of the Firmware Download and Firmware Update actions to Internet of Things Foundation Connect.
+The DeviceFirmware object represents the current firmware of the device and will be used to report the status of the Firmware Download and Firmware Update actions to IBM Watson Internet of Things Platform. In case this DeviceFirmware object is not constructed by the device, then the library creates an empty object and reports the status to Watson IoT Platform.
 
 **2. Inform the server about the Firmware action support**
 
-The device needs to set the firmware action flag to true in order for the server to initiate the firmware request. This can be achieved by invoking a following method with a boolean value:
+The device needs to set the firmware action flag to true in order for the server to initiate the firmware request. This can be achieved by invoking the sendManageRequest() method with a true value for supportFirmwareActions parameter,
 
 .. code:: java
 
-    	managedDevice.supportsFirmwareActions(true);
-    	managedDevice.manage();
-	
-As the manage request informs the Internet of Things Foundation Connect about the firmware action support, manage() method needs to be called right after setting the firmware action support.
+    	managedDevice.sendManageRequest(3600, true, false);
+
+Once the support is informed to the DM server, the server then forwards the firmware actions to the device.
 
 **3. Create the Firmware Action Handler**
 
@@ -422,7 +336,7 @@ A sample Firmware Download implementation for a Raspberry Pi device is shown bel
 		}
 	}
 
-Device can check the integrity of the downloaded firmware image using the verifier and report the status back to Internet of Things Foundation Connect. The verifier can be set by the device during the startup (while creating the DeviceFirmware Object) or as part of the Download Firmware request by the application. A sample code to verify the same is below:
+Device can check the integrity of the downloaded firmware image using the verifier and report the status back to IBM Watson Internet of Things Platform. The verifier can be set by the device during the startup (while creating the DeviceFirmware Object) or as part of the Download Firmware request by the application. A sample code to verify the same is below:
 
 .. code:: java
 
@@ -497,7 +411,7 @@ The complete code can be found in the device management sample `RasPiFirmwareHan
 
 **4. Add the handler to ManagedDevice**
 
-The created handler needs to be added to the ManagedDevice instance so that the ibmiotf client library invokes the corresponding method when there is a Firmware action request from Internet of Things Foundation Connect.
+The created handler needs to be added to the ManagedDevice instance so that the WIoTP client library invokes the corresponding method when there is a Firmware action request from IBM Watson Internet of Things Platform.
 
 .. code:: java
 
@@ -508,7 +422,7 @@ Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_m
 
 Device Actions
 ------------------------------------
-The Internet of Things Foundation Connect supports the following device actions:
+The IBM Watson Internet of Things Platform supports the following device actions:
 
 * Reboot
 * Factory Reset
@@ -517,14 +431,13 @@ The device needs to do the following activities to support Device Actions:
 
 **1. Inform server about the Device Actions support**
 
-In order to perform Reboot and Factory Reset, the device needs to inform the Internet of Things Foundation Connect about its support first. This can achieved by invoking a following method with a boolean value:
+In order to perform Reboot and Factory Reset, the device needs to inform the IBM Watson Internet of Things Platform about its support first. This can be achieved by invoking the sendManageRequest() method with a true value for supportDeviceActions parameter,
 
 .. code:: java
-	
-	managedDevice.supportsDeviceActions(true);
-    	managedDevice.manage();
-	
-As the manage request informs the Internet of Things Foundation Connect about the device action support, manage() method needs to be called right after setting the device action support.
+	// Last parameter represents the device action support
+    	managedDevice.sendManageRequest(3600, true, true);
+
+Once the support is informed to the DM server, the server then forwards the device action requests to the device.
 	
 **2. Create the Device Action Handler**
 
@@ -537,7 +450,7 @@ In order to support the device action, the device needs to create a handler and 
 
 **2.1 Sample implementation of handleReboot**
 
-The implementation must add a logic to reboot the device and report the status of the reboot via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because the successful operation reboots the device and the device code will not have a control to update the Internet of Things Foundation Connect). A sample reboot implementation for a Raspberry Pi device is shown below:
+The implementation must add a logic to reboot the device and report the status of the reboot via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because the successful operation reboots the device and the device code will not have a control to update the IBM Watson Internet of Things Platform). A sample reboot implementation for a Raspberry Pi device is shown below:
 
 .. code:: java
 
@@ -564,7 +477,7 @@ The complete code can be found in the device management sample `DeviceActionHand
 
 **2.2 Sample implementation of handleFactoryReset**
 
-The implementation must add a logic to reset the device to factory settings and report the status via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because as part of this process, the device reboots and the device will not have a control to update status to Internet of Things Foundation Connect). The skeleton of the Factory Reset implementation is shown below:
+The implementation must add a logic to reset the device to factory settings and report the status via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because as part of this process, the device reboots and the device will not have a control to update status to IBM Watson Internet of Things Platform). The skeleton of the Factory Reset implementation is shown below:
 
 .. code:: java
 	
@@ -581,7 +494,7 @@ The implementation must add a logic to reset the device to factory settings and 
 
 **3. Add the handler to ManagedDevice**
 
-The created handler needs to be added to the ManagedDevice instance so that the ibmiotf client library invokes the corresponding method when there is a device action request from Internet of Things Foundation Connect.
+The created handler needs to be added to the ManagedDevice instance so that the WIoTP client library invokes the corresponding method when there is a device action request from IBM Watson Internet of Things Platform.
 
 .. code:: java
 
@@ -593,7 +506,7 @@ Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_m
 Listen for Device attribute changes
 -----------------------------------------------------------------
 
-This ibmiotf client library updates the corresponding objects whenever there is an update request from the Internet of Things Foundation Connect, these update requests are initiated by the application either directly or indirectly (Firmware Update) via the Internet of Things Foundation Connect ReST API. Apart from updating these attributes, the library provides a mechanism where the device can be notified whenever a device attribute is updated.
+This WIoTP client library updates the corresponding objects whenever there is an update request from the IBM Watson Internet of Things Platform, these update requests are initiated by the application either directly or indirectly (Firmware Update) via the IBM Watson Internet of Things Platform ReST API. Apart from updating these attributes, the library provides a mechanism where the device can be notified whenever a device attribute is updated.
 
 Attributes that can be updated by this operation are location, metadata, device information and firmware.
 
@@ -655,4 +568,4 @@ Examples
 Recipe
 ----------
 
-Refer to `the recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-managed-device-to-ibm-iot-foundation/>`__ that shows how to connect the Raspberry Pi device as managed device to Internet of Things Foundation Connect to perform various device management operations in step by step using this client library.
+Refer to `the recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-managed-device-to-ibm-iot-foundation/>`__ that shows how to connect the Raspberry Pi device as managed device to IBM Watson Internet of Things Platform to perform various device management operations in step by step using this client library.
