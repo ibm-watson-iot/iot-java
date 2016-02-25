@@ -33,7 +33,10 @@ import java.util.Properties;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.devicemgmt.DeviceAction;
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
@@ -79,6 +82,8 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	private String deviceType;
 	private String port;
 	private boolean updateInProgress;
+
+	private static String LED_DATAPOINT_NAME = "led";
 	
 	private GatewayClient gwClient;
 	
@@ -181,12 +186,24 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	public void sendCommand(String cmd) {
 		if(this.output != null && updateInProgress == false) {
 			try {
-				System.out.println("writing the cmd to arduino "+cmd);
-				this.output.write(cmd);
+				String value = null;
+				try {
+					JsonObject payloadJson = JSON_PARSER.parse(cmd).getAsJsonObject();
+					if (payloadJson.has("d")) {
+						payloadJson = payloadJson.get("d").getAsJsonObject();
+					} 
+					value = payloadJson.get(LED_DATAPOINT_NAME).getAsString();
+				} catch (JsonSyntaxException e) {
+					System.err.println("JsonSyntaxException thrown");
+				} catch (JsonParseException jpe) {
+					System.err.println("JsonParseException thrown");							
+				}
+				
+				System.out.println("writing the cmd to arduino "+value);
+				this.output.write(value);
 				this.output.write(" "); // delimiter
 				this.output.flush();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -213,7 +230,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 				try {
 					line = input.readLine();
 					if(bDisplay)
-						System.out.println(line);
+						System.out.println("<--(DE) "+line);
 				} catch (Exception e) {
 					System.err.println(e.toString());
 				}
@@ -283,7 +300,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 		String message = "Firmware Update Event start";
 		LogSeverity severity = LogSeverity.informational;
 		// Inform the server about the status through Diaglog if needed
-		int rc = gateway.addDeviceLog(this.deviceType, this.deviceId, message, timestamp, severity);
+		gateway.addDeviceLog(this.deviceType, this.deviceId, message, timestamp, severity);
 		
 		close();
 		
@@ -422,7 +439,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	}
 
 	@Override
-	public void sendLog(String message, Date date, LogSeverity severity) {
+	public void sendLog(LogSeverity severity, String message, String data, Date date) {
 		ManagedGateway gw = (ManagedGateway)this.gwClient;
 		gw.addDeviceLog(this.deviceType, this.deviceId, message, date, severity);
 	}

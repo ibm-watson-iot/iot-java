@@ -19,6 +19,9 @@ import java.util.Random;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.devicemgmt.DeviceAction;
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
@@ -34,6 +37,9 @@ import com.ibm.iotf.sample.devicemgmt.gateway.GatewayFirmwareHandlerSample;
  *      
  */
 public class ArduinoSimulatorInterface extends Thread implements DeviceInterface {
+	
+	private static String LED_DATAPOINT_NAME = "led";
+	
 	/**
 	 * Watson IoT Platform related parameters
 	 */
@@ -80,7 +86,21 @@ public class ArduinoSimulatorInterface extends Thread implements DeviceInterface
 	public void sendCommand(String cmd) {
 		System.out.println("writing the cmd to arduino "+cmd);
 		
-		int number = Integer.parseInt(cmd);
+		String value = null;
+		try {
+			JsonObject payloadJson = JSON_PARSER.parse(cmd).getAsJsonObject();
+			if (payloadJson.has("d")) {
+				payloadJson = payloadJson.get("d").getAsJsonObject();
+			} 
+			value = payloadJson.get(LED_DATAPOINT_NAME).getAsString();
+		} catch (JsonSyntaxException e) {
+			System.err.println("JsonSyntaxException thrown");
+		} catch (JsonParseException jpe) {
+			System.err.println("JsonParseException thrown");							
+		}
+		
+		
+		int number = Integer.parseInt(value);
 		if(number != 0) {
 			System.out.println("Arduino Uno blinked " + number +" times  !!");
 		}
@@ -102,7 +122,7 @@ public class ArduinoSimulatorInterface extends Thread implements DeviceInterface
 				if(status == false) {
 					System.err.println("Failed to publish the temperature from Arduino");
 				} else if(bDisplay) {
-					System.out.println("Arduino event :: "+event);
+					System.out.println("<-- (DE) Arduino event :: "+event);
 				}
 			}
 			
@@ -206,7 +226,7 @@ public class ArduinoSimulatorInterface extends Thread implements DeviceInterface
 	}
 	
 	@Override
-	public void sendLog(String message, Date date, LogSeverity severity) {
+	public void sendLog(LogSeverity severity, String message, String data, Date date) {
 		ManagedGateway gw = (ManagedGateway)this.gwClient;
 		gw.addDeviceLog(this.deviceType, this.deviceId, message, date, severity);
 	}

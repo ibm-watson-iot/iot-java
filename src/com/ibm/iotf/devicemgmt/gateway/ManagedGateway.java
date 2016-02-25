@@ -487,11 +487,11 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			}
 			success = true;
 			this.devicesMap.put(key, mc);
-			if(this.fwHandler != null) {
+			if(this.fwHandler != null && supportsFirmwareActions == true) {
 				mc.getDeviceData().getDeviceFirmware().addPropertyChangeListener(
 						Resource.ChangeListenerType.INTERNAL, fwHandler);
 			}
-			if(this.actionHandler != null) {
+			if(this.actionHandler != null && supportsFirmwareActions == true) {
 				mc.getDeviceData().getDeviceAction().addPropertyChangeListener(
 						Resource.ChangeListenerType.INTERNAL, actionHandler);
 			}
@@ -1426,7 +1426,9 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		while(itr.hasNext()) {
 			ManagedGatewayDevice mc = (ManagedGatewayDevice) this.devicesMap.get(itr.next());
 			DeviceData deviceData = mc.getDeviceData();
-			deviceData.getDeviceFirmware().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, fwHandler);
+			if(mc.isFirmwareActions()) {
+				deviceData.getDeviceFirmware().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, fwHandler);
+			}
 		}
 	}
 
@@ -1466,7 +1468,9 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		while(itr.hasNext()) {
 			ManagedGatewayDevice mc = (ManagedGatewayDevice) this.devicesMap.get(itr.next());
 			DeviceData deviceData = mc.getDeviceData();
-			deviceData.getDeviceAction().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, actionHandler);
+			if(mc.isDeviceActions()) {
+				deviceData.getDeviceAction().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, actionHandler);
+			}
 		}
 	}
 

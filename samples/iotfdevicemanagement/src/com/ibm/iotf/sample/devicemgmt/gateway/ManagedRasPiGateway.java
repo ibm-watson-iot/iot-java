@@ -38,7 +38,7 @@ import com.ibm.iotf.sample.util.Utility;
  * by managing the Arduino Uno device through the Raspberry Pi Gateway.</p>
  * 
  * <ul class="simple">
- * <li>Manage - Manage the Gateway and the attached Arduino Uno device
+ * <li>Manage - Manage the Gateway and the attached 
  * <li>Firmware update - Update the sketch code of Arduino Uno via the Gateway
  * <li>Device Reboot - Reboot both the Raspberry Pi Gateway and Arduino Uno device
  * <li>Location Update - Update the location of Gateway and Arduino Uno device
@@ -87,10 +87,25 @@ public class ManagedRasPiGateway {
 	private final static String DEFAULT_SERIAL_PORT = "/dev/ttyACM0";
 	
 	private ManagedGateway mgdGateway;
-	private DeviceInterface arduino;      // Represents either Arduino Uno simulator or hardware
+	// Represents either Arduino Uno simulator or hardware
+	private DeviceInterface arduino;      
+	// The port in which Arduino Uno and Rasperry Pi is connected - required onlu when hardwares are present
 	private String port;
-	private Random random = new Random();
+	// Used for random errorcode generation
+	private Random random = new Random(); 
+	/**
+	 * There are different ways to register the device in Watson IoT Platform that are behind the Gateway.
+	 * 
+	 * 1. Auto registration: The Device gets added automatically
+	 * 2. API: Using the Watson IoT Platform API
+	 * 
+	 * This field carries the user selection. 
+	 */
+	private boolean bManualRegistrationMode;
+	
+	// Required if the user wants to add the device using manual registration
 	private APIClient apiClient;
+	
 
 	/**
 	 * When the GatewayClient connects, it automatically subscribes to any commands for this Gateway. 
@@ -107,7 +122,7 @@ public class ManagedRasPiGateway {
 	 */
 	private void addCommandCallback() {
 		GatewayCommandCallback callback = new GatewayCommandCallback();
-		mgdGateway.setCommandCallback(callback);
+		mgdGateway.setGatewayCallback(callback);
 		mgdGateway.subscribeToDeviceCommands(DEVICE_TYPE, ARDUINO_DEVICE_ID);
 		try {
 			callback.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
@@ -120,18 +135,23 @@ public class ManagedRasPiGateway {
 	}
 	
 	/**
-	 * This sample showcases how to Create a device type using the Java Client Library. 
+	 * This sample adds a device type using the Java Client Library. 
 	 * @throws IoTFCReSTException
 	 */
-	private void addDeviceType() throws IoTFCReSTException {
+	private void addDeviceType(String deviceType) throws IoTFCReSTException {
 		try {
-			JsonObject response = this.apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
-			System.out.println(response);
+			System.out.println("<-- Adding device type "+deviceType);
+			JsonObject joDt = apiClient.getDeviceType(deviceType);
+			if (!joDt.isJsonNull()) {
+				// device type already exist in WIoTP
+				return;
+			}
 		} catch(IoTFCReSTException e) {
-			if(e.getHttpCode() != 409) { // 409 : device type is already present
-				System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-				// Print if there is a partial response
-				System.out.println(e.getResponse());
+			if (e.getHttpCode() == 404) {
+					apiClient.addDeviceType(deviceType, deviceType, null, null);
+			} else {
+				System.err.println("ERROR: unable to add manually device type " + e.getMessage());
+				e.printStackTrace();
 			}
 		}
 	}
@@ -141,27 +161,17 @@ public class ManagedRasPiGateway {
 	 * @throws IoTFCReSTException
 	 */
 	private void addDevice(String deviceType, String deviceId) throws IoTFCReSTException {
-		try{
-			
-			String deviceToBeAdded = "{\"deviceId\": \"" + deviceId +
-						"\",\"authToken\": \"qwert123\"}";
-
-			System.out.println(deviceToBeAdded);
-			JsonParser parser = new JsonParser();
-			JsonElement input = parser.parse(deviceToBeAdded);
-			JsonObject response = this.apiClient.registerDeviceUnderGateway(
-							deviceType, 
-							this.mgdGateway.getGWDeviceId(), 
-							this.mgdGateway.getGWTypeId(), 
-							input);
-			System.out.println(response);
-			
-		} catch(IoTFCReSTException e) {
-			if(e.getHttpCode() != 409) { // 409 : device is already present
-				
-				System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-				// Print if there is a partial response
-				System.out.println(e.getResponse());
+		try {
+			System.out.println("<-- Adding device "+deviceId);
+			mgdGateway.api().getDevice(deviceType, deviceId);
+		} catch (IoTFCReSTException ex) {
+			if (ex.getHttpCode() == 404) {
+				mgdGateway.api().registerDeviceUnderGateway(deviceType, deviceId,
+						this.mgdGateway.getGWTypeId(), 
+						this.mgdGateway.getGWDeviceId());
+			} else {
+				System.out.println("ERROR: unable to add manually device " + ex.getMessage());
+				ex.printStackTrace();
 			}
 		}
 	}	
@@ -177,16 +187,20 @@ public class ManagedRasPiGateway {
 			sample.createManagedClient(fileName);
 			sample.createArduinoDeviceInterface();
 			
-			sample.addDeviceType();
-			sample.addDevice(DEVICE_TYPE, ARDUINO_DEVICE_ID);
+			/**
+			 * There are different ways to register the device in Watson IoT Platform that are behind the Gateway.
+			 * 
+			 * 1. Auto registration: The Device gets added automatically
+			 * 2. API: Using the Watson IoT Platform API
+			 * 
+			 * Register the device, based on user settings. 
+			 */
+			if(sample.bManualRegistrationMode) {
+				sample.addDeviceType(DEVICE_TYPE);
+				sample.addDevice(DEVICE_TYPE, ARDUINO_DEVICE_ID);
+			}
 			
-			
-			// Add the handlers
-			sample.addDeviceActionHandler();
-			sample.addFirmwareHandler();
-
 			sample.addCommandCallback();
-			sample.arduino.toggleDisplay(); // activate the console display 
 			sample.userAction();
 			
 
@@ -365,14 +379,22 @@ public class ManagedRasPiGateway {
 		// Connect to Watson IoT Platform
 		mgdGateway.connect();
 		
-		// We need to create APIclint to register the device type of Arduino Uno device, if its not registered already
-		Properties options = new Properties();
-		options.put("Organization-ID", deviceProps.getProperty("Organization-ID"));
-		options.put("id", "app" + (Math.random() * 10000));		
-		options.put("Authentication-Method","apikey");
-		options.put("API-Key", deviceProps.getProperty("API-Key"));		
-		options.put("Authentication-Token", deviceProps.getProperty("API-Token"));
-		this.apiClient = new APIClient(options);
+		String mode = deviceProps.getProperty("Registration-Mode");
+		
+		if("MANUAL".equalsIgnoreCase(mode)) {
+			this.bManualRegistrationMode = true;
+			// We need to create APIclint to register the device type of Arduino Uno device, if its not registered already
+			Properties options = new Properties();
+			options.put("Organization-ID", deviceProps.getProperty("Organization-ID"));
+			options.put("id", "app" + (Math.random() * 10000));		
+			options.put("Authentication-Method","apikey");
+			options.put("API-Key", deviceProps.getProperty("API-Key"));		
+			options.put("Authentication-Token", deviceProps.getProperty("API-Token"));
+			this.apiClient = new APIClient(options);
+		} else {
+			this.bManualRegistrationMode = false;
+		}
+
 	}
 	
 	/**
@@ -386,7 +408,6 @@ public class ManagedRasPiGateway {
 				this.mgdGateway);
 		
 	}
-	
 	
 	private void disconnect() {
 		//Disconnect cleanly
@@ -407,6 +428,15 @@ public class ManagedRasPiGateway {
 		} else {
 			System.out.println("Gateway manage request failed!!");
 		}
+		
+		/**
+		 *  Add the handlers inorder to receive the Firmware action/Device action.
+		 *  The library supports a handler for the gateway and all the attached devices.
+		 */
+		
+		this.addDeviceActionHandler();
+		this.addFirmwareHandler();
+
 		return status;
 	}
 	
@@ -484,12 +514,12 @@ public class ManagedRasPiGateway {
     	Scanner in = new Scanner(System.in);
     	final String DEVICE = "device";
     	final String GATEWAY = "gateway";
-    	TYPE type = TYPE.GATEWAY_AND_DEVICE;
+    	TYPE type = TYPE.GATEWAY;
     	printOptions();
     	while(true) {
     		try {
 	    		System.out.println("Enter the command ");
-	    		type = TYPE.GATEWAY_AND_DEVICE;
+	    		type = TYPE.GATEWAY;
 	            String input = in.nextLine();
 	            String[] parameters = input.split(" ");
 	            if(parameters.length == 2) {
@@ -504,14 +534,7 @@ public class ManagedRasPiGateway {
 	            
 	            case "manage":
 	            	int lifetime = 0;
-	            	if(parameters.length == 2 && type == TYPE.GATEWAY_AND_DEVICE) {
-	            		// User has entered a lifetime paramter
-	            		try {
-	            			lifetime = Integer.parseInt(parameters[1]);
-	            		} catch(Exception e) {
-	            			// Ignore any invalid numbers.
-	            		}
-	            	} else if(parameters.length == 3) {
+	            	if(parameters.length == 3) {
 	            		// User has entered a lifetime paramter
 	            		try {
 	            			lifetime = Integer.parseInt(parameters[2]);
@@ -520,46 +543,41 @@ public class ManagedRasPiGateway {
 	            		}
 	            	}
 	            	
-           			if(type == TYPE.GATEWAY || type == TYPE.GATEWAY_AND_DEVICE) {
+           			if(type == TYPE.GATEWAY ) {
            				this.sendGatewayManageRequest(lifetime);
-           			} 
-           			if(type == TYPE.DEVICE || type == TYPE.GATEWAY_AND_DEVICE) {
+           			} else if(type == TYPE.DEVICE ) {
            				this.sendDeviceManageRequest(lifetime);
             		}
             		break;
 	            
 	            	case "unmanage":
-	            		if(type == TYPE.GATEWAY || type == TYPE.GATEWAY_AND_DEVICE) {
+	            		if(type == TYPE.GATEWAY ) {
 	           				this.sendGatewayUnmanageRequest();
-	            		}
-	            		if(type == TYPE.DEVICE || type == TYPE.GATEWAY_AND_DEVICE) {
+	            		} else if(type == TYPE.DEVICE ) {
 	           				this.sendDeviceUnmanageRequest();
 	            		}
 	            		break;
 	            		
 	            	case "location":
-	            		if(type == TYPE.GATEWAY || type == TYPE.GATEWAY_AND_DEVICE) {
+	            		if(type == TYPE.GATEWAY ) {
 	            			updateGatewayLocation();
-	            		}
-	            		if(type == TYPE.DEVICE || type == TYPE.GATEWAY_AND_DEVICE) {
+	            		} else if(type == TYPE.DEVICE ) {
 	           				updateDeviceLocation();
 	            		}
 	        			break;
 	
 	            	case "errorcode":
-	            		if(type == TYPE.GATEWAY || type == TYPE.GATEWAY_AND_DEVICE) {
+	            		if(type == TYPE.GATEWAY ) {
 	            			appendGatewayErrorCode();
-	            		}
-	            		if(type == TYPE.DEVICE || type == TYPE.GATEWAY_AND_DEVICE) {
+	            		} else if(type == TYPE.DEVICE ) {
 	           				appendDeviceErrorCode();
 	            		}
 	            		break;
 	            		
 	            	case "log":
-	            		if(type == TYPE.GATEWAY || type == TYPE.GATEWAY_AND_DEVICE) {
+	            		if(type == TYPE.GATEWAY ) {
 	            			appendGatewayLog();
-	            		}
-	            		if(type == TYPE.DEVICE || type == TYPE.GATEWAY_AND_DEVICE) {
+	            		} else if(type == TYPE.DEVICE ) {
 	           				appendDeviceLog();
 	            		}
 	            		break;
@@ -588,7 +606,7 @@ public class ManagedRasPiGateway {
     }
 	
 	private enum TYPE {
-		GATEWAY_AND_DEVICE(0), GATEWAY(1), DEVICE(2); 
+		GATEWAY(1), DEVICE(2); 
 		
 		private final int type;
 		

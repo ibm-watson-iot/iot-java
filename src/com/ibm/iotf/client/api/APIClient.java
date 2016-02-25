@@ -2883,4 +2883,32 @@ public class APIClient {
 		}
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
+
+	/**
+	 * Register a new device under the given gateway.
+	 *  
+	 * The response body will contain the generated authentication token for the device. 
+	 * The caller of the method must make sure to record the token when processing 
+	 * the response. The IBM Watson IoT Platform will not be able to retrieve lost authentication tokens.
+	 * 
+	 * @param deviceType DeviceType ID
+	 * @param deviceId device to be added.
+	 * @param gatewayTypeId The device type of the gateway
+	 * @param gatewayId The deviceId of the gateway
+	 * 
+	 * @return JsonObject containing the generated authentication token for the device. 
+	 *  
+	 * @throws IoTFCReSTException 
+	 */
+
+	public JsonObject registerDeviceUnderGateway(String deviceType, String deviceId,
+			String gwTypeId, String gwDeviceId) throws IoTFCReSTException {
+		
+		JsonObject deviceObj = new JsonObject();
+		deviceObj.addProperty("deviceId", deviceId);
+		deviceObj.addProperty("gatewayId", gwDeviceId);
+		deviceObj.addProperty("gatewayTypeId", gwTypeId);
+		
+		return this.registerDevice(deviceType, deviceObj);
+	}
 }

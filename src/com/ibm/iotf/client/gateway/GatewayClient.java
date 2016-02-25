@@ -60,10 +60,10 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	
 	private static final String CLASS_NAME = GatewayClient.class.getName();
 	
-	private static final Pattern GATEWAY_NOTIFICATION_PATTERN = Pattern.compile("iot-2/type/+/id/+/notify");
+	private static final Pattern GATEWAY_NOTIFICATION_PATTERN = Pattern.compile("iot-2/type/(.+)/id/(.+)/notify");
 	private static final Pattern GATEWAY_COMMAND_PATTERN = Pattern.compile("iot-2/type/(.+)/id/(.+)/cmd/(.+)/fmt/(.+)");
 	
-	private CommandCallback gwCommandCallback = null;
+	private GatewayCallback gwCommandCallback = null;
 	
 	private HashMap<String, Integer> subscriptions = new HashMap<String, Integer>();
 	
@@ -219,7 +219,6 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	public void connect() {
 		super.connect();
 		subscribeToGatewayCommands();
-		//subscribeToGatewayNotification();
 	}
 	
 	/**
@@ -422,7 +421,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		}
 	}
 	
-	/*private void subscribeToGatewayNotification() {
+	public void subscribeToGatewayNotification() {
 		String newTopic = "iot-2/type/"+this.getGWDeviceType() +"/id/" +this.getGWDeviceId() + "/notify";
 		subscriptions.put(newTopic, 0);
 		try {
@@ -431,7 +430,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}*/
+	}
 
 	/**
 	 * Subscribe to device commands, on the behalf of a device, to the IBM Watson IoT Platform. <br>
@@ -574,19 +573,32 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 				return;
 		    }
 
+			matcher = GATEWAY_NOTIFICATION_PATTERN.matcher(topic);
+			if(matcher.matches()) {
+				String type = matcher.group(1);
+				String id = matcher.group(2);
+				Notification cmd = new Notification(type, id, msg);
+				
+			}
+
 		}
 	}
 
 	/**
-	 * <p>Register the {@link com.ibm.iotf.client.gateway.CommandCallback} class to the Gateway, so that the 
-	 * {@link com.ibm.iotf.client.gateway.CommandCallback#processCommand()} method gets called when 
+	 * <p>Register the {@link com.ibm.iotf.client.gateway.GatewayCallback} class to the Gateway, so that the 
+	 * {@link com.ibm.iotf.client.gateway.GatewayCallback#processCommand()} method gets called when 
 	 * command is received for the given subscription.</p> 
+	 * 
+	 * <p>Also, the 
+	 * {@link com.ibm.iotf.client.gateway.GatewayCallback#processNotification()} method gets called when 
+	 * any notification is received. Note that you one must have called subscribeToGatewayNotification inorder
+	 * to get the notification.</p> 
 	 * 
 	 * The messages are returned as an instance of the {@link com.ibm.iotf.client.gateway.Command}. 
 	 * 
-	 * @param callback an instance of {@link com.ibm.iotf.client.gateway.CommandCallback}
+	 * @param callback an instance of {@link com.ibm.iotf.client.gateway.GatewayCallback}
 	 */
-	public void setCommandCallback(CommandCallback callback) {
+	public void setGatewayCallback(GatewayCallback callback) {
 		this.gwCommandCallback  = callback;
 	}
 

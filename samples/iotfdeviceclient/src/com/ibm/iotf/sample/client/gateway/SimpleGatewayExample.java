@@ -20,12 +20,9 @@ import javax.management.InstanceNotFoundException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ReflectionException;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.sample.client.SystemObject;
 import com.ibm.iotf.sample.util.Utility;
@@ -148,17 +145,23 @@ public class SimpleGatewayExample {
 	}
 	
 	/**
-	 * This sample showcases how to Create a device type using the Java Client Library. 
+	 * This sample adds a device type using the Java Client Library. 
 	 * @throws IoTFCReSTException
 	 */
-	private void addDeviceType() throws IoTFCReSTException {
+	private void addDeviceType(String deviceType) throws IoTFCReSTException {
 		try {
-			JsonObject response = this.apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
-			System.out.println(response);
+			JsonObject joDt = apiClient.getDeviceType(deviceType);
+			if (!joDt.isJsonNull()) {
+				// device type already exist in WIoTP
+				return;
+			}
 		} catch(IoTFCReSTException e) {
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			if (e.getHttpCode() == 404) {
+					apiClient.addDeviceType(deviceType, deviceType, null, null);
+			} else {
+				System.err.println("ERROR: unable to add manually device type " + e.getMessage());
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -167,24 +170,21 @@ public class SimpleGatewayExample {
 	 * @throws IoTFCReSTException
 	 */
 	private void addDevice(String deviceType, String deviceId) throws IoTFCReSTException {
-		try{
-			
-			String deviceToBeAdded = "{\"deviceId\": \"" + deviceId +
-						"\",\"authToken\": \"qwert123\"}";
-
-			System.out.println(deviceToBeAdded);
-			JsonParser parser = new JsonParser();
-			JsonElement input = parser.parse(deviceToBeAdded);
-			JsonObject response = this.gwClient.api().
-					registerDeviceUnderGateway(deviceType, this.gwDeviceId, this.gwDeviceType, input);
-			System.out.println(response);
-			
-		} catch(IoTFCReSTException e) {
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
+		try {
+			System.out.println("<-- Adding device "+deviceId);
+			this.gwClient.api().getDevice(deviceType, deviceId);
+		} catch (IoTFCReSTException ex) {
+			if (ex.getHttpCode() == 404) {
+				gwClient.api().registerDeviceUnderGateway(deviceType, deviceId,
+						this.gwDeviceId, 
+						this.gwDeviceType);
+			} else {
+				System.out.println("ERROR: unable to add manually device " + ex.getMessage());
+				ex.printStackTrace();
+			}
 		}
-	}
+	}	
+	
 
 	public static void main(String[] args) throws IoTFCReSTException {
 		
@@ -192,7 +192,7 @@ public class SimpleGatewayExample {
 		
 		String fileName = Utility.getDefaultFilePath(PROPERTIES_FILE_NAME, DEFAULT_PATH);
 		sample.createGatewayClient(fileName);
-		sample.addDeviceType();
+		sample.addDeviceType(DEVICE_TYPE);
 		sample.addDevice(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
 
 		System.out.println("Gateway Started");

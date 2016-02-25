@@ -19,12 +19,10 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import com.ibm.iotf.client.gateway.Command;
-import com.ibm.iotf.client.gateway.CommandCallback;
+import com.ibm.iotf.client.gateway.GatewayCallback;
+import com.ibm.iotf.client.gateway.Notification;
 
 /**
  * A Command call back class that handles the LED blink command
@@ -33,11 +31,8 @@ import com.ibm.iotf.client.gateway.CommandCallback;
  * for Arduino Uno from Watson IoT Platform. The Gateway CommandCallback defines a BlockingQueue 
  * to store and process the commands (in separate thread) for smooth handling of MQTT publish message.
  */
-public class GatewayCommandCallback implements CommandCallback, Runnable {
+public class GatewayCommandCallback implements GatewayCallback, Runnable {
 
-	protected final static JsonParser JSON_PARSER = new JsonParser();
-	
-	private static String LED_DATAPOINT_NAME = "led";
 	private String gatewayId = null;
 	
 	public void setGatewayId(String gatewayId) {
@@ -74,30 +69,23 @@ public class GatewayCommandCallback implements CommandCallback, Runnable {
 				
 				// check if this command is for the gateway
 				if(device == null && cmd.getDeviceId().equals(this.gatewayId)) {
-					System.out.println("Got command for this gateway:: "+cmd);
+					System.out.println("-->(GW) Got command for this gateway:: "+cmd);
 					return;
 				} else {
-					System.out.println("Got command for the device:: "+cmd.getDeviceId());
+					System.out.println("-->(DE) Got command for the device:: "+cmd.getDeviceId());
 				}
-				String value = null;
-				try {
-					JsonObject payloadJson = JSON_PARSER.parse(cmd.getPayload()).getAsJsonObject();
-					if (payloadJson.has("d")) {
-						payloadJson = payloadJson.get("d").getAsJsonObject();
-					} 
-					value = payloadJson.get(LED_DATAPOINT_NAME).getAsString();
-				} catch (JsonSyntaxException e) {
-					System.err.println("JsonSyntaxException thrown");
-				} catch (JsonParseException jpe) {
-					System.err.println("JsonParseException thrown");							
-				}
-				
-				device.sendCommand(value);
+				device.sendCommand(cmd.getPayload());
 			} catch (InterruptedException e1) {
 					// Ignore the Interuppted exception, retry
 					continue;
 			}
 				
 		}
+	}
+
+	@Override
+	public void processNotification(Notification notification) {
+		// TODO Auto-generated method stub
+		
 	}
 }

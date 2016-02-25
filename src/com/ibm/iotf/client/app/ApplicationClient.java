@@ -18,6 +18,7 @@ import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.AbstractClient;
+import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -36,6 +37,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
 	private EventCallback eventCallback = null;
 	private StatusCallback statusCallback = null;
+	
+	private APIClient apiClient = null;
 	
 	private HashMap<String, Integer> subscriptions = new HashMap<String, Integer>();
 	
@@ -71,6 +74,19 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 			this.clientPassword = getAuthToken();
 		}
 		createClient(this);
+		
+		this.apiClient = new APIClient(options);
+	}
+	
+	/**
+	 * Returns the {@link com.ibm.iotf.client.api.APIClient} that allows the users to interact with 
+	 * Watson IoT Platform API's to perform one or more operations like, registering a device, 
+	 * getting the list of devices connected through the Gateway and etc..
+	 * 
+	 * @return APIClient
+	 */
+	public APIClient api() {
+		return this.apiClient;
 	}
 	
 	private boolean isSharedSubscriptionEnabled() {

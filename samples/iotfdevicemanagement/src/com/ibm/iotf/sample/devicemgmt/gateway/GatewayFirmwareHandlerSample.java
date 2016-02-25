@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
@@ -92,7 +91,7 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 	@Override
 	public void downloadFirmware(DeviceFirmware deviceFirmware) {
 		
-		System.out.println(CLASS_NAME + ": Firmware Download start... for device "+deviceFirmware.getDeviceId());
+		System.out.println(" --> Firmware Download requested for device "+deviceFirmware.getDeviceId());
 		boolean success = false;
 		URL firmwareURL = null;
 		URLConnection urlConnection = null;
@@ -130,26 +129,29 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 			if(data != -1) {
 				bos.write(data);
 				byte[] block = new byte[1024];
+				int previousProgress = 0;
 				while (true) {
 					int len = bis.read(block, 0, block.length);
 					downloadedSize += len;
 					
 					if(fileSize > 0) {
 						int progress = (int) (((float)downloadedSize / fileSize) * 100);
-						String message = "Firmware Download progress: "+progress + "%";
-						if(device != null) {
-							// This download is for device, so send device log
-							device.sendLog(message, new Date(), LogSeverity.informational);
-						} else {
-							gateway.addGatewayLog(message, new Date(), LogSeverity.informational);
+						if(progress > previousProgress) {
+							String message = "Firmware Download progress: "+progress + "%";
+							if(device != null) {
+								// This download is for device, so send device log
+								device.sendLog(LogSeverity.informational, message, null, new Date());
+							} else {
+								gateway.addGatewayLog(message, new Date(), LogSeverity.informational);
+							}
+							System.out.println(message);
 						}
-						System.out.println(message);
 					} else {
 						// If we can't retrieve the filesize, let us update how much we have download so far
 						String message = "Downloaded : "+ downloadedSize + " bytes so far";
 						if(device != null) {
 							// This download is for device, so send device log
-							device.sendLog(message, new Date(), LogSeverity.informational);
+							device.sendLog(LogSeverity.informational, message, null, new Date());
 						} else {
 							gateway.addGatewayLog(message, new Date(), LogSeverity.informational);
 						}
@@ -215,7 +217,7 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 			deviceFirmware.setState(FirmwareState.IDLE);
 		}
 		
-		System.out.println(CLASS_NAME + ": Firmware Download END...("+success+ ")");
+		System.out.println("<-- Firmware Download END...("+success+ ")");
 	}
 
 	private boolean verifyFirmware(File file, String verifier) throws IOException {
@@ -262,7 +264,7 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 	@Override
 	public void updateFirmware(DeviceFirmware deviceFirmware) {
 		try {
-			System.out.println(CLASS_NAME + ": Firmware update start... for device = "+deviceFirmware.getDeviceId());
+			System.out.println("--> Firmware update requested for device = "+deviceFirmware.getDeviceId());
 			
 			/**
 			 * Call the Arduino Uno device interface to update the firmware if its
@@ -288,7 +290,6 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 			dependencyInstaller.redirectErrorStream(true);
 			dependencyInstaller.inheritIO();
 
-			boolean success = false;
 			try {
 				p = pkgInstaller.start();
 				boolean status = waitForCompletion(p, 5);
@@ -336,7 +337,7 @@ public class GatewayFirmwareHandlerSample extends DeviceFirmwareHandler {
 		deleteFile(INSTALL_LOG_FILE);
 		
 		gatewayDownloadFirmwareName = null;
-		System.out.println(CLASS_NAME + ": Firmware update End...");
+		System.out.println("<-- Firmware update End...");
 	}
 	
 	

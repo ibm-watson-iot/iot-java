@@ -46,6 +46,7 @@ public class GatewayActionHandlerSample extends DeviceActionHandler {
 	@Override
 	public void handleReboot(DeviceAction action) {
 		
+		System.out.println(" --> Reboot action requested for device " + action.getDeviceId());
 		DeviceInterface device = this.deviceMap.get(action.getDeviceId());
 		if(device != null) {
 			device.reboot(action);
@@ -96,11 +97,12 @@ public class GatewayActionHandlerSample extends DeviceActionHandler {
 	@Override
 	public void handleFactoryReset(DeviceAction action) {
 		
+		System.out.println(" --> factory reset requested for device " + action.getDeviceId());
 		/**
 		 * This sample doesn't support factory reset, so respond accordingly
 		 */
 		action.setStatus(DeviceAction.Status.UNSUPPORTED);
-		System.out.println("factory reset command received for device ="+action.getDeviceId());
+		System.out.println("<-- factory reset not supported");
 	}
 	
 	/**
