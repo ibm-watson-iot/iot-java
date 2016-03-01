@@ -291,7 +291,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 			FileInputStream in = new FileInputStream("avrdude.properties");
 			prop.load(in);
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("avrdude.properties file is not present in the path, using the default properties");
 		}
 
 		ManagedGateway gateway = ((ManagedGateway) this.gwClient);
@@ -439,7 +439,7 @@ public class ArduinoSerialInterface implements SerialPortEventListener, DeviceIn
 	}
 
 	@Override
-	public void sendLog(LogSeverity severity, String message, String data, Date date) {
+	public void setLog(LogSeverity severity, String message, String data, Date date) {
 		ManagedGateway gw = (ManagedGateway)this.gwClient;
 		gw.addDeviceLog(this.deviceType, this.deviceId, message, date, severity);
 	}

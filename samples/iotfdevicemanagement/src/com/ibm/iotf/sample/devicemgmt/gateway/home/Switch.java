@@ -8,6 +8,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
+ * Patrizia Gufler1 - Initial Contribution
  * Sathiskumar Palaniappan - Initial Contribution
  *****************************************************************************
  */

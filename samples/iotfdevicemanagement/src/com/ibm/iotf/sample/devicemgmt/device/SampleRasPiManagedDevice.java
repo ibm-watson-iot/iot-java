@@ -306,7 +306,7 @@ public class SampleRasPiManagedDevice {
 	 */
 	private void addFirmwareHandler() throws Exception {
 		if(this.dmClient != null) {
-			RasPiFirmwareHandlerSample fwHandler = new RasPiFirmwareHandlerSample();
+			RasPiFirmwareHandlerSample fwHandler = new RasPiFirmwareHandlerSample(this.dmClient);
 			dmClient.addFirmwareHandler(fwHandler);
 			System.out.println("Added Firmware Handler successfully !!");
 		}

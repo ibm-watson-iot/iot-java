@@ -14,7 +14,6 @@
 package com.ibm.iotf.devicemgmt.device;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +25,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
@@ -49,7 +49,6 @@ import com.ibm.iotf.devicemgmt.internal.DMAgentTopic;
 import com.ibm.iotf.devicemgmt.internal.DMServerTopic;
 import com.ibm.iotf.devicemgmt.internal.ManagedClient;
 import com.ibm.iotf.devicemgmt.internal.ResponseCode;
-import com.ibm.iotf.devicemgmt.resource.Resource;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -475,7 +474,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		log.add("timestamp", new JsonPrimitive(utcTime));
 
 		if(data != null) {
-			byte[] encodedBytes = Base64.getEncoder().encode(data.getBytes());
+			byte[] encodedBytes = Base64.encodeBase64(data.getBytes());
 			log.add("data", new JsonPrimitive(new String(encodedBytes)));
 		}
 		jsonData.add("d", log);
@@ -971,6 +970,18 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		public DMServerTopic getDMServerTopic() {
 			return this.deviceDMServerTopic;
 		}
+
+
+		@Override
+		public DeviceActionHandler getActionHandler() {
+			return dmClient.actionHandler;
+		}
+		
+		@Override
+		public DeviceFirmwareHandler getFirmwareHandler() {
+			return dmClient.fwHandler;
+		}
+
 	}
 
 	/**
@@ -996,11 +1007,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			throw new Exception("Firmware Handler is already set, "
 					+ "so can not add the new firmware handler !");
 		}
-
-		DeviceData deviceData = this.getDeviceData();
-		deviceData.getDeviceFirmware().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, fwHandler);
 		this.fwHandler = fwHandler;
-		fwHandler.start();
 	}
 
 	/**
@@ -1024,24 +1031,11 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			throw new Exception("Action Handler is already set, "
 					+ "so can not add the new Action handler !");
 		}
-
-		DeviceData deviceData = this.getDeviceData();
-		deviceData.getDeviceAction().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, actionHandler);
 		this.actionHandler = actionHandler;
-		actionHandler.start();
 	}
 
 	private void terminateHandlers() {
-		if(this.fwHandler != null) {
-			fwHandler.terminate();
-			fwHandler = null;
-		}
-
-		if(this.actionHandler != null) {
-			actionHandler.terminate();
-			actionHandler = null;
-		}
+		fwHandler = null;
+		actionHandler = null;
 	}
-
-
 }

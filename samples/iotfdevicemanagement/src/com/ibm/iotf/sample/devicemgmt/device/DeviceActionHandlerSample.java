@@ -14,16 +14,19 @@
 package com.ibm.iotf.sample.devicemgmt.device;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.ibm.iotf.devicemgmt.DeviceAction;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
+import com.ibm.iotf.devicemgmt.DeviceAction.Status;
 
 /**
  * This sample Device action handler demonstrates how one can reboot the device 
  * 
  */
 public class DeviceActionHandlerSample extends DeviceActionHandler {
+	private static ExecutorService executor = Executors.newSingleThreadExecutor();
 	
 	public DeviceActionHandlerSample() {
 	}
@@ -33,41 +36,60 @@ public class DeviceActionHandlerSample extends DeviceActionHandler {
 	 * field should be set accordingly, if the reboot is not supported, 
 	 * set status to NOTSUPPORTED and optionally set "message" accordingly
 	 */
-	@Override
-	public void handleReboot(DeviceAction action) {
+	private static class RebootTask implements Runnable {
 		
-		ProcessBuilder processBuilder = null;
-		Process p = null;
-		
-		String osname = System.getProperty("os.name");
-		
-		if(osname.startsWith("Windows")) {
-			processBuilder = new ProcessBuilder("shutdown", "-r");
-		} else {
-			processBuilder = new ProcessBuilder("sudo", "shutdown", "-r", "now");
+		private DeviceAction action;
+		private DeviceActionHandlerSample handler;
+
+		public RebootTask(DeviceAction deviceAction, DeviceActionHandlerSample handler) {
+			this.action = deviceAction;
+			this.handler = handler;
 		}
 
-		processBuilder.redirectErrorStream(true);
-		processBuilder.inheritIO();
-		
-		
-		boolean status = false;
-		try {
-			p = processBuilder.start();
-			// wait for say 2 minutes before giving it up
-			status = waitForCompletion(p, 2);
-			System.out.println("Executed restart command "+status);
-		} catch (IOException e) {
-			action.setMessage(e.getMessage());
-		} catch (InterruptedException e) {
-			action.setMessage(e.getMessage());
+		@Override
+		public void run() {
+
+			ProcessBuilder processBuilder = null;
+			Process p = null;
+			
+			String osname = System.getProperty("os.name");
+			
+			if(osname.startsWith("Windows")) {
+				processBuilder = new ProcessBuilder("shutdown", "-r");
+			} else {
+				processBuilder = new ProcessBuilder("sudo", "shutdown", "-r", "now");
+			}
+	
+			processBuilder.redirectErrorStream(true);
+			processBuilder.inheritIO();
+			
+			
+			boolean status = false;
+			try {
+				p = processBuilder.start();
+				// wait for say 2 minutes before giving it up
+				status = waitForCompletion(p, 2);
+				System.out.println("Executed restart command "+status);
+			} catch (IOException e) {
+				action.setMessage(e.getMessage());
+			} catch (InterruptedException e) {
+				action.setMessage(e.getMessage());
+			}
+			
+			System.out.println("Executed restart command status ("+status+")");
+			if(status == false) {
+				action.setStatus(DeviceAction.Status.FAILED);
+			}
+			
 		}
-		
-		System.out.println("Executed restart command status ("+status+")");
-		if(status == false) {
-			action.setStatus(DeviceAction.Status.FAILED);
-		}
-		
+	}
+	
+	@Override
+	public void handleReboot(DeviceAction action) {
+		// set the support before handing over to the pool
+		action.setStatus(Status.ACCEPTED);
+		RebootTask task = new RebootTask(action, this);
+		executor.execute(task);
 	}
 
 	/**
@@ -75,13 +97,34 @@ public class DeviceActionHandlerSample extends DeviceActionHandler {
 	 * field should be set accordingly, if the factory reset is not supported, 
 	 * set status to NOTSUPPORTED and optionally set "message" accordingly
 	 */
+	private static class FactoryResetTask implements Runnable {
+		
+		private DeviceAction action;
+		private DeviceActionHandlerSample handler;
+
+		public FactoryResetTask(DeviceAction deviceAction, DeviceActionHandlerSample handler) {
+			this.action = deviceAction;
+			this.handler = handler;
+		}
+
+		@Override
+		public void run() {
+			/**
+			 * This sample doesn't support factory reset, so respond accordingly
+			 */
+			action.setStatus(DeviceAction.Status.UNSUPPORTED);
+		}
+	}
+	
 	@Override
 	public void handleFactoryReset(DeviceAction action) {
+		/*FactoryResetTask task = new FactoryResetTask(action, this);
+		executor.execute(task);*/
 		
-		/**
-		 * This sample doesn't support factory reset, so respond accordingly
-		 */
-		action.setStatus(DeviceAction.Status.UNSUPPORTED);
+		// As the sample doesn't support factory Rest, it just sends unsupported message now
+		action.setStatus(Status.UNSUPPORTED);
+		// Optionally set a message
+		action.setMessage("Not supported at the moment");
 	}
 	
 	/**

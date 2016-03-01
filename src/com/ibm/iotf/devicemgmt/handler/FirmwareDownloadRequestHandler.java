@@ -87,15 +87,14 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 		JsonObject response = new JsonObject();
 		response.add("reqId", jsonRequest.get("reqId"));
 		DeviceFirmware deviceFirmware = getDMClient().getDeviceData().getDeviceFirmware();
-		if (deviceFirmware == null) {
+		if (deviceFirmware == null || getDMClient().getFirmwareHandler() == null) {
 			rc = ResponseCode.DM_FUNCTION_NOT_IMPLEMENTED;
 		} else if(deviceFirmware.getState() != DeviceFirmware.FirmwareState.IDLE.getState()) {
 			rc = ResponseCode.DM_BAD_REQUEST;		
 		} else {
 			if (deviceFirmware.getUrl() != null) {
-				LoggerUtility.fine(CLASS_NAME, METHOD, "fire event(" 
-						+ DeviceFirmware.FIRMWARE_DOWNLOAD_START + ")" );
-				getDMClient().getDeviceData().getDeviceFirmware().fireEvent(DeviceFirmware.FIRMWARE_DOWNLOAD_START);
+				LoggerUtility.fine(CLASS_NAME, METHOD, "fire firmware download");
+				getDMClient().getFirmwareHandler().downloadFirmware(deviceFirmware);
 				rc = ResponseCode.DM_ACCEPTED;
 			} else {
 				rc = ResponseCode.DM_BAD_REQUEST;

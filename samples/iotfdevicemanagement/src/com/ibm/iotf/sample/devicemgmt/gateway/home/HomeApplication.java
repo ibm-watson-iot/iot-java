@@ -8,6 +8,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
+ * Patrizia Gufler1 - Initial Contribution
  * Sathiskumar Palaniappan - Initial Contribution
  *****************************************************************************
  */
@@ -267,7 +268,7 @@ public class HomeApplication {
 	}
 	
 	/**
-	 * Send a command to on/off the swicth
+	 * Send a command to on/off the Swicth
 	 * 
 	 * switch [Switch-deviceId] [on/off]
 	 */
@@ -275,7 +276,7 @@ public class HomeApplication {
 		
 		JsonObject cmd = new JsonObject();
 		cmd.addProperty("status", parameters[2].toUpperCase());
-		System.out.println("<-- sending command to on/off swicth");
+		System.out.println("<-- sending command to on/off Swicth");
 		boolean status = this.myAppClient.publishCommand(DeviceType.SWITCH.getDeviceType(), parameters[1], "set", cmd, 2);
 		if(status == false) {
 			System.err.println("Failed to send the command to Switch device "+parameters[1]);

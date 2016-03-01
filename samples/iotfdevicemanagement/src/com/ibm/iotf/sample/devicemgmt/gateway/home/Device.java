@@ -1,3 +1,17 @@
+/**
+ *****************************************************************************
+ * Copyright (c) 2016 IBM Corporation and other Contributors.
+
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * Patrizia Gufler1 - Initial Contribution
+ * Sathiskumar Palaniappan - Initial Contribution
+ *****************************************************************************
+ */
 package com.ibm.iotf.sample.devicemgmt.gateway.home;
 
 import java.util.ArrayList;
@@ -27,7 +41,6 @@ public abstract class Device implements DeviceInterface, Runnable {
 	private List<ErrorCode> errorCode = new ArrayList<ErrorCode>();;
 	private List<DiagLog> diagLog = new ArrayList<DiagLog>();
 
-	
 	protected GatewayClient gwClient;
 	private String downloadedFirmwareName;
 
@@ -35,6 +48,19 @@ public abstract class Device implements DeviceInterface, Runnable {
 		this.deviceId = deviceId;
 		this.gwClient = gwClient;
 		this.eventUpdateInterval = updateInterval;
+	}
+	
+	/**
+	 * Let us use the WIoTP client Id as the key to identify the device
+	 * @return
+	 */
+	public String getKey() {
+		return new StringBuilder("d:").
+				append(gwClient.getOrgId()).
+				append(':').
+				append(this.deviceType.getDeviceType()).
+				append(':').
+				append(this.deviceId).toString();
 	}
 
 	public String getDeviceId() {
@@ -93,7 +119,7 @@ public abstract class Device implements DeviceInterface, Runnable {
 		}
 	}
 
-	public void sendErrorCode(int errorCode) {
+	public void setErrorCode(int errorCode) {
 		// Check if the device is managed
 		if(this.isManaged()) {
 			ManagedGateway gateway = (ManagedGateway)this.gwClient;
@@ -113,7 +139,7 @@ public abstract class Device implements DeviceInterface, Runnable {
 	}
 
 	public void setFirmwareName(String downloadedFirmwareName) {
-		
+		this.downloadedFirmwareName = downloadedFirmwareName;
 	}
 	
 	/**
@@ -124,13 +150,13 @@ public abstract class Device implements DeviceInterface, Runnable {
 	public void reboot(DeviceAction action) {
 		ManagedGateway gateway = (ManagedGateway) gwClient;
 		
-		sendLog(LogSeverity.informational, "reboot started..", null, new Date());
+		setLog(LogSeverity.informational, "reboot started..", null, new Date());
 		try {
 			// Pretend to reboot the device
 			Thread.sleep(1000 * 2);
 		} catch(InterruptedException ie) {}
 		
-		sendLog(LogSeverity.informational, "reboot ended..", null, new Date());
+		setLog(LogSeverity.informational, "reboot ended..", null, new Date());
 
 		// We must send a manage request inorder to complete the reboot request successfully
 		try {
@@ -139,6 +165,7 @@ public abstract class Device implements DeviceInterface, Runnable {
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
+		System.out.println("Executed restart command status (true)");
 	}
 
 	/**
@@ -153,7 +180,7 @@ public abstract class Device implements DeviceInterface, Runnable {
 		
 		String message = "Firmware Update Event start";
 		// Inform the server about the status through Diaglog if needed
-		sendLog(LogSeverity.informational, message, null, new Date());
+		setLog(LogSeverity.informational, message, null, new Date());
 		
 		System.out.println("<--("+this.deviceId+") Progress ::");
 		
@@ -164,14 +191,14 @@ public abstract class Device implements DeviceInterface, Runnable {
 				
 			}
 			// Inform the server about the progress through Diaglog if needed
-			sendLog(LogSeverity.informational, "progress " + (i * 5), null, new Date());
+			setLog(LogSeverity.informational, "progress " + (i * 5), null, new Date());
 			
 			System.out.print("  "+ (i * 5) + "%");
 		}
 
 		// Inform the server about the status through Diaglog if needed
 		message = "Firmware Update Event End";
-		sendLog(LogSeverity.informational, message, null, new Date());
+		setLog(LogSeverity.informational, message, null, new Date());
 		
 		System.out.println("Firmware Update successfull !!");
 		deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
@@ -247,7 +274,7 @@ public abstract class Device implements DeviceInterface, Runnable {
 		}
 	}
 
-	public void sendLog(LogSeverity severity, String message, String data, Date date) {
+	public void setLog(LogSeverity severity, String message, String data, Date date) {
 		
 		// Check if the device is managed
 		if(this.isManaged()) {

@@ -170,7 +170,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * old style - id
 	 * new style - Device-ID
 	 */
-	protected String getGWDeviceId() {
+	public String getGWDeviceId() {
 		String id = null;
 		id = options.getProperty("Gateway-ID");
 		if(id == null) {
@@ -179,7 +179,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		return trimedValue(id);
 	}
 	
-	protected String getGWDeviceType() {
+	public String getGWDeviceType() {
 		String type = null;
 		type = options.getProperty("Gateway-Type");
 		if(type == null) {

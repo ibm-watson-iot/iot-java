@@ -8,6 +8,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
+ * Patrizia Gufler1 - Initial Contribution
  * Sathiskumar Palaniappan - Initial Contribution
  *****************************************************************************
  */
@@ -63,7 +64,7 @@ public class Oven extends Device {
 	 */
 	private String position = "top";
 	
-	private int timer = 60; // in seconds
+	private int timer = 120; // in seconds
 	private int timeRun = 0; // in seconds
 	private boolean bRunning = true; // state of the Oven
 

@@ -1,14 +1,16 @@
 /**
  *****************************************************************************
- Copyright (c) 2016 IBM Corporation and other Contributors.
- All rights reserved. This program and the accompanying materials
- are made available under the terms of the Eclipse Public License v1.0
- which accompanies this distribution, and is available at
- http://www.eclipse.org/legal/epl-v10.html
- Contributors:
- Sathiskumar Palaniappan - Initial Contribution
- *****************************************************************************
+ * Copyright (c) 2016 IBM Corporation and other Contributors.
+
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
+ * Contributors:
+ * Patrizia Gufler1 - Initial Contribution
+ * Sathiskumar Palaniappan - Initial Contribution
+ *****************************************************************************
  */
 package com.ibm.iotf.sample.devicemgmt.gateway;
 
@@ -16,12 +18,16 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceData;
@@ -86,6 +92,14 @@ public class ManagedRasPiGateway {
 	/** The port where Arduino Uno normally connects to RaspberryPi. */
 	private final static String DEFAULT_SERIAL_PORT = "/dev/ttyACM0";
 	
+	// Create a threadpool that can handle the firmware/device action requests from the Watson IoT Platform
+	// in bulk, for example, if a user wants to reboot all the devices connected to the gateway in one go,
+	// gateway should be able to handle the load if there are 1000 or more devices connected to it. In this sample
+	// we are creating a pool with one thread and set it to Firmware and device action handler as it manages
+	// only one device. But increase, in case if you want to manage more devices. Please refer to
+	// HomeGatewaySample that manages ~10 devices and provides a framework to add more devices through the gateway
+	private static ExecutorService executor = Executors.newSingleThreadExecutor();
+	
 	private ManagedGateway mgdGateway;
 	// Represents either Arduino Uno simulator or hardware
 	private DeviceInterface arduino;      
@@ -121,11 +135,12 @@ public class ManagedRasPiGateway {
 	 * to store and process the commands (in separate thread) for smooth handling of MQTT publish message.
 	 */
 	private void addCommandCallback() {
-		GatewayCommandCallback callback = new GatewayCommandCallback();
+		GatewayCommandCallback callback = new GatewayCommandCallback(this.mgdGateway);
 		mgdGateway.setGatewayCallback(callback);
 		mgdGateway.subscribeToDeviceCommands(DEVICE_TYPE, ARDUINO_DEVICE_ID);
 		try {
-			callback.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
+			
+			callback.addDeviceInterface(getKey(), arduino);
 			Thread t = new Thread(callback);
 			t.start();
 		} catch(Exception | Error e) {
@@ -140,19 +155,16 @@ public class ManagedRasPiGateway {
 	 */
 	private void addDeviceType(String deviceType) throws IoTFCReSTException {
 		try {
-			System.out.println("<-- Adding device type "+deviceType);
-			JsonObject joDt = apiClient.getDeviceType(deviceType);
-			if (!joDt.isJsonNull()) {
-				// device type already exist in WIoTP
-				return;
+			System.out.println("<-- Checking if device type "+deviceType +" already created in Watson IoT Platform");
+			boolean exist = apiClient.isDeviceTypeExist(deviceType);
+			if (!exist) {
+				System.out.println("<-- Adding device type "+deviceType + " now..");
+				// device type to be created in WIoTP
+				apiClient.addDeviceType(deviceType, deviceType, null, null);
 			}
 		} catch(IoTFCReSTException e) {
-			if (e.getHttpCode() == 404) {
-					apiClient.addDeviceType(deviceType, deviceType, null, null);
-			} else {
-				System.err.println("ERROR: unable to add manually device type " + e.getMessage());
-				e.printStackTrace();
-			}
+			System.err.println("ERROR: unable to add manually device type " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 	
@@ -162,17 +174,19 @@ public class ManagedRasPiGateway {
 	 */
 	private void addDevice(String deviceType, String deviceId) throws IoTFCReSTException {
 		try {
-			System.out.println("<-- Adding device "+deviceId);
-			mgdGateway.api().getDevice(deviceType, deviceId);
-		} catch (IoTFCReSTException ex) {
-			if (ex.getHttpCode() == 404) {
+			System.out.println("<-- Checking if device " + deviceId +" with deviceType " +
+					deviceType +" exists in Watson IoT Platform");
+			boolean exist = mgdGateway.api().isDeviceExist(deviceType, deviceId);
+			if(!exist) {
+				System.out.println("<-- Creating device " + deviceId +" with deviceType " +
+						deviceType +" now..");
 				mgdGateway.api().registerDeviceUnderGateway(deviceType, deviceId,
-						this.mgdGateway.getGWTypeId(), 
+						this.mgdGateway.getGWDeviceType(), 
 						this.mgdGateway.getGWDeviceId());
-			} else {
-				System.out.println("ERROR: unable to add manually device " + ex.getMessage());
-				ex.printStackTrace();
 			}
+		} catch (IoTFCReSTException ex) {
+			
+			System.out.println("ERROR: unable to add manually device " + deviceId);
 		}
 	}	
 	
@@ -464,9 +478,10 @@ public class ManagedRasPiGateway {
 	private void addFirmwareHandler() throws Exception {
 		if(this.mgdGateway != null) {
 			GatewayFirmwareHandlerSample fwHandler = new GatewayFirmwareHandlerSample();
-			fwHandler.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
+			fwHandler.addDeviceInterface(getKey(), arduino);
 			fwHandler.setGateway(this.mgdGateway);
 			mgdGateway.addFirmwareHandler(fwHandler);
+			fwHandler.setExecutor(executor);
 			System.out.println("Added Firmware Handler successfully !!");
 		}
 	}
@@ -478,9 +493,11 @@ public class ManagedRasPiGateway {
 	private void addDeviceActionHandler() throws Exception {
 		if(this.mgdGateway != null) {
 			GatewayActionHandlerSample actionHandler = new GatewayActionHandlerSample();
-			actionHandler.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
-			actionHandler.setGatewayDeviceId(this.mgdGateway.getGWDeviceId());
+			actionHandler.addDeviceInterface(getKey(), arduino);
+			actionHandler.setGateway(mgdGateway);
 			mgdGateway.addDeviceActionHandler(actionHandler);
+			actionHandler.setExecutor(executor);
+
 			System.out.println("Added Device Action Handler successfully !!");
 		}
 	}
@@ -632,6 +649,17 @@ public class ManagedRasPiGateway {
 			System.out.println("Bye !!");
 			System.exit(-1);
 		}
+	}
+	
+	private String getKey() {
+		// Create the WIoTP client Id to uniquely identify the device
+		return new StringBuilder("d:")
+			.append(mgdGateway.getOrgId())
+			.append(':')
+			.append(DEVICE_TYPE)
+			.append(':')
+			.append(ARDUINO_DEVICE_ID).toString();
+
 	}
 
 }

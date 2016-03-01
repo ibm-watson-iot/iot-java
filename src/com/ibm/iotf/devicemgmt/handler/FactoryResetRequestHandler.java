@@ -13,11 +13,17 @@
  */
 package com.ibm.iotf.devicemgmt.handler;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.ibm.iotf.devicemgmt.internal.ConcreteDeviceAction;
 import com.ibm.iotf.devicemgmt.internal.ManagedClient;
 import com.ibm.iotf.devicemgmt.internal.DMServerTopic;
 import com.ibm.iotf.devicemgmt.DeviceAction;
+import com.ibm.iotf.devicemgmt.DeviceActionHandler;
 
 import com.ibm.iotf.devicemgmt.internal.ResponseCode;
 import com.ibm.iotf.util.LoggerUtility;
@@ -30,7 +36,9 @@ import com.ibm.iotf.util.LoggerUtility;
  * 	"reqId": "string"
  * }
  */	
-public class FactoryResetRequestHandler extends DMRequestHandler {
+public class FactoryResetRequestHandler extends DMRequestHandler implements PropertyChangeListener {
+
+	private JsonElement reqId;
 
 	public FactoryResetRequestHandler(ManagedClient dmClient) {
 		setDMClient(dmClient);
@@ -70,23 +78,35 @@ public class FactoryResetRequestHandler extends DMRequestHandler {
 	@Override
 	protected void handleRequest(JsonObject jsonRequest) {
 		final String METHOD = "handleRequest";
-		ResponseCode rc = ResponseCode.DM_ACCEPTED;
 		
-		JsonObject response = new JsonObject();
-		response.add("reqId", jsonRequest.get("reqId"));
 		DeviceAction action = getDMClient().getDeviceData().getDeviceAction();
-		if (action == null) {
-			rc = ResponseCode.DM_FUNCTION_NOT_IMPLEMENTED;
+		if (action == null || getDMClient().getActionHandler() == null) {
+			JsonObject response = new JsonObject();
+			response.add("reqId", jsonRequest.get("reqId"));
+			response.add("rc", new JsonPrimitive(ResponseCode.DM_FUNCTION_NOT_IMPLEMENTED.getCode()));
+			respond(response);
 		} else {
-			LoggerUtility.fine(CLASS_NAME, METHOD, " fire event(" 
-					+ DeviceAction.DEVICE_FACTORY_RESET_START + ")" );
-				
-			action.fireEvent(DeviceAction.DEVICE_FACTORY_RESET_START);
-			rc = ResponseCode.DM_ACCEPTED;
+			LoggerUtility.fine(CLASS_NAME, METHOD, " start Factory Reset action ");
+			// remove any other listener that are listening for the status update
+			((ConcreteDeviceAction)action).clearListener();
+			((ConcreteDeviceAction)action).addPropertyChangeListener(this);
+			this.reqId = jsonRequest.get("reqId");
+			DeviceActionHandler handler = getDMClient().getActionHandler();
+			handler.handleFactoryReset(action);
 		} 
-		response.add("rc", new JsonPrimitive(rc.getCode()));
-		respond(response);
-		
 	}
-
+	
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		if(ConcreteDeviceAction.DEVICE_ACTION_STATUS_UPDATE.equals(evt.getPropertyName())) {
+			try {
+				ConcreteDeviceAction action = (ConcreteDeviceAction) evt.getNewValue();
+				JsonObject response = action.toJsonObject();
+				response.add("reqId", reqId);
+				respond(response);
+			} catch(Exception e) {
+				LoggerUtility.warn(CLASS_NAME, "propertyChange", e.getMessage());
+			}
+		}
+	}
 }

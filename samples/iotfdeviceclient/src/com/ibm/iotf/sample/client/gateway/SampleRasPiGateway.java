@@ -8,6 +8,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
+ * Patrizia Gufler1 - Initial Contribution
  * Sathiskumar Palaniappan - Initial Contribution
  *****************************************************************************
  */
@@ -20,9 +21,7 @@ import javax.management.InstanceNotFoundException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ReflectionException;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.gateway.GatewayClient;
@@ -144,19 +143,16 @@ public class SampleRasPiGateway {
 	 */
 	private void addDeviceType(String deviceType) throws IoTFCReSTException {
 		try {
-			System.out.println("<-- Adding device type " + deviceType);
-			JsonObject joDt = apiClient.getDeviceType(deviceType);
-			if (!joDt.isJsonNull()) {
-				// device type already exist in WIoTP
-				return;
+			System.out.println("<-- Checking if device type "+deviceType +" already created in Watson IoT Platform");
+			boolean exist = apiClient.isDeviceTypeExist(deviceType);
+			if (!exist) {
+				System.out.println("<-- Adding device type "+deviceType + " now..");
+				// device type to be created in WIoTP
+				apiClient.addDeviceType(deviceType, deviceType, null, null);
 			}
 		} catch(IoTFCReSTException e) {
-			if (e.getHttpCode() == 404) {
-					apiClient.addDeviceType(deviceType, deviceType, null, null);
-			} else {
-				System.err.println("ERROR: unable to add manually device type " + e.getMessage());
-				e.printStackTrace();
-			}
+			System.err.println("ERROR: unable to add manually device type " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 	
@@ -166,17 +162,19 @@ public class SampleRasPiGateway {
 	 */
 	private void addDevice(String deviceType, String deviceId) throws IoTFCReSTException {
 		try {
-			System.out.println("<-- Adding device " + deviceId);
-			this.gwClient.api().getDevice(deviceType, deviceId);
-		} catch (IoTFCReSTException ex) {
-			if (ex.getHttpCode() == 404) {
+			System.out.println("<-- Checking if device " + deviceId +" with deviceType " +
+					deviceType +" exists in Watson IoT Platform");
+			boolean exist = this.gwClient.api().isDeviceExist(deviceType, deviceId);
+			if(!exist) {
+				System.out.println("<-- Creating device " + deviceId +" with deviceType " +
+						deviceType +" now..");
 				gwClient.api().registerDeviceUnderGateway(deviceType, deviceId,
-						this.gwDeviceId, 
-						this.gwDeviceType);
-			} else {
-				System.out.println("ERROR: unable to add manually device " + ex.getMessage());
-				ex.printStackTrace();
+						this.gwClient.getGWDeviceType(), 
+						this.gwClient.getGWDeviceId());
 			}
+		} catch (IoTFCReSTException ex) {
+			
+			System.out.println("ERROR: unable to add manually device " + deviceId);
 		}
 	}	
 
@@ -225,7 +223,7 @@ public class SampleRasPiGateway {
 	 * to store and process the commands (in separate thread) for smooth handling of MQTT publish message.
 	 */
 	private void addCommandCallback() {
-		GatewayCommandCallback callback = new GatewayCommandCallback();
+		GatewayCommandCallback callback = new GatewayCommandCallback(gwClient);
 		gwClient.setGatewayCallback(callback);
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, ARDUINO_DEVICE_ID);
 				
@@ -235,9 +233,17 @@ public class SampleRasPiGateway {
 										this.port, 
 										this.gwClient);
 		
-		arduino.toggleDisplay(); // activate the console display 
-		callback.setGatewayId(this.gwDeviceId);
-		callback.addDeviceInterface(ARDUINO_DEVICE_ID, arduino);
+		arduino.toggleDisplay(); // activate the console display
+		
+		// Create the WIoTP client Id to uniquely identify the device
+		String key = new StringBuilder("d:")
+			.append(gwClient.getOrgId())
+			.append(':')
+			.append(DEVICE_TYPE)
+			.append(':')
+			.append(ARDUINO_DEVICE_ID).toString();
+		
+		callback.addDeviceInterface(key, arduino);
 		Thread t = new Thread(callback);
 		t.start();
 		

@@ -14,18 +14,11 @@
 
 package com.ibm.iotf.devicemgmt;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.ibm.iotf.devicemgmt.resource.Resource.ChangeListenerType;
-
 /**
  * <p>This class encapsulates the device action like reboot & factory reset.</p>
  * 
  */
-public class DeviceAction {
+public interface DeviceAction {
 	/**
 	 * <p>Status of the DeviceAction when there is a failure,</p>
 	 * <ul class="simple">
@@ -34,7 +27,7 @@ public class DeviceAction {
 	 * </ul>
 	 */
 	public enum Status {
-		FAILED(500), UNSUPPORTED(501);
+		ACCEPTED(202), FAILED(500), UNSUPPORTED(501);
 		
 		private final int rc;
 		
@@ -42,32 +35,9 @@ public class DeviceAction {
 			this.rc = rc;
 		}
 		
-		private int get() {
+		public int get() {
 			return rc;
 		}
-	}
-
-	public static final String DEVICE_REBOOT_START = "DeviceRebootStart";
-	public static final String DEVICE_FACTORY_RESET_START = "DeviceFactoryResetStart";
-	public static final String DEVICE_REBOOT_STOP = "DeviceRebootStop";
-	public static final String DEVICE_FACTORY_RESET_STOP = "DeviceFactoryResetStop";
-	
-	private Status status;
-	private String message;
-	private String typeId;
-	private String deviceId;
-
-	DeviceAction(String typeId, String deviceId) {
-		this.typeId = typeId;
-		this.deviceId = deviceId;
-	}
-	
-	public String getTypeId() {
-		return typeId;
-	}
-
-	public String getDeviceId() {
-		return deviceId;
 	}
 
 	/**
@@ -79,72 +49,22 @@ public class DeviceAction {
 	 * 
 	 * @param status Failure status of the current device action
 	 */
-	public void setStatus(Status status) {
-		this.status = status;
-	}
+	public void setStatus(Status status) ;
 	
 	/**
-	 * <p>Set the failure message of the current device action that needs to be 
-	 * sent to the IBM Watson IoT Platform.
+	 * <p>Set the failure status of the current device action
 	 * <br>
 	 * The Device Action handler must use this method to report 
-	 * the failure message back to IBM Watson IoT Platform whenever
+	 * the failure status back to IBM Watson IoT Platform whenever
 	 * there is a failure.</p>
 	 * 
-	 * @param message failure message that needs to be sent to IBM Watson IoT Platform
+	 * @param status Failure status of the current device action
 	 */
-	public void setMessage(String message) {
-		this.message = message;
-	}
-		
-		
-	private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+	public void setStatus(Status status, String message);
 	
-	/**
-	 * Trigger the notification message - This method should only be used by the library code
-	 * @param event event to be fired
-	 */
-	public void fireEvent(String event) {
-		pcs.firePropertyChange(event, null, this);
-	}
-		
-	/**
-	 * Add a new listener to be notified when device action status is changed.
-	 * @param internal 
-	 * 
-	 * @param listener
-	 */
-	public synchronized void addPropertyChangeListener(ChangeListenerType internal, 
-			PropertyChangeListener listener) {
-		pcs.addPropertyChangeListener(listener);
-	}
+	public String getTypeId();
 	
-	/**
-	 * Remove the specified listener.
-	 *  
-	 * @param listener
-	 */
-	synchronized void removePropertyChangeListener(PropertyChangeListener listener) {
-		pcs.removePropertyChangeListener(listener);
-	}
-	
-	/**
-	 * Return the <code>JsonObject</code> representation of the <code>DeviceAction Response</code> object.
-	 * @return JsonObject object
-	 */
-	public JsonObject toJsonObject() {
-		JsonObject o = new JsonObject();
-		o.add("rc", new JsonPrimitive(this.status.get()));
-		if(this.message != null) {
-			o.add("message", new JsonPrimitive(message));
-		}
-		return o;
-	}
-	
-	/**
-	 * Return the JSON string of the <code>DeviceAction Response</code> object.
-	 */
-	public String toString() {
-		return toJsonObject().toString();
-	}
+	public String getDeviceId();
+
+	public void setMessage(String message);
 }

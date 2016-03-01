@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -51,7 +50,6 @@ import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
 import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.iotf.devicemgmt.handler.DMRequestHandler;
 import com.ibm.iotf.devicemgmt.internal.ResponseCode;
-import com.ibm.iotf.devicemgmt.resource.Resource;
 import com.ibm.iotf.devicemgmt.gateway.internal.GatewayDMAgentTopic;
 import com.ibm.iotf.devicemgmt.gateway.internal.GatewayDMServerTopic;
 import com.ibm.iotf.util.LoggerUtility;
@@ -82,7 +80,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	private static final String CLASS_NAME = ManagedGateway.class.getName();
 	private static final int REGISTER_TIMEOUT_VALUE = 60 * 1000 * 2; // wait for 2 minute
 	
-	private final SynchronousQueue<JsonObject> queue = new SynchronousQueue<JsonObject>();
+	private final BlockingQueue<JsonObject> queue = new LinkedBlockingQueue<JsonObject>();
 	private final Map<String, ManagedClient> devicesMap = new HashMap<String, ManagedClient>();
 	private final BlockingQueue<JsonObject> publishQueue = new LinkedBlockingQueue<JsonObject>();
 	
@@ -168,25 +166,6 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		this.gateway = new ManagedGatewayDevice(this, deviceData);
 		this.gatewayKey = deviceData.getTypeId() + ':' + deviceData.getDeviceId();
 	}
-	
-	public String getGWTypeId() {
-		if(gateway != null) {
-			return this.gateway.getTypeId();
-		}
-		return this.getGWDeviceType();
-	}
-	
-	/**
-	 * Returns the Device ID of the gateway.
-	 */
-	public String getGWDeviceId() {
-		if(this.gateway != null) {
-			return this.gateway.getDeviceId();
-		} else {
-			return super.getGWDeviceId();
-		}
-	}
-
 	
 	/**
 	 * <p>This method connects the Gateway to the IBM IBM Watson IoT Platform.</p>
@@ -307,6 +286,24 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		public String getDeviceId() {
 			return this.deviceData.getDeviceId();
 		}
+
+		public void setSupportsFirmwareActions(boolean supportsFirmwareActions) {
+			this.firmwareActions = supportsFirmwareActions;
+		}
+
+		public void setSupportDeviceActions(boolean supportDeviceActions) {
+			this.deviceActions = supportDeviceActions;
+		}
+		
+		@Override
+		public DeviceActionHandler getActionHandler() {
+			return this.gwClient.actionHandler;
+		}
+		
+		@Override
+		public DeviceFirmwareHandler getFirmwareHandler() {
+			return gwClient.fwHandler;
+		}
 	}
 	
 	
@@ -341,7 +338,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		if(!this.devicesMap.containsKey(this.gatewayKey)) {
 			this.devicesMap.put(gatewayKey, this.gateway);
 		}
-		return this.sendDeviceManageRequest(getGWTypeId(), getGWDeviceId(), gateway.getDeviceData(),
+		return this.sendDeviceManageRequest(this.getGWDeviceType(), getGWDeviceId(), gateway.getDeviceData(),
 				lifetime, supportFirmwareActions, supportDeviceActions);
 	}
 	
@@ -436,6 +433,9 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 				deviceData = new DeviceData.Builder().typeId(typeId).deviceId(deviceId).build();
 			}
 			mc = new ManagedGatewayDevice(this, deviceData, supportsFirmwareActions, supportDeviceActions);
+		} else {
+			mc.setSupportsFirmwareActions(supportsFirmwareActions);
+			mc.setSupportDeviceActions(supportDeviceActions);
 		}
 		
 		if(reponseSubscription == false) {
@@ -487,14 +487,6 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			}
 			success = true;
 			this.devicesMap.put(key, mc);
-			if(this.fwHandler != null && supportsFirmwareActions == true) {
-				mc.getDeviceData().getDeviceFirmware().addPropertyChangeListener(
-						Resource.ChangeListenerType.INTERNAL, fwHandler);
-			}
-			if(this.actionHandler != null && supportsFirmwareActions == true) {
-				mc.getDeviceData().getDeviceAction().addPropertyChangeListener(
-						Resource.ChangeListenerType.INTERNAL, actionHandler);
-			}
 		}
 		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Success (" + success + ")");
 		
@@ -515,7 +507,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 
 	 */
 	public int updateGatewayLocation(Double latitude, Double longitude, Double elevation) {
-		return updateDeviceLocation(getGWTypeId(), getGWDeviceId(), latitude, 
+		return updateDeviceLocation(this.getGWDeviceType(), getGWDeviceId(), latitude, 
 				longitude, elevation, new Date(), null, null);
 	}
 	
@@ -552,7 +544,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 
 	 */
 	public int updateGatewayLocation(Double latitude, Double longitude, Double elevation, Date measuredDateTime) {
-		return updateDeviceLocation(getGWTypeId(), getGWDeviceId(), latitude, 
+		return updateDeviceLocation(getGWDeviceType(), getGWDeviceId(), latitude, 
 				longitude, elevation, measuredDateTime, null, null);
 	}
 	
@@ -599,7 +591,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 							 Date updatedDateTime,
 							 Double accuracy) {
 		
-		return updateDeviceLocation(getGWTypeId(), getGWDeviceId(), latitude, 
+		return updateDeviceLocation(getGWDeviceType(), getGWDeviceId(), latitude, 
 				longitude, elevation, measuredDateTime, updatedDateTime, accuracy);
 	}
 	
@@ -683,7 +675,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful)
 	 */
 	public int clearGatewayErrorCodes() {
-		return clearDeviceErrorCodes(getGWTypeId(), getGWDeviceId());
+		return clearDeviceErrorCodes(getGWDeviceType(), getGWDeviceId());
 	}
 	
 	/**
@@ -724,7 +716,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful).
 	 */
 	public int clearGatewayLogs() {
-		return clearDeviceLogs(getGWTypeId(), getGWDeviceId());
+		return clearDeviceLogs(getGWDeviceType(), getGWDeviceId());
 	}
 	
 	/**
@@ -765,7 +757,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful).
 	 */
 	public int addGatewayErrorCode(int errorCode) {
-		return addDeviceErrorCode(getGWTypeId(), getGWDeviceId(), errorCode);
+		return addDeviceErrorCode(getGWDeviceType(), getGWDeviceId(), errorCode);
 	}
 	
 	/**
@@ -817,7 +809,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful).
 	 */
 	public int addGatewayLog(String message, Date timestamp, LogSeverity severity) {
-		return addDeviceLog(getGWTypeId(), getGWDeviceId(), message, timestamp, severity, null);
+		return addDeviceLog(getGWDeviceType(), getGWDeviceId(), message, timestamp, severity, null);
 	}
 	
 	/**
@@ -833,7 +825,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful).
 	 */
 	public int addGatewayLog(String message, Date timestamp, LogSeverity severity, String data) {
-		return addDeviceLog(getGWTypeId(), getGWDeviceId(), message, timestamp, severity, data);
+		return addDeviceLog(getGWDeviceType(), getGWDeviceId(), message, timestamp, severity, data);
 	}
 	
 	/**
@@ -928,7 +920,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * @throws MqttException
 	 */
 	public boolean sendGatewayUnmanageRequet() throws MqttException {
-		return sendDeviceUnmanageRequet(getGWTypeId(), getGWDeviceId());
+		return sendDeviceUnmanageRequet(getGWDeviceType(), getGWDeviceId());
 	}
 	
 	/**
@@ -976,7 +968,6 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		if(devicesMap.size() == 0) {
 			unsubscribe(GATEWAY_RESPONSE_TOPIC);
 			terminate();
-			terminateHandlers();
 			this.reponseSubscription = false;
 		}
 		
@@ -1260,6 +1251,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 				}
 			}
 		}
+		this.terminateHandlers();
 		super.disconnect();
 	}
 
@@ -1413,25 +1405,8 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		}
 		
 		this.fwHandler = fwHandler;
-		setFirmwareHandlerForAllDevices();
-		fwHandler.start();
 	}
 	
-	/**
-	 * Add the same handler to all those devices which are already in managed state
-	 */
-	private void setFirmwareHandlerForAllDevices() {
-		Set<String> devices = devicesMap.keySet();
-		Iterator<String> itr = devices.iterator();
-		while(itr.hasNext()) {
-			ManagedGatewayDevice mc = (ManagedGatewayDevice) this.devicesMap.get(itr.next());
-			DeviceData deviceData = mc.getDeviceData();
-			if(mc.isFirmwareActions()) {
-				deviceData.getDeviceFirmware().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, fwHandler);
-			}
-		}
-	}
-
 	/**
 	 * <p>Adds a device action handler which is of type {@link com.ibm.iotf.devicemgmt.DeviceActionHandler}</p>
 	 * 
@@ -1455,39 +1430,13 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		}
 		
 		this.actionHandler = actionHandler;
-		setDeviceHandlerForAllDevices();
-		actionHandler.start();
 	}
 	
-	/**
-	 * Add the same handler to all those devices which are already in managed state
-	 */
-	private void setDeviceHandlerForAllDevices() {
-		Set<String> devices = devicesMap.keySet();
-		Iterator<String> itr = devices.iterator();
-		while(itr.hasNext()) {
-			ManagedGatewayDevice mc = (ManagedGatewayDevice) this.devicesMap.get(itr.next());
-			DeviceData deviceData = mc.getDeviceData();
-			if(mc.isDeviceActions()) {
-				deviceData.getDeviceAction().addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, actionHandler);
-			}
-		}
-	}
-
 	/**
 	 * We are disconnecting, so terminate all handlers.
 	 */
 	private void terminateHandlers() {
-		if(this.fwHandler != null) {
-			fwHandler.terminate();
-			fwHandler = null;
-		}
-		
-		if(this.actionHandler != null) {
-			actionHandler.terminate();
-			actionHandler = null;
-		}
-		
+		fwHandler = null;
+		actionHandler = null;
 	}
-
 }

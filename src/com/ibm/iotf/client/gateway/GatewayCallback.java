@@ -36,7 +36,7 @@ public interface GatewayCallback {
 	
 	/**
 	 * <p> If a gateways subscribes to a topic of a device or sends data on behalf of a device 
-	 * where the gateway doesn’t have permission for, the message or the subscription is being ignored. 
+	 * where the gateway does not have permission for, the message or the subscription is being ignored. 
 	 * This behavior is different compared to applications where the connection will be terminated. 
 	 * The Gateway will be notified on the notification topic:.
 	 * 

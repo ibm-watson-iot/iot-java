@@ -46,13 +46,19 @@
         <maven.build.skipTests>true</maven.build.skipTests>
 
         <!-- General properties -->
-        <java.version>1.8</java.version>
+        <java.version>1.7</java.version>
 
         <!-- maven-compiler-plugin configuration -->
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+	<repositories>
+		<repository>
+			<id>Eclipse Paho Repo</id>
+			<url>https://repo.eclipse.org/content/repositories/paho-snapshots/</url>
+		</repository>
+	</repositories>
 
     <dependencies>
         <dependency>

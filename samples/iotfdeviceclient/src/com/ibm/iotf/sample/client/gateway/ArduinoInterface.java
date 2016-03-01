@@ -13,40 +13,12 @@
  */
 package com.ibm.iotf.sample.client.gateway;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-
-import gnu.io.CommPortIdentifier; 
-import gnu.io.SerialPort;
-import gnu.io.SerialPortEvent; 
-import gnu.io.SerialPortEventListener; 
-
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.Properties;
-
-import org.eclipse.paho.client.mqttv3.MqttException;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.ibm.iotf.client.gateway.GatewayClient;
-import com.ibm.iotf.devicemgmt.DeviceAction;
-import com.ibm.iotf.devicemgmt.DeviceFirmware;
-import com.ibm.iotf.devicemgmt.LogSeverity;
-import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
-import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
-import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
-import com.ibm.iotf.sample.devicemgmt.gateway.GatewayFirmwareHandlerSample;
 
 /**
  *  <p> Initializes the Arduino device interface, if it finds that the hardware
  *  Arduino Uno device is available, then creates the ArduinoSerialInterface instance
- *  that interacts with Arduino Uno device through RxTx library, otherwise swicthes
+ *  that interacts with Arduino Uno device through RxTx library, otherwise Swicthes
  *  to Simulator - ArduinoSimulatorInterface.</p>
  *      
  */

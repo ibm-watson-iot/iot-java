@@ -1,3 +1,17 @@
+/**
+ *****************************************************************************
+ * Copyright (c) 2016 IBM Corporation and other Contributors.
+
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * Patrizia Gufler1 - Initial Contribution
+ * Sathiskumar Palaniappan - Initial Contribution
+ *****************************************************************************
+ */
 package com.ibm.iotf.sample.devicemgmt.gateway.home;
 
 import java.util.ArrayList;
@@ -6,7 +20,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.InstanceNotFoundException;
@@ -57,7 +73,7 @@ public class HomeGatewaySample {
 	// One can increase the number of threads when more & more devices are attached and need to
 	// send in lesser frequent interval.
 	private ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
-	
+
 	private ManagedGateway mgdGateway;
 	private APIClient apiClient;
 	private String registrationMode;
@@ -141,26 +157,26 @@ public class HomeGatewaySample {
 	 * All devices publish events and few devices accept commands. 
 	 */
 	private void initDevicesBehindGateway() {
-		Device oven = new Oven("MyOven", this.mgdGateway, 3);
+		Device oven = new Oven("MyOven", this.mgdGateway, 20);
 		oven.setManagable(true, true);
-		oven.sendLog(LogSeverity.informational, "Oven connected to Watson IoT", null, new Date());
-		oven.sendLog(LogSeverity.warning, "Warning 14625: inconsistent state", null, new Date());
+		oven.setLog(LogSeverity.informational, "Oven connected to Watson IoT", null, new Date());
+		oven.setLog(LogSeverity.warning, "Warning 14625: inconsistent state", null, new Date());
 
-		Device light1 = new Light("LightDeviceActionManagable", this.mgdGateway, 8);
+		Device light1 = new Light("LightDeviceActionManagable", this.mgdGateway, 60);
 		light1.setManagable(false, true);
 
-		Device light2 = new Light("LightNotManageable", this.mgdGateway, 12);
+		Device light2 = new Light("LightNotManageable", this.mgdGateway, 70);
 		light2.setManagable(false, false);
 
-		Device elevator = new Elevator("MainElevator", this.mgdGateway, 5);
+		Device elevator = new Elevator("MainElevator", this.mgdGateway, 30);
 		elevator.setManagable(true, true);
-		elevator.sendErrorCode(0);
+		elevator.setErrorCode(0);
 
-		Device switch1 = new Switch("Hall-Swicth", this.mgdGateway, 12);
-		Device switch2 = new Switch("Kitchen-Swicth", this.mgdGateway, 17);
-		Device switch3 = new Switch("MasterRoom-Swicth", this.mgdGateway, 30);
+		Device switch1 = new Switch("Hall-Switch", this.mgdGateway, 40);
+		Device switch2 = new Switch("Kitchen-Switch", this.mgdGateway, 50);
+		Device switch3 = new Switch("MasterRoom-Switch", this.mgdGateway, 60);
 
-		Device temperatureSensor = new Temperature("OutdoorTemperature", this.mgdGateway, 2);
+		Device temperatureSensor = new Temperature("OutdoorTemperature", this.mgdGateway, 20);
 
 		attachedDevices = new ArrayList<Device>();
 		attachedDevices.add(oven);
@@ -190,25 +206,21 @@ public class HomeGatewaySample {
 			// for manual registration mode only
 			if (sample.getRegistrationMode().equalsIgnoreCase(RegistrationMode.MANUAL.getRegistrationMode())) {
 				System.out.println("<-- Registring the devices manually if not added already");
-				// manually register all devicetypes that are needed (if they do
+				// manually register all device types that are needed (if they do
 				// not exist yet) with api key
 				for (DeviceType deviceType : DeviceType.values()) {
-					System.out.println("<-- Adding deviceType " + deviceType.getDeviceType());
+					System.out.println("<-- Checking if deviceType " + deviceType.getDeviceType() +" exists in Watson IoT Platform");
 					String dt = deviceType.getDeviceType();
 					try {
-						JsonObject joDt = sample.apiClient.getDeviceType(dt);
-						if (!joDt.isJsonNull()) {
-							// device type already exist in iotf
-							continue;
+						boolean exist = sample.apiClient.isDeviceTypeExist(dt);
+						if (!exist) {
+							// device type has to be created in WIoTP
+							System.out.println("<-- Creating deviceType " + deviceType.getDeviceType() +" now..");
+							sample.apiClient.addDeviceType(dt, dt, null, null);
 						}
-						// device type has to be created in iotf
 
 					} catch (IoTFCReSTException e) {
-						if (e.getHttpCode() == 404) {
-							sample.apiClient.addDeviceType(dt, dt, null, null);
-						} else {
-							System.out.println("ERROR: unable to add manually device type " + deviceType.toString());
-						}
+						System.out.println("ERROR: unable to add manually device type " + deviceType.toString());
 					}
 				}
 
@@ -216,14 +228,18 @@ public class HomeGatewaySample {
 				// exist yet) with gateway credentials
 				for (Device device : attachedDevices) {
 					try {
-						System.out.println("<-- Adding device "+device.getDeviceId());
-						sample.mgdGateway.api().getDevice(device.getDeviceType(), device.getDeviceId());
-					} catch (IoTFCReSTException ex) {
-						if (ex.getHttpCode() == 404) {
+						System.out.println("<-- Checking if device "+device.getDeviceId() +" with deviceType " +
+															device.getDeviceType() +" exists in Watson IoT Platform");
+						boolean exist = sample.mgdGateway.api().isDeviceExist(device.getDeviceType(), device.getDeviceId());
+						if(!exist) {
+							System.out.println("<-- Creating device "+device.getDeviceId() +" with deviceType " +
+									device.getDeviceType() +" now..");
 							sample.mgdGateway.api().registerDeviceUnderGateway(device.getDeviceType(), device.getDeviceId(),
-									sample.mgdGateway.getGWTypeId(), sample.mgdGateway.getGWDeviceId());
-
+									sample.mgdGateway.getGWDeviceType(), sample.mgdGateway.getGWDeviceId());
 						}
+					} catch (IoTFCReSTException ex) {
+						
+						System.out.println("ERROR: unable to add manually device " + device.getDeviceId());
 					}
 				}
 			}
@@ -249,7 +265,18 @@ public class HomeGatewaySample {
 			// Initialize a device action handler that handles the reboot or reset request for the Gateway and 
 			// attached devices
 			GatewayActionHandlerSample actionHandler = new GatewayActionHandlerSample();
-			actionHandler.setGatewayDeviceId(sample.mgdGateway.getGWDeviceId());
+			actionHandler.setGateway(sample.mgdGateway);
+			
+			// Create a threadpool that can handle the firmware/device action requests from the Watson IoT Platform
+			// in bulk, for example, if a user wants to reboot all the devices connected to the gateway in one go,
+			// gateway should be able to handle the load if there are 1000 or more devices connected to it.
+			ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 60, TimeUnit.MILLISECONDS,  
+					new LinkedBlockingQueue<Runnable>());
+			// Allow core threds to timeout as the firmware/device actions may not be called very frequently
+			threadPoolExecutor.allowCoreThreadTimeOut(true);
+			fwHandler.setExecutor(threadPoolExecutor);
+			actionHandler.setExecutor(threadPoolExecutor);
+			
 			
 			// schedule a thread to send these attached device events at different interval
 			sample.scheduleDeviceEvents();
@@ -263,10 +290,10 @@ public class HomeGatewaySample {
 					device.setManaged(true);
 					// add the entry into the firmwarehandler if the device supports Firmware update
 					if(device.isFirmwareAction()) {
-						fwHandler.addDeviceInterface(device.getDeviceId(), device);
+						fwHandler.addDeviceInterface(device.getKey(), device);
 					}
 					if(device.isDeviceAction()) {
-						actionHandler.addDeviceInterface(device.getDeviceId(), device);
+						actionHandler.addDeviceInterface(device.getKey(), device);
 					}
 				}
 			}
@@ -300,7 +327,7 @@ public class HomeGatewaySample {
 					
 				sample.mgdGateway.publishGatewayEvent("blink", event);
 				System.out.println("<--(GW) Gateway event :: "+event);
-				Thread.sleep(5000);
+				Thread.sleep(50000);
 			}
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -359,11 +386,11 @@ public class HomeGatewaySample {
 	 */
 	private void addCommandCallback() {
 		System.out.println("<-- Subscribing to commands for all the devices..");
-		GatewayCommandCallback callback = new GatewayCommandCallback();
+		GatewayCommandCallback callback = new GatewayCommandCallback(this.mgdGateway);
 		mgdGateway.setGatewayCallback(callback);
 		for (Device device : attachedDevices) {
 			mgdGateway.subscribeToDeviceCommands(device.getDeviceType(), device.getDeviceId());
-			callback.addDeviceInterface(device.getDeviceId(), device);
+			callback.addDeviceInterface(device.getKey(), device);
 		}
 		
 		try {

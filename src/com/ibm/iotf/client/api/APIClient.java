@@ -254,6 +254,61 @@ public class APIClient {
 		}
 		return line;
 	}
+	
+	/**
+	 * Checks whether the given device exists in the Watson IoT Platform
+	 * 
+	 * <p> Refer to the
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Device_Types/get_device_types_typeId">link</a>
+	 * for more information about the response</p>.
+	 * 
+	 * @param deviceType String which contains device type
+	 * @param deviceId String which contains device id
+	 * 
+	 * @return A boolean response containing the status
+	 * @throws IoTFCReSTException
+	 */
+	public boolean isDeviceExist(String deviceType, String deviceId) throws IoTFCReSTException {
+		final String METHOD = "isDeviceExist";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(BASIC_API_V0002_URL).
+		   append("/device/types/").
+		   append(deviceType).
+		   append("/devices/").
+		   append(deviceId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200) {
+				return true;
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in getting the Device "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 404) {
+			return false;
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return false;
+	}
 
 	/**
 	 * This method retrieves a device based on the deviceType and DeviceID of the organization passed.
@@ -904,6 +959,57 @@ public class APIClient {
 	 */
 	public JsonObject getDeviceTypes() throws IoTFCReSTException {
 		return getAllDeviceTypes(null);
+	}
+	
+	
+	/**
+	 * Check whether the given device type exists in the Watson IoT Platform
+	 * 
+	 * <p> Refer to the
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Device_Types/get_device_types_typeId">link</a>
+	 * for more information about the response</p>.
+	 * @param deviceType The device type to be checked in Watson IoT Platform
+	 * @return A boolean response containing the status
+	 * @throws IoTFCReSTException
+	 */
+	public boolean isDeviceTypeExist(String deviceType) throws IoTFCReSTException {
+		final String METHOD = "isDeviceTypeExist";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(BASIC_API_V0002_URL).
+		   append("/device/types/").
+		   append(deviceType);
+		
+		int code = 0;
+		HttpResponse response = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200) {
+				return true;
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in getting the Device Type "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 404) {
+			return false;
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return false;
 	}
 	
 	/**

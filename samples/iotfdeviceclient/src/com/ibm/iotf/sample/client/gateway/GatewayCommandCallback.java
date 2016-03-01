@@ -8,6 +8,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
+ * Patrizia Gufler1 - Initial Contribution
  * Sathiskumar Palaniappan - Initial Contribution
  *****************************************************************************
  */
@@ -19,9 +20,9 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.google.gson.JsonParser;
 import com.ibm.iotf.client.gateway.Command;
 import com.ibm.iotf.client.gateway.GatewayCallback;
+import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.client.gateway.Notification;
 
 /**
@@ -33,18 +34,14 @@ import com.ibm.iotf.client.gateway.Notification;
  */
 public class GatewayCommandCallback implements GatewayCallback, Runnable {
 
-	private String gatewayId = null;
-	
-	public void setGatewayId(String gatewayId) {
-		this.gatewayId = gatewayId;
-	}
+	private GatewayClient gateway = null;
 	
 	// A queue to hold & process the commands
 	private BlockingQueue<Command> queue = new LinkedBlockingQueue<Command>();
 	private Map<String, DeviceInterface> deviceMap = new HashMap<String, DeviceInterface>();
 
-	public GatewayCommandCallback() {
-		
+	public GatewayCommandCallback(GatewayClient gateway) {
+		this.gateway = gateway;
 	}
 	
 	public void addDeviceInterface(String deviceId, DeviceInterface device) {
@@ -65,10 +62,10 @@ public class GatewayCommandCallback implements GatewayCallback, Runnable {
 			Command cmd = null;
 			try {
 				cmd = queue.take();
-				DeviceInterface device = deviceMap.get(cmd.getDeviceId());
-				
+				DeviceInterface device = deviceMap.get(getKey(cmd));
 				// check if this command is for the gateway
-				if(device == null && cmd.getDeviceId().equals(this.gatewayId)) {
+				if(device == null && cmd.getDeviceId().equals(this.gateway.getGWDeviceId()) &&
+						cmd.getDeviceType().equals(this.gateway.getGWDeviceType())) {
 					System.out.println("-->(GW) Got command for this gateway:: "+cmd);
 					return;
 				} else {
@@ -81,6 +78,19 @@ public class GatewayCommandCallback implements GatewayCallback, Runnable {
 			}
 				
 		}
+	}
+
+	/**
+	 * Let us use the WIoTP client Id as the key to identify the device
+	 * @return
+	 */
+	private String getKey(Command cmd) {
+		return new StringBuilder("d:").
+				append(this.gateway.getOrgId()).
+				append(':').
+				append(cmd.getDeviceType()).
+				append(':').
+				append(cmd.getDeviceId()).toString();
 	}
 
 	@Override

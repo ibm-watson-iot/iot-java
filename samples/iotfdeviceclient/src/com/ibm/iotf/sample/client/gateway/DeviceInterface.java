@@ -16,7 +16,6 @@ package com.ibm.iotf.sample.client.gateway;
 
 import java.util.Date;
 
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.iotf.devicemgmt.DeviceAction;
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
@@ -42,6 +41,6 @@ public interface DeviceInterface {
 
 	public void toggleDisplay();
 
-	public void sendLog(LogSeverity severity, String message, String data, Date date);
+	public void setLog(LogSeverity severity, String message, String data, Date date);
 
 }

@@ -13,6 +13,7 @@
  */
 package com.ibm.iotf.devicemgmt;
 
+import com.ibm.iotf.devicemgmt.internal.ConcreteDeviceAction;
 import com.ibm.iotf.devicemgmt.internal.DeviceMgmt;
 import com.ibm.iotf.devicemgmt.resource.Resource;
 import com.ibm.iotf.devicemgmt.resource.StringResource;
@@ -121,7 +122,7 @@ public class DeviceData {
 	 */
 	public DeviceAction getDeviceAction() {
 		if(this.deviceAction == null) {
-			this.deviceAction = new DeviceAction(this.typeId, this.deviceId);
+			this.deviceAction = new ConcreteDeviceAction(this.typeId, this.deviceId);
 		}
 		
 		return deviceAction;

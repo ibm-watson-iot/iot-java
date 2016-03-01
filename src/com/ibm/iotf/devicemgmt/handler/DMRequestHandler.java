@@ -13,6 +13,8 @@
 package com.ibm.iotf.devicemgmt.handler;
 
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,8 +25,10 @@ import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.ibm.iotf.devicemgmt.DeviceAction;
 import com.ibm.iotf.devicemgmt.internal.ManagedClient;
 import com.ibm.iotf.devicemgmt.internal.DMAgentTopic;
 import com.ibm.iotf.util.LoggerUtility;
@@ -256,5 +260,4 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 		}
 		
 	}
-
 }

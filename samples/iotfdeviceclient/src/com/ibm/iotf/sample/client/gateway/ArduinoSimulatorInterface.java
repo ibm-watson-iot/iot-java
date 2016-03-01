@@ -20,7 +20,6 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.devicemgmt.DeviceAction;
@@ -226,7 +225,7 @@ public class ArduinoSimulatorInterface extends Thread implements DeviceInterface
 	}
 	
 	@Override
-	public void sendLog(LogSeverity severity, String message, String data, Date date) {
+	public void setLog(LogSeverity severity, String message, String data, Date date) {
 		ManagedGateway gw = (ManagedGateway)this.gwClient;
 		gw.addDeviceLog(this.deviceType, this.deviceId, message, date, severity);
 	}

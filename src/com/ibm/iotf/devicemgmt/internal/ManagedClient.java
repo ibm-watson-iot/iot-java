@@ -16,7 +16,9 @@ import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
+import com.ibm.iotf.devicemgmt.DeviceActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceData;
+import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
 
 /**
  * A managed client interface that provides the contract what a managed device or Gateway
@@ -42,5 +44,9 @@ public interface ManagedClient {
 	public DMAgentTopic getDMAgentTopic();
 
 	public DMServerTopic getDMServerTopic();
+
+	public DeviceActionHandler getActionHandler();
+
+	DeviceFirmwareHandler getFirmwareHandler();
 
 }

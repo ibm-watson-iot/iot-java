@@ -163,9 +163,6 @@ public class DeviceFirmware extends Resource {
 		}
 	}
 	
-	public static final String FIRMWARE_DOWNLOAD_START = "FirmwareDownloadStart";
-	public static final String FIRMWARE_UPDATE_START = "FirmwareUpdateStart";
-	
 	private static final String VERSION = "version";
 	private static final String NAME = "name";
 	private static final String URL = "uri";
@@ -426,6 +423,23 @@ public class DeviceFirmware extends Resource {
 	 */
 	public void setUpdateStatus(FirmwareUpdateStatus updateStatus) {
 		this.setUpdateStatus(updateStatus, true);
+		
+		/**
+		 * When the firmware update is success, set the FWVersion
+		 * of the Device accordingly. Also, set the verifier to null
+		 * as the verification is done.
+		 */
+		if(updateStatus == FirmwareUpdateStatus.SUCCESS) {
+			if(null != version && !("".equals(version))) {
+				Resource mgmt = this.getParent();
+				Resource root = mgmt.getParent();
+				Resource deviceInfo = root.getChild(DeviceInfo.RESOURCE_NAME);
+				if(deviceInfo != null) {
+					((DeviceInfo) deviceInfo).setFwVersion(this.getVersion());
+				}
+			}
+			this.setVerifier(null, false);
+		}
 	}
 	
 	private void setUpdateStatus(FirmwareUpdateStatus updateStatus, boolean fireEvent) {

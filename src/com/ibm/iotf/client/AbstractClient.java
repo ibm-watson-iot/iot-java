@@ -213,7 +213,6 @@ public abstract class AbstractClient {
 		try {
 			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
 			mqttAsyncClient.setCallback(mqttCallback);
-			
 			mqttClientOptions = new MqttConnectOptions();
 			mqttClientOptions.setUserName(clientUsername);
 			mqttClientOptions.setPassword(clientPassword.toCharArray());

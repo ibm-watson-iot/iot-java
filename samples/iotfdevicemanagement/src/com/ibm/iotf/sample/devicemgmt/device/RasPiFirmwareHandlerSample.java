@@ -27,11 +27,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
+import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
+import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
 /**
  * This sample Firmware handler demonstrates how one can download and 
@@ -46,6 +50,7 @@ import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
  *    debian package that is download.
  */
 public class RasPiFirmwareHandlerSample extends DeviceFirmwareHandler {
+	private static ExecutorService executor = Executors.newSingleThreadExecutor();
 	
 	private static final String CLASS_NAME = RasPiFirmwareHandlerSample.class.getName();
 	private static final String DEPENDENCY_ERROR_MSG = "dependency problems - leaving unconfigured";
@@ -66,103 +71,155 @@ public class RasPiFirmwareHandlerSample extends DeviceFirmwareHandler {
 	}
 	
 	private String downloadedFirmwareName;
+
+	private ManagedDevice managedDevice;
 	
-	public RasPiFirmwareHandlerSample() {
+	public RasPiFirmwareHandlerSample(ManagedDevice managedDevice) {
+		this.managedDevice = managedDevice;
 	}
 
 	/**
 	 * A sample method that downloads a firmware image (a debian file) from a HTTP server
 	 * 
 	 */
-	@Override
-	public void downloadFirmware(DeviceFirmware deviceFirmware) {
+	private static class FirmwareDownloadTask implements Runnable {
 		
-		System.out.println(CLASS_NAME + ": Firmware Download start...");
-		boolean success = false;
-		URL firmwareURL = null;
-		URLConnection urlConnection = null;
-		
-		/**
-		 * start downloading the firmware image
-		 */
-		try {
-			System.out.println(CLASS_NAME + ": Downloading Firmware from URL " + deviceFirmware.getUrl());
+		private DeviceFirmware deviceFirmware;
+		private RasPiFirmwareHandlerSample handler;
+
+		public FirmwareDownloadTask(DeviceFirmware deviceFirmware, RasPiFirmwareHandlerSample handler) {
+			this.deviceFirmware = deviceFirmware;
+			this.handler = handler;
+		}
+
+		@Override
+		public void run() {
+			System.out.println(CLASS_NAME + ": Firmware Download start...");
+			boolean success = false;
+			URL firmwareURL = null;
+			URLConnection urlConnection = null;
+			String downloadedFirmwareName = null;
 			
-			firmwareURL = new URL(deviceFirmware.getUrl());
-			urlConnection = firmwareURL.openConnection();
-			if(deviceFirmware.getName() != null &&
-					!"".equals(deviceFirmware.getName())) {
-				downloadedFirmwareName = deviceFirmware.getName();
-			} else {
-				// use the timestamp as the name
-				downloadedFirmwareName = "firmware_" +new Date().getTime()+".deb";
-			}
-			
-			File file = new File(downloadedFirmwareName);
-			BufferedInputStream bis = new BufferedInputStream(urlConnection.getInputStream());
-			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file.getName()));
-			
-			int data = bis.read();
-			if(data != -1) {
-				bos.write(data);
-				byte[] block = new byte[1024];
-				while (true) {
-					int len = bis.read(block, 0, block.length);
-					if(len != -1) {
-						bos.write(block, 0, len);
-					} else {
-						break;
+			/**
+			 * start downloading the firmware image
+			 */
+			try {
+				System.out.println(CLASS_NAME + ": Downloading Firmware from URL " + deviceFirmware.getUrl());
+				
+				firmwareURL = new URL(deviceFirmware.getUrl());
+				urlConnection = firmwareURL.openConnection();
+				int fileSize = urlConnection.getContentLength();
+				if(deviceFirmware.getName() != null &&
+						!"".equals(deviceFirmware.getName())) {
+					downloadedFirmwareName = deviceFirmware.getName();
+				} else {
+					// use the timestamp as the name
+					downloadedFirmwareName = "firmware_" +new Date().getTime()+".deb";
+				}
+				
+				File file = new File(downloadedFirmwareName);
+				BufferedInputStream bis = new BufferedInputStream(urlConnection.getInputStream());
+				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file.getName()));
+				
+				// count the download size to send the progress report as DiagLog to Watson IoT Platform
+				int downloadedSize = 0;
+				
+				int data = bis.read();
+				downloadedSize += 1;
+
+				if(data != -1) {
+					bos.write(data);
+					byte[] block = new byte[1024];
+					int previousProgress = 0;
+					while (true) {
+						int len = bis.read(block, 0, block.length);
+						downloadedSize = downloadedSize + len;
+						if(len != -1) {
+							// Send the progress update
+							if(fileSize > 0) {
+								int progress = (int) (((float)downloadedSize / fileSize) * 100);
+								if(progress > previousProgress) {
+									String message = "Firmware Download progress: "+progress + "%";
+									handler.addDiagLog(message, new Date(), LogSeverity.informational);
+									System.out.println(message);
+								}
+							} else {
+								// If we can't retrieve the filesize, let us update how much we have download so far
+								String message = "Downloaded : "+ downloadedSize + " bytes so far";
+								handler.addDiagLog(message, new Date(), LogSeverity.informational);
+								System.out.println(message);
+							}
+							bos.write(block, 0, len);
+						} else {
+							break;
+						}
+					}
+					bos.close();
+					bis.close();
+					
+					success = true;
+				} else {
+					//There is no data to read, so throw an exception
+					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.INVALID_URI);
+				}
+				
+				// Verify the firmware image if verifier is set
+				if(deviceFirmware.getVerifier() != null && !deviceFirmware.getVerifier().equals("")) {
+					success = handler.verifyFirmware(file, deviceFirmware.getVerifier());
+					
+					/**
+					 * As per the documentation, If a firmware verifier has been set, the device should 
+					 * attempt to verify the firmware image. 
+					 * 
+					 * If the image verification fails, mgmt.firmware.state should be set to 0 (Idle) 
+					 * and mgmt.firmware.updateStatus should be set to the error status value 4 (Verification Failed).
+					 */
+					if(success == false) {
+						deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.VERIFICATION_FAILED);
+						// the firmware state is updated to IDLE below
 					}
 				}
-				bos.close();
-				bis.close();
 				
-				success = true;
-			} else {
-				//There is no data to read, so throw an exception
+			} catch(MalformedURLException me) {
+				// Invalid URL, so set the status to reflect the same,
 				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.INVALID_URI);
+				me.printStackTrace();
+			} catch (IOException e) {
+				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.CONNECTION_LOST);
+				e.printStackTrace();
+			} catch (OutOfMemoryError oom) {
+				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.OUT_OF_MEMORY);
 			}
 			
-			// Verify the firmware image if verifier is set
-			if(deviceFirmware.getVerifier() != null && !deviceFirmware.getVerifier().equals("")) {
-				success = verifyFirmware(file, deviceFirmware.getVerifier());
-				
-				/**
-				 * As per the documentation, If a firmware verifier has been set, the device should 
-				 * attempt to verify the firmware image. 
-				 * 
-				 * If the image verification fails, mgmt.firmware.state should be set to 0 (Idle) 
-				 * and mgmt.firmware.updateStatus should be set to the error status value 4 (Verification Failed).
-				 */
-				if(success == false) {
-					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.VERIFICATION_FAILED);
-					// the firmware state is updated to IDLE below
-				}
+			/**
+			 * Set the firmware download and possibly the firmware update status
+			 * (will be sent later) accordingly
+			 */
+			if(success == true) {
+				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
+				deviceFirmware.setState(FirmwareState.DOWNLOADED);
+				handler.setDownloadedFirmwareName(downloadedFirmwareName);
+			} else {
+				deviceFirmware.setState(FirmwareState.IDLE);
 			}
 			
-		} catch(MalformedURLException me) {
-			// Invalid URL, so set the status to reflect the same,
-			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.INVALID_URI);
-			me.printStackTrace();
-		} catch (IOException e) {
-			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.CONNECTION_LOST);
-			e.printStackTrace();
-		} catch (OutOfMemoryError oom) {
-			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.OUT_OF_MEMORY);
+			System.out.println(CLASS_NAME + ": Firmware Download END...("+success+ ")");
 		}
+	}
+	
+	@Override
+	public void downloadFirmware(DeviceFirmware deviceFirmware) {
+		FirmwareDownloadTask task = new FirmwareDownloadTask(deviceFirmware, this);
+		executor.execute(task);
+	}
+
+	public void addDiagLog(String message, Date date, LogSeverity severity) {
+		this.managedDevice.addLog(message, date, severity);
 		
-		/**
-		 * Set the firmware download and possibly the firmware update status
-		 * (will be sent later) accordingly
-		 */
-		if(success == true) {
-			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
-			deviceFirmware.setState(FirmwareState.DOWNLOADED);
-		} else {
-			deviceFirmware.setState(FirmwareState.IDLE);
-		}
-		
-		System.out.println(CLASS_NAME + ": Firmware Download END...("+success+ ")");
+	}
+
+	public void setDownloadedFirmwareName(String downloadedFirmwareName) {
+		this.downloadedFirmwareName = downloadedFirmwareName;
 	}
 
 	private boolean verifyFirmware(File file, String verifier) throws IOException {
@@ -187,6 +244,13 @@ public class RasPiFirmwareHandlerSample extends DeviceFirmwareHandler {
 				+ "Expected "+verifier + " found "+md5);
 		return false;
 	}
+	
+	@Override
+	public void updateFirmware(DeviceFirmware deviceFirmware) {
+		FirmwareUpdateTask task = new FirmwareUpdateTask(deviceFirmware, this);
+		executor.execute(task);
+	}
+
 
 	/**
 	 * A sample firmware update method that installs the debian package
@@ -206,79 +270,89 @@ public class RasPiFirmwareHandlerSample extends DeviceFirmwareHandler {
 	 * option -- very useful for scripted silent installs). 
 	 * 
 	 */
-	@Override
-	public void updateFirmware(DeviceFirmware deviceFirmware) {
-		try {
-			System.out.println(CLASS_NAME + ": Firmware update start...");
-			
-			ProcessBuilder pkgInstaller = null;
-			ProcessBuilder dependencyInstaller = null;
-			Process p = null;
-			pkgInstaller = new ProcessBuilder("sudo", "dpkg", "-i", this.downloadedFirmwareName);
-			pkgInstaller.redirectErrorStream(true);
-			pkgInstaller.redirectOutput(new File(INSTALL_LOG_FILE));
-			
-			dependencyInstaller = new ProcessBuilder("sudo", "apt-get", "-fy", "install");
-			dependencyInstaller.redirectErrorStream(true);
-			dependencyInstaller.inheritIO();
+	private static class FirmwareUpdateTask implements Runnable {
+		
+		private DeviceFirmware deviceFirmware;
+		private RasPiFirmwareHandlerSample handler;
 
-			boolean success = false;
+		public FirmwareUpdateTask(DeviceFirmware deviceFirmware, RasPiFirmwareHandlerSample handler) {
+			this.deviceFirmware = deviceFirmware;
+			this.handler = handler;
+		}
+
+		@Override
+		public void run() {
+
 			try {
-				p = pkgInstaller.start();
-				boolean status = waitForCompletion(p, 5);
-				if(status == false) {
-					p.destroy();
+				System.out.println(CLASS_NAME + ": Firmware update start...");
+				
+				ProcessBuilder pkgInstaller = null;
+				ProcessBuilder dependencyInstaller = null;
+				Process p = null;
+				pkgInstaller = new ProcessBuilder("sudo", "dpkg", "-i", handler.downloadedFirmwareName);
+				pkgInstaller.redirectErrorStream(true);
+				pkgInstaller.redirectOutput(new File(INSTALL_LOG_FILE));
+				
+				dependencyInstaller = new ProcessBuilder("sudo", "apt-get", "-fy", "install");
+				dependencyInstaller.redirectErrorStream(true);
+				dependencyInstaller.inheritIO();
+	
+				try {
+					p = pkgInstaller.start();
+					boolean status = waitForCompletion(p, 5);
+					if(status == false) {
+						p.destroy();
+						deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
+						return;
+					}
+					// check for install error
+					InstalStatus instalStatus = handler.ParseInstallLog();
+					if(instalStatus == InstalStatus.DEPENDENCY_ERROR) {
+						System.err.println("Following dependency error occured while "
+								+ "installing the image "+handler.downloadedFirmwareName);
+						System.err.println(getInstallLog());
+						
+						System.out.println("Trying to update the dependency with the following command...");
+						System.out.println("sudo apt-get -fy install");
+						p = dependencyInstaller.start();
+						status = waitForCompletion(p, 5);
+					} else if(instalStatus == InstalStatus.ERROR) {
+						System.err.println("Following error occured while "
+								+ "installing the image "+handler.downloadedFirmwareName);
+						System.err.println(getInstallLog());
+						deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
+						return;
+					}
+					System.out.println("Firmware Update command "+status);
+					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
+					deviceFirmware.setState(FirmwareState.IDLE);
+				} catch (IOException e) {
+					e.printStackTrace();
 					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
-					return;
-				}
-				// check for install error
-				InstalStatus instalStatus = ParseInstallLog();
-				if(instalStatus == InstalStatus.DEPENDENCY_ERROR) {
-					System.err.println("Following dependency error occured while "
-							+ "installing the image "+this.downloadedFirmwareName);
-					System.err.println(getInstallLog());
-					
-					System.out.println("Trying to update the dependency with the following command...");
-					System.out.println("sudo apt-get -fy install");
-					p = dependencyInstaller.start();
-					status = waitForCompletion(p, 5);
-				} else if(instalStatus == InstalStatus.ERROR) {
-					System.err.println("Following error occured while "
-							+ "installing the image "+this.downloadedFirmwareName);
-					System.err.println(getInstallLog());
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
-					return;
 				}
-				System.out.println("Firmware Update command "+status);
-				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
-				deviceFirmware.setState(FirmwareState.IDLE);
+			} catch (OutOfMemoryError oom) {
+				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.OUT_OF_MEMORY);
+			}
+			
+			/**
+			 * Delete the temporary firmware file
+			 */
+			try {
+				Path path = new File(handler.downloadedFirmwareName).toPath();
+				Files.deleteIfExists(path);
+				path = new File(INSTALL_LOG_FILE).toPath();
+				Files.deleteIfExists(path);
 			} catch (IOException e) {
 				e.printStackTrace();
-				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.UNSUPPORTED_IMAGE);
 			}
-		} catch (OutOfMemoryError oom) {
-			deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.OUT_OF_MEMORY);
-		}
-		
-		/**
-		 * Delete the temporary firmware file
-		 */
-		try {
-			Path path = new File(downloadedFirmwareName).toPath();
-			Files.deleteIfExists(path);
-			path = new File(INSTALL_LOG_FILE).toPath();
-			Files.deleteIfExists(path);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		downloadedFirmwareName = null;
-		System.out.println(CLASS_NAME + ": Firmware update End...");
-	}
 	
+			handler.setDownloadedFirmwareName(null);
+			System.out.println(CLASS_NAME + ": Firmware update End...");
+		}
+	}
 	/**
 	 * Since JDK7 doesn't take any timeout parameter, we provide an workaround
 	 * that wakes up every second and checks for the completion status of the process.

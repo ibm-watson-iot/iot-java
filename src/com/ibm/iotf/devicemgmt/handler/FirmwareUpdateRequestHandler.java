@@ -13,9 +13,6 @@
  */
 package com.ibm.iotf.devicemgmt.handler;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.internal.ManagedClient;
@@ -101,7 +98,7 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 		
 		// handle the error conditions
 		DeviceFirmware firmware = getDMClient().getDeviceData().getDeviceFirmware();
-		if(firmware == null) {
+		if(firmware == null || getDMClient().getFirmwareHandler() == null) {
 			rc = ResponseCode.DM_FUNCTION_NOT_IMPLEMENTED;
 		} else if(firmware.getState() == DeviceFirmware.FirmwareState.IDLE.getState()) {
 			rc = ResponseCode.DM_BAD_REQUEST;
@@ -109,8 +106,8 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 			// Normal condition
 			
 			if (firmware.getUrl() != null) {
-				LoggerUtility.fine(CLASS_NAME, METHOD, "Fire event (" + DeviceFirmware.FIRMWARE_UPDATE_START + ")");
-				getDMClient().getDeviceData().getDeviceFirmware().fireEvent(DeviceFirmware.FIRMWARE_UPDATE_START);
+				LoggerUtility.fine(CLASS_NAME, METHOD, "Fire Firmware update ");
+				getDMClient().getFirmwareHandler().updateFirmware(firmware);
 				rc = ResponseCode.DM_ACCEPTED;
 			} else {
 				rc = ResponseCode.DM_BAD_REQUEST;
