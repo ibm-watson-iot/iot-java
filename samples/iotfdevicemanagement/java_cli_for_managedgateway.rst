@@ -55,7 +55,7 @@ The following code snippet shows how to create the DeviceData object with the ab
 				 metadata(metadata).
 				 build();
 
-Each gateway and attached devices must have its own DeviceData to represent itself in the Platform.
+Each gateway and attached devices must have its own DeviceData to represent itself in the Platform. In the case of gateway, the DeviceData will be passed to the library as part of constructing the ManagedGateway instance, and in the case of attached device, the DeviceData will be passed as part of the sendDeviceManageRequest(). 
 
 ----
 
@@ -114,7 +114,8 @@ Note this constructor helps the custom device users to create a ManagedGateway i
 
 ----
 
-### Gateway Manage Request
+Manage request for gateway
+-------------------------------------------------------
 
 The gateway can invoke sendGatewayManageRequest() method to participate in device management activities. The manage request will initiate a connect request internally if the device is not connected to the IBM Watson Internet of Things Platform already:
 
@@ -124,11 +125,12 @@ The gateway can invoke sendGatewayManageRequest() method to participate in devic
 	
 As shown, this method accepts following 3 parameters,
 
-* *lifetime* The length of time in seconds within which the gateway must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant. If set to 0, the managed gateway will not become dormant. When set, the minimum supported setting is 3600 (1 hour).
+* *lifetime* The length of time in seconds within which the gateway must send another **Manage** request in order to avoid being reverted to an unmanaged device and marked as dormant. If set to 0, the managed gateway will not become dormant. When set, the minimum supported setting is 3600 (1 hour).
 * *supportFirmwareActions* Tells whether the gateway supports firmware actions or not. The gateway must add a firmware handler to handle the firmware requests.
 * *supportDeviceActions* Tells whether the gateway supports Device actions or not. The gateway must add a Device action handler to handle the reboot and factory reset requests.
 
-### Attached Device Manage Request
+Manage request for attached devices
+--------------------------------------
 
 The gateway can invoke sendDeviceManageRequest() method to make the attached devices participate in the device management activities. 
 
@@ -142,14 +144,23 @@ Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/
 
 ----
 
-Unmanage
+Unmanage request for Gateway
 -----------------------------------------------------
 
-A device can invoke sendUnmanageRequest() method when it no longer needs to be managed. The IBM Watson Internet of Things Platform will no longer send new device management requests to this device and all device management requests from this device will be rejected other than a **Manage device** request.
+A gateway can invoke sendGatewayUnmanageRequet() method when it no longer needs to be managed. The IBM Watson Internet of Things Platform will no longer send new device management requests for this gateway and all device management requests from the gateway (only for the gateway and not for the attached devices) will be rejected other than a **Manage** request.
 
 .. code:: java
 
-	managedGateway.sendUnmanageRequest();
+	managedGateway.sendGatewayUnmanageRequet();
+
+Unmanage request for attached devices
+-----------------------------------------------------
+
+Similarly the gateway can invoke sendDeviceUnmanageRequet() method to move the attached device from managed state to unmanaged state. The IBM Watson Internet of Things Platform will no longer send new device management requests for this device and all device management requests from the gateway for this attached device will be rejected other than a **Manage** request.
+
+.. code:: java
+
+	managedGateway.sendDeviceUnmanageRequet();
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/unmanage-device#unmanage-device>`__ for more information about the Unmanage operation.
 
