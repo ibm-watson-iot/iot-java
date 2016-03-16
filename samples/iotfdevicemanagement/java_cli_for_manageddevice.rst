@@ -9,11 +9,6 @@ This client library describes how to use devices with the Java WIoTP client libr
 
 This section contains information on how devices can connect to the Internet of Things Platform Device Management service using Java and perform device management operations like firmware update, location update, and diagnostics update.
 
-The Device section contains information on how devices can publish events and handle commands using the Java WIoTP Client Library. 
-
-The Applications section contains information on how applications can use the Java WIoTP Client Library to interact with devices. 
-
-
 Device Management
 -------------------------------------------------------------------------------
 The `device management <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html>`__ feature enhances the IBM Watson Internet of Things Platform service with new capabilities for managing devices. Device management makes a distinction between managed and unmanaged devices:
@@ -269,7 +264,7 @@ In order to support the Firmware action, the device needs to create a handler an
 
 **3.1 Sample implementation of downloadFirmware**
 
-The implementation must add logic to download the firmware and report the status of the download via DeviceFirmware object. If the Firmware Download operation is successful, then the state of the firmware to be set to DOWNLOADED and UpdateStatus should be set to SUCCESS.
+The implementation must create a separate thread and add a logic to download the firmware and report the status of the download via DeviceFirmware object. If the Firmware Download operation is successful, then the state of the firmware to be set to DOWNLOADED and UpdateStatus should be set to SUCCESS.
 
 If an error occurs during Firmware Download the state should be set to IDLE and updateStatus should be set to one of the error status values:
 
@@ -367,7 +362,7 @@ The complete code can be found in the device management sample `RasPiFirmwareHan
 
 **3.2 Sample implementation of updateFirmware**
 
-The implementation must add logic to install the downloaded firmware and report the status of the update via DeviceFirmware object. If the Firmware Update operation is successful, then the state of the firmware should to be set to IDLE and UpdateStatus should be set to SUCCESS. 
+The implementation must create a separate thread and add a logic to install the downloaded firmware and report the status of the update via DeviceFirmware object. If the Firmware Update operation is successful, then the state of the firmware should to be set to IDLE and UpdateStatus should be set to SUCCESS. 
 
 If an error occurs during Firmware Update, updateStatus should be set to one of the error status values:
 
@@ -450,7 +445,7 @@ In order to support the device action, the device needs to create a handler and 
 
 **2.1 Sample implementation of handleReboot**
 
-The implementation must add a logic to reboot the device and report the status of the reboot via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because the successful operation reboots the device and the device code will not have a control to update the IBM Watson Internet of Things Platform). A sample reboot implementation for a Raspberry Pi device is shown below:
+The implementation must create a separate thread and add a logic to reboot the device and report the status of the reboot via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because the successful operation reboots the device and the device code will not have a control to update the IBM Watson Internet of Things Platform). A sample reboot implementation for a Raspberry Pi device is shown below:
 
 .. code:: java
 
@@ -477,7 +472,7 @@ The complete code can be found in the device management sample `DeviceActionHand
 
 **2.2 Sample implementation of handleFactoryReset**
 
-The implementation must add a logic to reset the device to factory settings and report the status via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because as part of this process, the device reboots and the device will not have a control to update status to IBM Watson Internet of Things Platform). The skeleton of the Factory Reset implementation is shown below:
+The implementation must create a separate thread and add a logic to reset the device to factory settings and report the status via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because as part of this process, the device reboots and the device will not have a control to update status to IBM Watson Internet of Things Platform). The skeleton of the Factory Reset implementation is shown below:
 
 .. code:: java
 	
