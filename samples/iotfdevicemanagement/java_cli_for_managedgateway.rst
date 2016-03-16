@@ -114,20 +114,29 @@ Note this constructor helps the custom device users to create a ManagedGateway i
 
 ----
 
-Manage
-------------------------------------------------------------------
-The device can invoke sendManageRequest() method to participate in device management activities. The manage request will initiate a connect request internally if the device is not connected to the IBM Watson Internet of Things Platform already:
+### Gateway Manage Request
+
+The gateway can invoke sendGatewayManageRequest() method to participate in device management activities. The manage request will initiate a connect request internally if the device is not connected to the IBM Watson Internet of Things Platform already:
 
 .. code:: java
 
-	ManagedGateway.manage(0, true, true);
+	managedGateway.sendGatewayManageRequest(0, true, true);
 	
 As shown, this method accepts following 3 parameters,
 
-* *lifetime* The length of time in seconds within which the device must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant. If set to 0, the managed device will not become dormant. When set, the minimum supported setting is 3600 (1 hour).
-* *supportFirmwareActions* Tells whether the device supports firmware actions or not. The device must add a firmware handler to handle the firmware requests.
-* *supportDeviceActions* Tells whether the device supports Device actions or not. The device must add a Device action handler to handle the reboot and factory reset requests.
+* *lifetime* The length of time in seconds within which the gateway must send another **Manage device** request in order to avoid being reverted to an unmanaged device and marked as dormant. If set to 0, the managed gateway will not become dormant. When set, the minimum supported setting is 3600 (1 hour).
+* *supportFirmwareActions* Tells whether the gateway supports firmware actions or not. The gateway must add a firmware handler to handle the firmware requests.
+* *supportDeviceActions* Tells whether the gateway supports Device actions or not. The gateway must add a Device action handler to handle the reboot and factory reset requests.
 
+### Attached Device Manage Request
+
+The gateway can invoke sendDeviceManageRequest() method to make the attached devices participate in the device management activities. 
+
+.. code:: java
+
+	managedGateway.sendGatewayManageRequest(typeId, deviceId, lifetime, true, true);
+	
+As shown, this method accepts the details of the attached device apart from the lifetime and device/firmware support parameters. The gateway can also use the overloaded sendDeviceManageRequest() method to specify the DeviceData for the attached device.
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/manage-device#manage-device>`__ for more information about the manage operation.
 
@@ -140,7 +149,7 @@ A device can invoke sendUnmanageRequest() method when it no longer needs to be m
 
 .. code:: java
 
-	ManagedGateway.sendUnmanageRequest();
+	managedGateway.sendUnmanageRequest();
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/unmanage-device#unmanage-device>`__ for more information about the Unmanage operation.
 
@@ -154,7 +163,7 @@ Devices that can determine their location can choose to notify the IBM Watson In
 .. code:: java
 
     // update the location with latitude, longitude and elevation
-    int rc = ManagedGateway.updateLocation(30.28565, -97.73921, 10);
+    int rc = managedGateway.updateLocation(30.28565, -97.73921, 10);
     if(rc == 200) {
         System.out.println("Location updated successfully !!");
     } else {
@@ -172,13 +181,13 @@ Devices can choose to notify the IBM Watson Internet of Things Platform about ch
 
 .. code:: java
 
-	int rc = ManagedGateway.addErrorCode(300);
+	int rc = managedGateway.addErrorCode(300);
 
 Also, the ErrorCodes can be cleared from IBM Watson Internet of Things Platform by calling the clearErrorCodes() method as follows:
 
 .. code:: java
 
-	int rc = ManagedGateway.clearErrorCodes();
+	int rc = managedGateway.clearErrorCodes();
 
 ----
 
@@ -191,13 +200,13 @@ Devices can choose to notify the IBM Watson Internet of Things Platform about ch
 	String message = "Firmware Download Progress (%): " + 50;
 	Date timestamp = new Date();
 	LogSeverity severity = LogSeverity.informational;
-	int rc = ManagedGateway.addLog(message, timestamp, severity);
+	int rc = managedGateway.addLog(message, timestamp, severity);
 	
 Also, the log messages can be cleared from IBM Watson Internet of Things Platform by calling the clearLogs() method as follows:
 
 .. code:: java
 
-	rc = ManagedGateway.clearLogs();
+	rc = managedGateway.clearLogs();
 
 The device diagnostics operations are intended to provide information on device errors, and does not provide diagnostic information relating to the devices connection to the IBM Watson Internet of Things Platform.
 
@@ -235,7 +244,7 @@ In order to perform Firmware actions the device can optionally construct the Dev
 				build();
 	
 	ManagedGateway ManagedGateway = new ManagedGateway(options, deviceData);
-	ManagedGateway.connect();
+	managedGateway.connect();
 		
 
 The DeviceFirmware object represents the current firmware of the device and will be used to report the status of the Firmware Download and Firmware Update actions to IBM Watson Internet of Things Platform. In case this DeviceFirmware object is not constructed by the device, then the library creates an empty object and reports the status to Watson IoT Platform.
@@ -246,13 +255,13 @@ The device needs to set the firmware action flag to true in order for the server
 
 .. code:: java
 
-    	ManagedGateway.sendManageRequest(3600, true, false);
+    	managedGateway.sendManageRequest(3600, true, false);
 
 Once the support is informed to the DM server, the server then forwards the firmware actions to the device.
 
 **3. Create the Firmware Action Handler**
 
-In order to support the Firmware action, the device needs to create a handler and add it to ManagedGateway. The handler must extend a DeviceFirmwareHandler class and implement the following methods:
+In order to support the Firmware action, the device needs to create a handler and add it to managedGateway. The handler must extend a DeviceFirmwareHandler class and implement the following methods:
 
 .. code:: java
 
@@ -429,13 +438,13 @@ In order to perform Reboot and Factory Reset, the device needs to inform the IBM
 
 .. code:: java
 	// Last parameter represents the device action support
-    	ManagedGateway.sendManageRequest(3600, true, true);
+    	managedGateway.sendManageRequest(3600, true, true);
 
 Once the support is informed to the DM server, the server then forwards the device action requests to the device.
 	
 **2. Create the Device Action Handler**
 
-In order to support the device action, the device needs to create a handler and add it to ManagedGateway. The handler must extend a DeviceActionHandler class and provide implementation for the following methods:
+In order to support the device action, the device needs to create a handler and add it to managedGateway. The handler must extend a DeviceActionHandler class and provide implementation for the following methods:
 
 .. code:: java
 
@@ -555,7 +564,7 @@ Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_m
 Examples
 -------------
 * `SampleRasPiDMAgent <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgent.java>`__ - A sample agent code that shows how to perform various device management operations on Raspberry Pi.
-* `SampleRasPiManagedGateway <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiManagedGateway.java>`__ - A sample code that shows how one can perform both device operations and management operations.
+* `SampleRasPiManagedGateway <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPimanagedGateway.java>`__ - A sample code that shows how one can perform both device operations and management operations.
 * `SampleRasPiDMAgentWithCustomMqttAsyncClient <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgentWithCustomMqttAsyncClient.java>`__ - A sample agent code with custom MqttAsyncClient.
 * `SampleRasPiDMAgentWithCustomMqttClient <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgentWithCustomMqttClient.java>`__ - A sample agent code with custom MqttClient.
 * `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__ - A sample implementation of FirmwareHandler for Raspberry Pi.
