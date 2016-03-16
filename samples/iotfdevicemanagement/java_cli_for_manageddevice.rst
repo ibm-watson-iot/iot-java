@@ -9,6 +9,8 @@ This client library describes how to use devices with the Java WIoTP client libr
 
 This section contains information on how devices can connect to the Internet of Things Platform Device Management service using Java and perform device management operations like firmware update, location update, and diagnostics update.
 
+----
+
 Device Management
 -------------------------------------------------------------------------------
 The `device management <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html>`__ feature enhances the IBM Watson Internet of Things Platform service with new capabilities for managing devices. Device management makes a distinction between managed and unmanaged devices:
@@ -16,10 +18,7 @@ The `device management <https://docs.internetofthings.ibmcloud.com/devices/devic
 * **Managed Devices** are defined as devices which have a management agent installed. The management agent sends and receives device metadata and responds to device management commands from the IBM Watson Internet of Things Platform. 
 * **Unmanaged Devices** are any devices which do not have a device management agent. All devices begin their lifecycle as unmanaged devices, and can transition to managed devices by sending a message from a device management agent to the IBM Watson Internet of Things Platform. 
 
-
----------------------------------------------------------------------------
-Connecting to the Internet of Things Platform Device Management Service
----------------------------------------------------------------------------
+----
 
 Create DeviceData
 ------------------------------------------------------------------------
@@ -62,6 +61,8 @@ The following code snippet shows how to create the DeviceData object with the ab
 				 deviceInfo(deviceInfo).
 				 metadata(metadata).
 				 build();
+----
+
 Construct ManagedDevice
 -------------------------------------------------------------------------------
 ManagedDevice - A device class that connects the device as managed device to IBM Watson Internet of Things Platform and enables the device to perform one or more Device Management operations. Also the ManagedDevice instance can be used to do normal device operations like publishing device events and listening for commands from application.
@@ -127,6 +128,8 @@ Construct a ManagedDevice instance by accepting the DeviceData and the MqttClien
 	
 Note this constructor helps the custom device users to create a ManagedDevice instance with the already created and connected MqttClient instance to take advantage of device management operations. But we recommend the users to use the library for all the device functionalities.
 
+----
+
 Manage	
 ------------------------------------------------------------------
 The device can invoke sendManageRequest() method to participate in device management activities. The manage request will initiate a connect request internally if the device is not connected to the IBM Watson Internet of Things Platform already:
@@ -144,6 +147,8 @@ As shown, this method accepts following 3 parameters,
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/manage-device#manage-device>`__ for more information about the manage operation.
 
+----
+
 Unmanage
 -----------------------------------------------------
 
@@ -154,6 +159,8 @@ A device can invoke sendUnmanageRequest() method when it no longer needs to be m
 	managedDevice.sendUnmanageRequest();
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/unmanage-device#unmanage-device>`__ for more information about the Unmanage operation.
+
+----
 
 Location Update
 -----------------------------------------------------
@@ -172,6 +179,8 @@ Devices that can determine their location can choose to notify the IBM Watson In
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/update-location#update-location>`__ for more information about the Location update.
 
+----
+
 Append/Clear ErrorCodes
 -----------------------------------------------
 
@@ -186,6 +195,8 @@ Also, the ErrorCodes can be cleared from IBM Watson Internet of Things Platform 
 .. code:: java
 
 	int rc = managedDevice.clearErrorCodes();
+
+----
 
 Append/Clear Log messages
 -----------------------------
@@ -207,6 +218,8 @@ Also, the log messages can be cleared from IBM Watson Internet of Things Platfor
 The device diagnostics operations are intended to provide information on device errors, and does not provide diagnostic information relating to the devices connection to the IBM Watson Internet of Things Platform.
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/update-location#update-location>`__ for more information about the Diagnostics operation.
+
+----
 
 Firmware Actions
 -------------------------------------------------------------
@@ -415,6 +428,8 @@ The created handler needs to be added to the ManagedDevice instance so that the 
 
 Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/requests.html#/firmware-actions#firmware-actions>`__ for more information about the Firmware action.
 
+----
+
 Device Actions
 ------------------------------------
 The IBM Watson Internet of Things Platform supports the following device actions:
@@ -498,6 +513,8 @@ The created handler needs to be added to the ManagedDevice instance so that the 
 
 Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/requests.html#/device-actions-reboot#device-actions-reboot>`__ for more information about the Device Action.
 
+----
+
 Listen for Device attribute changes
 -----------------------------------------------------------------
 
@@ -549,6 +566,8 @@ Also, the device needs to implement the propertyChange() method where it receive
 
 Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/update-device-attributes#update-device-attributes>`__ for more information about updating the device attributes.
 
+----
+
 Examples
 -------------
 * `SampleRasPiDMAgent <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgent.java>`__ - A sample agent code that shows how to perform various device management operations on Raspberry Pi.
@@ -559,6 +578,8 @@ Examples
 * `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__ - A sample implementation of DeviceActionHandler
 * `ManagedDeviceWithLifetimeSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/ManagedDeviceWithLifetimeSample.java>`__ - A sample that shows how to send regular manage request with lifetime specified.
 * `DeviceAttributesUpdateListenerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceAttributesUpdateListenerSample.java>`__ - A sample listener code that shows how to listen for a various device attribute changes.
+
+----
 
 Recipe
 ----------
