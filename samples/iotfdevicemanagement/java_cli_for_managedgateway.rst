@@ -166,7 +166,7 @@ Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/
 
 ----
 
-Location Update of gateway
+Location update - gateway
 -----------------------------------------------------
 
 Gateways that can determine their location can choose to notify the IBM Watson Internet of Things Platform about location changes. The gateway can invoke one of the overloaded updateLocation() method to update the location of the device. 
@@ -181,7 +181,7 @@ Gateways that can determine their location can choose to notify the IBM Watson I
      	System.err.println("Failed to update the location !!");
     }
 
-Update location of attached devices
+Location update - attached devices
 ---------------------------------------
 
 The gateway can invoke corresponding device method updateDeviceLocation() to update the location of the attached devices. The overloaded method can be used to specify the measuredDateTime and etc..
@@ -196,7 +196,7 @@ Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/
 
 ----
 
-Append/Clear ErrorCodes of gateway
+Append/Clear ErrorCodes - gateway
 -----------------------------------------------
 
 Gateways can choose to notify the IBM Watson Internet of Things Platform about changes in their error status. The gateway can invoke  addErrorCode() method to add the current errorcode to Watson IoT Platform.
@@ -211,7 +211,7 @@ Also, the ErrorCodes of gateway can be cleared from IBM Watson Internet of Thing
 
 	int rc = managedGateway.clearGatewayErrorCodes();
 
-Append/Clear ErrorCodes of atatched devices
+Append/Clear ErrorCodes - atatched devices
 -----------------------------------------------
 
 Similarly, the gateway can invoke the corresponding device method to add/clear the errorcodes of the attached devices,
@@ -223,7 +223,7 @@ Similarly, the gateway can invoke the corresponding device method to add/clear t
 
 ----
 
-Append/Clear Log messages of gateway
+Append/Clear Log messages - gateway
 --------------------------------------
 Gateways can choose to notify the IBM Watson Internet of Things Platform about changes by adding a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. The gateways can invoke addGatewayLog() method to send log messages,
 
@@ -240,7 +240,7 @@ Also, the log messages can be cleared from IBM Watson Internet of Things Platfor
 
 	rc = managedGateway.clearGatewayLogs();
 	
-Append/Clear Logs of atatched devices
+Append/Clear Logs - atatched devices
 -----------------------------------------------
 
 Similarly, the gateway can invoke the corresponding device method to add/clear the Logs of the attached devices,
