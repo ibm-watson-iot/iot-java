@@ -529,7 +529,7 @@ In order to support the device action, the gateway needs to create a handler and
 
 **2.1 Sample implementation of handleReboot**
 
-The implementation must create a separate thread and add a logic to reboot the gateway/attached device and report the status of the reboot via DeviceAction object. The gateway needs to update the status along with a optional message only when there is a failure. A sample reboot implementation for a Raspberry Pi device is shown below (The below code doesn't include the threadpool part, refer to the `github location <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayActionHandlerSample.java>`__ for the complete implementation of a sample device action handler).
+The implementation must create a separate thread and add a logic to reboot the gateway/attached device and report the status of the reboot via DeviceAction object. Upon receiving the request, the gateway first needs to inform the server about the support(or failure) before proceeding with the actual reboot. And if the sample can not reboot the device or any other error during the reboot, the gateway can update the status along with an optional message. A sample reboot implementation for a Raspberry Pi device is shown below (The below code doesn't include the threadpool part, refer to the `github location <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayActionHandlerSample.java>`__ for the complete implementation of a sample device action handler).
 
 .. code:: java
 
@@ -556,7 +556,7 @@ The complete code can be found in the device management sample `GatewayActionHan
 
 **2.2 Sample implementation of handleFactoryReset**
 
-The implementation must create a separate thread and add a logic to reset the gateway/attached devices to factory settings and report the status via DeviceAction object. The gateway needs to update the status along with a optional message only when there is a failure. The skeleton of the Factory Reset implementation is shown below:
+The implementation must create a separate thread and add a logic to reset the gateway/attached device to factory settings and report the status of the reset via DeviceAction object. Upon receiving the request, the gateway first needs to inform the server about the support(or failure) before proceeding with the actual reset. The skeleton of the Factory Reset implementation is shown below:
 
 .. code:: java
 	
