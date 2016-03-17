@@ -424,7 +424,7 @@ The created handler needs to be added to the ManagedDevice instance so that the 
 .. code:: java
 
 	DeviceFirmwareHandlerSample fwHandler = new DeviceFirmwareHandlerSample();
-	deviceData.addFirmwareHandler(fwHandler);
+	managedDevice.addFirmwareHandler(fwHandler);
 
 Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/requests.html#/firmware-actions#firmware-actions>`__ for more information about the Firmware action.
 
@@ -460,47 +460,105 @@ In order to support the device action, the device needs to create a handler and 
 
 **2.1 Sample implementation of handleReboot**
 
-The implementation must create a separate thread and add a logic to reboot the device and report the status of the reboot via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because the successful operation reboots the device and the device code will not have a control to update the IBM Watson Internet of Things Platform). A sample reboot implementation for a Raspberry Pi device is shown below:
+The implementation must create a separate thread and add a logic to reboot the device and report the status of the reboot via DeviceAction object. Upon receiving the request, the device first needs to inform the server about the support(or failure) before proceeding with the actual reboot. And if the device can not reboot the device or any other error during the reboot, the device can update the status along with an optional message. A sample reboot implementation for a Raspberry Pi device is shown below:
 
 .. code:: java
 
+	@Override
 	public void handleReboot(DeviceAction action) {
-		ProcessBuilder processBuilder = null;
-		Process p = null;
-		processBuilder = new ProcessBuilder("sudo", "shutdown", "-r", "now");
-		boolean status = false;
-		try {
-			p = processBuilder.start();
-			// wait for say 2 minutes before giving it up
-			status = waitForCompletion(p, 2);
-		} catch (IOException e) {
-			action.setMessage(e.getMessage());
-		} catch (InterruptedException e) {
-			action.setMessage(e.getMessage());
+		// set the support before handing over to the pool
+		action.setStatus(Status.ACCEPTED);
+		RebootTask task = new RebootTask(action, this);
+		executor.execute(task);
+	}
+	
+	private static class RebootTask implements Runnable {
+		
+		private DeviceAction action;
+		private DeviceActionHandlerSample handler;
+
+		public RebootTask(DeviceAction deviceAction, DeviceActionHandlerSample handler) {
+			this.action = deviceAction;
+			this.handler = handler;
 		}
-		if(status == false) {
-			action.setStatus(DeviceAction.Status.FAILED);
+
+		@Override
+		public void run() {
+
+			ProcessBuilder processBuilder = null;
+			Process p = null;
+			
+			String osname = System.getProperty("os.name");
+			
+			if(osname.startsWith("Windows")) {
+				processBuilder = new ProcessBuilder("shutdown", "-r");
+			} else {
+				processBuilder = new ProcessBuilder("sudo", "shutdown", "-r", "now");
+			}
+	
+			processBuilder.redirectErrorStream(true);
+			processBuilder.inheritIO();
+			
+			
+			boolean status = false;
+			try {
+				p = processBuilder.start();
+				// wait for say 2 minutes before giving it up
+				status = waitForCompletion(p, 2);
+				System.out.println("Executed restart command "+status);
+			} catch (IOException e) {
+				action.setMessage(e.getMessage());
+			} catch (InterruptedException e) {
+				action.setMessage(e.getMessage());
+			}
+			
+			System.out.println("Executed restart command status ("+status+")");
+			if(status == false) {
+				action.setStatus(DeviceAction.Status.FAILED);
+			}
+			
 		}
 	}
+	
 
 The complete code can be found in the device management sample `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__.
 
 **2.2 Sample implementation of handleFactoryReset**
 
-The implementation must create a separate thread and add a logic to reset the device to factory settings and report the status via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because as part of this process, the device reboots and the device will not have a control to update status to IBM Watson Internet of Things Platform). The skeleton of the Factory Reset implementation is shown below:
+The implementation must create a separate thread and add a logic to reset the device to factory settings and report the status via DeviceAction object. Upon receiving the request, the device first needs to inform the server about the support(or failure) before proceeding with the actual reset. And if the sample can not reset the device or any other error during the reset, the device can update the status along with an optional message. The skeleton of the Factory Reset implementation is shown below:
 
 .. code:: java
 	
+	@Override
 	public void handleFactoryReset(DeviceAction action) {
-		try {
-			// code to perform Factory reset
-		} catch (IOException e) {
-			action.setMessage(e.getMessage());
+		/*FactoryResetTask task = new FactoryResetTask(action, this);
+		executor.execute(task);*/
+		
+		// As the sample doesn't support factory Rest, it just sends unsupported message now
+		action.setStatus(Status.UNSUPPORTED);
+		// Optionally set a message
+		action.setMessage("Not supported at the moment");
+	}
+	
+	private static class FactoryResetTask implements Runnable {
+		
+		private DeviceAction action;
+		private DeviceActionHandlerSample handler;
+
+		public FactoryResetTask(DeviceAction deviceAction, DeviceActionHandlerSample handler) {
+			this.action = deviceAction;
+			this.handler = handler;
 		}
-		if(status == false) {
-			action.setStatus(DeviceAction.Status.FAILED);
+
+		@Override
+		public void run() {
+			/**
+			 * This sample doesn't support factory reset, so respond accordingly
+			 */
+			action.setStatus(DeviceAction.Status.UNSUPPORTED);
 		}
 	}
+	
 
 **3. Add the handler to ManagedDevice**
 
@@ -509,7 +567,7 @@ The created handler needs to be added to the ManagedDevice instance so that the 
 .. code:: java
 
 	DeviceActionHandlerSample actionHandler = new DeviceActionHandlerSample();
-	deviceData.addDeviceActionHandler(actionHandler);
+	managedDevice.addDeviceActionHandler(actionHandler);
 
 Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/requests.html#/device-actions-reboot#device-actions-reboot>`__ for more information about the Device Action.
 
