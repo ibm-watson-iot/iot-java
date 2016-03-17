@@ -1,7 +1,7 @@
 Java Client Library - Introduction
 ============================================
 
-This Java Client Library can be used to simplify interactions with the [IBM Internet of Things Foundation] (https://internetofthings.ibmcloud.com). The documentation is divided into three sections:  
+This Java Client Library can be used to simplify interactions with the [IBM Internet of Things Foundation] (https://internetofthings.ibmcloud.com). The documentation is divided into following sections:  
 
 - The [Device section] (https://docs.internetofthings.ibmcloud.com/devices/libraries/java.html) contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
 - The [Managed Device section] (https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/java_cli_for_manageddevice.rst) contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java ibmiotf Client Library and perform device management operations like firmware update, location update, and diagnostics update.
