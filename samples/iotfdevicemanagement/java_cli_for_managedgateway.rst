@@ -114,7 +114,7 @@ Note this constructor helps the custom device users to create a ManagedGateway i
 
 ----
 
-Manage request for gateway
+Manage request - gateway
 -------------------------------------------------------
 
 The gateway can invoke sendGatewayManageRequest() method to participate in device management activities. The manage request will initiate a connect request internally if the device is not connected to the IBM Watson Internet of Things Platform already:
@@ -129,7 +129,7 @@ As shown, this method accepts following 3 parameters,
 * *supportFirmwareActions* Tells whether the gateway supports firmware actions or not. The gateway must add a firmware handler to handle the firmware requests.
 * *supportDeviceActions* Tells whether the gateway supports Device actions or not. The gateway must add a Device action handler to handle the reboot and factory reset requests.
 
-Manage request for attached devices
+Manage request - attached devices
 --------------------------------------
 
 The gateway can invoke sendDeviceManageRequest() method to make the attached devices participate in the device management activities. 
@@ -144,7 +144,7 @@ Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/
 
 ----
 
-Unmanage request for Gateway
+Unmanage request - Gateway
 -----------------------------------------------------
 
 A gateway can invoke sendGatewayUnmanageRequet() method when it no longer needs to be managed. The IBM Watson Internet of Things Platform will no longer send new device management requests for this gateway and all device management requests from the gateway (only for the gateway and not for the attached devices) will be rejected other than a **Manage** request.
@@ -153,7 +153,7 @@ A gateway can invoke sendGatewayUnmanageRequet() method when it no longer needs 
 
 	managedGateway.sendGatewayUnmanageRequet();
 
-Unmanage request for attached devices
+Unmanage request - attached devices
 -----------------------------------------------------
 
 The gateway can invoke sendDeviceUnmanageRequet() method to move the attached device from managed state to unmanaged state. The IBM Watson Internet of Things Platform will no longer send new device management requests for this device and all device management requests from the gateway for this attached device will be rejected other than a **Manage** request.
@@ -265,18 +265,18 @@ Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/
 
 ----
 
-Firmware Actions
+Firmware Action
 -------------------------------------------------------------
 The firmware update process is separated into two distinct actions:
 
 * Downloading Firmware 
 * Updating Firmware. 
 
-The device needs to do the following activities to support Firmware Actions:
+The gateway needs to do the following activities to support Firmware Action for itself and for the attached devices:
 
 **1. Construct DeviceFirmware Object (Optional)**
 
-In order to perform Firmware actions the device can optionally construct the DeviceFirmware object and add it to DeviceData as follows:
+In order to perform Firmware action, the gateway can optionally construct a DeviceFirmware object for itself and for attached devices and add it to DeviceData as follows:
 
 .. code:: java
 
@@ -296,32 +296,47 @@ In order to perform Firmware actions the device can optionally construct the Dev
 	
 	ManagedGateway ManagedGateway = new ManagedGateway(options, deviceData);
 	managedGateway.connect();
-		
 
-The DeviceFirmware object represents the current firmware of the device and will be used to report the status of the Firmware Download and Firmware Update actions to IBM Watson Internet of Things Platform. In case this DeviceFirmware object is not constructed by the device, then the library creates an empty object and reports the status to Watson IoT Platform.
-
-**2. Inform the server about the Firmware action support**
-
-The device needs to set the firmware action flag to true in order for the server to initiate the firmware request. This can be achieved by invoking the sendManageRequest() method with a true value for supportFirmwareActions parameter,
+And in the case of atatched devices, the constructed DeviceData can be passed to the library while sending the manage request. i.e
 
 .. code:: java
 
-    	managedGateway.sendManageRequest(3600, true, false);
+    managedGateway.sendDeviceManageRequest(typeId, deviceId, deviceData, lifetime, supportFirmwareActions, supportDeviceActions);
 
-Once the support is informed to the DM server, the server then forwards the firmware actions to the device.
+The DeviceFirmware object represents the current firmware of the gateway or attached device and will be used to report the status of the Firmware Download and Firmware Update actions to IBM Watson Internet of Things Platform. In case this DeviceFirmware object is not constructed by the gateway, the library creates an empty object and reports the status to Watson IoT Platform.
+
+**2. Inform the server about the Firmware action support**
+
+The gateway/attached devices needs to set the firmware action flag to true in order for the server to initiate the firmware request. This can be achieved by passing true value for supportFirmwareActions parameter while sending the manage request.
+
+The gateway can invoke the following method to inform the server about its firmware support,
+
+.. code:: java
+
+    	managedGateway.sendGatewayManageRequest(3600, true, false);
+
+Similarly, the gateway can invoke the corresponding device method to inform the firmware support of attached devices,
+
+.. code:: java
+
+    	managedGateway.sendDeviceManageRequest(typeId, deviceId, deviceData, 3600, true, false);
+
+Once the support is informed to the DM server, the server then forwards the firmware actions to the gateway for the gateway itself/attached devices.
 
 **3. Create the Firmware Action Handler**
 
-In order to support the Firmware action, the device needs to create a handler and add it to managedGateway. The handler must extend a DeviceFirmwareHandler class and implement the following methods:
+In order to support the Firmware action, the gateway needs to create a handler and add it to managedGateway. The handler must extend a DeviceFirmwareHandler class and implement the following methods:
 
 .. code:: java
 
 	public abstract void downloadFirmware(DeviceFirmware deviceFirmware);
 	public abstract void updateFirmware(DeviceFirmware deviceFirmware);
 
+**Note**: There must be only one handler added to the library for both the gateway and attached devices where the firmware download/update requests will be redirected. The implementation must create a thread (possibly a pool of threads) to handle multiple firmware requests at the same time. A sample handler implementation with a threadpool is [demonstrated here](https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java).
+
 **3.1 Sample implementation of downloadFirmware**
 
-The implementation must create a separate thread and add a logic to download the firmware and report the status of the download via DeviceFirmware object. If the Firmware Download operation is successful, then the state of the firmware to be set to DOWNLOADED and UpdateStatus should be set to SUCCESS.
+The implementation must add a logic to download the firmware and report the status of the download via DeviceFirmware object. If the Firmware Download operation is successful, then the state of the firmware to be set to DOWNLOADED and UpdateStatus should be set to SUCCESS.
 
 If an error occurs during Firmware Download the state should be set to IDLE and updateStatus should be set to one of the error status values:
 
@@ -329,7 +344,7 @@ If an error occurs during Firmware Download the state should be set to IDLE and 
 * CONNECTION_LOST
 * INVALID_URI
 
-A sample Firmware Download implementation for a Raspberry Pi device is shown below:
+A sample Firmware Download implementation is shown below, (The below code doesn't include the threadpool part, refer to the [github location](https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java) for the complete implementation of the FirmwareHandler).
 
 .. code:: java
 
@@ -388,7 +403,7 @@ A sample Firmware Download implementation for a Raspberry Pi device is shown bel
 		}
 	}
 
-Device can check the integrity of the downloaded firmware image using the verifier and report the status back to IBM Watson Internet of Things Platform. The verifier can be set by the device during the startup (while creating the DeviceFirmware Object) or as part of the Download Firmware request by the application. A sample code to verify the same is below:
+Gateway can check the integrity of the downloaded firmware image using the verifier and report the status back to IBM Watson Internet of Things Platform. The verifier can be set by the gateway during the startup (while creating the DeviceFirmware Object) or as part of the Download Firmware request by the application. A sample code to verify the same is below:
 
 .. code:: java
 
@@ -415,7 +430,7 @@ Device can check the integrity of the downloaded firmware image using the verifi
 		return false;
 	}
 
-The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__.
+The complete code can be found in the gateway management sample [GatewayFirmwareHandlerSample](https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java).
 
 **3.2 Sample implementation of updateFirmware**
 
@@ -459,7 +474,7 @@ A sample Firmware Update implementation for a Raspberry Pi device is shown below
 		}
 	}
 
-The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__.
+The complete code can be found in the gateway management sample [GatewayFirmwareHandlerSample](https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java).
 
 **4. Add the handler to ManagedGateway**
 
@@ -467,9 +482,9 @@ The created handler needs to be added to the ManagedGateway instance so that the
 
 .. code:: java
 
-	DeviceFirmwareHandlerSample fwHandler = new DeviceFirmwareHandlerSample();
-	deviceData.addFirmwareHandler(fwHandler);
-
+	GatewayFirmwareHandlerSample fwHandler = new GatewayFirmwareHandlerSample();
+	mgdGateway.addFirmwareHandler(fwHandler);
+	
 Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/requests.html#/firmware-actions#firmware-actions>`__ for more information about the Firmware action.
 
 ----
