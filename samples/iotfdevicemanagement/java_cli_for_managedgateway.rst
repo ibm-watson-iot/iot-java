@@ -332,7 +332,7 @@ In order to support the Firmware action, the gateway needs to create a handler a
 	public abstract void downloadFirmware(DeviceFirmware deviceFirmware);
 	public abstract void updateFirmware(DeviceFirmware deviceFirmware);
 
-**Note**: There must be only one handler added to the library for both the gateway and attached devices where the firmware download/update requests will be redirected. The implementation must create a thread (possibly a pool of threads) to handle multiple firmware requests at the same time. A sample handler implementation with a threadpool is [demonstrated here](https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java).
+**Note**: There must be only one handler added to the library for both the gateway and attached devices where the firmware download/update requests will be redirected. The implementation must create a thread (possibly a pool of threads) to handle multiple firmware requests at the same time. A sample handler implementation with a threadpool is `demonstrated here <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java>`__ 
 
 **3.1 Sample implementation of downloadFirmware**
 
@@ -344,7 +344,7 @@ If an error occurs during Firmware Download the state should be set to IDLE and 
 * CONNECTION_LOST
 * INVALID_URI
 
-A sample Firmware Download implementation is shown below, (The below code doesn't include the threadpool part, refer to the [github location](https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java) for the complete implementation of the FirmwareHandler).
+A sample Firmware Download implementation is shown below, (The below code doesn't include the threadpool part, refer to the `github sample <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java>`__  for the complete implementation of the FirmwareHandler).
 
 .. code:: java
 
@@ -430,7 +430,7 @@ Gateway can check the integrity of the downloaded firmware image using the verif
 		return false;
 	}
 
-The complete code can be found in the gateway management sample [GatewayFirmwareHandlerSample](https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java).
+The complete code can be found in the gateway management sample `GatewayFirmwareHandlerSample <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java>`__.
 
 **3.2 Sample implementation of updateFirmware**
 
@@ -474,7 +474,7 @@ A sample Firmware Update implementation for a Raspberry Pi device is shown below
 		}
 	}
 
-The complete code can be found in the gateway management sample [GatewayFirmwareHandlerSample](https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java).
+The complete code can be found in the gateway management sample `GatewayFirmwareHandlerSample <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java>`__.
 
 **4. Add the handler to ManagedGateway**
 
@@ -496,30 +496,40 @@ The IBM Watson Internet of Things Platform supports the following device actions
 * Reboot
 * Factory Reset
 
-The device needs to do the following activities to support Device Actions:
+The gateway needs to do the following activities to support Device Actions for itself and for the attached devices:
 
 **1. Inform server about the Device Actions support**
 
-In order to perform Reboot and Factory Reset, the device needs to inform the IBM Watson Internet of Things Platform about its support first. This can be achieved by invoking the sendManageRequest() method with a true value for supportDeviceActions parameter,
+In order to perform Reboot or Factory Reset action for itself and attached devices, the gateway needs to inform the IBM Watson Internet of Things Platform about the support first. This can be achieved by passing true value for supportDeviceActions parameter while sending the manage request.
+
+The gateway can invoke the following method to inform the server about its device action support,
 
 .. code:: java
 	// Last parameter represents the device action support
-    	managedGateway.sendManageRequest(3600, true, true);
+    	managedGateway.sendGatewayManageRequest(3600, true, true);
 
+Similarly, the gateway can invoke the corresponding device method to inform the device action support of attached devices,
+
+.. code:: java
+	// Last parameter represents the device action support
+    	managedGateway.sendDeviceManageRequest(typeId, deviceId, 0, true, true);
+    	
 Once the support is informed to the DM server, the server then forwards the device action requests to the device.
 	
 **2. Create the Device Action Handler**
 
-In order to support the device action, the device needs to create a handler and add it to managedGateway. The handler must extend a DeviceActionHandler class and provide implementation for the following methods:
+In order to support the device action, the gateway needs to create a handler and add it to managedGateway instance. The handler must extend a DeviceActionHandler class and provide implementation for the following methods:
 
 .. code:: java
 
 	public abstract void handleReboot(DeviceAction action);
 	public abstract void handleFactoryReset(DeviceAction action);
 
+**Note:** There must be only one handler added to the library for both the gateway and attached devices where the device action requests will be redirected. The implementation must create a thread (possibly a pool of threads) to handle multiple device action requests at the same time. A sample handler implementation with a threadpool is `demonstrated here <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayActionHandlerSample.java>`__.
+
 **2.1 Sample implementation of handleReboot**
 
-The implementation must create a separate thread and add a logic to reboot the device and report the status of the reboot via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because the successful operation reboots the device and the device code will not have a control to update the IBM Watson Internet of Things Platform). A sample reboot implementation for a Raspberry Pi device is shown below:
+The implementation must create a separate thread and add a logic to reboot the gateway/attached device and report the status of the reboot via DeviceAction object. The gateway needs to update the status along with a optional message only when there is a failure. A sample reboot implementation for a Raspberry Pi device is shown below (The below code doesn't include the threadpool part, refer to the `github location <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayActionHandlerSample.java>`__ for the complete implementation of a sample device action handler).
 
 .. code:: java
 
@@ -542,11 +552,11 @@ The implementation must create a separate thread and add a logic to reboot the d
 		}
 	}
 
-The complete code can be found in the device management sample `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__.
+The complete code can be found in the device management sample `GatewayActionHandlerSample <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayActionHandlerSample.java>`__.
 
 **2.2 Sample implementation of handleFactoryReset**
 
-The implementation must create a separate thread and add a logic to reset the device to factory settings and report the status via DeviceAction object. The device needs to update the status along with a optional message only when there is a failure (because as part of this process, the device reboots and the device will not have a control to update status to IBM Watson Internet of Things Platform). The skeleton of the Factory Reset implementation is shown below:
+The implementation must create a separate thread and add a logic to reset the gateway/attached devices to factory settings and report the status via DeviceAction object. The gateway needs to update the status along with a optional message only when there is a failure. The skeleton of the Factory Reset implementation is shown below:
 
 .. code:: java
 	
@@ -563,12 +573,12 @@ The implementation must create a separate thread and add a logic to reset the de
 
 **3. Add the handler to ManagedGateway**
 
-The created handler needs to be added to the ManagedGateway instance so that the WIoTP client library invokes the corresponding method when there is a device action request from IBM Watson Internet of Things Platform.
+The created handler needs to be added to the ManagedGateway instance so that the WIoTP client library invokes the corresponding method when there is a device action request for this gateway or attached devices, from IBM Watson Internet of Things Platform.
 
 .. code:: java
 
-	DeviceActionHandlerSample actionHandler = new DeviceActionHandlerSample();
-	deviceData.addDeviceActionHandler(actionHandler);
+	GatewayActionHandlerSample actionHandler = new GatewayActionHandlerSample();
+	mgdGateway.addDeviceActionHandler(actionHandler);
 
 Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/requests.html#/device-actions-reboot#device-actions-reboot>`__ for more information about the Device Action.
 
@@ -577,11 +587,11 @@ Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_m
 Listen for Device attribute changes
 -----------------------------------------------------------------
 
-This WIoTP client library updates the corresponding objects whenever there is an update request from the IBM Watson Internet of Things Platform, these update requests are initiated by the application either directly or indirectly (Firmware Update) via the IBM Watson Internet of Things Platform ReST API. Apart from updating these attributes, the library provides a mechanism where the device can be notified whenever a device attribute is updated.
+This WIoTP client library updates the corresponding objects whenever there is an update request from the IBM Watson Internet of Things Platform, these update requests are initiated by the application either directly or indirectly (Firmware Update) via the IBM Watson Internet of Things Platform ReST API. Apart from updating these attributes, the library provides a mechanism where the gateway can be notified whenever a device attribute is updated.
 
-Attributes that can be updated by this operation are location, metadata, device information and firmware.
+Attributes that can be updated by this operation are location, metadata, device information and firmware of the gateway/attached devices.
 
-In order to get notified, the device needs to add a property change listener on those objects that it is interested.
+In order to get notified, the gateway needs to add a property change listener on those objects that it is interested.
 
 .. code:: java
 
@@ -590,7 +600,7 @@ In order to get notified, the device needs to add a property change listener on 
 	deviceInfo.addPropertyChangeListener(listener);
 	metadata.addPropertyChangeListener(listener);
 	
-Also, the device needs to implement the propertyChange() method where it receives the notification. A sample implementation is as follows:
+Also, the gateway needs to implement the propertyChange() method where it receives the notification. A sample implementation is as follows:
 
 .. code:: java
 
@@ -629,18 +639,14 @@ Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_m
 
 Examples
 -------------
-* `SampleRasPiDMAgent <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgent.java>`__ - A sample agent code that shows how to perform various device management operations on Raspberry Pi.
-* `SampleRasPiManagedGateway <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPimanagedGateway.java>`__ - A sample code that shows how one can perform both device operations and management operations.
-* `SampleRasPiDMAgentWithCustomMqttAsyncClient <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgentWithCustomMqttAsyncClient.java>`__ - A sample agent code with custom MqttAsyncClient.
-* `SampleRasPiDMAgentWithCustomMqttClient <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgentWithCustomMqttClient.java>`__ - A sample agent code with custom MqttClient.
-* `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__ - A sample implementation of FirmwareHandler for Raspberry Pi.
-* `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__ - A sample implementation of DeviceActionHandler
-* `ManagedGatewayWithLifetimeSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/ManagedGatewayWithLifetimeSample.java>`__ - A sample that shows how to send regular manage request with lifetime specified.
-* `DeviceAttributesUpdateListenerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceAttributesUpdateListenerSample.java>`__ - A sample listener code that shows how to listen for a various device attribute changes.
+* `ManagedRasPiGateway <https://github.com/ibm-messaging/gateway-samples/blob/master/java/gateway-samples/src/main/java/com/ibm/iotf/sample/client/gateway/devicemgmt/ManagedRasPiGateway.java>`__ - Gateway Device Management(DM) capabilities are demonstrated in this sample by managing the Arduino Uno device through the Raspberry Pi Gateway. If you do not have Raspberry Pi and Arduino UNO, don’t worry, you can still follow the sample to connect your device as a gateway and manage one or more attached devices. In this case, you can use your Windows or Linux server as the gateway instead of Raspberry Pi. Also, the sample has a simulator in place of Arduino UNO to respond to gateway requests.
+* `HomeGatewaySample <https://github.com/ibm-messaging/gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/HomeGatewaySample.java>`__ - A home gateway sample that manages few attached home devices like, Lights, Switches, Elevator, Oven and OutdoorTemperature.
+* `GatewayFirmwareHandlerSample <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java>`__ - A sample implementation of FirmwareHandler for Raspberry Pi.
+* `GatewayActionHandlerSample <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayActionHandlerSample.java>`__ - A sample implementation of DeviceActionHandler.
 
 ----
 
 Recipe
 ----------
 
-Refer to `the recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-managed-device-to-ibm-iot-foundation/>`__ that shows how to connect the Raspberry Pi device as managed device to IBM Watson Internet of Things Platform to perform various device management operations in step by step using this client library.
+Refer to `the recipe <https://developer.ibm.com/recipes/tutorials/raspberry-pi-as-managed-gateway-in-watson-iot-platform-part-1/>`__ that shows how to connect Raspberry Pi as Managed Gateway to IBM Watson IoT Platform and manage the attached devices. For example, update Arduino Uno device with a new sketch program, reboot Arduino Uno using the Watson IoT Platform device management protocol and etc..
