@@ -156,7 +156,7 @@ A gateway can invoke sendGatewayUnmanageRequet() method when it no longer needs 
 Unmanage request for attached devices
 -----------------------------------------------------
 
-Similarly the gateway can invoke sendDeviceUnmanageRequet() method to move the attached device from managed state to unmanaged state. The IBM Watson Internet of Things Platform will no longer send new device management requests for this device and all device management requests from the gateway for this attached device will be rejected other than a **Manage** request.
+The gateway can invoke sendDeviceUnmanageRequet() method to move the attached device from managed state to unmanaged state. The IBM Watson Internet of Things Platform will no longer send new device management requests for this device and all device management requests from the gateway for this attached device will be rejected other than a **Manage** request.
 
 .. code:: java
 
@@ -166,60 +166,100 @@ Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/
 
 ----
 
-Location Update
+Location Update of gateway
 -----------------------------------------------------
 
-Devices that can determine their location can choose to notify the IBM Watson Internet of Things Platform about location changes. The Device can invoke one of the overloaded updateLocation() method to update the location of the device. 
+Gateways that can determine their location can choose to notify the IBM Watson Internet of Things Platform about location changes. The gateway can invoke one of the overloaded updateLocation() method to update the location of the device. 
 
 .. code:: java
 
     // update the location with latitude, longitude and elevation
-    int rc = managedGateway.updateLocation(30.28565, -97.73921, 10);
+    int rc = managedGateway.updateGatewayLocation(30.28565, -97.73921, 10);
     if(rc == 200) {
         System.out.println("Location updated successfully !!");
     } else {
      	System.err.println("Failed to update the location !!");
     }
 
+Update location of attached devices
+---------------------------------------
+
+The gateway can invoke corresponding device method updateDeviceLocation() to update the location of the attached devices. The overloaded method can be used to specify the measuredDateTime and etc..
+
+.. code:: java
+
+    // update the location of the attached device with latitude, longitude and elevation
+    int rc = managedGateway.updateDeviceLocation(typeId, deviceId, 30.28565, -97.73921, 10);
+
+
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/update-location#update-location>`__ for more information about the Location update.
 
 ----
 
-Append/Clear ErrorCodes
+Append/Clear ErrorCodes of gateway
 -----------------------------------------------
 
-Devices can choose to notify the IBM Watson Internet of Things Platform about changes in their error status. The Device can invoke  addErrorCode() method to add the current errorcode to Watson IoT Platform.
+Gateways can choose to notify the IBM Watson Internet of Things Platform about changes in their error status. The gateway can invoke  addErrorCode() method to add the current errorcode to Watson IoT Platform.
 
 .. code:: java
 
-	int rc = managedGateway.addErrorCode(300);
+	int rc = managedGateway.addGatewayErrorCode(300);
 
-Also, the ErrorCodes can be cleared from IBM Watson Internet of Things Platform by calling the clearErrorCodes() method as follows:
+Also, the ErrorCodes of gateway can be cleared from IBM Watson Internet of Things Platform by calling the clearErrorCodes() method as follows:
 
 .. code:: java
 
-	int rc = managedGateway.clearErrorCodes();
+	int rc = managedGateway.clearGatewayErrorCodes();
+
+Append/Clear ErrorCodes of atatched devices
+-----------------------------------------------
+
+Similarly, the gateway can invoke the corresponding device method to add/clear the errorcodes of the attached devices,
+
+.. code:: java
+
+	int rc = managedGateway.addDeviceErrorCode(typeId, deviceId, 300);
+	rc = managedGateway.clearDeviceErrorCodes(typeId, deviceId);
 
 ----
 
-Append/Clear Log messages
------------------------------
-Devices can choose to notify the IBM Watson Internet of Things Platform about changes by adding a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. The Devices can invoke addLog() method to send log messages,
+Append/Clear Log messages of gateway
+--------------------------------------
+Gateways can choose to notify the IBM Watson Internet of Things Platform about changes by adding a new log entry. Log entry includes a log messages, its timestamp and severity, as well as an optional base64-encoded binary diagnostic data. The gateways can invoke addGatewayLog() method to send log messages,
 
 .. code:: java
 	// An example Log event
 	String message = "Firmware Download Progress (%): " + 50;
 	Date timestamp = new Date();
 	LogSeverity severity = LogSeverity.informational;
-	int rc = managedGateway.addLog(message, timestamp, severity);
+	int rc = managedGateway.addGatewayLog(message, timestamp, severity);
 	
 Also, the log messages can be cleared from IBM Watson Internet of Things Platform by calling the clearLogs() method as follows:
 
 .. code:: java
 
-	rc = managedGateway.clearLogs();
+	rc = managedGateway.clearGatewayLogs();
+	
+Append/Clear Logs of atatched devices
+-----------------------------------------------
 
-The device diagnostics operations are intended to provide information on device errors, and does not provide diagnostic information relating to the devices connection to the IBM Watson Internet of Things Platform.
+Similarly, the gateway can invoke the corresponding device method to add/clear the Logs of the attached devices,
+
+.. code:: java
+
+	// An example Log event
+	String message = "Firmware Download Progress (%): " + 50;
+	Date timestamp = new Date();
+	LogSeverity severity = LogSeverity.informational;
+	int rc = managedGateway.addDeviceLog(typeId, deviceId, message, timestamp, severity);
+	
+and to clear the Logs of attached devices, invoke the clearDeviceLogs() method with the details of the attached device,
+
+..code:: java
+
+     int rc = managedGateway.clearDeviceLogs(typeId, deviceId);
+
+The device diagnostics operations are intended to provide information on gateway/device errors, and does not provide diagnostic information relating to the devices connection to the IBM Watson Internet of Things Platform.
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/update-location#update-location>`__ for more information about the Diagnostics operation.
 
