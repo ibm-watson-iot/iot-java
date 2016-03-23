@@ -18,7 +18,7 @@ The constructor builds the client instance, and accepts a Properties object cont
 * auth-key - API key (required if auth-method is “apikey”).
 * auth-token - API key token (required if auth-method is “apikey”).
 
-The Properties object creates definitions which are used to interact with the Internet of Things Foundation module. If no options are provided or organization is provided as quickstart, the client will connect to the Internet of Things Foundation Quickstart, and default to an unregistered device.
+The Properties object creates definitions which are used to interact with the Watson IoT Platform module. If no options are provided or organization is provided as quickstart, the client will connect to the Watson IoT Platform Quickstart, and default to an unregistered device.
 
 The following code snippet shows how to construct the ApplicationClient instance in Quickstart mode,
 
@@ -71,10 +71,10 @@ The application configuration file must be in the following format:
 
 ----
 
-Connecting to the Internet of Things Foundation
+Connecting to the Watson IoT Platform
 ----------------------------------------------------
 
-Connect to the Internet of Things Foundation by calling the *connect* function.
+Connect to the Watson IoT Platform by calling the *connect* function.
 
 .. code:: java
 
@@ -90,9 +90,9 @@ After the successful connection to the IoTF service, the application client can 
 
 Subscribing to device events
 -------------------------------------------------------------------------------
-Events are the mechanism by which devices publish data to the Internet of Things Foundation. The device controls the content of the event and assigns a name for each event it sends.
+Events are the mechanism by which devices publish data to the Watson IoT Platform. The device controls the content of the event and assigns a name for each event it sends.
 
-When an event is received by the IoT Foundation the credentials of the connection on which the event was received are used to determine from which device the event was sent. With this architecture it is impossible for a device to impersonate another device.
+When an event is received by the IoT Platform the credentials of the connection on which the event was received are used to determine from which device the event was sent. With this architecture it is impossible for a device to impersonate another device.
 
 By default, applications will subscribe to all events from all connected devices. Use the type, id, event and msgFormat parameters to control the scope of the subscription. A single client can support multiple subscriptions. The code samples below give examples of how to subscribe to devices dependent on device type, id, event and msgFormat parameters.
 
@@ -191,7 +191,7 @@ Overloaded methods are available to control the command subscription. The proces
 
 Subscribing to device status
 -------------------------------------------------------------------------------
-Similar to subscribing to device events, applications can subscribe to device status, like device connect and disconnect to Internet of Things Foundation. By default, this will subscribe to status updates for all connected devices. Use the Device Type and Device Id parameters to control the scope of the subscription. A single ApplicationClient can support multiple subscriptions.
+Similar to subscribing to device events, applications can subscribe to device status, like device connect and disconnect to Watson IoT Platform. By default, this will subscribe to status updates for all connected devices. Use the Device Type and Device Id parameters to control the scope of the subscription. A single ApplicationClient can support multiple subscriptions.
 
 Subscribe to status updates for all devices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -270,7 +270,7 @@ A sample implementation of the Status callback,
       }
   }
 	
-Once the status callback is added to the ApplicationClient, the processDeviceStatus() method is invoked whenever any device is connected or disconnected from Internet of Things Foundation that matches the criteria, The following snippet shows how to add the status call back instance into ApplicationClient,
+Once the status callback is added to the ApplicationClient, the processDeviceStatus() method is invoked whenever any device is connected or disconnected from Watson IoT Platform that matches the criteria, The following snippet shows how to add the status call back instance into ApplicationClient,
 
 .. code:: java
 
@@ -288,7 +288,7 @@ As similar to device status, the application can subscribe to any other applicat
     myClient.setEventCallback(new MyEventCallback());
     myClient.subscribeToApplicationStatus();
 
-Overloaded method is available to control the status subscription to a particular application. The processApplicationStatus() method is called whenever any application is connected or disconnected from Internet of Things Foundation that matches the criteria.
+Overloaded method is available to control the status subscription to a particular application. The processApplicationStatus() method is called whenever any application is connected or disconnected from Watson IoT Platform that matches the criteria.
 
 Publishing events from devices
 -------------------------------------------------------------------------------
