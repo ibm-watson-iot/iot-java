@@ -20,7 +20,7 @@ This Java Client Library requires following version of Java,
 Maven support
 --------------------------------------------------------------------
 
-The POM file present in the library helps one to build the library using maven. It download all the dependencies from the maven central repository and builds the iot-java library.
+The POM file present in the library helps one to build the library using maven. It downloads all the dependencies from the maven central repository and builds the iot-java library.
 
 Also, the library can be improted to eclipse as maven project and proceed with the development. 
 
