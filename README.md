@@ -1,7 +1,7 @@
 Java Client Library - Introduction
 ============================================
 
-This Java Client Library can be used to simplify interactions with the [IBM Internet of Things Foundation] (https://internetofthings.ibmcloud.com). The documentation is divided into following sections:  
+This Java Client Library can be used to simplify interactions with the [IBM Watson IoT Platform] (https://internetofthings.ibmcloud.com). The documentation is divided into following sections:  
 
 - The [Device section] (https://github.com/ibm-messaging/iot-java/blob/master/docs/java_cli_for_devices.rst) contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
 - The [Managed Device section] (https://github.com/ibm-messaging/iot-java/blob/master/docs/java_cli_for_manageddevice.rst) contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java ibmiotf Client Library and perform device management operations like firmware update, location update, and diagnostics update.
@@ -14,6 +14,17 @@ This Java Client Library requires following version of Java,
 
 *  [Java 7] (http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html)
 *  [Java 8] (https://java.com/en/download/)
+
+----
+
+Maven support
+--------------------------------------------------------------------
+
+The POM file present in the library helps one to build the library using maven. It download all the dependencies from the maven central repository and builds the iot-java library.
+
+Also, the library can be improted to eclipse as maven project and proceed with the development. 
+
+We are working on to push the library artifact to maven, and we will update once its done.
 
 ----
 
