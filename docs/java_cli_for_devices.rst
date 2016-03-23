@@ -7,12 +7,6 @@ Introduction
 
 This client library describes how to use devices with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://github.com/ibm-messaging/iot-java/blob/master/README.md>`__. 
 
-This client library is divided into three sections, all included within the library. This section contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
-
-The Device management section contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java and perform device management operations like firmware update, location update, and diagnostics update.
-
-The Applications section contains information on how applications can use the Java ibmiotf Client Library to interact with devices. 
-
 Constructor
 -------------------------------------------------------------------------------
 
