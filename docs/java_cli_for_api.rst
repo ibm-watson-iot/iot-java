@@ -1,18 +1,10 @@
 ===============================================================
-Java Client Library - Internet of Things Foundation API Support 
+Java Client Library - Watson IoT Platform API Support 
 ===============================================================
 Introduction
 -------------------------------------------------------------------------------
 
-This client library describes how to use Internet of Things Foundation API with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://github.com/ibm-messaging/iot-java/blob/master/README.md>`__. 
-
-This client library is divided into Four sections, all included within the library. This section contains information on how applications can use the Java ibmiotf Client Library to interact with your organization in the Internet of Things Foundation through ReST APIs.
-
-The Device section contains information on how devices can publish events and handle commands using the Java ibmiotf Client Library. 
-
-The Managed Device section contains information on how devices can connect to the Internet of Things Foundation Device Management service using Java ibmiotf Client Library and perform device management operations like firmware update, location update, and diagnostics update.
-
-Application section contains information on how applications can use the Java ibmiotf Client Library to interact with devices.
+This client library describes how to use Watson IoT Platform API with the Java ibmiotf client library. For help with getting started with this module, see `Java Client Library - Introduction <https://github.com/ibm-messaging/iot-java/blob/master/README.md>`__. 
 
 Constructor
 -------------------------------------------------------------------------------
@@ -23,7 +15,7 @@ The constructor builds the client instance, and accepts a Properties object cont
 * auth-key - API key
 * auth-token - API key token
 
-The Properties object creates definitions which are used to interact with the Internet of Things Foundation module. 
+The Properties object creates definitions which are used to interact with the Internet of Things Platform module. 
 
 The following code snippet shows how to construct the APIClient instance using the properties,
 
@@ -61,21 +53,21 @@ Application can use method getOrganizationDetails() to view the Organization det
 
     JsonObject orgDetail = apiClient.getOrganizationDetails();
 
-Refer to the Organization Configuration section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+Refer to the Organization Configuration section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 ----
 
 Bulk device operations
 ----------------------------------------------------
 
-Applications can use bulk operations to get, add or remove devices in bulk from Internet of Things Foundation.
+Applications can use bulk operations to get, add or remove devices in bulk from Internet of Things Platform.
 
-Refer to the Bulk Operations section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+Refer to the Bulk Operations section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 Get Devices in bulk
 ~~~~~~~~~~~~~~~~~~~
 
-Method getAllDevices() can be used to retrieve all the registered devices in an organization from Internet of Things Foundation, each request can contain a maximum of 512KB. 
+Method getAllDevices() can be used to retrieve all the registered devices in an organization from Internet of Things Platform, each request can contain a maximum of 512KB. 
 
 .. code:: java
 
@@ -103,7 +95,7 @@ The above snippet sorts the response based on device id and uses the bookmark to
 Register Devices in bulk
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method addMultipleDevices() can be used to register one or more devices to Internet of Things Foundation, each request can contain a maximum of 512KB. For example, the following sample shows how to add a device using the bulk operation.
+Method addMultipleDevices() can be used to register one or more devices to Internet of Things Platform, each request can contain a maximum of 512KB. For example, the following sample shows how to add a device using the bulk operation.
 
 .. code:: java
 
@@ -125,12 +117,12 @@ Method addMultipleDevices() can be used to register one or more devices to Inter
     
     JsonArray response = apiClient.addMultipleDevices(arryOfDevicesToBeAdded);
     
-The response will contain the generated authentication tokens for all devices. Application must make sure to record these tokens when processing the response. The Internet of Things Foundation will not able to retrieve lost authentication tokens. 
+The response will contain the generated authentication tokens for all devices. Application must make sure to record these tokens when processing the response. The Internet of Things Platform will not able to retrieve lost authentication tokens. 
 
 Delete Devices in bulk
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method deleteMultipleDevices() can be used to delete multiple devices from Internet of Things Foundation, each request can contain a maximum of 512KB. For example, the following sample shows how to delete 2 devices using the bulk operation.
+Method deleteMultipleDevices() can be used to delete multiple devices from Internet of Things Platform, each request can contain a maximum of 512KB. For example, the following sample shows how to delete 2 devices using the bulk operation.
 
 .. code:: java
 
@@ -154,14 +146,14 @@ Method deleteMultipleDevices() can be used to delete multiple devices from Inter
 Device Type operations
 ----------------------------------------------------
 
-Applications can use device type operations to list all, create, delete, view and update device types in Internet of Things Foundation.
+Applications can use device type operations to list all, create, delete, view and update device types in Internet of Things Platform.
 
-Refer to the Device Types section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+Refer to the Device Types section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 Get all Device Types
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method getAllDeviceTypes() can be used to retrieve all the registered device types in an organization from Internet of Things Foundation. For example,
+Method getAllDeviceTypes() can be used to retrieve all the registered device types in an organization from Internet of Things Platform. For example,
 
 .. code:: java
 
@@ -184,7 +176,7 @@ The above snippet sorts the response based on device type id and uses the bookma
 Add a Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method addDeviceType() can be used to register a device type to Internet of Things Foundation. For example,
+Method addDeviceType() can be used to register a device type to Internet of Things Platform. For example,
 
 .. code:: java
 
@@ -216,7 +208,7 @@ Application can use a overloaded method that accepts more parameters to add a de
 Delete a Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method deleteDeviceType() can be used to delete a device type from Internet of Things Foundation. For example,
+Method deleteDeviceType() can be used to delete a device type from Internet of Things Platform. For example,
 
 .. code:: java
 
@@ -247,14 +239,14 @@ Method updateDeviceType() can be used to modify one or more properties of a devi
 Device operations
 ----------------------------------------------------
 
-Applications can use device operations to list, add, remove, view, update, view location and view management information of a device in Internet of Things Foundation.
+Applications can use device operations to list, add, remove, view, update, view location and view management information of a device in Internet of Things Platform.
 
-Refer to the Device section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+Refer to the Device section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 Get Devices of a particular Device Type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method retrieveDevices() can be used to retrieve all the devices of a particular device type in an organization from Internet of Things Foundation. For example,
+Method retrieveDevices() can be used to retrieve all the devices of a particular device type in an organization from Internet of Things Platform. For example,
 
 .. code:: java
 
@@ -277,7 +269,7 @@ The above snippet sorts the response based on device id and uses the bookmark to
 Add a Device
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Method registerDevice() can be used to register a device to Internet of Things Foundation. For example,
+Method registerDevice() can be used to register a device to Internet of Things Platform. For example,
 
 .. code:: java
 
@@ -311,7 +303,7 @@ Application can use a overloaded method that accepts entire device properties in
 Delete a Device
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method deleteDevice() can be used to delete a device from Internet of Things Foundation. For example,
+Method deleteDevice() can be used to delete a device from Internet of Things Platform. For example,
 
 .. code:: java
 
@@ -320,7 +312,7 @@ Method deleteDevice() can be used to delete a device from Internet of Things Fou
 Get a Device
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Method getDevice() can be used to retrieve a device from Internet of Things Foundation. For example,
+Method getDevice() can be used to retrieve a device from Internet of Things Platform. For example,
 
 .. code:: java
 
@@ -377,9 +369,9 @@ Method getDeviceManagementInformation() can be used to get the device management
 Device diagnostic operations
 ----------------------------------------------------
 
-Applications can use Device diagnostic operations to clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Foundation.
+Applications can use Device diagnostic operations to clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Platform.
 
-Refer to the Device Diagnostics section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+Refer to the Device Diagnostics section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 Get Diagnostic logs
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -483,7 +475,7 @@ Method getDeviceConnectionLogs() can be used to list connection log events for a
 
     JsonArray response = apiClient.getDeviceConnectionLogs(iotsample-ardunio, ardunio01);
 
-Refer to the Problem Determination section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+Refer to the Problem Determination section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 ----
 
@@ -491,7 +483,7 @@ Historical Event Retrieval
 ----------------------------------
 Application can use this operation to view events from all devices, view events from a device type or to view events for a specific device.
 
-Refer to the Historical Event Retrieval section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+Refer to the Historical Event Retrieval section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 View events from all devices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -564,7 +556,7 @@ Device Management request operations
 
 Applications can use the device management operations to list all device management requests, initiate a request, clear request status, get details of a request, get list of request statuses for each affected device and get request status for a specific device.
 
-Refer to the Device Management Requests section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+Refer to the Device Management Requests section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 Get all Device management requests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -650,7 +642,7 @@ And use the following JSON message to initiate a firmware update request on *ard
  	]
     }
 
-Refer to `this recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-managed-device-to-ibm-iot-foundation/>`__ to know more about how to update a service on Raspberry Pi using this ibmiotf Java Client Library.
+Refer to `this recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-managed-device-to-ibm-iot-Platform/>`__ to know more about how to update a service on Raspberry Pi using this ibmiotf Java Client Library.
 
 Delete a Device management request
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -721,7 +713,7 @@ Usage management
 
 Applications can use the usage management operations to retrieve the number of active devices over a period of time, retrieve amount of storage used by historical event data, retrieve total amount of data used.
 
-Refer to the Usage management section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+Refer to the Usage management section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
 
 Get active devices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -767,23 +759,23 @@ The above snippet returns the amount of data traffic between 2015-09-01 and 2015
 Service status
 ----------------------------------------------------
 
-Method getServiceStatus() can be used to retrieve the organization-specific status of each of the services offered by the Internet of Things Foundation. 
+Method getServiceStatus() can be used to retrieve the organization-specific status of each of the services offered by the Internet of Things Platform. 
 
 .. code:: java
     
     JsonElement response = this.apiClient.getServiceStatus();
 
-Refer to the Service status section of the `IBM IoT Foundation API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the response model and http status code.
+Refer to the Service status section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the response model and http status code.
 
 ----
 
 Examples
 -------------
-* `SampleBulkAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleBulkAPIOperations.java>`__ - Sample that showcases how to get, add or remove devices in bulk from Internet of Things Foundation.
-* `SampleDeviceTypeAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceTypeAPIOperations.java>`__ - Sample that showcases various Device Type API operations like list all, create, delete, view and update device types in Internet of Things Foundation.
-* `SampleDeviceAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceAPIOperations.java>`__ - A sample that showcases various Device operations like list, add, remove, view, update, view location and view management information of a device in Internet of Things Foundation.
-* `SampleDeviceDiagnosticsAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceDiagnosticsAPIOperations.java>`__ - A sample that showcases various Device Diagnostic operations like clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Foundation.
-* `SampleHistorianAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleHistorianAPIOperations.java>`__ - A sample that showcases how to retrieve historical events from Internet of Things Foundation.
-* `SampleDeviceManagementAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceManagementAPIOperations.java>`__ - A sample that showcases various device management request operations that can be performed on Internet of Things Foundation.
-* `SampleUsageManagementAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleUsageManagementAPIOperations.java>`__ - A sample that showcases various Usage management operations that can be performed on Internet of Things Foundation.
+* `SampleBulkAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleBulkAPIOperations.java>`__ - Sample that showcases how to get, add or remove devices in bulk from Internet of Things Platform.
+* `SampleDeviceTypeAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceTypeAPIOperations.java>`__ - Sample that showcases various Device Type API operations like list all, create, delete, view and update device types in Internet of Things Platform.
+* `SampleDeviceAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceAPIOperations.java>`__ - A sample that showcases various Device operations like list, add, remove, view, update, view location and view management information of a device in Internet of Things Platform.
+* `SampleDeviceDiagnosticsAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceDiagnosticsAPIOperations.java>`__ - A sample that showcases various Device Diagnostic operations like clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Platform.
+* `SampleHistorianAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleHistorianAPIOperations.java>`__ - A sample that showcases how to retrieve historical events from Internet of Things Platform.
+* `SampleDeviceManagementAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleDeviceManagementAPIOperations.java>`__ - A sample that showcases various device management request operations that can be performed on Internet of Things Platform.
+* `SampleUsageManagementAPIOperations <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/api/SampleUsageManagementAPIOperations.java>`__ - A sample that showcases various Usage management operations that can be performed on Internet of Things Platform.
 
