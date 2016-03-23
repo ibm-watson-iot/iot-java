@@ -8,8 +8,6 @@
 	
 	<path id="clientClasspath">
 		<fileset dir="lib" includes="*.jar" />
-		<fileset dir="samples/sigar/lib" includes="sigar.jar" />
-		<fileset dir="samples/common/lib" includes="args4j-2.0.21.jar" />
 	</path>
 	
 	<property name="tmpDir" location="tmp" />
@@ -23,23 +21,18 @@
 	<target name="compile">
 		<mkdir dir="${tmpDir}" />
 		<javac classpathref="clientClasspath" encoding="UTF-8" destdir="${tmpDir}">
-			<src path="src" />
-			<src path="src" />
-			<src path="samples/iotfdeviceclient/src" />
-			<src path="samples/iotfdevicemanagement/src" />
-			<src path="samples/common/src" />
-			<src path="samples/sigar/src" />
+			<src path="src/main/java" />
+			<src path="src/test/java" />
 		</javac>
 	</target>
 			
 	<target name="javadoc">
 		<javadoc access="public" author="true" 
 			classpath="lib/httpmime-4.3.6.jar;lib/httpclient-cache-4.3.6.jar;
-					   	lib/org.eclipse.paho.client.mqttv3-1.0.3-20150818.040635-202.jar;lib/joda-time-2.6.jar;
-					   	lib/commons-logging-1.2.jar;lib/gson-2.2.4.jar;lib/commons-logging-1.1.3.jar;
-						lib/com.ibm.iotf.client-1.0.0.jar;lib/httpcore-4.3.3.jar;lib/httpclient-4.3.6.jar;
-						lib/com.ibm.iotf.samples-1.0.0.jar;lib/commons-net-3.3.jar;lib/commons-codec-1.6.jar;
-						lib/common-lang3.jar" 
+					   	lib/org.eclipse.paho.client.mqttv3-1.0.3-20150818.040635-202.jar;lib/joda-time-2.3.jar;
+					   	lib/commons-logging-1.2.jar;lib/gson-2.2.4.jar;lib/commons-logging-1.2.jar;
+						lib/httpcore-4.3.jar;lib/httpclient-4.3.1.jar;lib/commons-net-3.3.jar;lib/commons-codec-1.9.jar;
+						lib/commons-lang3-3.3.2.jar" 
 			destdir="${outputDir}/doc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" 
 			packagenames="com.ibm.iotf.client.app,
 						  com.ibm.iotf.client.device,
@@ -50,81 +43,20 @@
 						  com.ibm.iotf.devicemgmt.device,
 						  com.ibm.iotf.client,
 						  com.ibm.iotf.devicemgmt.gateway" 
-			source="1.7" sourcepath="src" splitindex="true" use="true" version="true">
+			source="1.7" sourcepath="src/main/java" splitindex="true" use="true" version="true">
 		</javadoc>
 	</target>
-	
-	
-	<target name="buildwar">
-		<!-- Build the war file for simpleLibertyApp -->
-		<!-- 1. Copy required library files into web-inf/lib -->
-		
-		<property name="dist.dir" value="${tmpDir}/dist" />
-	    <mkdir dir="${dist.dir}" />
-	    <echo>Copying web into dist</echo>
-	    
-		<copy todir="${dist.dir}/WebContent">
-	    	<fileset dir="samples/simpleLibertyApp/WebContent" includes="**/*" />
-	    </copy>
-		
-	    <copy todir="${dist.dir}/WebContent/WEB-INF/lib">
-    		<fileset dir="lib" includes="*.jar" />
-    		<fileset dir="output" includes="*.jar" />
-	    </copy>
-	    
-		<delete dir="${dist.dir}/WebContent/WEB-INF/classes" />
-	    <mkdir dir="${dist.dir}/WebContent/WEB-INF/classes" />
-
-        <path id="libertySampleApp.classpath">
-        	<pathelement location="${wlp.home}/dev/api/ibm/com.ibm.websphere.appserver.api.json_1.0.1.jar"/>
-        	<pathelement location="${wlp.home}/dev/api/spec/com.ibm.ws.javaee.servlet.3.0_1.0.1.jar"/>
-    		<fileset dir="lib" includes="*.jar" />
-    		<fileset dir="output" includes="*.jar" />
-		</path>
-		
-		<javac destdir="${dist.dir}/WebContent/WEB-INF/classes" srcdir="samples/simpleLibertyApp/src">
-	        <classpath refid="libertySampleApp.classpath" />
-	    </javac>
-		
-	    <copy todir="${dist.dir}/WebContent/WEB-INF/classes">
-	        <fileset dir="samples/simpleLibertyApp/src">
-	            <include name="**/*.properties" />
-	            <include name="**/*.xml" />
-	        </fileset>
-	    </copy>
-		
-		
-		<war basedir="${dist.dir}/WebContent" destfile="${outputDir}/simpleLibertyApp-${version}.war" webxml="${dist.dir}/WebContent/WEB-INF/web.xml">
-			<exclude name="WEB-INF/**" />
-			<webinf dir="${dist.dir}/WebContent/WEB-INF/">
-				<include name="**/*.jar" />
-				<include name="**/*.class" />
-			</webinf>
-	    </war>
-	</target>
-	
 	
 	<target name="package">
 		<!-- Build the client jar -->
 		<jar basedir="${tmpDir}" destfile="${outputDir}/com.ibm.iotf.client-${version}.jar" 
-			includes="com/ibm/iotf/client/**,
+			includes="com/ibm/internal/**,
+					  com/ibm/iotf/client/**,
 					  com/ibm/iotf/util/**,
 					  com/ibm/iotf/devicemgmt/**, 
 					  com/ibm/iotf/client/app/**, 
 					  com/ibm/iotf/client/device/**, 
 					  com/ibm/iotf/client/api/**">
-		</jar>
-		
-		<copy file="samples/iotfdeviceclient/src/device.prop" todir="${outputDir}"/>
-		<copy file="samples/iotfdeviceclient/src/gateway.prop" todir="${outputDir}"/>
-		<copy file="samples/iotfdeviceclient/src/application.prop" todir="${outputDir}"/>
-		<copy file="samples/iotfdeviceclient/src/sample.config" todir="${outputDir}"/>
-		<copy file="samples/iotfdevicemanagement/src/DMDeviceSample.properties" todir="${outputDir}"/>
-		<copy file="samples/iotfdevicemanagement/src/DMGatewaySample.properties" todir="${outputDir}"/>
-		<copy file="samples/iotfdevicemanagement/src/avrdude.properties" todir="${outputDir}"/>
-		
-		<!-- Build the accompanying samples jar -->
-		<jar basedir="${tmpDir}" destfile="${outputDir}/com.ibm.iotf.samples-${version}.jar" includes="com/ibm/iotf/samples/**, com/ibm/iotf/sample/**">
 		</jar>
 		
 		<zip destfile="${outputDir}/com.ibm.iotf-${version}.zip">
@@ -146,7 +78,7 @@
 		</zip>
 	</target>
 	
-	<target name="teardown" depends="clean, compile, javadoc, package, buildwar">
+	<target name="teardown" depends="clean, compile, javadoc, package">
 		<!-- Cleanup the temp directories created by this ant build -->
 		<delete>
 		    <fileset dir="${outputDir}" includes="*.jar" />
@@ -158,7 +90,7 @@
 		<delete dir="${outputDir}/doc" />
 	</target>
 	
-	<target name="build" depends="clean, compile, javadoc, package, buildwar, teardown">
+	<target name="build" depends="clean, compile, javadoc, package, teardown">
 	</target>
 	
 	

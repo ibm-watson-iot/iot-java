@@ -4,11 +4,11 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ibm.messaging</groupId>
-    <artifactId>com.ibm.iotf.client</artifactId>
-    <version>0.0.5-SNAPSHOT</version>
+    <artifactId>watson-iot</artifactId>
+    <version>0.0.12-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>ibm-messaging/iot-java</name>
-    <description>IBM IoT Foundation client Library with samples from github https://github.com/ibm-messaging/iot-java</description>
+    <description>IBM Watson IoT client library to simplify device/gateway/application interactions with the IoT Platform</description>
     <url>https://github.com/ibm-messaging/iot-java</url>
 
     <scm>
@@ -53,12 +53,6 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-	<repositories>
-		<repository>
-			<id>Eclipse Paho Repo</id>
-			<url>https://repo.eclipse.org/content/repositories/paho-snapshots/</url>
-		</repository>
-	</repositories>
 
     <dependencies>
         <dependency>
@@ -70,17 +64,6 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
-        </dependency>
-        <dependency>
-            <groupId>org.fusesource</groupId>
-            <artifactId>sigar</artifactId>
-            <version>1.6.4</version>
-        </dependency>
-        <dependency>
-            <groupId>args4j</groupId>
-            <artifactId>args4j</artifactId>
-            <version>2.33</version>
-
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -100,24 +83,9 @@
             <version>1.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
-        </dependency>
-        <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
             <version>3.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.cloudant</groupId>
-            <artifactId>cloudant-client</artifactId>
-            <version>1.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bidib.jbidib.org.qbang.rxtx</groupId>
-            <artifactId>rxtxcomm</artifactId>
-            <version>2.2</version>
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>
@@ -148,37 +116,26 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src</sourceDirectory>
-        <resources>
+        <!-- <sourceDirectory>src</sourceDirectory>
+            <resources>
             <resource>
-                <directory>src</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
+            <directory>src</directory>
+            <excludes>
+            <exclude>**/*.java</exclude>
+            </excludes>
             </resource>
-            <!-- <resource>
-                <directory>samples/iotfdevicemanagement/src</directory>
-                <excludes>
-                <exclude>**/*.java</exclude>
-                </excludes>
-                </resource>
-                <resource>
-                <directory>samples/iotfdeviceclient/src</directory>
-                <excludes>
-                <exclude>**/*.java</exclude>
-                </excludes>
-                </resource>
-            -->
-        </resources>
-        <testSourceDirectory>test</testSourceDirectory>
-        <testResources>
+
+            </resources>
+            <testSourceDirectory>test</testSourceDirectory>
+            <testResources>
             <testResource>
-                <directory>test</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
+            <directory>test</directory>
+            <excludes>
+            <exclude>**/*.java</exclude>
+            </excludes>
             </testResource>
-        </testResources>
+            </testResources>
+        -->
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -188,6 +145,17 @@
                     <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <delimiters>
+                        <delimiter>@</delimiter>
+                    </delimiters>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -212,8 +180,8 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
                             <failOnError>false</failOnError>
+                            <excludePackageNames>com.ibm.internal.*</excludePackageNames>
                         </configuration>
                     </execution>
                 </executions>
@@ -233,5 +201,16 @@
             </plugin>
         </plugins>
     </build>
+
+
+    <repositories>
+
+        <!-- Dependency of the Paho mqqt snapshot is here -->
+        <repository>
+            <id>Eclipse Paho Release Repo</id>
+            <url>https://repo.eclipse.org/content/repositories/paho-releases/</url>
+        </repository>
+        
+    </repositories>
 
 </project>
