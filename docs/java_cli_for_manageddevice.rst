@@ -371,7 +371,7 @@ Device can check the integrity of the downloaded firmware image using the verifi
 		return false;
 	}
 
-The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__.
+The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-device-samples/tree/master/java/device-management-sample/src/main/java/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__.
 
 **3.2 Sample implementation of updateFirmware**
 
@@ -415,7 +415,7 @@ A sample Firmware Update implementation for a Raspberry Pi device is shown below
 		}
 	}
 
-The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__.
+The complete code can be found in the device management sample `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-device-samples/tree/master/java/device-management-sample/src/main/java/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__.
 
 **4. Add the handler to ManagedDevice**
 
@@ -521,7 +521,7 @@ The implementation must create a separate thread and add a logic to reboot the d
 	}
 	
 
-The complete code can be found in the device management sample `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__.
+The complete code can be found in the device management sample `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-device-samples/tree/master/java/device-management-sample/src/main/java/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__.
 
 **2.2 Sample implementation of handleFactoryReset**
 
@@ -628,14 +628,14 @@ Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_m
 
 Examples
 -------------
-* `SampleRasPiDMAgent <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgent.java>`__ - A sample agent code that shows how to perform various device management operations on Raspberry Pi.
-* `SampleRasPiManagedDevice <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiManagedDevice.java>`__ - A sample code that shows how one can perform both device operations and management operations.
-* `SampleRasPiDMAgentWithCustomMqttAsyncClient <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgentWithCustomMqttAsyncClient.java>`__ - A sample agent code with custom MqttAsyncClient.
-* `SampleRasPiDMAgentWithCustomMqttClient <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgentWithCustomMqttClient.java>`__ - A sample agent code with custom MqttClient.
-* `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__ - A sample implementation of FirmwareHandler for Raspberry Pi.
-* `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__ - A sample implementation of DeviceActionHandler
-* `ManagedDeviceWithLifetimeSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/ManagedDeviceWithLifetimeSample.java>`__ - A sample that shows how to send regular manage request with lifetime specified.
-* `DeviceAttributesUpdateListenerSample <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdevicemanagement/src/com/ibm/iotf/sample/devicemgmt/device/DeviceAttributesUpdateListenerSample.java>`__ - A sample listener code that shows how to listen for a various device attribute changes.
+* `SampleRasPiDMAgent <https://github.com/ibm-messaging/iot-device-samples/tree/master/java/device-management-sample/src/main/java/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgent.java>`__ - A sample agent code that shows how to perform various device management operations on Raspberry Pi.
+* `SampleRasPiManagedDevice <https://github.com/ibm-messaging/iot-device-samples/tree/master/java/device-management-sample/src/main/java/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiManagedDevice.java>`__ - A sample code that shows how one can perform both device operations and management operations.
+* `SampleRasPiDMAgentWithCustomMqttAsyncClient <https://github.com/ibm-messaging/iot-device-samples/tree/master/java/device-management-sample/src/main/java/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgentWithCustomMqttAsyncClient.java>`__ - A sample agent code with custom MqttAsyncClient.
+* `SampleRasPiDMAgentWithCustomMqttClient <https://github.com/ibm-messaging/iot-device-samples/tree/master/java/device-management-sample/src/main/java/com/ibm/iotf/sample/devicemgmt/device/SampleRasPiDMAgentWithCustomMqttClient.java>`__ - A sample agent code with custom MqttClient.
+* `RasPiFirmwareHandlerSample <https://github.com/ibm-messaging/iot-device-samples/tree/master/java/device-management-sample/src/main/java/com/ibm/iotf/sample/devicemgmt/device/RasPiFirmwareHandlerSample.java>`__ - A sample implementation of FirmwareHandler for Raspberry Pi.
+* `DeviceActionHandlerSample <https://github.com/ibm-messaging/iot-device-samples/tree/master/java/device-management-sample/src/main/java/com/ibm/iotf/sample/devicemgmt/device/DeviceActionHandlerSample.java>`__ - A sample implementation of DeviceActionHandler
+* `ManagedDeviceWithLifetimeSample <https://github.com/ibm-messaging/iot-device-samples/tree/master/java/device-management-sample/src/main/java/com/ibm/iotf/sample/devicemgmt/device/ManagedDeviceWithLifetimeSample.java>`__ - A sample that shows how to send regular manage request with lifetime specified.
+* `DeviceAttributesUpdateListenerSample <https://github.com/ibm-messaging/iot-device-samples/tree/master/java/device-management-sample/src/main/java/com/ibm/iotf/sample/devicemgmt/device/DeviceAttributesUpdateListenerSample.java>`__ - A sample listener code that shows how to listen for a various device attribute changes.
 
 ----
 
