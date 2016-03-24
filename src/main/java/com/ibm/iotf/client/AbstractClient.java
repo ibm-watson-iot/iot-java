@@ -142,10 +142,20 @@ public abstract class AbstractClient {
 	}
 	
 	/**
-	 * Connect to the IBM Watson IoT Platform
-	 * @throws MqttSecurityException 
-	 */
-	public void connect() throws MqttException {
+	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception 
+	 * based on the value set in retry parameter. </br>
+	 * 
+	 * This method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
+	 * @throws MqttSecurityException
+	 **/
+	public void connect(boolean autoRetry) throws MqttException {
 		final String METHOD = "connect";
 		boolean tryAgain = true;
 		int connectAttempts = 0;
@@ -171,10 +181,10 @@ public abstract class AbstractClient {
 				
 			} catch (MqttException e) {
 				Throwable t = e.getCause();
-				if(t != null && t instanceof java.net.UnknownHostException) {
-					// We must give up as the host doesn't exist.
-					throw e;
-				}
+				if(!autoRetry || (t != null && t instanceof java.net.UnknownHostException)) {
+	                // We must give up as the host doesn't exist.
+	                throw e;
+	            }
 				e.printStackTrace();
 			}
 			

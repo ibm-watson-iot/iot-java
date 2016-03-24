@@ -30,6 +30,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
+import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -214,11 +215,51 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * <li>Publish events for itself and on behalf of devices connected behind the Gateway.
 	 * <li>Subscribe to commands for itself and on behalf of devices behind the Gateway.
 	 * </ul>
-	 * @throws MqttException 
-	 */
-	@Override
+	 * </p>
+	 * 
+	 * <p>The GatewayClient retries when there is a connect exception.</br>
+	 * 
+	 * This method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
+	 * @throws MqttSecurityException
+	 **/
 	public void connect() throws MqttException {
-		super.connect();
+		super.connect(true);
+		subscribeToGatewayCommands();
+	}
+	
+	/**
+	 * <p>Connects the Gateway to IBM Watson Internet of Things Platform. 
+	 * After the successful connection to the IBM Watson IoT Platform, 
+	 * the Gateway client can perform the following operations,</p>
+	 * 
+	 * <ul class="simple">
+	 * <li>Publish events for itself and on behalf of devices connected behind the Gateway.
+	 * <li>Subscribe to commands for itself and on behalf of devices behind the Gateway.
+	 * </ul>
+	 * </p>
+	 * 
+	 * <p>The GatewayClient retries when there is a connect exception based on the 
+	 * value set in retry parameter. </br>
+	 * 
+	 * This method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
+	 * @throws MqttSecurityException
+	 **/
+	public void connect(boolean autoRetry) throws MqttException {
+		super.connect(autoRetry);
 		subscribeToGatewayCommands();
 	}
 	
@@ -332,7 +373,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 */
 	protected void reconnect() {
 		try {
-			super.connect();
+			super.connect(true);
 		} catch (MqttException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

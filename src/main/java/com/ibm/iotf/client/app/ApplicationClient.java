@@ -14,6 +14,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
+import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -148,10 +149,39 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		return trimedValue(authKeyPassed);
 	}
 	
-	
-	@Override
+	/**
+	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception.</br>
+	 * 
+	 * This method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @throws MqttSecurityException
+	 **/
 	public void connect() throws MqttException {
-		super.connect();
+		super.connect(true);
+	}
+	
+	/**
+	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception 
+	 * based on the value set in retry parameter. </br>
+	 * 
+	 * This method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
+	 * @throws MqttSecurityException
+	 **/
+	@Override
+	public void connect(boolean autoRetry ) throws MqttException {
+		super.connect(autoRetry);
 	}
 	
 	/**

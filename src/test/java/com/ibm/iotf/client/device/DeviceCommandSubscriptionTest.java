@@ -24,7 +24,7 @@ public class DeviceCommandSubscriptionTest extends TestCase{
 	private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";
 	
 	@Test
-	public void testCommandReception(){
+	public void testCommandReception() throws MqttException{
 		
 		/**
 		  * Load device properties
@@ -54,7 +54,10 @@ public class DeviceCommandSubscriptionTest extends TestCase{
 			myClient.connect();
 		} catch (MqttException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			throw e1;
+		} catch (java.lang.IllegalArgumentException e) {
+			// looks like the property file is not modified, exit silently
+			return;
 		}
 		
 		// Ask application to publish the command to this device now
