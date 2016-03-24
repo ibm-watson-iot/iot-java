@@ -639,10 +639,10 @@ Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_m
 
 Examples
 -------------
-* `ManagedRasPiGateway <https://github.com/ibm-messaging/gateway-samples/blob/master/java/gateway-samples/src/main/java/com/ibm/iotf/sample/client/gateway/devicemgmt/ManagedRasPiGateway.java>`__ - Gateway Device Management(DM) capabilities are demonstrated in this sample by managing the Arduino Uno device through the Raspberry Pi Gateway. If you do not have Raspberry Pi and Arduino UNO, don’t worry, you can still follow the sample to connect your device as a gateway and manage one or more attached devices. 
-* `HomeGatewaySample <https://github.com/ibm-messaging/gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/HomeGatewaySample.java>`__ - A home gateway sample that manages few attached home devices like, Lights, Switches, Elevator, Oven and OutdoorTemperature.
-* `GatewayFirmwareHandlerSample <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayFirmwareHandlerSample.java>`__ - A sample implementation of FirmwareHandler.
-* `GatewayActionHandlerSample <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/GatewayActionHandlerSample.java>`__ - A sample implementation of DeviceActionHandler.
+* `ManagedRasPiGateway <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/gateway-samples/src/main/java/com/ibm/iotf/sample/client/gateway/devicemgmt/ManagedRasPiGateway.java>`__ - Gateway Device Management(DM) capabilities are demonstrated in this sample by managing the Arduino Uno device through the Raspberry Pi Gateway. If you do not have Raspberry Pi and Arduino UNO, don’t worry, you can still follow the sample to connect your device as a gateway and manage one or more attached devices. 
+* `HomeGatewaySample <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/HomeGatewaySample.java>`__ - A home gateway sample that manages few attached home devices like, Lights, Switches, Elevator, Oven and OutdoorTemperature.
+* `GatewayFirmwareHandlerSample <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/gateway-samples/src/main/java/com/ibm/iotf/sample/client/gateway/devicemgmt/GatewayFirmwareHandlerSample.java>`__ - A sample implementation of FirmwareHandler.
+* `GatewayActionHandlerSample <https://github.com/ibm-messaging/iot-gateway-samples/blob/master/java/gateway-samples/src/main/java/com/ibm/iotf/sample/client/gateway/devicemgmt/GatewayActionHandlerSample.java>`__ - A sample implementation of DeviceActionHandler.
 
 ----
 
