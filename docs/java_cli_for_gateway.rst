@@ -259,4 +259,13 @@ Invoke the method getDevicesConnectedThroughGateway() to retrieve all devices th
 
 Examples
 -------------
-* `SampleRasPiGateway <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/gateway/SampleRasPiGateway.java>`__ - A Gateway sample that shows how to connect Raspberry Pi as Gateway. This sample is explained in detail in `this recipe <https://developer.ibm.com/recipes/?post_type=tutorials&p=9397>`__.
+* `SampleRasPiGateway <https://github.com/ibm-messaging/iot-gateway-samples/tree/master/java/gateway-samples>`__ - This Java project contains 3 samples, which will help one to connect their own Gateway and devices behind the Gateway to IBM Watson Internet of Things Platform. All the samples use the Java Client Library for IBM Watson IoT Platform, that simplifies the Gateway interactions with the Platform. 
+
+Recipes
+------------------
+
+Refer to `the recipe <https://developer.ibm.com/recipes/tutorials/connect-raspberry-pi-as-gateway-to-watson-iot-platform/>`__ that explains how to connect your Gateway and devices behind the Gateway to IBM Watson Internet of Things Platform with the sample present in this github project. 
+
+Refer to `the recipe <https://developer.ibm.com/recipes/tutorials/raspberry-pi-as-managed-gateway-in-watson-iot-platform-part-1/>`__ that explains how to connect your Gateway as managed device in IBM Watson Internet of Things Platform and perform one or more device management operations. 
+
+----
