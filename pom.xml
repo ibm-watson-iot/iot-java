@@ -37,6 +37,12 @@
             <organization>IBM</organization>
             <organizationUrl>http://www.ibm.com</organizationUrl>
         </developer>
+         <developer>
+            <name>Sathiskumar Palaniappan</name>
+            <email>sathipal@in.ibm.com</email>
+            <organization>IBM</organization>
+            <organizationUrl>http://www.ibm.com</organizationUrl>
+        </developer>
     </developers>
 
     <properties>
@@ -208,7 +214,7 @@
         <!-- Dependency of the Paho mqqt snapshot is here -->
         <repository>
             <id>Eclipse Paho Release Repo</id>
-            <url>https://repo.eclipse.org/content/repositories/paho-releases/</url>
+            <url>https://repo.eclipse.org/content/repositories/paho-snapshots/</url>
         </repository>
         
     </repositories>

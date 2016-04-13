@@ -61,6 +61,7 @@ public abstract class AbstractClient {
 	protected static final String DOMAIN = "messaging.internetofthings.ibmcloud.com";
 	protected static final int MQTT_PORT = 1883;
 	protected static final int MQTTS_PORT = 8883;
+	private volatile boolean disconnectRequested = false;
 	
 	/* Wait for 1 second after each attempt for the first 10 attempts*/
 	private static final long RATE_0 = TimeUnit.SECONDS.toMillis(1);
@@ -159,7 +160,9 @@ public abstract class AbstractClient {
 		final String METHOD = "connect";
 		boolean tryAgain = true;
 		int connectAttempts = 0;
-
+		// clear the disconnect state when the user connects the client to Watson IoT Platform
+		disconnectRequested = false;  
+		
 		if (getOrgId() == "quickstart") {
 			configureMqtt();
 		}
@@ -167,7 +170,7 @@ public abstract class AbstractClient {
 			configureMqtts();
 		}
 		
-		while (tryAgain) {
+		while (tryAgain && disconnectRequested == false) {
 			connectAttempts++;
 			
 			LoggerUtility.info(CLASS_NAME, METHOD, "Connecting client "+ this.clientId + " to " + mqttAsyncClient.getServerURI() + 
@@ -177,11 +180,14 @@ public abstract class AbstractClient {
 				mqttAsyncClient.connect(mqttClientOptions).waitForCompletion(1000 * 60);
 			} catch (MqttSecurityException e) {
 				System.err.println("Looks like one or more connection parameters are wrong !!!");
+				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Connecting to Watson IoT Platform failed - " +
+						"one or more connection parameters are wrong !!!", e);
 				throw e;
 				
 			} catch (MqttException e) {
 				Throwable t = e.getCause();
-				if(!autoRetry || (t != null && t instanceof java.net.UnknownHostException)) {
+				if(!autoRetry) {
+					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Connecting to Watson IoT Platform failed", e);
 	                // We must give up as the host doesn't exist.
 	                throw e;
 	            }
@@ -318,6 +324,7 @@ public abstract class AbstractClient {
 		final String METHOD = "disconnect";
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Disconnecting from the IBM Watson IoT Platform ...");
 		try {
+			this.disconnectRequested = true;
 			mqttAsyncClient.disconnect();
 			LoggerUtility.info(CLASS_NAME, METHOD, "Successfully disconnected "
 					+ "from from the IBM Watson IoT Platform");

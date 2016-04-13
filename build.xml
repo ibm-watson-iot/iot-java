@@ -1,6 +1,6 @@
 <project name="iotf-client" default="build" basedir=".">
 	
-	<property name="version" value="0.0.11" />
+	<property name="version" value="0.0.12" />
 	
 	<!-- Ensure you set this to the path to your WLP install if you want to build the liberty sample application -->
 	
