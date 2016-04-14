@@ -5,14 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ibm.messaging</groupId>
     <artifactId>watson-iot</artifactId>
-    <version>0.0.12-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
     <name>ibm-messaging/iot-java</name>
     <description>IBM Watson IoT client library to simplify device/gateway/application interactions with the IoT Platform</description>
     <url>https://github.com/ibm-messaging/iot-java</url>
 
     <scm>
-        <url>git@github.com:ibm-messaging/iot-java.git</url>
+        <url>https://github.com/ibm-messaging/iot-java</url>
         <connection>scm:git:git@github.com:ibm-messaging/iot-java.git</connection>
         <developerConnection>scm:git:git@github.com:ibm-messaging/iot-java.git</developerConnection>
     </scm>
@@ -44,13 +44,19 @@
             <organizationUrl>http://www.ibm.com</organizationUrl>
         </developer>
     </developers>
+    
+    <distributionManagement>
+  		<snapshotRepository>
+	    	<id>ossrh</id>
+	    	<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+	  	</snapshotRepository>
+  		<repository>
+    		<id>ossrh</id>
+    		<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+  		</repository>
+	</distributionManagement>
 
     <properties>
-
-        <!-- This project specific properties -->
-        <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-        <maven.build.skipTests>true</maven.build.skipTests>
-
         <!-- General properties -->
         <java.version>1.7</java.version>
 
@@ -122,26 +128,6 @@
     </dependencies>
 
     <build>
-        <!-- <sourceDirectory>src</sourceDirectory>
-            <resources>
-            <resource>
-            <directory>src</directory>
-            <excludes>
-            <exclude>**/*.java</exclude>
-            </excludes>
-            </resource>
-
-            </resources>
-            <testSourceDirectory>test</testSourceDirectory>
-            <testResources>
-            <testResource>
-            <directory>test</directory>
-            <excludes>
-            <exclude>**/*.java</exclude>
-            </excludes>
-            </testResource>
-            </testResources>
-        -->
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -185,10 +171,6 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
-                        <configuration>
-                            <failOnError>false</failOnError>
-                            <excludePackageNames>com.ibm.internal.*</excludePackageNames>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -205,10 +187,44 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+		    	<groupId>org.apache.maven.plugins</groupId>
+		      	<artifactId>maven-gpg-plugin</artifactId>
+		      	<version>1.6</version>
+		      	<executions>
+		        	<execution>
+		          		<id>sign-artifacts</id>
+		          		<phase>verify</phase>
+		          		<goals>
+		            		<goal>sign</goal>
+		          		</goals>
+		        	</execution>
+		      	</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.3</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+				    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+				    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+				    <autoVersionSubmodules>true</autoVersionSubmodules>
+				    <useReleaseProfile>false</useReleaseProfile>
+				    <releaseProfiles>release</releaseProfiles>
+				    <goals>deploy</goals>
+				</configuration>
+		    </plugin>
         </plugins>
     </build>
-
-
     <repositories>
 
         <!-- Dependency of the Paho mqqt snapshot is here -->

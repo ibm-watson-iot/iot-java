@@ -226,7 +226,6 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
 	 * </ul>
 	 * 
-	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
 	 * @throws MqttSecurityException
 	 **/
 	public void connect() throws MqttException {
