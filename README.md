@@ -20,26 +20,27 @@ This Java Client Library requires following version of Java,
 Maven support
 --------------------------------------------------------------------
 
-The POM file present in the library helps one to build the library using maven. It downloads all the dependencies from the maven central repository and builds the iot-java library.
+The library artifact is pushed to the maven. Use the following maven dependency to include this library in your java application.
 
-Also, the library can be improted to eclipse as maven project and proceed with the development. 
+    <dependency>
+        <groupId>com.ibm.messaging</groupId>
+        <artifactId>watson-iot</artifactId>
+        <version>0.1.0</version>
+    </dependency>
+    
 
-We are working on to push the library artifact to maven, and we will update once its done.
+However if you want to build the library by yourself, use the following maven command,
 
+    mvn clean deploy
+    
 ----
 
 Download
 -------------------------------------------------------------------------------
-The latest version of the client library is available [here] (https://github.com/ibm-messaging/iot-java/releases/latest) to download.
 
-The zip module contains the following files,
+Refer to the maven secion for how to use this library in your project. Also, you can download the library manually from the [maven repository](https://repo1.maven.org/maven2/com/ibm/messaging/watson-iot/0.1.0/watson-iot-0.1.0.jar).
 
-* com.ibm.iotf.client-<version>.jar - Client library that enables one to talk to Watson IoT Platform Connect.
-* com.ibm.iotf.samples-<version>.jar - Contains samples.
-* DMDeviceSample.properties - Properties file used to configure the list of options required to connect to Watson IoT Platform Connect and perform device management operations.
-* device.prop - Properties file to specify connectivity information when DeviceClient is used
-* lib - Contains all dependent libraries
-* javadoc - Contains the client library documentation
+When you use maven, the dependencies are downloaded automatically.
 
 ----
 
