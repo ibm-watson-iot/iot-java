@@ -3,12 +3,12 @@ Java Client Library - Introduction
 
 This Java Client Library can be used to simplify interactions with the [IBM Watson IoT Platform] (https://internetofthings.ibmcloud.com). The documentation is divided into following sections:  
 
-- The [Device section] (https://github.com/ibm-messaging/iot-java/blob/master/docs/java_cli_for_devices.rst) contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
-- The [Managed Device section] (https://github.com/ibm-messaging/iot-java/blob/master/docs/java_cli_for_manageddevice.rst) contains information on how devices can connect to the Watson IoT Platform Device Management service using Java ibmiotf Client Library and perform device management operations like firmware update, location update, and diagnostics update.
-- The [Gateway section] (https://github.com/ibm-messaging/iot-java/blob/master/docs/java_cli_for_gateway.rst) contains information on how gateways publish events and handle commands for itself and for the attached devices using the Java ibmiotf Client Library. 
-- The [Gateway Management section] (https://github.com/ibm-messaging/iot-java/blob/master/docs/java_cli_for_managedgateway.rst) contains information on how to connect the gateway as Managed Gateway to IBM Watson IoT Platform and manage the attached devices.
-- The [Application section] (https://github.com/ibm-messaging/iot-java/blob/master/docs/java_cli_for_applications.rst) details how applications can use the Java ibmiotf Client Library to interact with devices.
-- The [API section] (https://github.com/ibm-messaging/iot-java/blob/master/docs/java_cli_for_api.rst)  contains information on how applications can use the Java ibmiotf Client Library to interact with the organization in the Watson IoT Platform through ReST APIs
+- The [Device section] (docs/java_cli_for_devices.rst) contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
+- The [Managed Device section] (docs/java_cli_for_manageddevice.rst) contains information on how devices can connect to the Watson IoT Platform Device Management service using Java ibmiotf Client Library and perform device management operations like firmware update, location update, and diagnostics update.
+- The [Gateway section] (docs/java_cli_for_gateway.rst) contains information on how gateways publish events and handle commands for itself and for the attached devices using the Java ibmiotf Client Library. 
+- The [Gateway Management section] (docs/java_cli_for_managedgateway.rst) contains information on how to connect the gateway as Managed Gateway to IBM Watson IoT Platform and manage the attached devices.
+- The [Application section] (docs/java_cli_for_applications.rst) details how applications can use the Java ibmiotf Client Library to interact with devices.
+- The [API section] (docs/java_cli_for_api.rst)  contains information on how applications can use the Java ibmiotf Client Library to interact with the organization in the Watson IoT Platform through ReST APIs
 
 This Java Client Library requires following version of Java,
 
@@ -75,4 +75,4 @@ Dependencies
 License
 -----------------------
 
-The library is shipped with Eclipse Public License and refer to the [License file] (https://github.com/ibm-messaging/iot-java/blob/master/LICENSE) for more information about the licensing.
+The library is shipped with Eclipse Public License and refer to the [License file] (LICENSE) for more information about the licensing.
