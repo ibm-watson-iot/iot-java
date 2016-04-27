@@ -180,6 +180,22 @@ The content of the configuration file must be in the following format:
 
 ----
 
+Connecting to the Watson IoT Platform
+----------------------------------------------------
+
+Connect to the Watson IoT Platform by calling the *connect* function. The connect function takes an optional boolean parameter autoRetry (by default autoRetry is true) that controls allows the library to retry the connection when there is an MqttException. Note that the library won't retry when there is a MqttSecurityException due to incorrect device registration details passed even if the autoRetry is set to true.
+
+.. code:: java
+
+    DeviceClient myClient = new DeviceClient(options);
+    
+    myClient.connect(true);
+    
+
+After the successful connection to the IoTF service, the device client can perform the following operations, like publishing events and subscribe to device commands from application.
+
+----
+
 
 Publishing events
 -------------------------------------------------------------------------------
@@ -286,7 +302,8 @@ The messages are returned as an instance of the Command class which has the foll
 	package com.ibm.iotf.sample.client.device;
 
 	import java.util.Properties;
-
+	import java.util.concurrent.BlockingQueue;
+	import java.util.concurrent.LinkedBlockingQueue;
 
 	import com.ibm.iotf.client.device.Command;
 	import com.ibm.iotf.client.device.CommandCallback;
@@ -294,17 +311,35 @@ The messages are returned as an instance of the Command class which has the foll
 
 
 	//Implement the CommandCallback class to provide the way in which you want the command to be handled
-	class MyNewCommandCallback implements CommandCallback{
-		
-		public MyNewCommandCallback() {
+	class MyNewCommandCallback implements CommandCallback, Runnable {
+	
+		// A queue to hold & process the commands for smooth handling of MQTT messages
+		private BlockingQueue<Command> queue = new LinkedBlockingQueue<Command>();
+	
+		/**
+	 	* This method is invoked by the library whenever there is command matching the subscription criteria
+	 	*/
+		@Override
+		public void processCommand(Command cmd) {
+			try {
+				queue.put(cmd);
+			} catch (InterruptedException e) {
+			}			
 		}
 
-		//In this sample, we are just displaying the command the moment the device recieves it
 		@Override
-		public void processCommand(Command command) {
-			System.out.println("COMMAND RECEIVED = '" + command.getCommand() + "'\twith Payload = '" + command.getPayload() + "'");			
+		public void run() {
+			while(true) {
+				Command cmd = null;
+				try {
+					//In this sample, we just display the command
+					cmd = queue.take();
+					System.out.println("COMMAND RECEIVED = '" + cmd.getCommand() + "'\twith Payload = '" + cmd.getPayload() + "'");
+				} catch (InterruptedException e) {}
+			}
 		}
 	}
+
 
 	public class RegisteredDeviceCommandSubscribe {
 
