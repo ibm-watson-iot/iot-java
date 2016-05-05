@@ -74,7 +74,7 @@ The application configuration file must be in the following format:
 Connecting to the Watson IoT Platform
 ----------------------------------------------------
 
-Connect to the Watson IoT Platform by calling the *connect* function.
+Connect to the Watson IoT Platform by calling the *connect* function. The connect function takes an optional boolean parameter autoRetry (by default autoRetry is true) that controls allows the library to retry the connection when there is an MqttException. Note that the library won't retry when there is a MqttSecurityException due to incorrect device registration details passed even if the autoRetry is set to true.
 
 .. code:: java
 
@@ -159,15 +159,46 @@ A sample implementation of the Event callback,
   import com.ibm.iotf.client.app.EventCallback;
   import com.ibm.iotf.client.app.Command;
   
-  public class MyEventCallback implements EventCallback {
-      public void processEvent(Event e) {
-          System.out.println("Event:: " + e.getDeviceId() + ":" + e.getEvent() + ":" + e.getPayload());
-      }
-      
-      public void processCommand(Command cmd) {
-          System.out.println("Command " + cmd.getPayload());
-      }
-  }
+  import java.util.concurrent.BlockingQueue;
+  import java.util.concurrent.LinkedBlockingQueue;
+  
+  /**
+    * A sample Event callback class that processes the device events in separate thread.
+    *
+    */
+   class MyEventCallback implements EventCallback, Runnable {
+
+	// A queue to hold & process the Events for smooth handling of MQTT messages
+	private BlockingQueue<Event> evtQueue = new LinkedBlockingQueue<Event>();
+		
+	public void processEvent(Event e) {
+		try {
+			evtQueue.put(e);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+	}
+
+	@Override
+	public void processCommand(Command cmd) {
+		System.out.println("Command received:: " + cmd);			
+	}
+
+	@Override
+	public void run() {
+		while(true) {
+			Event e = null;
+			try {
+				e = evtQueue.take();
+				// In this example, we just output the event
+				System.out.println("Event:: " + e.getDeviceId() + ":" + e.getEvent() + ":" + e.getPayload());
+			} catch (InterruptedException e1) {
+				// Ignore the Interuppted exception, retry
+				continue;
+			}
+		}
+	}
+    }
 
 Once the event callback is added to the ApplicationClient, the processEvent() method is invoked whenever any event is published on the subscribed criteria, The following snippet shows how to add the Event call back into ApplicationClient instance,
 
