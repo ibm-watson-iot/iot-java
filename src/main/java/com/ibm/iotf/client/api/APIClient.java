@@ -321,6 +321,139 @@ public class APIClient {
 		throwException(response, METHOD);
 		return false;
 	}
+        /**
+	 * This method retrieves all last events for a specific device
+	 * 
+	 * <p>
+	 * Refer to the <a href=
+	 * "https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Event_Cache/get_device_types_deviceType_devices_deviceId_events"
+	 * >link</a> for more information about the query parameters and response in
+	 * JSON format.
+	 * </p>
+	 * 
+	 * @param deviceType
+	 *            String which contains device type
+	 * @param deviceId
+	 *            String which contains device id
+	 * 
+	 * @return JsonElement
+	 * @throws IoTFCReSTException
+	 */
+	public JsonElement getLastEvents(String deviceType, String deviceId)
+			throws IoTFCReSTException {
+
+		String METHOD = "getLastEvents(2)";
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).append('.').append(BASIC_API_V0002_URL)
+				.append("/device");
+
+		if (deviceType != null) {
+			sb.append("/types/").append(deviceType);
+		}
+
+		if (deviceId != null) {
+			sb.append("/devices/").append(deviceId);
+		}
+		sb.append("/events");
+
+		int code = 0;
+		HttpResponse response = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			String result = this.readContent(response, METHOD);
+			JsonElement jsonResponse = new JsonParser().parse(result);
+
+			code = response.getStatusLine().getStatusCode();
+			if (code == 400) {
+				throw new IoTFCReSTException(400, "Invalid request",
+						jsonResponse);
+			} else if (code == 403) {
+				throw new IoTFCReSTException(403, "Forbidden", jsonResponse);
+			} else if (code == 500) {
+				throw new IoTFCReSTException(500, "Internal server error",
+						jsonResponse);
+			}
+
+			return jsonResponse;
+		} catch (Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException(code,
+					"Failure in retrieving " + "the last events. :: "
+							+ e.getMessage());
+			ex.initCause(e);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	/**
+	 * This method returns last event for a specific event id for a specific
+	 * device
+	 * 
+	 * <p>
+	 * Refer to the <a href=
+	 * "https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Event_Cache/get_device_types_deviceType_devices_deviceId_events_eventName"
+	 * >link</a> for more information about the query parameters and response in
+	 * JSON format.
+	 * </p>
+	 * 
+	 * @param deviceType
+	 *            String which contains device type
+	 * @param deviceId
+	 *            String which contains device id
+	 * @param eventId
+	 *            String which contains event id
+	 * 
+	 * @return JsonElement
+	 * @throws IoTFCReSTException
+	 */
+	public JsonElement getLastEvent(String deviceType, String deviceId,
+			String eventId) throws IoTFCReSTException {
+
+		String METHOD = "getLastEvent(3)";
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).append('.').append(BASIC_API_V0002_URL)
+				.append("/device");
+
+		if (deviceType != null) {
+			sb.append("/types/").append(deviceType);
+		}
+
+		if (deviceId != null) {
+			sb.append("/devices/").append(deviceId);
+		}
+
+		if (eventId != null) {
+			sb.append("/events/").append(eventId);
+		}
+
+		int code = 0;
+		HttpResponse response = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			JsonElement jsonResponse = new JsonParser().parse(result);
+
+			if (code == 400) {
+				throw new IoTFCReSTException(400, "Invalid request",
+						jsonResponse);
+			} else if (code == 403) {
+				throw new IoTFCReSTException(403, "Forbidden", jsonResponse);
+			} else if (code == 500) {
+				throw new IoTFCReSTException(500, "Internal server error",
+						jsonResponse);
+			}
+
+			return jsonResponse;
+		} catch (Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException(code,
+					"Failure in retrieving " + "the last event. :: "
+							+ e.getMessage());
+			ex.initCause(e);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
 
 	/**
 	 * This method retrieves a device based on the deviceType and DeviceID of the organization passed.
