@@ -55,24 +55,6 @@ public class RebootRequestHandler extends DMRequestHandler implements PropertyCh
 	}
 	
 	/**
-	 * Subscribe to Initiate reboot topic
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getInitiateRebootTopic());
-	}
-
-	/**
-	 * unsubscribe Initiate reboot topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getInitiateRebootTopic());
-	}
-
-	/**
 	 * Handle initiate reboot request from IBM Watson IoT Platform
 	 */
 	@Override

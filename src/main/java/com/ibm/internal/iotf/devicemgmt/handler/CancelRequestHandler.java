@@ -66,16 +66,6 @@ public class CancelRequestHandler extends DMRequestHandler {
 		respond(response);
 	}
 	
-	
-	/**
-	 * Subscribe to cancel topic 
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getCancelTopic());
-	}
-	
 	/**
 	 * Return the cancel topic
 	 */
@@ -84,15 +74,5 @@ public class CancelRequestHandler extends DMRequestHandler {
 		DMServerTopic topic = this.getDMClient().getDMServerTopic();
 		return topic.getCancelTopic();
 	}
-
-	/**
-	 * Unsubscribe the cancel topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getCancelTopic());
-	}
-
 
 }

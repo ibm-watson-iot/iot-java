@@ -88,6 +88,9 @@ public class BulkAPIOperationsTest extends TestCase {
 	private static boolean setUpIsDone = false;
 	
 	private static APIClient apiClient = null;
+	private static APIClient apiClientWithWrongToken = null;
+	private static APIClient apiClientWithWrongKey = null;
+	private static APIClient apiClientWithWrongOrg= null;
 	
 	public synchronized void setUp() {
 	    if (setUpIsDone) {
@@ -98,8 +101,14 @@ public class BulkAPIOperationsTest extends TestCase {
 		  * Load device properties
 		  */
 		Properties props = new Properties();
+		Properties propsWrongToken = new Properties();
+		Properties propsWrongMethod = new Properties();
+		Properties propsWrongOrg = new Properties();
 		try {
 			props.load(BulkAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
+			propsWrongToken.load(BulkAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
+			propsWrongMethod.load(BulkAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
+			propsWrongOrg.load(BulkAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
 		} catch (IOException e1) {
 			System.err.println("Not able to read the properties file, exiting..");
 			System.exit(-1);
@@ -109,9 +118,21 @@ public class BulkAPIOperationsTest extends TestCase {
 			//Instantiate the class by passing the properties file
 			this.apiClient = new APIClient(props);
 			addDeviceType(DEVICE_TYPE);
+			
+			propsWrongToken.setProperty("Authentication-Token", "Wrong");
+			apiClientWithWrongToken = new APIClient(propsWrongToken);
+			
+			propsWrongMethod.setProperty("API-Key", "Wrong");
+			apiClientWithWrongKey = new APIClient(propsWrongMethod);
+			
+			propsWrongOrg.setProperty("Organization-ID", "Wrong");
+			apiClientWithWrongOrg = new APIClient(propsWrongOrg);
+			
 		} catch (Exception e) {
+			e.printStackTrace();
 			// looks like the application.properties file is not updated properly
 			apiClient = null;
+			apiClientWithWrongToken = null;
 		}
 		
 	    setUpIsDone = true;
@@ -156,7 +177,24 @@ public class BulkAPIOperationsTest extends TestCase {
 		// check if the devices are actually deleted from the platform
 		assertFalse("Device "+ DEVICE_ID1 + " is present in the Platform", this.checkIfDeviceExists(DEVICE_TYPE, DEVICE_ID1));
 		assertFalse("Device "+ DEVICE_ID2 + " is present in the Platform", this.checkIfDeviceExists(DEVICE_TYPE, DEVICE_ID2));
-
+		
+		// negative test, it should fail
+		try {
+			apiClientWithWrongToken.deleteMultipleDevices(arryOfDevicesToBeDeleted);
+			fail("Doesn't throw invild Auth token exception");
+		} catch(IoTFCReSTException e) {	}
+		
+		// Wrrong Method
+		try {
+			apiClientWithWrongKey.deleteMultipleDevices(arryOfDevicesToBeDeleted);
+			fail("Doesn't throw invild API Key exception");
+		} catch(IoTFCReSTException e) {	}
+		
+		// Wrrong Org
+		try {
+			apiClientWithWrongOrg.deleteMultipleDevices(arryOfDevicesToBeDeleted);
+			fail("Doesn't throw invild ORG exception");
+		} catch(IoTFCReSTException e) {	}
 	}
 	
 	/**
@@ -212,10 +250,28 @@ public class BulkAPIOperationsTest extends TestCase {
 			}
 		}
 		
-		
 		// check if the devices are actually present in the platform
 		assertTrue("Device "+ DEVICE_ID1 + " is not present in the Platform", this.checkIfDeviceExists(DEVICE_TYPE, DEVICE_ID1));
 		assertTrue("Device "+ DEVICE_ID2 + " is not present in the Platform", this.checkIfDeviceExists(DEVICE_TYPE, DEVICE_ID2));
+		
+		// negative test, it should fail
+		try {
+			apiClientWithWrongToken.addMultipleDevices(arryOfDevicesToBeAdded);
+			fail("Doesn't throw invild Auth token exception");
+		} catch(IoTFCReSTException e) {}
+		
+		// Wrrong Method
+		try {
+			apiClientWithWrongKey.addMultipleDevices(arryOfDevicesToBeAdded);
+			fail("Doesn't throw invild API Key exception");
+		} catch(IoTFCReSTException e) {}
+		
+		// Wrrong Org
+		try {
+			apiClientWithWrongOrg.addMultipleDevices(arryOfDevicesToBeAdded);
+			fail("Doesn't throw invild ORG exception");
+		} catch(IoTFCReSTException e) {}
+
 	}
 
 	/**
@@ -248,6 +304,24 @@ public class BulkAPIOperationsTest extends TestCase {
 			JsonObject responseJson = deviceElement.getAsJsonObject();
 			System.out.println(responseJson);
 		}	
+		
+		// negative test, it should fail
+		try {
+			apiClientWithWrongToken.getAllDevices();
+			fail("Doesn't throw invild Auth token exception");
+		} catch(IoTFCReSTException e) {}
+		
+		// Wrrong Method
+		try {
+			apiClientWithWrongKey.getAllDevices();
+			fail("Doesn't throw invild API Key exception");
+		} catch(IoTFCReSTException e) {}
+				
+		// Wrrong Org
+		try {
+			apiClientWithWrongOrg.getAllDevices();
+			fail("Doesn't throw invild ORG exception");
+		} catch(IoTFCReSTException e) {}
 	}
 
 	/**
@@ -262,5 +336,29 @@ public class BulkAPIOperationsTest extends TestCase {
 		// Get the organization detail
 		JsonObject orgDetail = this.apiClient.getOrganizationDetails();
 		System.out.println(orgDetail);
+		
+		// negative test, it should fail
+		try {
+			apiClientWithWrongToken.getOrganizationDetails();
+			fail("Doesn't throw invild Auth token exception");
+		} catch(IoTFCReSTException e) {
+			System.out.println(e.getHttpCode() + " " +e.getMessage());
+		}
+		
+		// Wrrong Method
+		try {
+			apiClientWithWrongKey.getOrganizationDetails();
+			fail("Doesn't throw invild API Key exception");
+		} catch(IoTFCReSTException e) {
+			System.out.println(e.getHttpCode() + " " +e.getMessage());
+		}
+						
+		// Wrrong Org
+		try {
+			apiClientWithWrongOrg.getOrganizationDetails();
+			fail("Doesn't throw invild ORG exception");
+		} catch(IoTFCReSTException e) {
+			System.out.println(e.getHttpCode() + " " +e.getMessage());
+		}
 	}
 }

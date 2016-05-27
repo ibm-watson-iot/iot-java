@@ -59,24 +59,6 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 	}
 	
 	/**
-	 * subscribe to observe topic
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getObserveTopic());
-	}
-
-	/**
-	 * unsubscribe to observe topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getObserveTopic());
-	}
-
-	/**
 	 * Handles the observe request from IBM Watson IoT Platform
 	 */
 	@Override

@@ -48,24 +48,6 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 	}
 	
 	/**
-	 * subscribe to initiate firmware download topic
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getInitiateFirmwareDownload());
-	}
-
-	/**
-	 * Unsubscribe initiate firmware download topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getInitiateFirmwareDownload());
-	}
-
-	/**
 	 * Following are actions that needs to be taken after receiving the command
 	 * 
 	 * If mgmt.firmware.state is not 0 ("Idle") an error should be reported with 

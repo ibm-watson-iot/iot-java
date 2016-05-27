@@ -48,8 +48,6 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 	private static Map<ManagedClient, FirmwareDownloadRequestHandler> fwDownloadHandlers = new HashMap<ManagedClient,FirmwareDownloadRequestHandler>();
 	private static Map<ManagedClient, FirmwareUpdateRequestHandler> fwUpdateHandlers = new HashMap<ManagedClient,FirmwareUpdateRequestHandler>();
 	
-	protected abstract void subscribe();
-	protected abstract void unsubscribe();
 	protected abstract String getTopic();
 	protected abstract void handleRequest(JsonObject jsonRequest);
 	
@@ -81,24 +79,6 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 		return observeHandlers.get(dmClient);
 	}
 	
-	protected void subscribe(String topic) {
-		final String METHOD = "subscribe";
-		try {
-			getDMClient().subscribe(topic, 1, (IMqttMessageListener)this);
-		} catch (MqttException e) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, ": Unexpected Mqtt Exception, code = " + e.getReasonCode());
-		}
-	}
-	
-	protected void unsubscribe(String topic) {
-		final String METHOD = "unsubscribe";
-		try {
-			getDMClient().unsubscribe(topic);
-		} catch (MqttException e) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, ": Unexpected Mqtt Exception, code = " + e.getReasonCode());
-		}
-	}
-
 	protected void respond(JsonObject payload) {
 		final String METHOD = "respond";
 		try {

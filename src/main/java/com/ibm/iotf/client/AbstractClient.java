@@ -143,7 +143,7 @@ public abstract class AbstractClient {
 	}
 	
 	/**
-	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception 
+	 * <p>Connects the device to IBM Watson IoT Platform and retries when there is an exception 
 	 * based on the value set in retry parameter. </br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
@@ -153,11 +153,17 @@ public abstract class AbstractClient {
 	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
 	 * </ul>
 	 * 
-	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
+	 * @param numberOfRetryAttempts - How many number of times to retry when there is a failure in connecting to Watson
+	 * IoT Platform.
 	 * @throws MqttSecurityException
 	 **/
-	public void connect(boolean autoRetry) throws MqttException {
+	public void connect(int numberOfRetryAttempts) throws MqttException {
 		final String METHOD = "connect";
+		// return if its already connected
+		if(mqttAsyncClient != null && mqttAsyncClient.isConnected()) {
+			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Client is already connected");
+			return;
+		}
 		boolean tryAgain = true;
 		int connectAttempts = 0;
 		// clear the disconnect state when the user connects the client to Watson IoT Platform
@@ -186,7 +192,7 @@ public abstract class AbstractClient {
 				
 			} catch (MqttException e) {
 				Throwable t = e.getCause();
-				if(!autoRetry) {
+				if(connectAttempts > numberOfRetryAttempts) {
 					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Connecting to Watson IoT Platform failed", e);
 	                // We must give up as the host doesn't exist.
 	                throw e;
@@ -207,6 +213,28 @@ public abstract class AbstractClient {
 			} else {
 				waitBeforeNextConnectAttempt(connectAttempts);
 			}
+		}
+	}
+	
+	/**
+	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception 
+	 * based on the value set in retry parameter. </br>
+	 * 
+	 * This method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
+	 * @throws MqttSecurityException
+	 **/
+	public void connect(boolean autoRetry) throws MqttException {
+		if(autoRetry == false) {
+			connect(0);
+		} else {
+			connect(Integer.MAX_VALUE);
 		}
 	}
 	
@@ -584,4 +612,6 @@ public abstract class AbstractClient {
 			}
 		}
 	}
+
+	
 }

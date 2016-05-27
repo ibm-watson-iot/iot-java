@@ -46,24 +46,6 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 	}
 	
 	/**
-	 * subscribe to Initiate firmware update topic
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getInitiateFirmwareUpdate());
-	}
-
-	/**
-	 * Unsubscribe Initiate firmware update topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getInitiateFirmwareUpdate());
-	}
-
-	/**
 	 * If this operation can be initiated immediately, rc should be set to 202.
 	 * 
 	 * If firmware was not previously downloaded successfully, rc should be set to 400.

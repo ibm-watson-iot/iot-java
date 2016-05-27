@@ -15,6 +15,7 @@ package com.ibm.iotf.client.device;
 import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -150,6 +151,29 @@ public class DeviceClient extends AbstractClient {
 		}
 	}
 	
+	/**
+	 * <p>Connects the device to IBM Watson IoT Platform and retries when there is an exception 
+	 * based on the value set in retry parameter. </br>
+	 * 
+	 * This method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @param numberOfRetryAttempts - How many number of times to retry when there is a failure in connecting to Watson
+	 * IoT Platform.
+	 * @throws MqttSecurityException
+	 **/
+	@Override
+	public void connect(int numberOfRetryAttempts) throws MqttException {
+		super.connect(numberOfRetryAttempts);
+		if (!getOrgId().equals("quickstart")) {
+			subscribeToCommands();
+		}
+	}
+	
 	/*
 	 * This method reconnects when the connection is lost due to n/w interruption
 	 */
@@ -250,7 +274,7 @@ public class DeviceClient extends AbstractClient {
 		 */
 		public void connectionLost(Throwable exception) {
 			final String METHOD = "connectionLost";
-			LoggerUtility.info(CLASS_NAME, METHOD, exception.getMessage());
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, exception.getMessage(), exception);
 			try {
 				reconnect();
 			} catch (MqttException e) {

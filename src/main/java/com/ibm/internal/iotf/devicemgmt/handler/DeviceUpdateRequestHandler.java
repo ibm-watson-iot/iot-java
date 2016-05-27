@@ -78,15 +78,6 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 	}
 	
 	/**
-	 * Subscribe to update topic
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getDeviceUpdateTopic());
-	}
-	
-	/**
 	 * Returns the update topic
 	 */
 	@Override
@@ -95,15 +86,6 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 		return topic.getDeviceUpdateTopic();
 	}
 
-	/**
-	 * Unsubscribe update topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getDeviceUpdateTopic());
-	}
-	
 	/**
 	 * This method handles all the update requests from IBM Watson IoT Platform
 	 */

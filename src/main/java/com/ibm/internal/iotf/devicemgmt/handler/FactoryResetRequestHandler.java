@@ -55,24 +55,6 @@ public class FactoryResetRequestHandler extends DMRequestHandler implements Prop
 	}
 	
 	/**
-	 * subscribe to initiate factory reset topic
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getInitiateFactoryReset());
-	}
-
-	/**
-	 * Unsubscribe initiate factory reset topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getInitiateFactoryReset());
-	}
-
-	/**
 	 * Handle the initiate factory reset messages from IBM Watson IoT Platform 
 	 */
 	@Override

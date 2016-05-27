@@ -53,7 +53,7 @@ public class DeviceEventPublishTest extends TestCase{
 				
 		//Connect to the IBM Watson IoT Platform
 		try {
-			myClient.connect();
+			myClient.connect(true);
 		} catch (MqttException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -113,6 +113,71 @@ public class DeviceEventPublishTest extends TestCase{
 		boolean code = myClient.publishEvent("blink", event);
 		myClient.disconnect();
 		assertTrue("Failed to publish the event......", code);
+	}
+	
+	/**
+	 * This test expects a properties file containing the device registration details. Failing to
+	 * provide the same, the test will return immediately and show as passed.
+	 */
+	@Test
+	public void testRegisteredPublishWithEmptyObject(){			
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(DeviceEventPublishTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		DeviceClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new DeviceClient(props);
+			myClient.connect(true);
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+			
+		boolean code = myClient.publishEvent("blink", null);
+		myClient.disconnect();
+		assertTrue("Failed to publish the event......", code);
+	}
+	
+	/**
+	 * NegativeTest - try to publish after disconnect, it should return immediately 
+	 */
+	@Test
+	public void testPublishAfterDisconnect(){			
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(DeviceEventPublishTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		DeviceClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new DeviceClient(props);
+			myClient.connect(true);
+			myClient.disconnect();
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+			
+		boolean code = myClient.publishEvent("blink", null);
+		assertFalse("Successfully publish the event even after disconnect......", code);
 	}
 	
 	/**

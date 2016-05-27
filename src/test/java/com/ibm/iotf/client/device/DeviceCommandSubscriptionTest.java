@@ -135,7 +135,8 @@ public class DeviceCommandSubscriptionTest extends TestCase{
 		@Override
 		public void processCommand(Command cmd) {
 			commandReceived = true;
-			System.out.println("Received command "+cmd);
+			System.out.println("Received command, name = "+cmd.getCommand() +
+					", format = " + cmd.getFormat() + ", Payload = "+cmd.getPayload() + ", time = "+cmd.getTimestamp());
 		}
 	}
 	

@@ -178,25 +178,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception 
-	 * based on the value set in retry parameter. </br>
-	 * 
-	 * This method does not retry when the following exceptions occur.</p>
-	 * 
-	 * <ul class="simple">
-	 *  <li> MqttSecurityException - One or more credentials are wrong
-	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
-	 * </ul>
-	 * 
-	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
-	 * @throws MqttSecurityException
-	 **/
-	@Override
-	public void connect(boolean autoRetry ) throws MqttException {
-		super.connect(autoRetry);
-	}
-	
-	/**
 	 * Publish event, on the behalf of a device, to the IBM Watson IoT Platform. <br> 
 	 * Note that data is published
 	 * at Quality of Service (QoS) 0, which means that a successful send does not guarantee
@@ -795,24 +776,25 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
 		try {
 			connect();
+			Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
+		    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
+		    while (iterator.hasNext() && this.isConnected()) {
+		        //Map.Entry pairs = (Map.Entry)iterator.next();
+		        Entry<String, Integer> pairs = iterator.next();
+		        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
+		        try {
+		        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
+				} catch (NumberFormatException | MqttException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+//		        iterator.remove(); // avoids a ConcurrentModificationException
+		    }
 		} catch (MqttException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
-	    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
-	    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
-	    while (iterator.hasNext()) {
-	        //Map.Entry pairs = (Map.Entry)iterator.next();
-	        Entry<String, Integer> pairs = iterator.next();
-	        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
-	        try {
-	        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
-			} catch (NumberFormatException | MqttException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-//	        iterator.remove(); // avoids a ConcurrentModificationException
-	    }
+	    
 	}
 	
 	/**

@@ -124,4 +124,3 @@ public class DeviceDMServerTopic implements DMServerTopic {
 		return ServerTopic.INITIATE_FIRMWARE_UPDATE.getName();
 	}
 }
-

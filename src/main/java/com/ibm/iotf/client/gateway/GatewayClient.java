@@ -263,6 +263,37 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
+	 * <p>Connects the Gateway to IBM Watson Internet of Things Platform. 
+	 * After the successful connection to the IBM Watson IoT Platform, 
+	 * the Gateway client can perform the following operations,</p>
+	 * 
+	 * <ul class="simple">
+	 * <li>Publish events for itself and on behalf of devices connected behind the Gateway.
+	 * <li>Subscribe to commands for itself and on behalf of devices behind the Gateway.
+	 * </ul>
+	 * </p>
+	 * 
+	 * <p>The GatewayClient retries when there is a connect exception based on the 
+	 * value set in retry parameter. </br>
+	 * 
+	 * This method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @param numberOfRetryAttempts - How many number of times to retry when there is a failure in connecting to Watson
+	 * IoT Platform.
+	 * @throws MqttSecurityException
+	 **/
+	@Override
+	public void connect(int numberOfRetryAttempts) throws MqttException {
+		super.connect(numberOfRetryAttempts);
+		subscribeToGatewayCommands();
+	}
+	
+	/**
 	 * <p>While Gateway publishes events on behalf of the devices connected behind, 
 	 * the Gateway can publish its own events as well. This method publishes the event with the 
 	 * specified name and specified QOS.</p>
@@ -559,23 +590,23 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
 		try {
 			connect();
+		    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
+		    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
+		    while (iterator.hasNext()) {
+		        //Map.Entry pairs = (Map.Entry)iterator.next();
+		        Entry<String, Integer> pairs = iterator.next();
+		        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
+		        try {
+		        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
+				} catch (NumberFormatException | MqttException e1) {
+					e1.printStackTrace();
+				}
+//		        iterator.remove(); // avoids a ConcurrentModificationException
+		    }
 		} catch (MqttException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
-	    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
-	    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
-	    while (iterator.hasNext()) {
-	        //Map.Entry pairs = (Map.Entry)iterator.next();
-	        Entry<String, Integer> pairs = iterator.next();
-	        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
-	        try {
-	        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
-			} catch (NumberFormatException | MqttException e1) {
-				e1.printStackTrace();
-			}
-//	        iterator.remove(); // avoids a ConcurrentModificationException
-	    }
 	}
 	
 	/**
