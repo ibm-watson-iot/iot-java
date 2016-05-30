@@ -66,7 +66,14 @@ Connect to the Watson Internet of Things Platform by calling the *connect* funct
     
     gwClient.connect();
     
+Also, use the overloaded connect(int numberOfTimesToRetry) function to control the number of retries when there is a connection failure.
 
+.. code:: java
+
+    DeviceClient myClient = new DeviceClient(options);
+    
+    myClient.connect(10);
+    
 After the successful connection to the IBM Watson IoT Platform, the Gateway client can perform the following operations,
 
 * Publish events for itself and on behalf of devices connected behind the Gateway.
