@@ -22,7 +22,7 @@ import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.DeviceAction;
 
 /**
- * This class encapsulates the device action like reboot & factory reset.
+ * This class encapsulates the device action like reboot and factory reset.
  * 
  */
 public class ConcreteDeviceAction implements DeviceAction {

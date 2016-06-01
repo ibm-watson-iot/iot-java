@@ -49,7 +49,7 @@ public class DeviceClient extends AbstractClient {
 	
 	/**
 	 * This constructor allows external user to pass the existing MqttAsyncClient 
-	 * @param mqttAsyncClient
+	 * @param mqttAsyncClient The MQTTAsyncClient with connectivity details
 	 */
 	protected DeviceClient(MqttAsyncClient mqttAsyncClient) {
 		super(mqttAsyncClient);
@@ -57,7 +57,7 @@ public class DeviceClient extends AbstractClient {
 
 	/**
 	 * This constructor allows external user to pass the existing MqttClient 
-	 * @param mqttClient
+	 * @param mqttClient The MQTTClient with Watson IoT Platform connectivity details
 	 */
 	protected DeviceClient(MqttClient mqttClient) {
 		super(mqttClient);
@@ -66,7 +66,7 @@ public class DeviceClient extends AbstractClient {
 	 * Create a device client for the IBM Watson IoT Platform. <br>
 	 * 
 	 * Connecting to a specific account on the IoTF.
-	 * @throws Exception 
+	 * @throws Exception When there is a failure in parsing the properties passed 
 	 */
 	public DeviceClient(Properties options) throws Exception {
 		super(options);
@@ -120,7 +120,7 @@ public class DeviceClient extends AbstractClient {
 	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
 	 * </ul>
 	 * 
-	 * @throws MqttSecurityException
+	 * @throws MqttException see above
 	 **/
 	public void connect() throws MqttException {
 		super.connect(true);
@@ -141,7 +141,7 @@ public class DeviceClient extends AbstractClient {
 	 * </ul>
 	 * 
 	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
-	 * @throws MqttSecurityException
+	 * @throws MqttException see above
 	 **/
 	@Override
 	public void connect(boolean autoRetry) throws MqttException {
@@ -164,7 +164,7 @@ public class DeviceClient extends AbstractClient {
 	 * 
 	 * @param numberOfRetryAttempts - How many number of times to retry when there is a failure in connecting to Watson
 	 * IoT Platform.
-	 * @throws MqttSecurityException
+	 * @throws MqttException see above
 	 **/
 	@Override
 	public void connect(int numberOfRetryAttempts) throws MqttException {

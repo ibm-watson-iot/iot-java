@@ -39,7 +39,7 @@ public class Command extends Message{
 	 * 			Format is a String which can contain values such as "json"
 	 * @param msg
 	 * 			MqttMessage 
-	 * @see <a href="Paho Client Library">http://www.eclipse.org/paho/files/javadoc/index.html</a> 
+	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
 	 * @throws
 	 * 			UnsupportedEncodingException
 	 * 

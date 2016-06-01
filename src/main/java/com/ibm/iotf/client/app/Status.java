@@ -105,8 +105,8 @@ public abstract class Status {
 
 	/**
 	 * This class does not have a default constructor and has a single argument constructor
-	 * @param msg
-	 * @throws UnsupportedEncodingException
+	 * @param msg The MQTT message
+	 * @throws UnsupportedEncodingException Failure when the Format is not UTF-8
 	 */
 	public Status(MqttMessage msg) throws UnsupportedEncodingException{
 		this.payload = new String(msg.getPayload(), "UTF8");

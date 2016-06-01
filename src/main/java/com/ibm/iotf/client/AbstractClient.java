@@ -130,7 +130,7 @@ public abstract class AbstractClient {
 	 * Create the Paho MQTT Client that will underpin the Device client.
 	 * @param callback
 	 * 			MqttCallback 
-	 * @see <a href="Paho Client Library">http://www.eclipse.org/paho/files/javadoc/index.html</a> 
+	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
 	 * 
 	 */	
 
@@ -155,7 +155,7 @@ public abstract class AbstractClient {
 	 * 
 	 * @param numberOfRetryAttempts - How many number of times to retry when there is a failure in connecting to Watson
 	 * IoT Platform.
-	 * @throws MqttSecurityException when the credentials are not correct
+	 * @throws MqttException see above
 	 **/
 	public void connect(int numberOfRetryAttempts) throws MqttException {
 		final String METHOD = "connect";
@@ -218,7 +218,7 @@ public abstract class AbstractClient {
 	
 	/**
 	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception 
-	 * based on the value set in retry parameter. </br>
+	 * based on the value set in retry parameter. <br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
 	 * 
@@ -228,7 +228,7 @@ public abstract class AbstractClient {
 	 * </ul>
 	 * 
 	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
-	 * @throws MqttSecurityException
+	 * @throws MqttException refer above
 	 **/
 	public void connect(boolean autoRetry) throws MqttException {
 		if(autoRetry == false) {
@@ -453,6 +453,8 @@ public abstract class AbstractClient {
 	 * Accessor method to retrieve Authendication Method
 	 * old style - auth-method
 	 * new style - Authentication-Method
+	 * 
+	 * @return The Authentication method
 	 */	
 	public String getAuthMethod() {
 		String method = options.getProperty("auth-method");

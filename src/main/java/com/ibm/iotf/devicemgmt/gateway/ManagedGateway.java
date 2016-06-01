@@ -63,7 +63,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * 
  * <p> This is a derived class from {@link com.ibm.iotf.client.gateway.GatewayClient} and can be used by 
  * Gateway devices to perform both <b>Device operations and Device Management operations</b>, 
- * i.e, the Gateways can use this class to do the following, <p>
+ * i.e, the Gateways can use this class to do the following, </p>
  * 
  * <ul class="simple">
  * <li>Connect devices behind the Gateway to IBM Watson IoT Platform
@@ -172,8 +172,15 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * <p>Note that the Gateway needs to make a call manage() to participate in Device
 	 * Management activities.<p> 
 	 * 
-	 * This method does nothing if the Gateway is already connected.
-	 * @throws MqttException 
+	 * <p> This method does nothing if the Gateway is already connected.
+	 * This method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @throws MqttException refer above
 	 * 
 	 */	
 	public void connect() throws MqttException {
@@ -188,7 +195,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	/**
 	 * Returns the DeviceData of the gateway.
 	 *  
-	 * @return DeviceData
+	 * @return DeviceData returns the gateway device data
 	 */
 	public DeviceData getGatewayDeviceData() {
 		if(this.gateway != null) {
@@ -200,8 +207,9 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	
 	/**
 	 * Returns the DeviceData of the attached device.
-	 *  
-	 * @return DeviceData
+	 * @param typeId the device type of the device
+	 * @param deviceId the device id of the device 
+	 * @return DeviceData returns the attached device's device data
 	 */
 	public DeviceData getAttachedDeviceData(String typeId, String deviceId) {
 		
@@ -360,7 +368,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        The Gateway must add a Device action handler to handle the reboot and factory reset requests.
 	 * 
 	 * @return boolean containing the status of the manage request
-	 * @throws MqttException
+	 * @throws MqttException when failure
 	 */
 	public boolean sendGatewayManageRequest(long lifetime, boolean supportFirmwareActions, 
 			boolean supportDeviceActions) throws MqttException {
@@ -401,7 +409,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
 	 *        
 	 * @return True if successful
-	 * @throws MqttException
+	 * @throws MqttException when failure
 	 */
 	public boolean sendDeviceManageRequest(String typeId, String deviceId, 
 			long lifetime, boolean supportFirmwareActions, 
@@ -442,7 +450,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
        
 	 * @return True if successful
-	 * @throws MqttException
+	 * @throws MqttException when failure
 	 */
 	public boolean sendDeviceManageRequest(String typeId, 
 									String deviceId, 
@@ -608,6 +616,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * @param longitude Longitude in decimal degrees using WGS84
 	 * @param elevation	Elevation in meters using WGS84
 	 * @param measuredDateTime When the location information is retrieved
+	 * @param updatedDateTime When the location information is updated
 	 * @param accuracy	Accuracy of the position in meters
 	 * 
 	 * @return code indicating whether the update is successful or not 
@@ -751,7 +760,9 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	
 	/**
 	 * Clear the Device(connected through the Gateway) Logs from IBM Watson IoT Platform.
-	 * 
+	 *
+	 * @param typeId the device type of the attached device
+	 * @param deviceId the device Id of the attached device
 	 * @return code indicating whether the clear operation is successful or not 
 	 *        (200 means success, otherwise unsuccessful).
 	 */
@@ -947,7 +958,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * 
 	 * @return
 	 * 		True if the unmanage command is successful
-	 * @throws MqttException
+	 * @throws MqttException When failure
 	 */
 	public boolean sendGatewayUnmanageRequet() throws MqttException {
 		return sendDeviceUnmanageRequet(getGWDeviceType(), getGWDeviceId());
@@ -966,7 +977,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * 
 	 * @return
 	 * 		True if the unmanage command is successful
-	 * @throws MqttException
+	 * @throws MqttException when failure
 	 */
 	public boolean sendDeviceUnmanageRequet(String typeId, String deviceId) throws MqttException {
 		

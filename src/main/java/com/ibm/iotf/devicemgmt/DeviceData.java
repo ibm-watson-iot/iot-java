@@ -80,6 +80,7 @@ public class DeviceData {
 	
 	/**
 	 * Returns the Device type
+	 * @return returns the typeID
 	 */
 	public String getTypeId() {
 		return typeId;
@@ -87,6 +88,7 @@ public class DeviceData {
 	
 	/**
 	 * Returns the Device ID
+	 * @return returns the device ID
 	 */
 	public String getDeviceId() {
 		return deviceId;
@@ -94,6 +96,7 @@ public class DeviceData {
 	
 	/**
 	 * Returns the DeviceInfo object
+	 * @return DeviceInfo returns the deviceinfo object
 	 */
 	public DeviceInfo getDeviceInfo() {
 		return deviceInfo;
@@ -101,13 +104,15 @@ public class DeviceData {
 	
 	/**
 	 * Return the DeviceLocation object
+	 * @return DeviceLocation returns location of the device
 	 */
 	public DeviceLocation getDeviceLocation() {
 		return deviceLocation;
 	}
 
 	/**
-	 * Returns the DeviceFirmware object 
+	 * Returns the DeviceFirmware object
+	 * @return  DeviceFirmware returns the device firmware object
 	 */
 	public DeviceFirmware getDeviceFirmware() {
 		if(mgmt != null) {

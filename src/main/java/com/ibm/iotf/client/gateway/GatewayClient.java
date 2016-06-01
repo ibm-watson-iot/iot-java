@@ -84,7 +84,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * @param options The Properties object creates definitions which are used to interact 
 	 * with the Watson Internet of Things Platform module.
 	 * 
-	 * @throws Exception 
+	 * @throws Exception Failure in parsing the properties passed 
 	 */
 	public GatewayClient(Properties options) throws Exception {
 		super(options);
@@ -119,7 +119,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	
 	/**
 	 * This constructor allows external user to pass the existing MqttAsyncClient 
-	 * @param mqttAsyncClient
+	 * @param mqttAsyncClient MqttAsyncClient with the Watson IoT Platform connectivity details
 	 */
 	protected GatewayClient(MqttAsyncClient mqttAsyncClient) {
 		super(mqttAsyncClient);
@@ -127,7 +127,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 
 	/**
 	 * This constructor allows external user to pass the existing MqttClient 
-	 * @param mqttClient
+	 * @param mqttClient MqttClient with the Watson IoT Platform connectivity details
 	 */
 	protected GatewayClient(MqttClient mqttClient) {
 		super(mqttClient);
@@ -226,7 +226,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
 	 * </ul>
 	 * 
-	 * @throws MqttSecurityException
+	 * @throws MqttException see above
 	 **/
 	public void connect() throws MqttException {
 		super.connect(true);
@@ -254,7 +254,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * </ul>
 	 * 
 	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
-	 * @throws MqttSecurityException
+	 * @throws MqttException see above
 	 **/
 	public void connect(boolean autoRetry) throws MqttException {
 		super.connect(autoRetry);
@@ -284,7 +284,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * 
 	 * @param numberOfRetryAttempts - How many number of times to retry when there is a failure in connecting to Watson
 	 * IoT Platform.
-	 * @throws MqttSecurityException
+	 * @throws MqttException see above
 	 **/
 	@Override
 	public void connect(int numberOfRetryAttempts) throws MqttException {

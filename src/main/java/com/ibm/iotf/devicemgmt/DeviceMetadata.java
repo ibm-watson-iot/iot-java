@@ -50,7 +50,9 @@ public class DeviceMetadata extends Resource {
 	}
 	
 	/**
-	 * Returns the value 
+	 * Returns the value
+	 * 
+	 *  @return JsonObject containing the metadata
 	 */
 	public JsonObject getMetadata() {
 		return (JsonObject) this.getValue();
@@ -58,6 +60,7 @@ public class DeviceMetadata extends Resource {
 	
 	/**
 	 * Updates the value of this resource with the given Json value
+	 * @return return the status of the update
 	 */
 	public int update(JsonElement json) {
 		return update(json, true);
@@ -65,6 +68,8 @@ public class DeviceMetadata extends Resource {
 
 	/**
 	 * Updates the value of this resource with the given Json value
+	 * 
+	 * @return returns of the status of the update
 	 */
 	public int update(JsonElement json, boolean fireEvent) {
 		this.setValue((JsonObject)json, fireEvent);

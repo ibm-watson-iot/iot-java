@@ -84,7 +84,7 @@ public class DeviceInfo extends Resource {
 	
 	/**
 	 * Update the device with new values
-	 * @param deviceInfo
+	 * @param deviceInfo The device info to be updated
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
 

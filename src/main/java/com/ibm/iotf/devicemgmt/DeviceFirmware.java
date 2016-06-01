@@ -186,7 +186,7 @@ public class DeviceFirmware extends Resource {
 	/**
 	 * Update the Firmware object with new values
 	 * 
-	 * @param firmware
+	 * @param firmware The device firmware object to be updated
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
 	 */
@@ -197,7 +197,7 @@ public class DeviceFirmware extends Resource {
 	/**
 	 * Update the Firmware object with new values
 	 * 
-	 * @param firmware
+	 * @param firmware The device firmware object to be updated
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
 	 */
@@ -209,7 +209,7 @@ public class DeviceFirmware extends Resource {
 	/**
 	 * Update the Firmware object with new values
 	 * 
-	 * @param firmware
+	 * @param firmware The device firmware object to be updated
 	 * @param fireEvent - whether to fire an update event of not
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
@@ -281,6 +281,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Returns the firmware URL
+	 * @return String the Firmware URL
 	 */
 	public String getUrl() {
 		if (this.url != null) {
@@ -313,6 +314,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Returns the firmware Verifier
+	 * @return String returns the Firmware verifier or null
 	 */
 	public String getVerifier() {
 		if (this.verifier != null) {
@@ -344,6 +346,7 @@ public class DeviceFirmware extends Resource {
 
 	/**
 	 * Returns the firmware state
+	 * @return returns the state of the Firmware
 	 */
 	public int getState() {
 		return this.state.getValue().intValue();
@@ -373,6 +376,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Returns the name of the firmware
+	 * @return returns the name of the firmware
 	 */
 	public String getName() {
 		if(this.name != null) {
@@ -405,6 +409,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Returns the Firmware Update status
+	 * @return Returns the Firmware Update status.
 	 */
 	public int getUpdateStatus() {
 		return this.updateStatus.getValue().intValue();

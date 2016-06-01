@@ -15,7 +15,7 @@
 package com.ibm.iotf.devicemgmt;
 
 /**
- * This class encapsulates the device action like reboot & factory reset.
+ * This class encapsulates the device action like reboot and factory reset.
  * 
  */
 public interface DeviceAction {

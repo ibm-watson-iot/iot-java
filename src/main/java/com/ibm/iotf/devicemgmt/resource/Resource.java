@@ -205,6 +205,7 @@ public abstract class Resource<T> {
 	/**
 	 * Add a new listener to be notified when the location is changed.
 	 * 
+	 * @param type The type of listener
 	 * @param listener PropertyChangeListener
 	 */
 	public synchronized void addPropertyChangeListener(ChangeListenerType type, PropertyChangeListener listener) {

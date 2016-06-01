@@ -187,10 +187,17 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	/**
 	 * <p>This method just connects to the IBM Watson IoT Platform,
 	 * Device needs to make a call to manage() to participate in Device
-	 * Management activities.<p>
+	 * Management activities.</p>
 	 *
-	 * This method does nothing if the device is already connected
-	 * @throws MqttException 
+	 * <p>This method does nothing if the device is already connected. Also, this 
+	 * method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @throws MqttException see above
 	 *
 	 *
 	 */
@@ -228,7 +235,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
 	 *
 	 * @return boolean response containing the status of the manage request
-	 * @throws MqttException
+	 * @throws MqttException When there is a failure
 	 */
 	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
 			boolean supportDeviceActions) throws MqttException {
@@ -503,7 +510,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 *
 	 * @return
 	 * 		True if the unmanage command is successful
-	 * @throws MqttException
+
+	 * @throws MqttException When failure
 	 */
 	public boolean sendUnmanageRequest() throws MqttException {
 
@@ -543,7 +551,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @param topic topic to be subscribed
 	 * @param qos Quality of Service for the subscription
 	 * @param listener The IMqttMessageListener for the given topic
-	 * @throws MqttException
+
+	 * @throws MqttException When subscription fails
 	 */
 	public void subscribe(String topic, int qos, IMqttMessageListener listener) throws MqttException {
 		final String METHOD = "subscribe";
@@ -569,7 +578,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @param topics List of topics to be subscribed
 	 * @param qos Quality of Service for the subscription
 	 * @param listeners The list of IMqttMessageListeners for the given topics
-	 * @throws MqttException
+	 * @throws MqttException When subscription fails
 	 */
 	public void subscribe(String[] topics, int[] qos, IMqttMessageListener[] listeners) throws MqttException {
 		final String METHOD = "subscribe#2";
@@ -593,7 +602,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * where IBM Watson IoT Platform will send the DM requests</p>
 	 *
 	 * @param topic topic to be unsubscribed
-	 * @throws MqttException
+	 * @throws MqttException when unsubscribe fails
 	 */
 	public void unsubscribe(String topic) throws MqttException {
 		final String METHOD = "unsubscribe";
@@ -617,7 +626,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * where IBM Watson IoT Platform will send the DM requests</p>
 	 *
 	 * @param topics topics to be unsubscribed
-	 * @throws MqttException
+	 * @throws MqttException when unsubscribe fails
 	 */
 	public void unsubscribe(String[] topics) throws MqttException {
 		final String METHOD = "unsubscribe#2";
@@ -691,7 +700,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @param topic Topic where the response to be published
 	 * @param payload the Payload
 	 * @param qos The Quality Of Service
-	 * @throws MqttException
+	 * @throws MqttException When MQTT operation fails
 	 */
 	public void publish(String topic, JsonObject payload, int qos) throws MqttException {
 		final String METHOD = "publish3";
@@ -718,7 +727,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 
 	/**
-	 * <p>Send the message and waits for the response from IBM Watson IoT Platform<p>
+	 * <p>Send the message and waits for the response from IBM Watson IoT Platform</p>
 	 *
 	 * <p>This method is used by the library to send following messages to
 	 *  IBM Watson IoT Platform</p>
@@ -734,7 +743,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @param jsonPayload The message
 	 * @param timeout How long to wait for the response
 	 * @return response in Json format
-	 * @throws MqttException
+	 * @throws MqttException when MQTT operation fails
 	 */
 	public JsonObject sendAndWait(String topic, JsonObject jsonPayload, long timeout) throws MqttException {
 

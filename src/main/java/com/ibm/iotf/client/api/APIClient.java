@@ -1088,9 +1088,7 @@ public class APIClient {
 	 * for more information about the response</p>.
 	 * 
 	 * @param deviceType The type of device in String  
-	 * @updatedValues List of properties to be updated in Json
 	 * @return A JSON response containing the status of the update operation.
-	 * 
 	 * @throws IoTFCReSTException Failure in updating the device type
 	 */
 	public JsonObject updateDeviceType(String deviceType, JsonElement updatedValues) throws IoTFCReSTException {
@@ -1917,6 +1915,7 @@ public class APIClient {
 	 * 
  	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
+	 * @param log the Log message to be added
 
 	 * @return boolean containing the status of the load addition.
 	 *  
@@ -2047,7 +2046,7 @@ public class APIClient {
 	 *  
 	 * @return JsonObject the DiagnosticLog in JSON Format
 	 * 
-	 * @throws IOException Failure in retrieving the diagnostic log
+	 * @throws IoTFCReSTException Failure in retrieving the diagnostic log
 	 */
 	public JsonObject getDiagnosticLog(String deviceType, String deviceId, String logId) throws IoTFCReSTException {
 		final String METHOD = "getDiagnosticLog";
