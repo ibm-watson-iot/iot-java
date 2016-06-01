@@ -83,7 +83,14 @@ Connect to the Watson IoT Platform by calling the *connect* function. The connec
     
     myClient.connect();
     
+Also, use the overloaded connect(int numberOfTimesToRetry) function to control the number of retries when there is a connection failure.
 
+.. code:: java
+
+    DeviceClient myClient = new DeviceClient(options);
+    
+    myClient.connect(10);
+    
 After the successful connection to the IoTF service, the application client can perform the following operations, like subscribing to device events, subscribing to device status, publishing device events and commands.
 
 ----

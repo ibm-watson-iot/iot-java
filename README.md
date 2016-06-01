@@ -25,7 +25,7 @@ The library artifact is pushed to the maven. Use the following maven dependency 
     <dependency>
         <groupId>com.ibm.messaging</groupId>
         <artifactId>watson-iot</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1</version>
     </dependency>
     
 
@@ -38,7 +38,7 @@ However if you want to build the library by yourself, use the following maven co
 Download
 -------------------------------------------------------------------------------
 
-Refer to the maven secion for how to use this library in your project. Also, you can download the library manually from the [maven repository](https://repo1.maven.org/maven2/com/ibm/messaging/watson-iot/0.1.0/watson-iot-0.1.0.jar).
+Refer to the maven secion for how to use this library in your project. Also, you can download the library manually from the [maven repository](https://repo1.maven.org/maven2/com/ibm/messaging/watson-iot/0.1.1/watson-iot-0.1.1.jar).
 
 When you use maven, the dependencies are downloaded automatically.
 
