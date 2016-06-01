@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ibm.messaging</groupId>
     <artifactId>watson-iot</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <packaging>jar</packaging>
     <name>ibm-messaging/iot-java</name>
     <description>IBM Watson IoT client library to simplify device/gateway/application interactions with the IoT Platform</description>
