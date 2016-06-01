@@ -179,7 +179,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		this.deviceData = deviceData;
 	}
 
-	private DeviceData getDeviceData() {
+	public DeviceData getDeviceData() {
 		return deviceData;
 	}
 
