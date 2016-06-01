@@ -170,7 +170,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	/**
 	 * <p>This method connects the Gateway to the IBM IBM Watson IoT Platform.</p>
 	 * <p>Note that the Gateway needs to make a call manage() to participate in Device
-	 * Management activities.<p> 
+	 * Management activities.</p> 
 	 * 
 	 * <p> This method does nothing if the Gateway is already connected.
 	 * This method does not retry when the following exceptions occur.</p>

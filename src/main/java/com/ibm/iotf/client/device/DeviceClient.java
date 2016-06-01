@@ -65,7 +65,7 @@ public class DeviceClient extends AbstractClient {
 	/**
 	 * Create a device client for the IBM Watson IoT Platform. <br>
 	 * 
-	 * Connecting to a specific account on the IoTF.
+	 * @param options the list of options containing the device registration details
 	 * @throws Exception When there is a failure in parsing the properties passed 
 	 */
 	public DeviceClient(Properties options) throws Exception {

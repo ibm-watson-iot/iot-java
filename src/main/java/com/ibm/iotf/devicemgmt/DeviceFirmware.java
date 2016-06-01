@@ -293,6 +293,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Set the firmware URL
+	 * @param url URL that needs to be set
 	 */
 	public void setUrl(String url) {
 		this.setUrl(url, true);
@@ -326,6 +327,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Set the firmware verifier
+	 * @param verifier verifier that needs to be set
 	 */
 	public void setVerifier(String verifier) {
 		setVerifier(verifier, true);
@@ -354,6 +356,8 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Set the firmware state
+	 * 
+	 * @param state the state needs to be set
 	 */
 	public void setState(FirmwareState state) {
 		setState(state, true);
@@ -388,6 +392,8 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Set the name of the firmware
+	 * 
+	 * @param name The name of the firmware to be set to
 	 */
 	public void setName(String name) {
 		this.setName(name, true);
@@ -417,6 +423,8 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Set the Firmware Update status
+	 * 
+	 * @param updateStatus the firmware update status to be set to
 	 */
 	public void setUpdateStatus(FirmwareUpdateStatus updateStatus) {
 		this.setUpdateStatus(updateStatus, true);

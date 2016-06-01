@@ -41,7 +41,7 @@ public class Command extends Message{
 	 * 			MqttMessage 
 	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
 	 * @throws
-	 * 			UnsupportedEncodingException
+	 * 			UnsupportedEncodingException When the Format is not UTF-8
 	 * 
 	 */	
 	

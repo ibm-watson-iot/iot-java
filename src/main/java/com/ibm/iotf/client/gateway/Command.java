@@ -42,7 +42,7 @@ public class Command extends Message {
 	 * @param msg
 	 * 			MqttMessage
 	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
-	 * @throws UnsupportedEncodingException 
+	 * @throws UnsupportedEncodingException when the format is not UTF-8
 	 * 
 	 */	
 	public Command(String type, String id, String command, String format, MqttMessage msg) throws UnsupportedEncodingException{
