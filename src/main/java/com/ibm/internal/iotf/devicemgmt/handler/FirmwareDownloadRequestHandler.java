@@ -29,6 +29,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * {
  * 	"reqId": "string"
  * }
+ * </blockquote>
  */	
 public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 

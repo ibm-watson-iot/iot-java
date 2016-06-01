@@ -111,7 +111,7 @@ public class DeviceClient extends AbstractClient {
 	}
 	
 	/**
-	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception.</br>
+	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception.<br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
 	 * 
@@ -131,7 +131,7 @@ public class DeviceClient extends AbstractClient {
 	
 	/**
 	 * <p>Connects the device to IBM Watson IoT Platform and retries when there is an exception 
-	 * based on the value set in retry parameter. </br>
+	 * based on the value set in retry parameter. <br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
 	 * 
@@ -153,7 +153,7 @@ public class DeviceClient extends AbstractClient {
 	
 	/**
 	 * <p>Connects the device to IBM Watson IoT Platform and retries when there is an exception 
-	 * based on the value set in retry parameter. </br>
+	 * based on the value set in retry parameter. <br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
 	 * 

@@ -578,6 +578,16 @@ public class GatewayManagementTest extends TestCase {
 			
 			status = gwClient.sendDeviceManageRequest(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, deviceData, 0, true, true);
 			assertTrue("Device Manage request is unsuccessfull", status);
+			
+			DeviceData devicedata = gwClient.getGatewayDeviceData();
+			if(devicedata == null) {
+				fail("Device data must not be null");
+			}
+			
+			devicedata = gwClient.getAttachedDeviceData(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
+			if(devicedata == null) {
+				fail("Device data must not be null");
+			}
 
 		} catch (MqttException e) {
 			fail(e.getMessage());

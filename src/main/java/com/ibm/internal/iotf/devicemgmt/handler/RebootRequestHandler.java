@@ -36,6 +36,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * {
  * 	"reqId": "string"
  * }
+ * </blockquote>
  */
 public class RebootRequestHandler extends DMRequestHandler implements PropertyChangeListener {
 

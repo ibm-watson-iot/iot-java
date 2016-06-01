@@ -35,6 +35,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * {
  * 	"reqId": "string"
  * }
+ * </blockquote>
  */	
 public class FactoryResetRequestHandler extends DMRequestHandler implements PropertyChangeListener {
 

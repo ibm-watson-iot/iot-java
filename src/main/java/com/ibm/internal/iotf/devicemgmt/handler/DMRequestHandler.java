@@ -104,8 +104,8 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 	 * called by the agent
 	 * 
 	 * Do a bulk subscribe to improve the performance
-	 * @param dmClient
-	 * @throws MqttException
+	 * @param dmClient The managedDevice client instance
+	 * @throws MqttException when there is a failure in subscription
 	 */
 	public static void setRequestHandlers(ManagedClient dmClient) throws MqttException{
 		
@@ -182,8 +182,8 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 	 * called by the agent
 	 * 
 	 * Do a bulk unsubscribe to improve performance
-	 * @param dmClient
-	 * @throws MqttException 
+	 * @param dmClient The Managed device instance
+	 * @throws MqttException failure in unsubscription
 	 */
 	public static void clearRequestHandlers(ManagedClient dmClient) throws MqttException {
 		

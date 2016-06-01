@@ -112,7 +112,7 @@ public abstract class AbstractClient {
 	
 	/**
 	 * This constructor allows external user to pass the existing MqttAsyncClient 
-	 * @param mqttAsyncClient
+	 * @param mqttAsyncClient the MQTTAsyncClient that has the connectivity parameters set
 	 */
 	protected AbstractClient(MqttAsyncClient mqttAsyncClient) {
 		this.mqttAsyncClient = mqttAsyncClient;
@@ -120,7 +120,7 @@ public abstract class AbstractClient {
 
 	/**
 	 * This constructor allows external user to pass the existing MqttClient 
-	 * @param mqttClient
+	 * @param mqttClient the MQTTClient that has the connectivity parameters set
 	 */
 	protected AbstractClient(MqttClient mqttClient) {
 		this.mqttClient = mqttClient;
@@ -144,7 +144,7 @@ public abstract class AbstractClient {
 	
 	/**
 	 * <p>Connects the device to IBM Watson IoT Platform and retries when there is an exception 
-	 * based on the value set in retry parameter. </br>
+	 * based on the value set in retry parameter. <br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
 	 * 
@@ -155,7 +155,7 @@ public abstract class AbstractClient {
 	 * 
 	 * @param numberOfRetryAttempts - How many number of times to retry when there is a failure in connecting to Watson
 	 * IoT Platform.
-	 * @throws MqttSecurityException
+	 * @throws MqttSecurityException when the credentials are not correct
 	 **/
 	public void connect(int numberOfRetryAttempts) throws MqttException {
 		final String METHOD = "connect";
@@ -414,10 +414,10 @@ public abstract class AbstractClient {
 		}
 		return clientProperties;
 	}
-	
-	/*
-	 * old style - org
-	 * new style - Organization-ID
+
+	/**
+	 * 
+	 * @return the organization id
 	 */
 	public String getOrgId() {
 		String org = null;

@@ -34,7 +34,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * <br>Watson IoT Platform can send this request to a device to update values of one or more device attributes. 
  * Supported update targets are location, metadata, device information and firmware.
  * <p>Topic
- *	<li>iotdm-1/device/update
+ *	<br>iotdm-1/device/update
  * <br><br>Message format
  * <br>Request:
  * <br>{
@@ -47,10 +47,12 @@ import com.ibm.iotf.util.LoggerUtility;
  * <br>It is a complex field matching the device model. 
  * <br>Only writeable fields should be updated as a result of this operation.
  * <br>Values can be updated in:
+ * <ul class="simple">
  *   <li>location		(see Update location section for details)
  *   <li>metadata		(Optional)
  *   <li>deviceInfo		(Optional)
  *   <li>mgmt.firmware	(see Firmware update process for details)
+ * </ul>
  * <br><br>Response:
  * <br>{
  *    <br>"rc": number,

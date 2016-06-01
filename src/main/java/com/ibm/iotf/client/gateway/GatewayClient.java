@@ -215,9 +215,9 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * <li>Publish events for itself and on behalf of devices connected behind the Gateway.
 	 * <li>Subscribe to commands for itself and on behalf of devices behind the Gateway.
 	 * </ul>
-	 * </p>
 	 * 
-	 * <p>The GatewayClient retries when there is a connect exception.</br>
+	 * 
+	 * <p>The GatewayClient retries when there is a connect exception.<br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
 	 * 
@@ -242,10 +242,9 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * <li>Publish events for itself and on behalf of devices connected behind the Gateway.
 	 * <li>Subscribe to commands for itself and on behalf of devices behind the Gateway.
 	 * </ul>
-	 * </p>
 	 * 
 	 * <p>The GatewayClient retries when there is a connect exception based on the 
-	 * value set in retry parameter. </br>
+	 * value set in retry parameter. <br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
 	 * 
@@ -274,7 +273,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * </p>
 	 * 
 	 * <p>The GatewayClient retries when there is a connect exception based on the 
-	 * value set in retry parameter. </br>
+	 * value set in retry parameter. <br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
 	 * 

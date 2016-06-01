@@ -45,11 +45,7 @@ public class DeviceFirmware extends Resource {
 	 * attribute describes the status of the firmware download. The possible values for 
 	 * <code class="docutils literal"><span class="pre">mgmt.firmware.state</span></code> are:</p>
 	 * <table border="1" class="docutils">
-	 * 	<colgroup>
-	 * 	<col width="12%" />
-	 * 	<col width="11%" />
-	 * 	<col width="77%" />
-	 * </colgroup>
+	 * <caption>mgmt.firmware.state</caption>
 	 * <thead valign="bottom">
 	 * 	<tr class="row-odd"><th class="head">Value</th>
 	 * 	<th class="head">State</th>
@@ -96,11 +92,7 @@ public class DeviceFirmware extends Resource {
 	 * attribute describes the status of firmware update. The possible values for <code class="docutils literal">
 	 * <span class="pre">mgmt.firmware.status</span></code> are:</p>
 	 * <table border="1" class="docutils">
-	 * <colgroup>
-	 * <col width="13%" />
-	 * <col width="20%" />
-	 * <col width="67%" />
-	 * </colgroup>
+	 * <caption>mgmt.firmware.status</caption>
 	 * <thead valign="bottom">
 	 * <tr class="row-odd"><th class="head">Value</th>
 	 * <th class="head">State</th>

@@ -60,7 +60,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * Connecting to specific org on IBM Watson IoT Platform
 	 * @param options
 	 * 					An object of the class Properties
-	 * @throws Exception 
+	 * @throws Exception Failure in parsing the properties 
 	 */
 	public ApplicationClient(Properties options) throws Exception {
 		super(options);
@@ -162,7 +162,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception.</br>
+	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception.<br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
 	 * 
@@ -171,7 +171,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
 	 * </ul>
 	 * 
-	 * @throws MqttSecurityException
+	 * @throws MqttException when the security credentials are wrong
 	 **/
 	public void connect() throws MqttException {
 		super.connect(true);

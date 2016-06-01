@@ -35,6 +35,7 @@ import com.ibm.internal.iotf.devicemgmt.ResponseCode;
  *       ]
  *  }
  * }
+ * </blockquote>
  */
 public class CancelRequestHandler extends DMRequestHandler {
 

@@ -41,8 +41,8 @@ public class Event extends Message {
 	 * 			object of String which denotes the event 
 	 * @param format
 	 * 			object of String which denotes the format, such as json
-	 * @param msg
-	 * @throws UnsupportedEncodingException
+	 * @param msg The MQTT message
+	 * @throws UnsupportedEncodingException when the encoding is not UTF-8
 	 */
 	public Event(String type, String id, String event, String format, MqttMessage msg) throws UnsupportedEncodingException{
 		super(msg, format);

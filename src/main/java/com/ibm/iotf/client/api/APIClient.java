@@ -278,7 +278,7 @@ public class APIClient {
 	 * @param deviceId String which contains device id
 	 * 
 	 * @return A boolean response containing the status
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException When there is a failure in device information
 	 */
 	public boolean isDeviceExist(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "isDeviceExist";
@@ -332,8 +332,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonObject
-	 * @throws IOException 
+	 * @return JsonObject containing the device details
+	 * @throws IoTFCReSTException When there is a failure in device information
 	 */
 	public JsonObject getDevice(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getDevice";
@@ -389,8 +389,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonObject
-	 * @throws IOException 
+	 * @return JsonObject containing the device location
+	 * @throws IoTFCReSTException Failure in getting the device location 
 	 */
 	public JsonObject getDeviceLocation(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getDeviceLocation";
@@ -445,7 +445,7 @@ public class APIClient {
 	 *   
 	 * @return A JSON response containing the status of the update operation.
 	 * 
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in updting the device location
 	 */
 	public JsonObject updateDeviceLocation(String deviceType, String deviceId, 
 			JsonElement location) throws IoTFCReSTException {
@@ -504,8 +504,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonObject
-	 * @throws IOException 
+	 * @return JsonObject containing the device management information
+	 * @throws IoTFCReSTException Failure in getting the device management information 
 	 */
 	public JsonObject getDeviceManagementInformation(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getDeviceManagementInformation";
@@ -560,7 +560,7 @@ public class APIClient {
 	 *   
 	 * @return A JSON response containing the status of the update operation.
 	 * 
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in updating the device
 	 */
 	public JsonObject updateDevice(String deviceType, String deviceId, 
 			JsonElement propertiesToBeModified) throws IoTFCReSTException {
@@ -623,7 +623,7 @@ public class APIClient {
 	 *   
 	 * @return details about an organization.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the organization details 
 	 */
 	public JsonObject getOrganizationDetails() throws IoTFCReSTException {
 		final String METHOD = "getOrganizationDetails";
@@ -687,7 +687,7 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of devices.</p>
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving all the devices 
 	 */
 	public JsonObject getAllDevices(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getDevices(1)";
@@ -741,7 +741,7 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of devices.</p>
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving all the devices 
 	 */
 	public JsonObject getAllDevices() throws IoTFCReSTException {
 		return getAllDevices((ArrayList<NameValuePair>)null);
@@ -766,7 +766,7 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of devices.</p>
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the devices 
 	 */
 	public JsonObject retrieveDevices(String deviceType, ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
 		
@@ -827,7 +827,7 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of devices.</p>
 	 * 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the devices 
 	 */
 	public JsonObject retrieveDevices(String deviceType) throws IoTFCReSTException {
 		return retrieveDevices(deviceType, (ArrayList)null);
@@ -848,7 +848,7 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of devices.</p>
 	 * 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException failure in getting the devices 
 	 */
 	public JsonObject getDevicesConnectedThroughGateway(String gatewayType, String gatewayId) throws IoTFCReSTException {
 		final String METHOD = "getDevicesConnectedThroughGateway(typeID, deviceId)";
@@ -914,7 +914,7 @@ public class APIClient {
 	 * 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of device types.</p>
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the device types 
 	 */
 	public JsonObject getAllDeviceTypes(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getDeviceTypes";
@@ -967,7 +967,7 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of device types.</p>
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving all the device types 
 	 */
 	public JsonObject getDeviceTypes() throws IoTFCReSTException {
 		return getAllDeviceTypes(null);
@@ -982,7 +982,7 @@ public class APIClient {
 	 * for more information about the response</p>.
 	 * @param deviceType The device type to be checked in Watson IoT Platform
 	 * @return A boolean response containing the status
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in checking if device type exists
 	 */
 	public boolean isDeviceTypeExist(String deviceType) throws IoTFCReSTException {
 		final String METHOD = "isDeviceTypeExist";
@@ -1031,9 +1031,11 @@ public class APIClient {
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Device_Types/get_device_types_typeId">link</a>
 	 * for more information about the response</p>.
 	 *   
+	 * @param  deviceType the type of the device in String
+	 *  
 	 * @return A JSON response containing the device type.
 	 * 
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the device type 
 	 */
 	public JsonObject getDeviceType(String deviceType) throws IoTFCReSTException {
 		final String METHOD = "getDeviceType";
@@ -1084,10 +1086,12 @@ public class APIClient {
 	 * <p> Refer to the
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Device_Types/put_device_types_typeId">link</a>
 	 * for more information about the response</p>.
-	 *   
+	 * 
+	 * @param deviceType The type of device in String  
+	 * @updatedValues List of properties to be updated in Json
 	 * @return A JSON response containing the status of the update operation.
 	 * 
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in updating the device type
 	 */
 	public JsonObject updateDeviceType(String deviceType, JsonElement updatedValues) throws IoTFCReSTException {
 		final String METHOD = "updateDeviceType";
@@ -1146,7 +1150,7 @@ public class APIClient {
 	 * 
 	 * @return JSON object containing the response of device type.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding the device type
 	 */
 
 	public JsonObject addDeviceType(JsonElement deviceType) throws IoTFCReSTException {
@@ -1208,7 +1212,7 @@ public class APIClient {
 	 * 
 	 * @return JSON object containing the response of device type.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding the gateway device type
 	 */
 
 	public JsonObject addGatewayDeviceType(JsonElement deviceType) throws IoTFCReSTException {
@@ -1233,7 +1237,7 @@ public class APIClient {
 	 * 
 	 * @return JSON object containing the response of device type.
 	 * 
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in adding the device type
 	 */
 
 	public JsonObject addDeviceType(String id, String description, 
@@ -1275,7 +1279,7 @@ public class APIClient {
 	 * 
 	 * @return JSON object containing the response of device type.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in deleting the device type
 	 */
 
 	public boolean deleteDeviceType(String typeId) throws IoTFCReSTException {
@@ -1325,8 +1329,8 @@ public class APIClient {
 	 * for more information about the query parameters and response in JSON format.</p>
 	 * 
 	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
+	 * @return JsonArray containing the historical events
+	 * @throws IoTFCReSTException Failure in retrieving the historical information
 	 */
 	public JsonElement getHistoricalEvents() throws IoTFCReSTException {		
 		return getHistoricalEvents(null, null, null);
@@ -1343,8 +1347,8 @@ public class APIClient {
 	 * @param parameters Contains the list of query parameters as specified in the 
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian">link</a>
 	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
+	 * @return JsonArray Containing the historical events
+	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
 	public JsonElement getHistoricalEvents(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {		
 		return getHistoricalEvents(null, null, parameters);
@@ -1360,8 +1364,8 @@ public class APIClient {
 	 * 
 	 * @param deviceType String which contains device type
 	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
+	 * @return JsonArray Containing the historical events
+	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
 	public JsonElement getHistoricalEvents(String deviceType) throws IoTFCReSTException {		
 		return getHistoricalEvents(deviceType, null, null);
@@ -1379,8 +1383,8 @@ public class APIClient {
 	 * @param parameters Contains the list of query parameters as specified in the 
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian_types_deviceType">link</a>
 	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
+	 * @return JsonArray Containing the historical events
+	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
 	public JsonElement getHistoricalEvents(String deviceType, 
 			ArrayList<NameValuePair> parameters) throws IoTFCReSTException {		
@@ -1397,8 +1401,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
+	 * @return JsonArray Containing the historical events
+	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
 	public JsonElement getHistoricalEvents(String deviceType, String deviceId) throws IoTFCReSTException {
 		return getHistoricalEvents(deviceType, deviceId, null);
@@ -1416,8 +1420,8 @@ public class APIClient {
 	 * @param parameters Contains the list of query parameters as specified in the 
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian_types_deviceType_devices_deviceId">link</a>
 	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
+	 * @return JsonArray Containing the historical events
+	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
 	public JsonElement getHistoricalEvents(String deviceType, 
 			String deviceId, ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
@@ -1475,8 +1479,8 @@ public class APIClient {
 	 * @param start (can be empty or null) Number of milliseconds since January 1, 1970, 00:00:00 GMT). Restrict results to events published after this date
 	 * @param end (can be empty or null)  Number of milliseconds since January 1, 1970, 00:00:00 GMT). Restrict results to events published before this date
 	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
+	 * @return JsonArray Containing the historical events
+	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
 	public JsonElement getHistoricalEvents(String deviceType, 
 			String deviceId, 
@@ -1512,7 +1516,7 @@ public class APIClient {
 	 * 
 	 * @param summarizeType The aggregation to perform on the fields specified by the summarize parameter.
 	 * @return JsonElement containing the HistoricalEvents matching the given criteria
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
 	public JsonElement getHistoricalEvents(String deviceType, 
 			String deviceId, 
@@ -1601,7 +1605,7 @@ public class APIClient {
 	 * @param metadata JsonObject representing the device metadata (can be null).
 	 * 
 	 * @return JsonObject containing the registered device details
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in registering the device
 	 */
 	public JsonObject registerDevice(String deviceType, String deviceId, 
 			String authToken, JsonElement deviceInfo, JsonElement location, 
@@ -1654,7 +1658,7 @@ public class APIClient {
 	 * 
 	 * @return JsonObject containing the generated authentication token for the device. 
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in registering the device
 	 */
 
 	public JsonObject registerDevice(String typeId, JsonElement device) throws IoTFCReSTException {
@@ -1726,7 +1730,7 @@ public class APIClient {
 	 * 
 	 * @return JsonObject containing the generated authentication token for the device. 
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in registering the device under the given Gateway
 	 */
 
 	public JsonObject registerDeviceUnderGateway(String typeId, String gatewayId, 
@@ -1752,7 +1756,7 @@ public class APIClient {
 	 * @param deviceId
 	 * 				object of String which represents device id
 	 * @return boolean to denote success or failure of operation
-	 * @throws IOException 
+	 * @throws IoTFCReSTException Failure in deleting the device
 	 */
 	public boolean deleteDevice(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "deleteDevice";
@@ -1807,7 +1811,7 @@ public class APIClient {
 	 * @param deviceId
 	 * 				object of String which represents device id
 	 * @return boolean to denote success or failure of operation
-	 * @throws IOException 
+	 * @throws IoTFCReSTException Failure in clearing the diagnostic logs 
 	 */
 	public boolean clearAllDiagnosticLogs(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "clearDiagnosticLogs";
@@ -1858,8 +1862,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonArray
-	 * @throws IOException 
+	 * @return JsonArray Containing all the diagnostic logs
+	 * @throws IoTFCReSTException Failure in retrieving all the diagnostic logs
 	 */
 	public JsonArray getAllDiagnosticLogs(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getAllDiagnosticLogs";
@@ -1916,7 +1920,7 @@ public class APIClient {
 
 	 * @return boolean containing the status of the load addition.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding the diagnostic logs
 	 */
 
 	public boolean addDiagnosticLog(String deviceType, String deviceId, JsonElement log) throws IoTFCReSTException {
@@ -1971,7 +1975,7 @@ public class APIClient {
 	 * @param logId object of String which represents log id
 	 *  
 	 * @return boolean to denote success or failure of operation
-	 * @throws IOException 
+	 * @throws IoTFCReSTException Failure in deleting the diagnostic log
 	 */
 	public boolean deleteDiagnosticLog(String deviceType, String deviceId, String logId) throws IoTFCReSTException {
 		final String METHOD = "deleteDiagnosticLog";
@@ -2043,7 +2047,7 @@ public class APIClient {
 	 *  
 	 * @return JsonObject the DiagnosticLog in JSON Format
 	 * 
-	 * @throws IOException 
+	 * @throws IOException Failure in retrieving the diagnostic log
 	 */
 	public JsonObject getDiagnosticLog(String deviceType, String deviceId, String logId) throws IoTFCReSTException {
 		final String METHOD = "getDiagnosticLog";
@@ -2100,7 +2104,7 @@ public class APIClient {
 	 * @param deviceId
 	 * 				object of String which represents device id
 	 * @return boolean to denote success or failure of operation
-	 * @throws IOException 
+	 * @throws IoTFCReSTException Failure in clearing all the diagnostic error codes 
 	 */
 	public boolean clearAllDiagnosticErrorCodes(String deviceType, String deviceId) throws IoTFCReSTException {
 		String METHOD = "clearAllDiagnosticErrorCodes";
@@ -2150,8 +2154,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonArray
-	 * @throws IOException 
+	 * @return JsonArray Containing all the diagnostic error codes
+	 * @throws IoTFCReSTException Failure in retrieving the error codes
 	 */
 	public JsonArray getAllDiagnosticErrorCodes(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getAllDiagnosticErrorCodes";
@@ -2208,7 +2212,7 @@ public class APIClient {
 	 * 
 	 * @return boolean containing the status of the add operation.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding the error codes
 	 */
 
 	public boolean addDiagnosticErrorCode(String deviceType, String deviceId, JsonElement errorcode) throws IoTFCReSTException {
@@ -2263,7 +2267,7 @@ public class APIClient {
 	 * 
 	 * @return boolean containing the status of the add operation.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding the error codes
 	 */
 
 	public boolean addDiagnosticErrorCode(String deviceType, String deviceId, 
@@ -2293,8 +2297,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonArray
-	 * @throws IOException 
+	 * @return JsonArray Containing the device connection logs
+	 * @throws IoTFCReSTException Failure in retrieving the device connection logs 
 	 */
 	public JsonArray getDeviceConnectionLogs(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getDeviceConnectionLogs";
@@ -2357,7 +2361,7 @@ public class APIClient {
 	 * @return JsonArray containing the generated authentication tokens for all the devices 
 	 * for all devices. 
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding devices
 	 */
 
 	public JsonArray addMultipleDevices(JsonArray arryOfDevicesToBeAdded) throws IoTFCReSTException {
@@ -2416,7 +2420,7 @@ public class APIClient {
 	 * 
 	 * @return JsonArray containing the status of the operations for all the devices
 	 *  
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in deleting devices
 	 */
 	public JsonArray deleteMultipleDevices(JsonArray arryOfDevicesToBeDeleted) throws IoTFCReSTException {
 		final String METHOD = "bulkDevicesRemove";
@@ -2467,7 +2471,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the list of device management requests.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving all DM requests
 	 */
 	
 	public JsonObject getAllDeviceManagementRequests() throws IoTFCReSTException {
@@ -2481,7 +2485,7 @@ public class APIClient {
 	 * @param parameters list of query parameters that controls the output.
 	 * 
 	 * @return JSON response containing the list of device management requests.
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in retrieving all DM requests
 	 */
 	public JsonObject getAllDeviceManagementRequests(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getAllDeviceManagementRequests";
@@ -2527,7 +2531,7 @@ public class APIClient {
 	 * 
 	 * @return boolean response containing the status of the initiate DM request
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in initiating a DM request
 	 */
 	public boolean initiateDeviceManagementRequest(JsonObject request) throws IoTFCReSTException {
 		final String METHOD = "initiateDeviceManagementRequest";
@@ -2575,7 +2579,7 @@ public class APIClient {
 	 * @param requestId String ID representing the management request
 	 * @return JSON response containing the newly initiated request.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in deleting a DM request
 	 */
 	public boolean deleteDeviceManagementRequest(String requestId) throws IoTFCReSTException {
 		String METHOD = "deleteDeviceManagementRequest";
@@ -2618,7 +2622,7 @@ public class APIClient {
 	 * @param requestId String ID representing the management request
 	 * @return JSON response containing the device management request
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving a DM request
 	 */
 	public JsonObject getDeviceManagementRequest(String requestId) throws IoTFCReSTException {
 		final String METHOD = "getDeviceManagementRequest";
@@ -2666,7 +2670,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the device management request
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving a DM request status
 	 */
 	public JsonObject getDeviceManagementRequestStatus(String requestId, 
 			ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
@@ -2716,7 +2720,7 @@ public class APIClient {
 	 * @param requestId String ID representing the management request
 	 * @return JSON response containing the device management request
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the DM request status
 	 */
 	public JsonObject getDeviceManagementRequestStatus(String requestId) throws IoTFCReSTException {
 		return getDeviceManagementRequestStatus(requestId, null);
@@ -2732,7 +2736,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the device management request
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the DM request device status
 	 */
 	public JsonObject getDeviceManagementRequestStatusByDevice(String requestId, 
 			String deviceType, String deviceId) throws IoTFCReSTException {
@@ -2792,7 +2796,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the active devices over a period of time
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving all active device details
 	 */
 	public JsonObject getActiveDevices(String startDate, String endDate, boolean detail) throws IoTFCReSTException {
 		final String METHOD = "getActiveDevices";
@@ -2854,7 +2858,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the active devices over a period of time
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving historical data usage
 	 */
 	public JsonObject getHistoricalDataUsage(String startDate, String endDate, boolean detail) throws IoTFCReSTException {
 		final String METHOD = "getHistoricalDataUsage";
@@ -2916,7 +2920,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the active devices over a period of time
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the data traffic
 	 */
 	public JsonObject getDataTraffic(String startDate, String endDate, boolean detail) throws IoTFCReSTException {
 		final String METHOD = "getDataTraffic";
@@ -2970,7 +2974,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the status of services for an organization
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the service status
 	 */
 	public JsonObject getServiceStatus() throws IoTFCReSTException {
 		final String METHOD = "getServiceStatus";
@@ -3022,7 +3026,7 @@ public class APIClient {
 	 * 
 	 * @return JsonObject containing the generated authentication token for the device. 
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in registering a device under the gateway
 	 */
 
 	public JsonObject registerDeviceUnderGateway(String deviceType, String deviceId,
@@ -3051,8 +3055,8 @@ public class APIClient {
 	 * @param deviceId
 	 *            String which contains device id
 	 * 
-	 * @return JsonElement
-	 * @throws IoTFCReSTException
+	 * @return JsonElement containing the last event
+	 * @throws IoTFCReSTException Failure in retrieving the last event
 	 */
 	public JsonElement getLastEvents(String deviceType, String deviceId)
 			throws IoTFCReSTException {
@@ -3118,8 +3122,8 @@ public class APIClient {
 	 * @param eventId
 	 *            String which contains event id
 	 * 
-	 * @return JsonElement
-	 * @throws IoTFCReSTException
+	 * @return JsonElement Containing the last event
+	 * @throws IoTFCReSTException Failure in retrieving the last event
 	 */
 	public JsonElement getLastEvent(String deviceType, String deviceId,
 			String eventId) throws IoTFCReSTException {

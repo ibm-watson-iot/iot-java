@@ -39,6 +39,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * 	},
  * 	"reqId": "string"
  * }
+ * </blockquote>
  */
 public class ObserveRequestHandler extends DMRequestHandler implements PropertyChangeListener {
 

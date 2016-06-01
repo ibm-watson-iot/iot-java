@@ -66,13 +66,14 @@ import com.ibm.iotf.util.LoggerUtility;
  * <li>Device management commands, like firmware update, and device reboot.</li>
  * </ul>
  * <p> This is a derived class from DeviceClient and can be used by embedded devices to perform both <b>Device operations
- * and Device Management operations</b>, i.e, the devices can use this class to do the following, <p>
+ * and Device Management operations</b>, i.e, the devices can use this class to do the following, </p>
  *
  * <ul class="simple">
  * <li>Publish device events</li>
  * <li>Subscribe to commands from application</li>
  * <li>Perform Device management operations like, manage, unmanage, firmware update, reboot,
  *    update location, Diagnostics informations, Factory Reset and etc..</li>
+ * </ul>
  *
  */
 

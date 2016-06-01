@@ -185,6 +185,35 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		super.connect();
 	}
 	
+	/**
+	 * Returns the DeviceData of the gateway.
+	 *  
+	 * @return DeviceData
+	 */
+	public DeviceData getGatewayDeviceData() {
+		if(this.gateway != null) {
+			return this.gateway.getDeviceData();
+		} else {
+			return null;
+		}
+	}
+	
+	/**
+	 * Returns the DeviceData of the attached device.
+	 *  
+	 * @return DeviceData
+	 */
+	public DeviceData getAttachedDeviceData(String typeId, String deviceId) {
+		
+		String key = typeId + ':' + deviceId;
+		ManagedGatewayDevice mc = (ManagedGatewayDevice) this.devicesMap.get(key);
+		if(mc == null) {
+			return null;
+		} else {
+			return mc.getDeviceData();
+		}
+	}
+	
 	private class ManagedGatewayDevice implements ManagedClient {
 		
 		public Date getDormantTime() {

@@ -38,8 +38,8 @@ public class Command extends Message {
 	 * 			Object of String which denotes command format, say json
 	 * @param msg
 	 * 			MqttMessage
-	 * @see <a href="Paho Client Library">http://www.eclipse.org/paho/files/javadoc/index.html</a> 
-	 * @throws UnsupportedEncodingException 
+	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html>Paho Client Library</a> 
+	 * @throws UnsupportedEncodingException When the encoding format id not UTF-8 
 	 * 
 	 */	
 	public Command(String type, String id, String command, String format, MqttMessage msg) throws UnsupportedEncodingException{

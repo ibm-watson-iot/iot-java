@@ -49,7 +49,7 @@ public class Message {
 	 * 
 	 * @param msg
 	 * 				MqttMessage
-	 * @throws UnsupportedEncodingException
+	 * @throws UnsupportedEncodingException If encoding is other than UTF8
 	 */
 	public Message(MqttMessage msg) throws UnsupportedEncodingException{
 		final String METHOD = "Message(1)";
@@ -85,8 +85,8 @@ public class Message {
 	 * @param msg
 	 * 				MqttMessage
 	 * @param format
-	 * 				an object of String which comtains format such as json
-	 * @throws UnsupportedEncodingException
+	 * 				an object of String which contains format such as json
+	 * @throws UnsupportedEncodingException if encoding is other than UTF-8
 	 */
 	public Message(MqttMessage msg, String format) throws UnsupportedEncodingException{
 		final String METHOD = "Message(2)";

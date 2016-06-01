@@ -379,6 +379,10 @@ public class DeviceManagementTest extends TestCase {
 		boolean status = false;
 		try {
 			status = dmClient.sendManageRequest(0, true, false);
+			DeviceData devicedata = dmClient.getDeviceData();
+			if(devicedata == null) {
+				fail("Device data must not be null");
+			}
 		} catch (MqttException e) {
 			fail(e.getMessage());
 		}
