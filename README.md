@@ -42,7 +42,7 @@ The above command quickly builds the library by skipping the tests, however if y
 Download
 -------------------------------------------------------------------------------
 
-Refer to the maven secion for how to use this library in your project. Also, you can download the library manually from the [maven repository](https://repo1.maven.org/maven2/com/ibm/messaging/watson-iot/0.1.1/watson-iot-0.1.1.jar).
+Refer to the maven secion for how to use this library in your project. Also, you can download the library manually from the [maven repository](https://repo1.maven.org/maven2/com/ibm/messaging/watson-iot/0.1.2/watson-iot-0.1.2.jar).
 
 When you use maven, the dependencies are downloaded automatically.
 
