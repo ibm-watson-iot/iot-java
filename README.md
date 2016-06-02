@@ -25,14 +25,18 @@ The library artifact is pushed to the maven. Use the following maven dependency 
     <dependency>
         <groupId>com.ibm.messaging</groupId>
         <artifactId>watson-iot</artifactId>
-        <version>0.1.1</version>
+        <version>0.1.2</version>
     </dependency>
     
 
 However if you want to build the library by yourself, use the following maven command,
 
-    mvn clean deploy
+    mvn clean deploy -Dmaven.test.skip=true
     
+The above command quickly builds the library by skipping the tests, however if you want to run the tests as well, then modify the property files present under directory src\test\resources and run the following maven command,
+    
+    mvn clean deploy
+
 ----
 
 Download
