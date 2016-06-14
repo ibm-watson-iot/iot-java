@@ -906,7 +906,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 									String deviceId,
 									String eventName, 
 									Object payload) throws Exception {
-		return publishEventsThroughHttps(this.getOrgId(), deviceType, deviceId, 
+		return publishEventsThroughHttps(this.getOrgId(), this.getDomain(), deviceType, deviceId, 
 				eventName, false, this.getAuthKey(), this.getAuthToken(), payload);
 	}
 

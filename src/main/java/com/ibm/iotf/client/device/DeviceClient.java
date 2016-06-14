@@ -337,7 +337,7 @@ public class DeviceClient extends AbstractClient {
 	 */
 	public int publishEventOverHTTP(String eventName, Object payload) throws Exception {
 		String authKey = "use-token-auth";
-		return publishEventsThroughHttps(this.getOrgId(), this.getDeviceType(), this.getDeviceId(), 
+		return publishEventsThroughHttps(this.getOrgId(), this.getDomain(), this.getDeviceType(), this.getDeviceId(), 
 				eventName, true, authKey, this.getAuthToken(), payload);
 	}
 	

@@ -226,4 +226,9 @@ public class DeviceData {
 		return this.metadata;
 	}
 
+	public void setLocation(DeviceLocation location) {
+		this.deviceLocation = location;
+		root.add(location);
+	}
+
 }
