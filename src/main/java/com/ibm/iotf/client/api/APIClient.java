@@ -43,6 +43,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.ibm.iotf.client.AbstractClient;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -55,12 +56,15 @@ public class APIClient {
 
 	private static final String CLASS_NAME = APIClient.class.getName();
 	
-	private static final String BASIC_API_V0002_URL = "internetofthings.ibmcloud.com/api/v0002";
+	private static final String BASIC_API_V0002_URL = "/api/v0002";
 
 	private String authKey = null;
 	private String authToken = null;
 	private SSLContext sslContext = null;
 	private String orgId = null;
+
+	private String domain;
+	
 	public APIClient(Properties opt) throws NoSuchAlgorithmException, KeyManagementException {
 		boolean isGateway = false;
 		String authKeyPassed = null;
@@ -89,13 +93,34 @@ public class APIClient {
 		}
 		
 		this.orgId = trimedValue(org);
+		this.domain = getDomain(opt);
 		
 		if(isGateway) {
-			authKey = "g-" + this.orgId + '-' + this.getGWDeviceType(opt) + '-' + this.getGWDeviceId(opt);
+			authKey = "g/" + this.orgId + '/' + this.getGWDeviceType(opt) + '/' + this.getGWDeviceId(opt);
 		}
 
 		sslContext = SSLContext.getInstance("TLSv1.2");
 		sslContext.init(null, null, null);
+	}
+	
+	/**
+	 * 
+	 * @return the domain
+	 */
+	protected String getDomain(Properties options) {
+		String domain = null;
+		domain = options.getProperty("domain");
+		
+		if(domain == null) {
+			domain = options.getProperty("Domain");
+		}
+		domain = trimedValue(domain);
+		
+		if(domain != null && !("".equals(domain))) {
+			return domain;
+		} else {
+			return AbstractClient.DEFAULT_DOMAIN;
+		}
 	}
 	
 	private static String getAuthMethod(Properties opt) {
@@ -288,7 +313,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -343,7 +368,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -400,7 +425,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -456,7 +481,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -515,7 +540,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -572,7 +597,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -635,7 +660,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/");
 		
 		int code = 0;
@@ -697,7 +722,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/bulk/devices");
 		
 		int code = 0;
@@ -778,7 +803,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).append("/devices");
 				   
@@ -859,7 +884,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(gatewayType).
 		   append("/devices/").
@@ -926,7 +951,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types");
 		
 		HttpResponse response = null;
@@ -992,7 +1017,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType);
 		
@@ -1045,7 +1070,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType);
 		
@@ -1099,7 +1124,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType);
 		
@@ -1160,7 +1185,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types");
 		
 		int code = 0;
@@ -1247,7 +1272,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types");
 
 		JsonObject input = new JsonObject();
@@ -1288,7 +1313,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(typeId);
 		
@@ -1430,7 +1455,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/historian");
 		
 		if(deviceType != null) {
@@ -1533,7 +1558,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/historian/");
 		
 		if(deviceType != null) {
@@ -1616,7 +1641,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices");
@@ -1668,7 +1693,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(typeId).
 		   append("/devices");
@@ -1764,7 +1789,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -1820,7 +1845,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -1871,7 +1896,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -1930,7 +1955,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -1984,7 +2009,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -2056,7 +2081,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -2114,7 +2139,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -2164,7 +2189,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -2222,7 +2247,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -2307,7 +2332,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/logs/connection");
 		
 		// add the query parameters
@@ -2371,7 +2396,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/bulk/devices/add");
 
 		int code = 0;
@@ -2429,7 +2454,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/bulk/devices/remove");
 
 		int code = 0;
@@ -2495,7 +2520,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests");
 		
 		int code = 0;
@@ -2541,7 +2566,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests");
 		
 		int code = 0;
@@ -2589,7 +2614,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests/").append(requestId);
 
 		int code = 0;
@@ -2632,7 +2657,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests/").append(requestId);
 		
 		int code = 0;
@@ -2682,7 +2707,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests/").
 		   append(requestId).
 		   append("/deviceStatus");
@@ -2748,7 +2773,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests/").
 		   append(requestId).
 		   append("/deviceStatus/").
@@ -2806,7 +2831,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/usage/active-devices");
 		
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -2868,7 +2893,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/usage/historical-data");
 		
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -2930,7 +2955,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/usage/data-traffic");
 		
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -2984,7 +3009,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/service-status");
 		
 		int code = 0;
@@ -3062,7 +3087,7 @@ public class APIClient {
 
 		String METHOD = "getLastEvents(2)";
 		StringBuilder sb = new StringBuilder("https://");
-		sb.append(orgId).append('.').append(BASIC_API_V0002_URL)
+		sb.append(orgId).append('.').append(this.domain).append(BASIC_API_V0002_URL)
 				.append("/device");
 
 		if (deviceType != null) {
@@ -3129,7 +3154,7 @@ public class APIClient {
 
 		String METHOD = "getLastEvent(3)";
 		StringBuilder sb = new StringBuilder("https://");
-		sb.append(orgId).append('.').append(BASIC_API_V0002_URL)
+		sb.append(orgId).append('.').append(this.domain).append(BASIC_API_V0002_URL)
 				.append("/device");
 
 		if (deviceType != null) {

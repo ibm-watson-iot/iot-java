@@ -20,13 +20,12 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.device.DeviceClient;
-import com.ibm.iotf.sample.client.SystemObject;
+
 
 /**
  * This test verifies various Event Cache API operations that can be performed on Watson IoT Platform.
  *
  */
-
 public class EventCacheAPITests extends TestCase{
 	
 	

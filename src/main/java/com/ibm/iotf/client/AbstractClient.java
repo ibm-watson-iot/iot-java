@@ -58,7 +58,8 @@ public abstract class AbstractClient {
 	protected static final String CLIENT_ID_DELIMITER = ":";
 	
 	//protected static final String DOMAIN = "messaging.staging.internetofthings.ibmcloud.com";
-	protected static final String DOMAIN = "messaging.internetofthings.ibmcloud.com";
+	public static final String DEFAULT_DOMAIN = "internetofthings.ibmcloud.com";
+	protected static final String MESSAGING = "messaging";
 	protected static final int MQTT_PORT = 1883;
 	protected static final int MQTTS_PORT = 8883;
 	private volatile boolean disconnectRequested = false;
@@ -95,6 +96,7 @@ public abstract class AbstractClient {
 	protected MqttAsyncClient mqttAsyncClient = null;
 	protected MqttConnectOptions mqttClientOptions;
 	protected MqttCallback mqttCallback;
+	protected int keepAliveInterval = -1;  // default
 	
 	// Supported only for DM ManagedClient
 	protected MqttClient mqttClient = null;
@@ -239,11 +241,16 @@ public abstract class AbstractClient {
 	}
 	
 	private void configureMqtt() {
-		String serverURI = "tcp://" + getOrgId() + "." + DOMAIN + ":" + MQTT_PORT;
+		String serverURI = "tcp://" + getOrgId() + "." + MESSAGING + "." + getDomain() + ":" + MQTT_PORT;
 		try {
 			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
+			
+			mqttClientOptions.setCleanSession(this.isCleanSession());
+			if(this.keepAliveInterval != -1) {
+				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
+			}
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
@@ -251,7 +258,7 @@ public abstract class AbstractClient {
 	
 	private void configureMqtts() {
 		final String METHOD = "configureMqtts";
-		String serverURI = "ssl://" + getOrgId() + "." + DOMAIN + ":" + MQTTS_PORT;
+		String serverURI = "ssl://" + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + MQTTS_PORT;
 		try {
 			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
 			mqttAsyncClient.setCallback(mqttCallback);
@@ -259,6 +266,9 @@ public abstract class AbstractClient {
 			mqttClientOptions.setUserName(clientUsername);
 			mqttClientOptions.setPassword(clientPassword.toCharArray());
 			mqttClientOptions.setCleanSession(this.isCleanSession());
+			if(this.keepAliveInterval != -1) {
+				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
+			}
 			
 			/* This isn't needed as the production messaging.internetofthings.ibmcloud.com 
 			 * certificate should already be in trust chain.
@@ -288,6 +298,10 @@ public abstract class AbstractClient {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to configure TLSv1.2 connection: " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+	
+	public void setKeepAliveInterval(int keepAliveInterval) {
+		this.keepAliveInterval = keepAliveInterval;
 	}
 	
 	/**
@@ -417,6 +431,26 @@ public abstract class AbstractClient {
 
 	/**
 	 * 
+	 * @return the domain
+	 */
+	protected String getDomain() {
+		String domain = null;
+		domain = options.getProperty("domain");
+		
+		if(domain == null) {
+			domain = options.getProperty("Domain");
+		}
+		domain = trimedValue(domain);
+		
+		if(domain != null && !("".equals(domain))) {
+			return domain;
+		} else {
+			return DEFAULT_DOMAIN;
+		}
+	}
+	
+	/**
+	 * 
 	 * @return the organization id
 	 */
 	public String getOrgId() {
@@ -485,6 +519,7 @@ public abstract class AbstractClient {
 	
 	/**
 	 * @param organization  Organization ID (Either "quickstart" or the registered organization ID)
+	 * @param domain		Domain of the Watson IoT Platform, for example internetofthings.ibmcloud.com
 	 * @param deviceType	Device Type
 	 * @param deviceId		Device ID
 	 * @param eventName		Name of the Event
@@ -496,6 +531,7 @@ public abstract class AbstractClient {
 	 * @throws Exception	throws exception when http post fails
 	 */
 	protected static int publishEventsThroughHttps(String organization,
+			String domain,
 			String deviceType,
 			String deviceId,
 			String eventName,
@@ -507,6 +543,7 @@ public abstract class AbstractClient {
 		final String METHOD = "publishEventsThroughHttps";
 
 		validateNull("Organization ID", organization);
+		validateNull("Domain", domain);
 		validateNull("Device Type", deviceType);
 		validateNull("Device ID", deviceId);
 		validateNull("Event Name", eventName);
