@@ -55,6 +55,8 @@ import com.ibm.iotf.util.LoggerUtility;
 public abstract class AbstractClient {
 	
 	private static final String CLASS_NAME = AbstractClient.class.getName();
+	private static final String QUICK_START = "quickstart";
+	
 	protected static final String CLIENT_ID_DELIMITER = ":";
 	
 	//protected static final String DOMAIN = "messaging.staging.internetofthings.ibmcloud.com";
@@ -171,7 +173,7 @@ public abstract class AbstractClient {
 		// clear the disconnect state when the user connects the client to Watson IoT Platform
 		disconnectRequested = false;  
 		
-		if (getOrgId() == "quickstart") {
+		if (getOrgId() == QUICK_START) {
 			configureMqtt();
 		}
 		else {
@@ -547,7 +549,7 @@ public abstract class AbstractClient {
 		validateNull("Device Type", deviceType);
 		validateNull("Device ID", deviceId);
 		validateNull("Event Name", eventName);
-		if("quickstart".equalsIgnoreCase(organization) == false) {
+		if(QUICK_START.equalsIgnoreCase(organization) == false) {
 			validateNull("Authentication Method", authKey);
 			validateNull("Authentication Token", authToken);
 		}
@@ -555,7 +557,7 @@ public abstract class AbstractClient {
 		StringBuilder sb = new StringBuilder();
 		
 		// Form the URL
-		if("quickstart".equalsIgnoreCase(organization)) {
+		if(QUICK_START.equalsIgnoreCase(organization)) {
 			sb.append("http://");
 		} else {
 			sb.append("https://");
@@ -602,7 +604,7 @@ public abstract class AbstractClient {
 		post.addHeader("Content-Type", "application/json");
 		post.addHeader("Accept", "application/json");
 		
-		if("quickstart".equalsIgnoreCase(organization) == false) {
+		if(QUICK_START.equalsIgnoreCase(organization) == false) {
 			byte[] encoding = Base64.encodeBase64(new String(authKey + ":" + authToken).getBytes() );			
 			String encodedString = new String(encoding);
 			post.addHeader("Authorization", "Basic " + encodedString);

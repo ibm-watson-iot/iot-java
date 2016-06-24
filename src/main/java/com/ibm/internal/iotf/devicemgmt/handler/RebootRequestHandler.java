@@ -40,6 +40,7 @@ import com.ibm.iotf.util.LoggerUtility;
  */
 public class RebootRequestHandler extends DMRequestHandler implements PropertyChangeListener {
 
+	private static final String REQ_ID = "reqId";
 	private JsonElement reqId;
 
 	public RebootRequestHandler(ManagedClient dmClient) {
@@ -66,7 +67,7 @@ public class RebootRequestHandler extends DMRequestHandler implements PropertyCh
 		if (action == null || getDMClient().getActionHandler() == null) {
 			// this should never happen
 			JsonObject response = new JsonObject();
-			response.add("reqId", jsonRequest.get("reqId"));
+			response.add(REQ_ID, jsonRequest.get(REQ_ID));
 			response.add("rc", new JsonPrimitive(ResponseCode.DM_FUNCTION_NOT_IMPLEMENTED.getCode()));
 			respond(response);
 		} else {
@@ -74,7 +75,7 @@ public class RebootRequestHandler extends DMRequestHandler implements PropertyCh
 			// remove any other listener that are listening for the status update
 			((ConcreteDeviceAction)action).clearListener();
 			((ConcreteDeviceAction)action).addPropertyChangeListener(this);
-			this.reqId = jsonRequest.get("reqId");
+			this.reqId = jsonRequest.get(REQ_ID);
 			DeviceActionHandler handler = getDMClient().getActionHandler();
 			handler.handleReboot(action);
 		} 
@@ -86,7 +87,7 @@ public class RebootRequestHandler extends DMRequestHandler implements PropertyCh
 			try {
 				ConcreteDeviceAction action = (ConcreteDeviceAction) evt.getNewValue();
 				JsonObject response = action.toJsonObject();
-				response.add("reqId", reqId);
+				response.add(REQ_ID, reqId);
 				respond(response);
 			} catch(Exception e) {
 				LoggerUtility.warn(CLASS_NAME, "propertyChange", e.getMessage());
