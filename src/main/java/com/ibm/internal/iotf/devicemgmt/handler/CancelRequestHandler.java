@@ -49,7 +49,7 @@ public class CancelRequestHandler extends DMRequestHandler {
 	 */
 	@Override
 	protected void handleRequest(JsonObject jsonRequest) {
-		JsonArray fields = null;
+		JsonArray fields;
 		JsonObject d = (JsonObject)jsonRequest.get("d");
 		if (d != null) {
 			fields = (JsonArray)d.get("data");

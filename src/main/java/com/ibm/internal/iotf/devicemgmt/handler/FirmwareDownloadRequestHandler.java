@@ -65,7 +65,7 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 	@Override
 	public void handleRequest(JsonObject jsonRequest) {
 		final String METHOD = "handleRequest";
-		ResponseCode rc = ResponseCode.DM_INTERNAL_ERROR;
+		ResponseCode rc;
 		
 		JsonObject response = new JsonObject();
 		response.add("reqId", jsonRequest.get("reqId"));
