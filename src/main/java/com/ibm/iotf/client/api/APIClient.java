@@ -21,6 +21,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
@@ -168,7 +169,7 @@ public class APIClient {
 	}
 	
 	private HttpResponse connect(String httpOperation, String url, String jsonPacket, 
-			ArrayList<NameValuePair> queryParameters) throws IoTFCReSTException, URISyntaxException, IOException {
+			List<NameValuePair> queryParameters) throws IoTFCReSTException, URISyntaxException, IOException {
 		final String METHOD = "connect";
 		
 		StringEntity input = null;
@@ -714,7 +715,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving all the devices 
 	 */
-	public JsonObject getAllDevices(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDevices(List<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getDevices(1)";
 		/**
 		 * Form the url based on this swagger documentation
@@ -793,7 +794,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the devices 
 	 */
-	public JsonObject retrieveDevices(String deviceType, ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject retrieveDevices(String deviceType, List<NameValuePair> parameters) throws IoTFCReSTException {
 		
 		final String METHOD = "getDevices(typeID)";
 		/**
@@ -941,7 +942,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the device types 
 	 */
-	public JsonObject getAllDeviceTypes(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDeviceTypes(List<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getDeviceTypes";
 		/**
 		 * Form the url based on this swagger documentation
@@ -1373,7 +1374,7 @@ public class APIClient {
 	 * @return JsonArray Containing the historical events
 	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
-	public JsonElement getHistoricalEvents(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {		
+	public JsonElement getHistoricalEvents(List<NameValuePair> parameters) throws IoTFCReSTException {		
 		return getHistoricalEvents(null, null, parameters);
 	}
 	
@@ -1410,7 +1411,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
 	public JsonElement getHistoricalEvents(String deviceType, 
-			ArrayList<NameValuePair> parameters) throws IoTFCReSTException {		
+			List<NameValuePair> parameters) throws IoTFCReSTException {		
 		return getHistoricalEvents(deviceType, null, parameters);
 	}
 
@@ -1447,7 +1448,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
 	public JsonElement getHistoricalEvents(String deviceType, 
-			String deviceId, ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+			String deviceId, List<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getHistoricalEvents(3)";
 		/**
 		 * Form the url based on this swagger documentation
@@ -1573,7 +1574,7 @@ public class APIClient {
 		 * Create the query parameters based on the swagger UI
 		 */
 		
-		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
+		List<NameValuePair> parameters = new ArrayList<NameValuePair>();
 		if(bookmark != null) {
 			parameters.add(new BasicNameValuePair("_bookmark", bookmark));
 		}
@@ -2511,7 +2512,7 @@ public class APIClient {
 	 * @return JSON response containing the list of device management requests.
 	 * @throws IoTFCReSTException Failure in retrieving all DM requests
 	 */
-	public JsonObject getAllDeviceManagementRequests(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDeviceManagementRequests(List<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getAllDeviceManagementRequests";
 		/**
 		 * Form the url based on this swagger documentation
@@ -2697,7 +2698,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure in retrieving a DM request status
 	 */
 	public JsonObject getDeviceManagementRequestStatus(String requestId, 
-			ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+			List<NameValuePair> parameters) throws IoTFCReSTException {
 		
 		final String METHOD = "getDeviceManagementRequestStatus";
 		/**
