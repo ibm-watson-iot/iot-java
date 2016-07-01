@@ -98,7 +98,7 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		
-		Resource resource = (Resource) evt.getNewValue();
+		Resource resource;
 		// check if there is an observe relation established
 		resource = fieldsMap.get(evt.getPropertyName());
 		if(resource != null) {

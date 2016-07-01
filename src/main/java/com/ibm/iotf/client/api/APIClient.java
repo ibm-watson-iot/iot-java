@@ -108,7 +108,7 @@ public class APIClient {
 	 * @return the domain
 	 */
 	protected String getDomain(Properties options) {
-		String domain = null;
+		String domain;
 		domain = options.getProperty("domain");
 		
 		if(domain == null) {
@@ -137,7 +137,7 @@ public class APIClient {
 	 * new style - Device-ID
 	 */
 	protected String getGWDeviceId(Properties options) {
-		String id = null;
+		String id;
 		id = options.getProperty("Gateway-ID");
 		if(id == null) {
 			id = options.getProperty("Device-ID");
@@ -149,7 +149,7 @@ public class APIClient {
 	}
 	
 	protected String getGWDeviceType(Properties options) {
-		String type = null;
+		String type;
 		type = options.getProperty("Gateway-Type");
 		if(type == null) {
 			type = options.getProperty("Device-Type");

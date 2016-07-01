@@ -93,7 +93,7 @@ public class DeviceClient extends AbstractClient {
 	 * new style - Device-Type
 	 */
 	public String getDeviceType() {
-		String type = null;
+		String type;
 		type = options.getProperty("type");
 		if(type == null) {
 			type = options.getProperty("Device-Type");
