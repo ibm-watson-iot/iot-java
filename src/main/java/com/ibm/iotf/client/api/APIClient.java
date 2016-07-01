@@ -21,6 +21,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
@@ -185,89 +186,98 @@ public class APIClient {
 		String encodedString = new String(encoding);
 		switch(httpOperation) {
 			case "post":
-				URIBuilder builder = new URIBuilder(url);
-				if(queryParameters != null) {
-					builder.setParameters(queryParameters);
-				}
-
-				HttpPost post = new HttpPost(builder.build());
-				post.setEntity(input);
-				post.addHeader("Content-Type", "application/json");
-				post.addHeader("Accept", "application/json");
-				post.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
-					HttpResponse response = client.execute(post);
-					return response;
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				} finally {
-
-				}
-
+				return casePostFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "put":
-				URIBuilder putBuilder = new URIBuilder(url);
-				if(queryParameters != null) {
-					putBuilder.setParameters(queryParameters);
-				}
-				HttpPut put = new HttpPut(putBuilder.build());
-				put.setEntity(input);
-				put.addHeader("Content-Type", "application/json");
-				put.addHeader("Accept", "application/json");
-				put.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
-					HttpResponse response = client.execute(put);
-					return response;
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				} finally {
-
-				}
-				
+				return casePutFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "get":
-
-				URIBuilder getBuilder = new URIBuilder(url);
-				if(queryParameters != null) {
-					getBuilder.setParameters(queryParameters);
-				}
-				HttpGet get = new HttpGet(getBuilder.build());
-				get.addHeader("Content-Type", "application/json");
-				get.addHeader("Accept", "application/json");
-				get.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
-					HttpResponse response = client.execute(get);
-					return response;
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				}			
-
+				return caseGetFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "delete":
-				URIBuilder deleteBuilder = new URIBuilder(url);
-				if(queryParameters != null) {
-					deleteBuilder.setParameters(queryParameters);
-				}
-
-				HttpDelete delete = new HttpDelete(deleteBuilder.build());
-				delete.addHeader("Content-Type", "application/json");
-				delete.addHeader("Accept", "application/json");
-				delete.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
-					return client.execute(delete);
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				} finally {
-
-				}
+				return caseDeleteFromConnect(queryParameters, url, METHOD,input, encodedString);
 		}
 		return null;
 			
+	}
+	
+	private HttpResponse casePostFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+		URIBuilder builder = new URIBuilder(url);
+		if(queryParameters != null) {
+			builder.setParameters(queryParameters);
+		}
+
+		HttpPost post = new HttpPost(builder.build());
+		post.setEntity(input);
+		post.addHeader("Content-Type", "application/json");
+		post.addHeader("Accept", "application/json");
+		post.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
+			return client.execute(post);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		}  
+		
+	}
+	
+	private HttpResponse casePutFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+		URIBuilder putBuilder = new URIBuilder(url);
+		if(queryParameters != null) {
+			putBuilder.setParameters(queryParameters);
+		}
+		HttpPut put = new HttpPut(putBuilder.build());
+		put.setEntity(input);
+		put.addHeader("Content-Type", "application/json");
+		put.addHeader("Accept", "application/json");
+		put.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
+			return client.execute(put);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		} 
+
+	}
+	
+	private HttpResponse caseGetFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+
+		URIBuilder getBuilder = new URIBuilder(url);
+		if(queryParameters != null) {
+			getBuilder.setParameters(queryParameters);
+		}
+		HttpGet get = new HttpGet(getBuilder.build());
+		get.addHeader("Content-Type", "application/json");
+		get.addHeader("Accept", "application/json");
+		get.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
+			return client.execute(get);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		}			
+
+	}
+	
+	private HttpResponse caseDeleteFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+
+		URIBuilder deleteBuilder = new URIBuilder(url);
+		if(queryParameters != null) {
+			deleteBuilder.setParameters(queryParameters);
+		}
+
+		HttpDelete delete = new HttpDelete(deleteBuilder.build());
+		delete.addHeader("Content-Type", "application/json");
+		delete.addHeader("Accept", "application/json");
+		delete.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
+			return client.execute(delete);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		} 
+
 	}
 	
 	private String readContent(HttpResponse response, String method) 
