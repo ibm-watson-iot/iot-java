@@ -193,7 +193,7 @@ public abstract class AbstractClient {
 				throw e;
 				
 			} catch (MqttException e) {
-				Throwable t = e.getCause();
+				Throwable t;
 				if(connectAttempts > numberOfRetryAttempts) {
 					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Connecting to Watson IoT Platform failed", e);
 	                // We must give up as the host doesn't exist.
@@ -434,7 +434,7 @@ public abstract class AbstractClient {
 	 * @return the domain
 	 */
 	protected String getDomain() {
-		String domain = null;
+		String domain;
 		domain = options.getProperty("domain");
 		
 		if(domain == null) {
@@ -454,7 +454,7 @@ public abstract class AbstractClient {
 	 * @return the organization id
 	 */
 	public String getOrgId() {
-		String org = null;
+		String org;
 		org = options.getProperty("org");
 		
 		if(org == null) {
@@ -468,7 +468,7 @@ public abstract class AbstractClient {
 	 * new style - Device-ID
 	 */
 	public String getDeviceId() {
-		String id = null;
+		String id;
 		id = options.getProperty("id");
 		if(id == null) {
 			id = options.getProperty("Device-ID");
