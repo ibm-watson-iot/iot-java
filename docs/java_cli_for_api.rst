@@ -12,6 +12,7 @@ Constructor
 The constructor builds the client instance, and accepts a Properties object containing the following definitions:
 
 * org - Your organization ID
+* domain - (Optional) The messaging endpoint URL. By default the value is "internetofthings.ibmcloud.com"(Watson IoT Production server)
 * auth-key - API key
 * auth-token - API key token
 
