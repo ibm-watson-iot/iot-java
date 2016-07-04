@@ -9,6 +9,7 @@ Constructor
 The constructor builds the Gateway client instance, and accepts a Properties object containing the following definitions:
 
 * org - Your organization ID.
+* domain - (Optional) The messaging endpoint URL. By default the value is "internetofthings.ibmcloud.com"(Watson IoT Production server)
 * type - The type of your Gateway device.
 * id - The ID of your Gateway.
 * auth-method - Method of authentication (The only value currently supported is "token"). 
@@ -46,6 +47,7 @@ The Gateway device configuration file must be in the following format:
 
     [Gateway]
     org=$orgId
+    domain=$domain
     typ=$myGatewayDeviceType
     id=$myGatewayDeviceId
     auth-method=token
@@ -57,13 +59,15 @@ The Gateway device configuration file must be in the following format:
 Connecting to the Watson Internet of Things Platform
 ----------------------------------------------------
 
-Connect to the Watson Internet of Things Platform by calling the *connect* function.
+Connect to the Watson Internet of Things Platform by calling the **connect** function. The connect function takes an optional boolean parameter autoRetry (by default autoRetry is true) that controls allows the library to retry the connection when there is an MqttException. Note that the library won't retry when there is a MqttSecurityException due to incorrect device registration details passed even if the autoRetry is set to true.
+
+Also, one can use the **setKeepAliveInterval(int)** method before calling connect() to set the MQTT "keep alive" interval. This value, measured in seconds, defines the maximum time interval between messages sent or received. It enables the client to detect if the server is no longer available, without having to wait for the TCP/IP timeout. The client will ensure that at least one message travels across the network within each keep alive period. In the absence of a data-related message during the time period, the client sends a very small "ping" message, which the server will acknowledge. A value of 0 disables keepalive processing in the client. The default value is 60 seconds.
 
 .. code:: java
 
     Properties props = GatewayClient.parsePropertiesFile(new File("C:\\temp\\device.prop"));
     GatewayClient gwClient = new GatewayClient(props);
-    
+    gwClient.setKeepAliveInterval(80);
     gwClient.connect();
     
 Also, use the overloaded connect(int numberOfTimesToRetry) function to control the number of retries when there is a connection failure.
@@ -71,7 +75,7 @@ Also, use the overloaded connect(int numberOfTimesToRetry) function to control t
 .. code:: java
 
     DeviceClient myClient = new DeviceClient(options);
-    
+    gwClient.setKeepAliveInterval(80);
     myClient.connect(10);
     
 After the successful connection to the IBM Watson IoT Platform, the Gateway client can perform the following operations,
