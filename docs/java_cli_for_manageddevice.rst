@@ -74,6 +74,7 @@ ManagedDevice exposes 2 different constructors to support different user pattern
 Constructs a ManagedDevice instance by accepting the DeviceData and the following properties,
 
 * Organization-ID - Your organization ID.
+* Domain - (Optional) The messaging endpoint URL. By default the value is "internetofthings.ibmcloud.com"(Watson IoT Production server)
 * Device-Type - The type of your device.
 * Device-ID - The ID of your device.
 * Authentication-Method - Method of authentication (The only value currently supported is "token"). 
