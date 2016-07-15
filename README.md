@@ -31,11 +31,11 @@ The library artifact is pushed to the maven. Use the following maven dependency 
 
 However if you want to build the library by yourself, use the following maven command,
 
-    mvn clean deploy -Dmaven.test.skip=true
+    mvn clean package -Dmaven.test.skip=true
     
-The above command quickly builds the library by skipping the tests, however if you want to run the tests as well, then modify the property files present under directory src\test\resources and run the following maven command,
+The above command quickly builds the library by skipping the tests and the `target` directory contains the output jar files. However, if you want to run the tests as well, then modify the property files present under directory `src/test/resources` and run the following maven command,
     
-    mvn clean deploy
+    mvn clean package
 
 ----
 
