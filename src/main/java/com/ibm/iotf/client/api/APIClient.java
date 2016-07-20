@@ -1488,9 +1488,8 @@ public class APIClient {
 			IoTFCReSTException ex = new IoTFCReSTException(code, "Failure in retrieving "
 					+ "the Historical events. :: "+e.getMessage());
 			ex.initCause(e);
+			throw ex;
 		}
-		throwException(response, METHOD);
-		return null;
 	}
 	
 	/**
@@ -1618,9 +1617,8 @@ public class APIClient {
 			IoTFCReSTException ex = new IoTFCReSTException(code, "Failure in retrieving "
 					+ "the Historical events. :: "+e.getMessage());
 			ex.initCause(e);
+			throw ex;
 		}
-		throwException(response, METHOD);
-		return null;
 	}
 
 
@@ -3133,9 +3131,8 @@ public class APIClient {
 					"Failure in retrieving " + "the last events. :: "
 							+ e.getMessage());
 			ex.initCause(e);
+			throw ex;
 		}
-		throwException(response, METHOD);
-		return null;
 	}
 
 	/**
@@ -3203,8 +3200,7 @@ public class APIClient {
 					"Failure in retrieving " + "the last event. :: "
 							+ e.getMessage());
 			ex.initCause(e);
+			throw ex;
 		}
-		throwException(response, METHOD);
-		return null;
 	}
 }

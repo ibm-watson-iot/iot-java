@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -773,7 +774,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 */
 	public void connectionLost(Throwable e) {
 		final String METHOD = "connectionLost";
-		LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
+		LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.getMessage(), e);
 		try {
 			connect();
 			Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
