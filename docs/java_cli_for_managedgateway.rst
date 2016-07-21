@@ -74,6 +74,10 @@ Constructs a ManagedGateway instance by accepting the DeviceData and the followi
 * Gateway-ID - The ID of your gateway device.
 * Authentication-Method - Method of authentication (The only value currently supported is "token"). 
 * Authentication-Token - API key token
+* clean-session - true or false (required only if you want to connect the Gateway in durable subscription. By default the clean-session is set to true).
+
+**Note:** One must set clean-session to false to connect the Gateway in durable subscription. Refer to `Subscription Buffers and Clean Session <https://docs.internetofthings.ibmcloud.com/reference/mqtt/index.html#/subscription-buffers-and-clean-session#subscription-buffers-and-clean-session>`__ for more information about the clean session.
+
 
 All these properties are required to interact with the IBM Watson Internet of Things Platform. 
 
