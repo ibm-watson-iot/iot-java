@@ -92,7 +92,7 @@
         <dependency>
             <groupId>org.eclipse.paho</groupId>
             <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-            <version>1.0.3-SNAPSHOT</version>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>
@@ -241,14 +241,4 @@
             </plugin>
         </plugins>
     </build>
-    <repositories>
-
-        <!-- Dependency of the Paho mqqt snapshot is here -->
-        <repository>
-            <id>Eclipse Paho Release Repo</id>
-            <url>https://repo.eclipse.org/content/repositories/paho-snapshots/</url>
-        </repository>
-        
-    </repositories>
-
 </project>
