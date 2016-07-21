@@ -20,7 +20,7 @@ The constructor builds the client instance, and accepts a Properties object cont
 * auth-token - API key token (This is an optional field, needed only for registered flow).
 * clean-session - true or false (required only if you want to connect the application in durable subscription. By default the clean-session is set to true).
 
-**Note:** One must set clean-session to false to connect the device in durable subscription. Refer to Subscription Buffers and Clean Session for more information about the clean session.
+**Note:** One must set clean-session to false to connect the device in durable subscription. Refer to `Subscription Buffers and Clean Session <https://docs.internetofthings.ibmcloud.com/reference/mqtt/index.html#/subscription-buffers-and-clean-session#subscription-buffers-and-clean-session>`__ for more information about the clean session.
 
 The Properties object creates definitions which are used to interact with the Watson IoT Platform module. 
 
