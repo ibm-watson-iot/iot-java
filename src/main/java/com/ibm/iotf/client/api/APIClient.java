@@ -21,6 +21,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
@@ -108,7 +109,7 @@ public class APIClient {
 	 * @return the domain
 	 */
 	protected String getDomain(Properties options) {
-		String domain = null;
+		String domain;
 		domain = options.getProperty("domain");
 		
 		if(domain == null) {
@@ -137,7 +138,7 @@ public class APIClient {
 	 * new style - Device-ID
 	 */
 	protected String getGWDeviceId(Properties options) {
-		String id = null;
+		String id;
 		id = options.getProperty("Gateway-ID");
 		if(id == null) {
 			id = options.getProperty("Device-ID");
@@ -149,7 +150,7 @@ public class APIClient {
 	}
 	
 	protected String getGWDeviceType(Properties options) {
-		String type = null;
+		String type;
 		type = options.getProperty("Gateway-Type");
 		if(type == null) {
 			type = options.getProperty("Device-Type");
@@ -168,7 +169,7 @@ public class APIClient {
 	}
 	
 	private HttpResponse connect(String httpOperation, String url, String jsonPacket, 
-			ArrayList<NameValuePair> queryParameters) throws IoTFCReSTException, URISyntaxException, IOException {
+			List<NameValuePair> queryParameters) throws IoTFCReSTException, URISyntaxException, IOException {
 		final String METHOD = "connect";
 		
 		StringEntity input = null;
@@ -185,89 +186,98 @@ public class APIClient {
 		String encodedString = new String(encoding);
 		switch(httpOperation) {
 			case "post":
-				URIBuilder builder = new URIBuilder(url);
-				if(queryParameters != null) {
-					builder.setParameters(queryParameters);
-				}
-
-				HttpPost post = new HttpPost(builder.build());
-				post.setEntity(input);
-				post.addHeader("Content-Type", "application/json");
-				post.addHeader("Accept", "application/json");
-				post.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
-					HttpResponse response = client.execute(post);
-					return response;
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				} finally {
-
-				}
-
+				return casePostFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "put":
-				URIBuilder putBuilder = new URIBuilder(url);
-				if(queryParameters != null) {
-					putBuilder.setParameters(queryParameters);
-				}
-				HttpPut put = new HttpPut(putBuilder.build());
-				put.setEntity(input);
-				put.addHeader("Content-Type", "application/json");
-				put.addHeader("Accept", "application/json");
-				put.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
-					HttpResponse response = client.execute(put);
-					return response;
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				} finally {
-
-				}
-				
+				return casePutFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "get":
-
-				URIBuilder getBuilder = new URIBuilder(url);
-				if(queryParameters != null) {
-					getBuilder.setParameters(queryParameters);
-				}
-				HttpGet get = new HttpGet(getBuilder.build());
-				get.addHeader("Content-Type", "application/json");
-				get.addHeader("Accept", "application/json");
-				get.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
-					HttpResponse response = client.execute(get);
-					return response;
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				}			
-
+				return caseGetFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "delete":
-				URIBuilder deleteBuilder = new URIBuilder(url);
-				if(queryParameters != null) {
-					deleteBuilder.setParameters(queryParameters);
-				}
-
-				HttpDelete delete = new HttpDelete(deleteBuilder.build());
-				delete.addHeader("Content-Type", "application/json");
-				delete.addHeader("Accept", "application/json");
-				delete.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
-					return client.execute(delete);
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				} finally {
-
-				}
+				return caseDeleteFromConnect(queryParameters, url, METHOD,input, encodedString);
 		}
 		return null;
 			
+	}
+	
+	private HttpResponse casePostFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+		URIBuilder builder = new URIBuilder(url);
+		if(queryParameters != null) {
+			builder.setParameters(queryParameters);
+		}
+
+		HttpPost post = new HttpPost(builder.build());
+		post.setEntity(input);
+		post.addHeader("Content-Type", "application/json");
+		post.addHeader("Accept", "application/json");
+		post.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
+			return client.execute(post);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		}  
+		
+	}
+	
+	private HttpResponse casePutFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+		URIBuilder putBuilder = new URIBuilder(url);
+		if(queryParameters != null) {
+			putBuilder.setParameters(queryParameters);
+		}
+		HttpPut put = new HttpPut(putBuilder.build());
+		put.setEntity(input);
+		put.addHeader("Content-Type", "application/json");
+		put.addHeader("Accept", "application/json");
+		put.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
+			return client.execute(put);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		} 
+
+	}
+	
+	private HttpResponse caseGetFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+
+		URIBuilder getBuilder = new URIBuilder(url);
+		if(queryParameters != null) {
+			getBuilder.setParameters(queryParameters);
+		}
+		HttpGet get = new HttpGet(getBuilder.build());
+		get.addHeader("Content-Type", "application/json");
+		get.addHeader("Accept", "application/json");
+		get.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
+			return client.execute(get);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		}			
+
+	}
+	
+	private HttpResponse caseDeleteFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+
+		URIBuilder deleteBuilder = new URIBuilder(url);
+		if(queryParameters != null) {
+			deleteBuilder.setParameters(queryParameters);
+		}
+
+		HttpDelete delete = new HttpDelete(deleteBuilder.build());
+		delete.addHeader("Content-Type", "application/json");
+		delete.addHeader("Accept", "application/json");
+		delete.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
+			return client.execute(delete);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		} 
+
 	}
 	
 	private String readContent(HttpResponse response, String method) 
@@ -714,7 +724,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving all the devices 
 	 */
-	public JsonObject getAllDevices(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDevices(List<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getDevices(1)";
 		/**
 		 * Form the url based on this swagger documentation
@@ -793,7 +803,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the devices 
 	 */
-	public JsonObject retrieveDevices(String deviceType, ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject retrieveDevices(String deviceType, List<NameValuePair> parameters) throws IoTFCReSTException {
 		
 		final String METHOD = "getDevices(typeID)";
 		/**
@@ -941,7 +951,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the device types 
 	 */
-	public JsonObject getAllDeviceTypes(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDeviceTypes(List<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getDeviceTypes";
 		/**
 		 * Form the url based on this swagger documentation
@@ -1373,7 +1383,7 @@ public class APIClient {
 	 * @return JsonArray Containing the historical events
 	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
-	public JsonElement getHistoricalEvents(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {		
+	public JsonElement getHistoricalEvents(List<NameValuePair> parameters) throws IoTFCReSTException {		
 		return getHistoricalEvents(null, null, parameters);
 	}
 	
@@ -1410,7 +1420,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
 	public JsonElement getHistoricalEvents(String deviceType, 
-			ArrayList<NameValuePair> parameters) throws IoTFCReSTException {		
+			List<NameValuePair> parameters) throws IoTFCReSTException {		
 		return getHistoricalEvents(deviceType, null, parameters);
 	}
 
@@ -1447,7 +1457,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure in retrieving the historical events
 	 */
 	public JsonElement getHistoricalEvents(String deviceType, 
-			String deviceId, ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+			String deviceId, List<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getHistoricalEvents(3)";
 		/**
 		 * Form the url based on this swagger documentation
@@ -1478,9 +1488,8 @@ public class APIClient {
 			IoTFCReSTException ex = new IoTFCReSTException(code, "Failure in retrieving "
 					+ "the Historical events. :: "+e.getMessage());
 			ex.initCause(e);
+			throw ex;
 		}
-		throwException(response, METHOD);
-		return null;
 	}
 	
 	/**
@@ -1573,7 +1582,7 @@ public class APIClient {
 		 * Create the query parameters based on the swagger UI
 		 */
 		
-		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
+		List<NameValuePair> parameters = new ArrayList<NameValuePair>();
 		if(bookmark != null) {
 			parameters.add(new BasicNameValuePair("_bookmark", bookmark));
 		}
@@ -1608,9 +1617,8 @@ public class APIClient {
 			IoTFCReSTException ex = new IoTFCReSTException(code, "Failure in retrieving "
 					+ "the Historical events. :: "+e.getMessage());
 			ex.initCause(e);
+			throw ex;
 		}
-		throwException(response, METHOD);
-		return null;
 	}
 
 
@@ -2511,7 +2519,7 @@ public class APIClient {
 	 * @return JSON response containing the list of device management requests.
 	 * @throws IoTFCReSTException Failure in retrieving all DM requests
 	 */
-	public JsonObject getAllDeviceManagementRequests(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDeviceManagementRequests(List<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getAllDeviceManagementRequests";
 		/**
 		 * Form the url based on this swagger documentation
@@ -2697,7 +2705,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure in retrieving a DM request status
 	 */
 	public JsonObject getDeviceManagementRequestStatus(String requestId, 
-			ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+			List<NameValuePair> parameters) throws IoTFCReSTException {
 		
 		final String METHOD = "getDeviceManagementRequestStatus";
 		/**
@@ -3123,9 +3131,8 @@ public class APIClient {
 					"Failure in retrieving " + "the last events. :: "
 							+ e.getMessage());
 			ex.initCause(e);
+			throw ex;
 		}
-		throwException(response, METHOD);
-		return null;
 	}
 
 	/**
@@ -3193,8 +3200,7 @@ public class APIClient {
 					"Failure in retrieving " + "the last event. :: "
 							+ e.getMessage());
 			ex.initCause(e);
+			throw ex;
 		}
-		throwException(response, METHOD);
-		return null;
 	}
 }

@@ -13,6 +13,7 @@ Constructor
 The constructor builds the client instance, and accepts a Properties object containing the following definitions:
 
 * org - Your organization ID. (This is a required field. In case of quickstart flow, provide org as quickstart.)
+* domain - (Optional) The messaging endpoint URL. By default the value is "internetofthings.ibmcloud.com"(Watson IoT Production server)
 * type - The type of your device. (This is a required field.)
 * id - The ID of your device. (This is a required field.
 * auth-method - Method of authentication (This is an optional field, needed only for registered flow and the only value currently supported is "token"). 
@@ -172,6 +173,7 @@ The content of the configuration file must be in the following format:
 
     [device]
     org=$orgId
+    domain=$domain
     typ=$myDeviceType
     id=$myDeviceId
     auth-method=token
@@ -185,10 +187,12 @@ Connecting to the Watson IoT Platform
 
 Connect to the Watson IoT Platform by calling the *connect* function. The connect function takes an optional boolean parameter autoRetry (by default autoRetry is true) that controls allows the library to retry the connection when there is an MqttException. Note that the library won't retry when there is a MqttSecurityException due to incorrect device registration details passed even if the autoRetry is set to true.
 
+Also, one can use the setKeepAliveInterval(int) method before calling connect() to set the MQTT "keep alive" interval. This value, measured in seconds, defines the maximum time interval between messages sent or received. It enables the client to detect if the server is no longer available, without having to wait for the TCP/IP timeout. The client will ensure that at least one message travels across the network within each keep alive period. In the absence of a data-related message during the time period, the client sends a very small "ping" message, which the server will acknowledge. A value of 0 disables keepalive processing in the client. The default value is 60 seconds.
+
 .. code:: java
 
     DeviceClient myClient = new DeviceClient(options);
-    
+    myClient.setKeepAliveInterval(120);
     myClient.connect(true);
     
 Also, use the overloaded connect(int numberOfTimesToRetry) function to control the number of retries when there is a connection failure.

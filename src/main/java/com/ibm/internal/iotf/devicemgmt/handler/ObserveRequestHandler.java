@@ -43,6 +43,9 @@ import com.ibm.iotf.util.LoggerUtility;
  */
 public class ObserveRequestHandler extends DMRequestHandler implements PropertyChangeListener {
 
+	private static final String FIELDS = "fields";
+	private static final String FIELD = "field";
+	
 	private ConcurrentHashMap<String, Resource> fieldsMap = new ConcurrentHashMap<String, Resource>();
 	private ConcurrentHashMap<String, JsonElement> responseMap = new ConcurrentHashMap<String, JsonElement>();
 	
@@ -67,17 +70,17 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 		JsonObject response = new JsonObject();
 		JsonArray responseArray = new JsonArray();
 		JsonObject d = (JsonObject) jsonRequest.get("d");
-		JsonArray fields = (JsonArray) d.get("fields");
+		JsonArray fields = (JsonArray) d.get(FIELDS);
 		for (int i=0; i < fields.size(); i++) {
 			JsonObject field = fields.get(i).getAsJsonObject();
-			String name = field.get("field").getAsString();
+			String name = field.get(FIELD).getAsString();
 			JsonObject fieldResponse = new JsonObject();
 			Resource resource = getDMClient().getDeviceData().getResource(name);
 			if(resource != null) {
 				resource.addPropertyChangeListener(Resource.ChangeListenerType.INTERNAL, this);
 				fieldsMap.put(name, resource);
 			}
-			fieldResponse.addProperty("field", name);
+			fieldResponse.addProperty(FIELD, name);
 			JsonElement value = resource.toJsonObject();
 			fieldResponse.add("value", value);
 			responseMap.put(name, value);
@@ -85,7 +88,7 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 		}
 	
 		JsonObject responseFileds = new JsonObject();
-		responseFileds.add("fields", responseArray);
+		responseFileds.add(FIELDS, responseArray);
 		response.add("d", responseFileds);
 		response.add("reqId", jsonRequest.get("reqId"));
 		response.add("rc", new JsonPrimitive(ResponseCode.DM_SUCCESS.getCode()));
@@ -95,13 +98,13 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		
-		Resource resource = (Resource) evt.getNewValue();
+		Resource resource;
 		// check if there is an observe relation established
 		resource = fieldsMap.get(evt.getPropertyName());
 		if(resource != null) {
 			JsonObject response = new JsonObject();
 			JsonObject field = new JsonObject();
-			field.add("field", new JsonPrimitive(resource.getCanonicalName()));
+			field.add(FIELD, new JsonPrimitive(resource.getCanonicalName()));
 			JsonElement value = resource.toJsonObject();
 			JsonElement trimedValue = trimResponse(evt.getPropertyName(), value);
 			if(null == trimedValue) {
@@ -111,7 +114,7 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 			JsonObject fields = new JsonObject();
 			JsonArray fieldsArray = new JsonArray();
 			fieldsArray.add(field);
-			fields.add("fields", fieldsArray);
+			fields.add(FIELDS, fieldsArray);
 			response.add("d", fields);
 			notify(response);
 		}
@@ -122,7 +125,7 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 		LoggerUtility.fine(CLASS_NAME, METHOD,  "Cancel observation for " + fields);
 		for (int i=0; i < fields.size(); i++) {
 			JsonObject obj = (JsonObject)fields.get(i);
-			String name = obj.get("field").getAsString();
+			String name = obj.get(FIELD).getAsString();
 			Resource resource = fieldsMap.remove(name);
 			if(null != resource) {
 				resource.removePropertyChangeListener(this);

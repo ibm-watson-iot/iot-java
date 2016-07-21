@@ -172,7 +172,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * new style - Device-ID
 	 */
 	public String getGWDeviceId() {
-		String id = null;
+		String id;
 		id = options.getProperty("Gateway-ID");
 		if(id == null) {
 			return getDeviceId();
@@ -181,7 +181,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	}
 	
 	public String getGWDeviceType() {
-		String type = null;
+		String type;
 		type = options.getProperty("Gateway-Type");
 		if(type == null) {
 			type = options.getProperty("type");
@@ -656,9 +656,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 			matcher = GATEWAY_NOTIFICATION_PATTERN.matcher(topic);
 			if(matcher.matches()) {
 				String type = matcher.group(1);
-				String id = matcher.group(2);
-				Notification cmd = new Notification(type, id, msg);
-				
+				String id = matcher.group(2);	
 			}
 
 		}

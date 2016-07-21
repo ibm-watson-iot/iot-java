@@ -262,12 +262,25 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 		gwClient.setGatewayCallback(callback);
 		
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
-		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
+		
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, null);
 		
 		int count = 0;
+		// wait for sometime before checking
+		while(callback.commandReceived == false && count++ <= 5) {
+			try {
+				Thread.sleep(1000);
+			} catch(InterruptedException e) {}
+		}
+		
+		count = 0;
+		callback.clear();
+		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
+		publishCommand(false, null);
+		
+		
 		// wait for sometime before checking
 		while(callback.commandReceived == false && count++ <= 5) {
 			try {
@@ -287,12 +300,27 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 		gwClient.setGatewayCallback(callback);
 		
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop");
-		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop");
+		
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, null);
 		
 		int count = 0;
+		// wait for sometime before checking
+		while(callback.commandReceived == false && count++ <= 5) {
+			try {
+				Thread.sleep(1000);
+			} catch(InterruptedException e) {}
+		}
+		
+		count = 0;
+		callback.clear();
+		
+		
+		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop");
+		
+		// Ask application to publish the command to this gateway now
+		publishCommand(false, null);
 		// wait for sometime before checking
 		while(callback.commandReceived == false && count++ <= 5) {
 			try {
@@ -312,12 +340,27 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 		gwClient.setGatewayCallback(callback);
 		
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json");
-		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json");
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, null);
 		
 		int count = 0;
+		// wait for sometime before checking
+		while(callback.commandReceived == false && count++ <= 5) {
+			try {
+				Thread.sleep(1000);
+			} catch(InterruptedException e) {}
+		}
+		
+		count = 0;
+		callback.clear();
+		
+		
+		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json");
+		
+		// Ask application to publish the command to this gateway now
+		publishCommand(false, null);
+		
 		// wait for sometime before checking
 		while(callback.commandReceived == false && count++ <= 5) {
 			try {
@@ -337,12 +380,29 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 		gwClient.setGatewayCallback(callback);
 		
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json", 2);
-		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json");
+		
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, null);
 		
 		int count = 0;
+		// wait for sometime before checking
+		while(callback.commandReceived == false && count++ <= 5) {
+			try {
+				Thread.sleep(1000);
+			} catch(InterruptedException e) {}
+		}
+		
+		count = 0;
+		callback.clear();
+		
+		
+		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json");
+		
+		// Ask application to publish the command to this gateway now
+		publishCommand(false, null);
+		
+		count = 0;
 		// wait for sometime before checking
 		while(callback.commandReceived == false && count++ <= 5) {
 			try {
@@ -414,6 +474,10 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 		public void processNotification(Notification notification) {
 			// TODO Auto-generated method stub
 			
+		}
+		
+		private void clear() {
+			commandReceived = false;
 		}
 	}
 	

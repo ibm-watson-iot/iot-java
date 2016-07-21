@@ -12,6 +12,7 @@ Constructor
 The constructor builds the client instance, and accepts a Properties object containing the following definitions:
 
 * org - Your organization ID
+* domain - (Optional) The messaging endpoint URL. By default the value is "internetofthings.ibmcloud.com"(Watson IoT Production server)
 * auth-key - API key
 * auth-token - API key token
 
@@ -23,10 +24,10 @@ The following code snippet shows how to construct the APIClient instance using t
     
     import com.ibm.iotf.client.api.ApiClient;
     ...
-    Properties options = new Properties();
-    options.put("org", "uguhsp");
-    options.put("API-Key", "<API-Key>");
-    options.put("Authentication-Token", "<Authentication-Token>");
+    Properties props = new Properties();
+    props.put("org", "uguhsp");
+    props.put("API-Key", "<API-Key>");
+    props.put("Authentication-Token", "<Authentication-Token>");
     
     APIClient apiClient = new APIClient(props);
     ...

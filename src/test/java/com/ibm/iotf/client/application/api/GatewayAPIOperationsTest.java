@@ -81,18 +81,24 @@ public class GatewayAPIOperationsTest extends TestCase {
 			//Instantiate the class by passing the properties file
 			apiClient = new APIClient(props);
 			
-			String deviceTypeToBeAdded = "{\"id\": \"" + DEVICE_TYPE + "\",\"description\": "
-					+ "\"TestDT\",\"deviceInfo\": {\"fwVersion\": \"1.0.0\",\"hwVersion\": \"1.0\"},\"metadata\": {}}";
-			
-			JsonElement type = new JsonParser().parse(deviceTypeToBeAdded);
-			apiClient.addGatewayDeviceType(type);
-			apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, "password", null,null,null);
-			
 		} catch (Exception e) {
 			// looks like the application.properties file is not updated properly
 			apiClient = null;
+			return;
 		}
 		
+		try {
+			String deviceTypeToBeAdded = "{\"id\": \"" + DEVICE_TYPE + "\",\"description\": "
+				+ "\"TestDT\",\"deviceInfo\": {\"fwVersion\": \"1.0.0\",\"hwVersion\": \"1.0\"},\"metadata\": {}}";
+		
+			JsonElement type = new JsonParser().parse(deviceTypeToBeAdded);
+			try{
+				apiClient.addGatewayDeviceType(type);
+			} catch(Exception e) {}
+			apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, "password", null,null,null);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 		
 	    setUpIsDone = true;
 	}
@@ -100,10 +106,19 @@ public class GatewayAPIOperationsTest extends TestCase {
 	public void test01RegisterDevicesUnderGateway() throws IoTFCReSTException {
 		System.out.println("Registering devices under the gateway --> " + DEVICE_ID);
 		
-		// Let us add the device type first
-		apiClient.addDeviceType(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_TYPE, null, null);
-		// then add the device
-		apiClient.registerDeviceUnderGateway(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, DEVICE_TYPE, DEVICE_ID);
+		try {
+			// Let us add the device type first
+			apiClient.addDeviceType(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_TYPE, null, null);
+		} catch(Exception e) { 
+			e.printStackTrace();
+		}
+		
+		try {
+			// then add the device
+			apiClient.registerDeviceUnderGateway(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, DEVICE_TYPE, DEVICE_ID);
+		} catch(Exception e) { 
+			e.printStackTrace();
+		}
 		
 		// check if the device exists
 		assertTrue("Not able to register attached devices", apiClient.isDeviceExist(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID));

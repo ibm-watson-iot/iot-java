@@ -95,7 +95,7 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 	public void handleRequest(JsonObject jsonRequest) {
 		final String METHOD = "handleRequest";
 		List<Resource> fireRequiredResources = new ArrayList<Resource>();
-		JsonArray fields = null;
+		JsonArray fields;
 		ResponseCode rc = ResponseCode.DM_UPDATE_SUCCESS;
 		JsonObject response = new JsonObject();
 		JsonObject d = (JsonObject)jsonRequest.get("d");
