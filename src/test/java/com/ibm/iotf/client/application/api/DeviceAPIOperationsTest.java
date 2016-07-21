@@ -16,6 +16,7 @@ package com.ibm.iotf.client.application.api;
 
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
@@ -50,6 +51,7 @@ public class DeviceAPIOperationsTest extends TestCase {
 	private static final String DEVICE_TYPE = "TestDT";
 	private static final String DEVICE_ID = "RasPi01";
 	private static final String DEVICE_ID2 = "RasPi02";
+	private static final String NON_ASCII_DEVICE_ID = "NONASCII";
 	
 	// Example Json format to add a device
 	/*
@@ -172,10 +174,12 @@ public class DeviceAPIOperationsTest extends TestCase {
 	public void test08deleteDevice() throws IoTFCReSTException {
 		try {
 			System.out.println("Deleting devices --> " +  "  and "+DEVICE_ID);
-			boolean status = apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
+			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
 			assertFalse("Device is not deleted successfully", apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID2));
-			status = apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
 			assertFalse("Device is not deleted successfully", apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID));
+			apiClient.deleteDevice(DEVICE_TYPE, NON_ASCII_DEVICE_ID);
+			assertFalse("Device is not deleted successfully", apiClient.isDeviceExist(DEVICE_TYPE, NON_ASCII_DEVICE_ID));
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
@@ -273,6 +277,30 @@ public class DeviceAPIOperationsTest extends TestCase {
 			apiClientWithWrongOrg.registerDevice(DEVICE_TYPE, input);
 			fail("Doesn't throw invild Org exception");
 		} catch(IoTFCReSTException e) {}		
+	}
+	
+	/**
+	 * This sample showcases how to add a device using the Java Client Library.
+	 * @throws IoTFCReSTException
+	 */
+	public void test01addDeviceWithNonASCIIContents() throws IoTFCReSTException {
+		
+		String DEVICE_TEMPLATE = "'{'\"deviceId\": " + "\"{0}\",\"authToken\": \"password\","
+				+ "\"deviceInfo\": '{'\"descriptiveLocation\": \"{1}\"}}";
+
+		String location = "XÃŒ";  // Contains a non-ASCII character
+		//String location = "IBM";  // Contains a non-ASCII character
+		String deviceData = MessageFormat.format(DEVICE_TEMPLATE, NON_ASCII_DEVICE_ID, location);
+		JsonParser parser = new JsonParser();
+		try {
+			JsonElement input = parser.parse(deviceData);
+			JsonObject response = this.apiClient.registerDevice(DEVICE_TYPE, input);
+			assertTrue("Device is not registered successfully", apiClient.isDeviceExist(DEVICE_TYPE, NON_ASCII_DEVICE_ID));
+		} catch(IoTFCReSTException e) {
+			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
+		}
 	}
 	
 	/**

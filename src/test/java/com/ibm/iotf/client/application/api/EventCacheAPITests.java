@@ -14,6 +14,7 @@ package com.ibm.iotf.client.application.api;
  */
 import junit.framework.TestCase;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -106,8 +107,21 @@ public class EventCacheAPITests extends TestCase{
 		}
 		deviceClient.disconnect();
 		assertTrue("Expected device events are  not present for the device",sucess);
-		
+	}
+	
+	public void testVerifyExceptionMessage() throws IoTFCReSTException {
 
+		String deviceType = "sample";
+		String deviceId = "myid";
+		String eventId = "my^%^evt";
+		try {
+			JsonElement response = apiClient.getLastEvent(deviceType, deviceId, eventId);
+			System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(response));
+		} catch (IoTFCReSTException e) {
+			assertTrue("Expected exception message is not thrown", e.getMessage().contains("Illegal character"));
+			return;
+		}
+		fail("Must trhow an exception");
 	}
 	private static String trimedValue(String value) {
 		if(value != null) {
