@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -590,13 +591,7 @@ public abstract class AbstractClient {
 		JsonElement dataElement = gson.toJsonTree(payload);
 		message.add("d", dataElement);
 		
-		StringEntity input = null;
-		try {
-			input = new StringEntity(message.toString());
-		} catch (UnsupportedEncodingException e) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to carry out the ReST request");
-			throw e;
-		}
+		StringEntity input = new StringEntity(message.toString(), StandardCharsets.UTF_8);
 		
 		// Create the Http post request
 		HttpPost post = new HttpPost(sb.toString());

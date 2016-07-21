@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -173,13 +174,8 @@ public class APIClient {
 		final String METHOD = "connect";
 		
 		StringEntity input = null;
-		try {
-			if(jsonPacket != null) {
-				input = new StringEntity(jsonPacket);
-			}
-		} catch (UnsupportedEncodingException e) {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to carry out the ReST request");
-			throw e;
+		if(jsonPacket != null) {
+			input = new StringEntity(jsonPacket, StandardCharsets.UTF_8);
 		}
 		
 		byte[] encoding = Base64.encodeBase64(new String(authKey + ":" + authToken).getBytes() );			
