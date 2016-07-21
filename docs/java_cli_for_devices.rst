@@ -18,6 +18,9 @@ The constructor builds the client instance, and accepts a Properties object cont
 * id - The ID of your device. (This is a required field.
 * auth-method - Method of authentication (This is an optional field, needed only for registered flow and the only value currently supported is "token"). 
 * auth-token - API key token (This is an optional field, needed only for registered flow).
+* clean-session - true or false (required only if you want to connect the application in durable subscription. By default the clean-session is set to true).
+
+**Note:** One must set clean-session to false to connect the device in durable subscription. Refer to Subscription Buffers and Clean Session for more information about the clean session.
 
 The Properties object creates definitions which are used to interact with the Watson IoT Platform module. 
 
