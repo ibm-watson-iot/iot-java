@@ -141,7 +141,7 @@ The device can invoke sendManageRequest() method to participate in device manage
 
 .. code:: java
 
-	managedDevice.manage(0, true, true);
+	managedDevice.sendManageRequest(0, true, true);
 	
 As shown, this method accepts following 3 parameters,
 
