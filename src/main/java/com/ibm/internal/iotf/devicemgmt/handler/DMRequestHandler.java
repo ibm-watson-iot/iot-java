@@ -188,55 +188,46 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 	public static void clearRequestHandlers(ManagedClient dmClient) throws MqttException {
 		
 		String[] topics = new String[7];
-		IMqttMessageListener[] listener = new IMqttMessageListener[7];
 		int index = 0;
 		
 		DeviceUpdateRequestHandler device = deviceUpdateHandlers.remove(dmClient);
 		if (device != null) {
-			topics[index] = device.getTopic();
-			listener[index++] = device;
+			topics[index++] = device.getTopic();
 		}
 		
 		ObserveRequestHandler observe = observeHandlers.remove(dmClient);
 		if (observe != null) {
-			topics[index] = observe.getTopic();
-			listener[index++] = observe;
+			topics[index++] = observe.getTopic();
 		}
 		
 		CancelRequestHandler cancel = cancelHandlers.remove(dmClient);
 		if (cancel != null) {
-			topics[index] = cancel.getTopic();
-			listener[index++] = cancel;
+			topics[index++] = cancel.getTopic();
 		}
 		
 		RebootRequestHandler reboot = rebootHandlers.remove(dmClient);
 		if (reboot != null) {
-			topics[index] = reboot.getTopic();
-			listener[index++] = reboot;
+			topics[index++] = reboot.getTopic();
 		}
 		
 		FactoryResetRequestHandler reset = resetHandlers.remove(dmClient);
 		if (reset != null) {
-			topics[index] = reset.getTopic();
-			listener[index++] = reset;
+			topics[index++] = reset.getTopic();
 		}
 
 		FirmwareDownloadRequestHandler fwDownload = fwDownloadHandlers.remove(dmClient);
 		if (fwDownload != null) {
-			topics[index] = fwDownload.getTopic();
-			listener[index++] = fwDownload;
+			topics[index++] = fwDownload.getTopic();
 		}
 		
 		FirmwareUpdateRequestHandler fwUpdate = fwUpdateHandlers.remove(dmClient);
 		if (fwUpdate != null) {
-			topics[index] = fwUpdate.getTopic();
-			listener[index++] = fwUpdate;
+			topics[index++] = fwUpdate.getTopic();
 		}
 		
 		if(index > 0) {
-			int[] qos = new int[index];
-			Arrays.fill(qos, 1);
-			dmClient.unsubscribe(topics);
+			String[] filters = Arrays.copyOf(topics, index); 		
+			dmClient.unsubscribe(filters);
 		}
 		
 	}
