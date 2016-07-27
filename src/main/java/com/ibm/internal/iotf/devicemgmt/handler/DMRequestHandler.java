@@ -118,7 +118,6 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 			device = new DeviceUpdateRequestHandler(dmClient);
 			topics[index] = device.getTopic();
 			listener[index++] = device;
-			//device.subscribe();
 			deviceUpdateHandlers.put(dmClient, device);
 		}
 		
@@ -171,9 +170,11 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 		}
 		
 		if(index > 0) {
+			String[] filters = Arrays.copyOf(topics, index);		
+			IMqttMessageListener[] listeners = Arrays.copyOf(listener, index); 
 			int[] qos = new int[index];
 			Arrays.fill(qos, 1);
-			dmClient.subscribe(topics, qos, listener);
+			dmClient.subscribe(filters, qos, listeners);
 		}
 	}
 	

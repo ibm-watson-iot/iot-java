@@ -258,9 +258,9 @@ public class DeviceManagementTest extends TestCase {
 		
 		actionHandler.dmClient = dmClient;
 		
-		JsonObject download = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
-		System.out.println(download);
-		boolean status = apiClient.initiateDeviceManagementRequest(download);
+		JsonObject jsonReboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
+		System.out.println(jsonReboot);
+		boolean status = apiClient.initiateDeviceManagementRequest(jsonReboot);
 		
 		System.out.println(status);
 		int counter = 0;
