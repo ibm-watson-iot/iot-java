@@ -63,7 +63,7 @@ In order to search & find the samples easily, we moved the samples to correspond
 Dependencies
 -------------------------------------------------------------------------------
 
--  [Paho MQTT Java Client] (http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt.java.git/) - provides a client class which enable applications to connect to an MQTT broker
+-  [Paho MQTT Java Client] (https://repo.eclipse.org/content/repositories/paho-releases/org/eclipse/paho/org.eclipse.paho.client.mqttv3/1.1.0/org.eclipse.paho.client.mqttv3-1.1.0.jar) - provides a client class which enable applications to connect to an MQTT broker
 -  [google-gson] (https://code.google.com/p/google-gson/) - library for interacting with JSON objects
 -  [Apache Commons Logging] (http://commons.apache.org/proper/commons-logging/download_logging.cgi) - library for logging various informations
 -  [Apache Commons Codec] (https://commons.apache.org/proper/commons-codec/download_codec.cgi) - provides common encoder and decoder functionalities such as Base64
