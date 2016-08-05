@@ -2553,6 +2553,191 @@ public class APIClient {
 	}
 	
 	/**
+	 * Add a Device Management Extension.
+	 * 
+	 * @param request JSON object containing the the DM Extension request.
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * @throws IoTFCReSTException if failed.
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject addDeviceManagementExtension(JsonObject request) throws IoTFCReSTException {
+		return addDeviceManagementExtension(request.toString());
+	}
+	
+	/**
+	 * Add a Device Management Extension.
+	 * 
+	 * @param request JSON string containing the the DM Extension request.
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * @throws IoTFCReSTException if failed.
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject addDeviceManagementExtension(String request) throws IoTFCReSTException {
+		final String METHOD = "addDeviceManagementExtension";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/mgmt/custom/bundle");
+			response = connect("post", sb.toString(), request, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 409 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 201) {
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = new String("Invalid request");
+						break;
+					case 401:
+						reason = new String("Unauthorized");
+						break;
+					case 403:
+						reason = new String("Forbidden");
+						break;
+					case 409:
+						reason = new String("Conflict");
+						break;
+					case 500:
+						reason = new String("Internal server error");
+						break;
+					}
+					throw new IoTFCReSTException(code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding the Device Management Extension "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+	
+	/**
+	 * Delete a registered Device Management Extension.
+	 * 
+	 * @param bundleId The bundle ID of the registered Device Management Extension.
+	 * @throws IoTFCReSTException if failed.
+	 * @see IoTFCReSTException
+	 */
+	public void deleteDeviceManagementExtension(String bundleId) throws IoTFCReSTException {
+		final String METHOD = "deleteDeviceManagementExtension";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/mgmt/custom/bundle/" + bundleId);
+			response = connect("delete", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 204) {
+				//Success
+				return;
+			}
+			if (code == 400 || code == 401 || code == 403 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = new String("Invalid request");
+						break;
+					case 401:
+						reason = new String("Unauthorized");
+						break;
+					case 403:
+						reason = new String("Forbidden");
+						break;
+					case 500:
+						reason = new String("Internal server error");
+						break;
+					}
+					throw new IoTFCReSTException(code, reason, jsonResponse);
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding the Device Management Extension "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}		
+	}
+
+	/**
+	 * Get a specific registered device management extension.
+	 * 
+	 * @param bundleId
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * @throws IoTFCReSTException if failed.
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject getDeviceManagementExtension(String bundleId) throws IoTFCReSTException {
+		final String METHOD = "addDeviceManagementExtension";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/mgmt/custom/bundle/" + bundleId);
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 200 || code == 400 || code == 401 || code == 403 || code == 404 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 200) {
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = new String("Invalid request");
+						break;
+					case 401:
+						reason = new String("Unauthorized");
+						break;
+					case 403:
+						reason = new String("Forbidden");
+						break;
+					case 404:
+						reason = new String("Not Found");
+						break;
+					case 500:
+						reason = new String("Internal server error");
+						break;
+					}
+					throw new IoTFCReSTException(code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding the Device Management Extension "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+
+	/**
 	 * Initiates a device management request, such as reboot.
 	 * 
 	 * @param request JSON object containing the management request
