@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- * Copyright (c) 2015 IBM Corporation and other Contributors.
+ * Copyright (c) 2016 IBM Corporation and other Contributors.
 
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -8,36 +8,24 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- * Sathiskumar Palaniappan - Initial Contribution
+ * Mike Tran - Initial Contribution
  *****************************************************************************
  */
 package com.ibm.iotf.client.application.api;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Properties;
 
-import junit.framework.TestCase;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.device.DeviceManagementTest;
-import com.ibm.iotf.devicemgmt.DeviceData;
-import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
-import org.junit.runners.MethodSorters;
-import org.junit.FixMethodOrder;
+import junit.framework.TestCase;
 /**
  * This sample showcases various ReST operations that can be performed on Watson IoT Platform to
  * add/update/get/Gateway device(s)
@@ -98,7 +86,9 @@ public class DeviceManagementExtensionsTest extends TestCase {
 	    setUpIsDone = true;
 	}
 	
-	/*
+	/**
+	 * Expected JSON string when registering a new Device Management Extension:
+	 * 
 	{
 		"bundleId": "<unique identifier>",
 		"displayName": {
