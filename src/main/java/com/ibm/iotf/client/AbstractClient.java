@@ -65,6 +65,7 @@ public abstract class AbstractClient {
 	protected static final String MESSAGING = "messaging";
 	protected static final int MQTT_PORT = 1883;
 	protected static final int MQTTS_PORT = 8883;
+	protected static final int WSS_PORT = 443;
 	private volatile boolean disconnectRequested = false;
 	
 	/* Wait for 1 second after each attempt for the first 10 attempts*/
@@ -261,7 +262,16 @@ public abstract class AbstractClient {
 	
 	private void configureMqtts() {
 		final String METHOD = "configureMqtts";
-		String serverURI = "ssl://" + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + MQTTS_PORT;
+		String protocol = null;
+		int port;
+		if (isWebSocket()) {
+			protocol = "wss://";
+			port = WSS_PORT;
+		} else {
+			protocol = "ssl://";
+			port = MQTTS_PORT;
+		}
+		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
 		try {
 			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
 			mqttAsyncClient.setCallback(mqttCallback);
@@ -322,6 +332,15 @@ public abstract class AbstractClient {
 		if(value != null) {
 			enabled = Boolean.parseBoolean(trimedValue(value));
 		} 
+		return enabled;
+	}
+	
+	private boolean isWebSocket() {
+		boolean enabled = false;
+		String value = options.getProperty("WebSocket");
+		if (value != null) {
+			enabled = Boolean.parseBoolean(trimedValue(value));
+		}
 		return enabled;
 	}
 
