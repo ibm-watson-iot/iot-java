@@ -18,7 +18,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.text.DateFormat;
@@ -43,6 +42,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -65,6 +65,7 @@ public abstract class AbstractClient {
 	protected static final String MESSAGING = "messaging";
 	protected static final int MQTT_PORT = 1883;
 	protected static final int MQTTS_PORT = 8883;
+	protected static final int WS_PORT = 1883;
 	protected static final int WSS_PORT = 443;
 	private volatile boolean disconnectRequested = false;
 	
@@ -104,6 +105,7 @@ public abstract class AbstractClient {
 	
 	// Supported only for DM ManagedClient
 	protected MqttClient mqttClient = null;
+	protected MemoryPersistence persistence = null;
 
 	/**
 	 * Note that this class does not have a default constructor <br>
@@ -197,7 +199,6 @@ public abstract class AbstractClient {
 				throw e;
 				
 			} catch (MqttException e) {
-				Throwable t;
 				if(connectAttempts > numberOfRetryAttempts) {
 					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Connecting to Watson IoT Platform failed", e);
 	                // We must give up as the host doesn't exist.
@@ -245,9 +246,20 @@ public abstract class AbstractClient {
 	}
 	
 	private void configureMqtt() {
-		String serverURI = "tcp://" + getOrgId() + "." + MESSAGING + "." + getDomain() + ":" + MQTT_PORT;
+		String protocol = null;
+		int port;
+		if (isWebSocket()) {
+			protocol = "ws://";
+			port = WS_PORT;
+		} else {
+			protocol = "tcp://";
+			port = MQTT_PORT;
+		}
+		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
+
 		try {
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
+			persistence = new MemoryPersistence();
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, persistence);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
 			
@@ -273,7 +285,8 @@ public abstract class AbstractClient {
 		}
 		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
 		try {
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
+			persistence = new MemoryPersistence();
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, persistence);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
 			mqttClientOptions.setUserName(clientUsername);
@@ -304,9 +317,11 @@ public abstract class AbstractClient {
 			 * 
 			 */
 			 
-			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-			sslContext.init(null, null, null);
-			mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
+			if (!isWebSocket()) {
+				SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+				sslContext.init(null, null, null);
+				mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
+			}
 		} catch (MqttException | GeneralSecurityException e) {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to configure TLSv1.2 connection: " + e.getMessage());
 			e.printStackTrace();
