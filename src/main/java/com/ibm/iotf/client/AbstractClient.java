@@ -317,7 +317,7 @@ public abstract class AbstractClient {
 			 * SSLContext sslContext = SSLContextUtils.createSSLContext("TLSv1.2", null, trustManager);
 			 * 
 			 */
-			
+			/*
 			Provider[] providers = java.security.Security.getProviders();
 			for (Provider provider : providers) {
 				LoggerUtility.info(CLASS_NAME, METHOD, "Provider: " + provider.getName());
@@ -325,7 +325,9 @@ public abstract class AbstractClient {
 					LoggerUtility.info(CLASS_NAME, METHOD, "Algorithm: " + service.getAlgorithm());
 				}
 			}
+			*/
 			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+			LoggerUtility.info(CLASS_NAME, METHOD, "Provider: " + sslContext.getProvider().getName());
 			sslContext.init(null, null, null);
 			mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
 		} catch (MqttException | GeneralSecurityException e) {
