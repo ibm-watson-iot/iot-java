@@ -177,10 +177,9 @@ public abstract class AbstractClient {
 		// clear the disconnect state when the user connects the client to Watson IoT Platform
 		disconnectRequested = false;  
 		
-		if (getOrgId() == QUICK_START) {
+		if (getOrgId() == QUICK_START || !isSecureConnection()) {
 			configureMqtt();
-		}
-		else {
+		} else {
 			configureMqtts();
 		}
 		
@@ -353,6 +352,15 @@ public abstract class AbstractClient {
 	private boolean isWebSocket() {
 		boolean enabled = false;
 		String value = options.getProperty("WebSocket");
+		if (value != null) {
+			enabled = Boolean.parseBoolean(trimedValue(value));
+		}
+		return enabled;
+	}
+	
+	private boolean isSecureConnection() {
+		boolean enabled = false;
+		String value = options.getProperty("SecureConnection");
 		if (value != null) {
 			enabled = Boolean.parseBoolean(trimedValue(value));
 		}
