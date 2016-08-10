@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.Provider;
+import java.security.Provider.Service;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -315,12 +317,17 @@ public abstract class AbstractClient {
 			 * SSLContext sslContext = SSLContextUtils.createSSLContext("TLSv1.2", null, trustManager);
 			 * 
 			 */
-			 
-			if (!isWebSocket()) {
-				SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-				sslContext.init(null, null, null);
-				mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
+			
+			Provider[] providers = java.security.Security.getProviders();
+			for (Provider provider : providers) {
+				LoggerUtility.info(CLASS_NAME, METHOD, "Provider: " + provider.getName());
+				for (Service service : provider.getServices()) {
+					LoggerUtility.info(CLASS_NAME, METHOD, "Algorithm: " + service.getAlgorithm());
+				}
 			}
+			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+			sslContext.init(null, null, null);
+			mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
 		} catch (MqttException | GeneralSecurityException e) {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to configure TLSv1.2 connection: " + e.getMessage());
 			e.printStackTrace();
