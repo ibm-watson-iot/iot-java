@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.Provider;
-import java.security.Provider.Service;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -182,7 +180,7 @@ public abstract class AbstractClient {
 		if (getOrgId() == QUICK_START || !isSecureConnection()) {
 			configureMqtt();
 		} else {
-			configureMqtts();
+			configureConnOptions();
 		}
 		
 		while (tryAgain && disconnectRequested == false) {
@@ -263,7 +261,12 @@ public abstract class AbstractClient {
 			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, persistence);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
-			
+			if (clientUsername != null) {
+				mqttClientOptions.setUserName(clientUsername);
+			}
+			if (clientPassword != null) {
+				mqttClientOptions.setPassword(clientPassword.toCharArray());
+			}
 			mqttClientOptions.setCleanSession(this.isCleanSession());
 			if(this.keepAliveInterval != -1) {
 				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
@@ -273,25 +276,40 @@ public abstract class AbstractClient {
 		}
 	}
 	
-	private void configureMqtts() {
-		final String METHOD = "configureMqtts";
+	private void configureConnOptions() {
+		final String METHOD = "configureConnOptions";
 		String protocol = null;
 		int port;
-		if (isWebSocket()) {
-			protocol = "wss://";
-			port = WSS_PORT;
+		if (isSecureConnection()) {
+			if (isWebSocket()) {
+				protocol = "wss://";
+				port = WSS_PORT;
+			} else {
+				protocol = "ssl://";
+				port = MQTTS_PORT;
+			}
 		} else {
-			protocol = "ssl://";
-			port = MQTTS_PORT;
+			if (isWebSocket()) {
+				protocol = "ws://";
+				port = WS_PORT;
+			} else {
+				protocol = "tcp://";
+				port = MQTT_PORT;
+			}
 		}
+
 		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
 		try {
 			persistence = new MemoryPersistence();
 			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, persistence);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
-			mqttClientOptions.setUserName(clientUsername);
-			mqttClientOptions.setPassword(clientPassword.toCharArray());
+			if (clientUsername != null) {
+				mqttClientOptions.setUserName(clientUsername);
+			}
+			if (clientPassword != null) {
+				mqttClientOptions.setPassword(clientPassword.toCharArray());
+			}
 			mqttClientOptions.setCleanSession(this.isCleanSession());
 			if(this.keepAliveInterval != -1) {
 				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
@@ -317,19 +335,13 @@ public abstract class AbstractClient {
 			 * SSLContext sslContext = SSLContextUtils.createSSLContext("TLSv1.2", null, trustManager);
 			 * 
 			 */
-			/*
-			Provider[] providers = java.security.Security.getProviders();
-			for (Provider provider : providers) {
-				LoggerUtility.info(CLASS_NAME, METHOD, "Provider: " + provider.getName());
-				for (Service service : provider.getServices()) {
-					LoggerUtility.info(CLASS_NAME, METHOD, "Algorithm: " + service.getAlgorithm());
-				}
+
+			if (isSecureConnection()) {
+				SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+				//LoggerUtility.info(CLASS_NAME, METHOD, "Provider: " + sslContext.getProvider().getName());
+				sslContext.init(null, null, null);
+				mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
 			}
-			*/
-			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-			LoggerUtility.info(CLASS_NAME, METHOD, "Provider: " + sslContext.getProvider().getName());
-			sslContext.init(null, null, null);
-			mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
 		} catch (MqttException | GeneralSecurityException e) {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to configure TLSv1.2 connection: " + e.getMessage());
 			e.printStackTrace();
@@ -369,7 +381,7 @@ public abstract class AbstractClient {
 	
 	private boolean isSecureConnection() {
 		boolean enabled = false;
-		String value = options.getProperty("SecureConnection");
+		String value = options.getProperty("Secure");
 		if (value != null) {
 			enabled = Boolean.parseBoolean(trimedValue(value));
 		}
