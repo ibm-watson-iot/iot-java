@@ -18,7 +18,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.text.DateFormat;
@@ -43,6 +42,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -65,6 +65,8 @@ public abstract class AbstractClient {
 	protected static final String MESSAGING = "messaging";
 	protected static final int MQTT_PORT = 1883;
 	protected static final int MQTTS_PORT = 8883;
+	protected static final int WS_PORT = 1883;
+	protected static final int WSS_PORT = 443;
 	private volatile boolean disconnectRequested = false;
 	
 	/* Wait for 1 second after each attempt for the first 10 attempts*/
@@ -103,6 +105,7 @@ public abstract class AbstractClient {
 	
 	// Supported only for DM ManagedClient
 	protected MqttClient mqttClient = null;
+	protected MemoryPersistence persistence = null;
 
 	/**
 	 * Note that this class does not have a default constructor <br>
@@ -174,11 +177,10 @@ public abstract class AbstractClient {
 		// clear the disconnect state when the user connects the client to Watson IoT Platform
 		disconnectRequested = false;  
 		
-		if (getOrgId() == QUICK_START) {
+		if (getOrgId() == QUICK_START || !isSecureConnection()) {
 			configureMqtt();
-		}
-		else {
-			configureMqtts();
+		} else {
+			configureConnOptions();
 		}
 		
 		while (tryAgain && disconnectRequested == false) {
@@ -196,7 +198,6 @@ public abstract class AbstractClient {
 				throw e;
 				
 			} catch (MqttException e) {
-				Throwable t;
 				if(connectAttempts > numberOfRetryAttempts) {
 					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Connecting to Watson IoT Platform failed", e);
 	                // We must give up as the host doesn't exist.
@@ -244,12 +245,28 @@ public abstract class AbstractClient {
 	}
 	
 	private void configureMqtt() {
-		String serverURI = "tcp://" + getOrgId() + "." + MESSAGING + "." + getDomain() + ":" + MQTT_PORT;
+		String protocol = null;
+		int port;
+		if (isWebSocket()) {
+			protocol = "ws://";
+			port = WS_PORT;
+		} else {
+			protocol = "tcp://";
+			port = MQTT_PORT;
+		}
+		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
+
 		try {
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
+			persistence = new MemoryPersistence();
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, persistence);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
-			
+			if (clientUsername != null) {
+				mqttClientOptions.setUserName(clientUsername);
+			}
+			if (clientPassword != null) {
+				mqttClientOptions.setPassword(clientPassword.toCharArray());
+			}
 			mqttClientOptions.setCleanSession(this.isCleanSession());
 			if(this.keepAliveInterval != -1) {
 				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
@@ -259,15 +276,40 @@ public abstract class AbstractClient {
 		}
 	}
 	
-	private void configureMqtts() {
-		final String METHOD = "configureMqtts";
-		String serverURI = "ssl://" + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + MQTTS_PORT;
+	private void configureConnOptions() {
+		final String METHOD = "configureConnOptions";
+		String protocol = null;
+		int port;
+		if (isSecureConnection()) {
+			if (isWebSocket()) {
+				protocol = "wss://";
+				port = WSS_PORT;
+			} else {
+				protocol = "ssl://";
+				port = MQTTS_PORT;
+			}
+		} else {
+			if (isWebSocket()) {
+				protocol = "ws://";
+				port = WS_PORT;
+			} else {
+				protocol = "tcp://";
+				port = MQTT_PORT;
+			}
+		}
+
+		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
 		try {
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
+			persistence = new MemoryPersistence();
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, persistence);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
-			mqttClientOptions.setUserName(clientUsername);
-			mqttClientOptions.setPassword(clientPassword.toCharArray());
+			if (clientUsername != null) {
+				mqttClientOptions.setUserName(clientUsername);
+			}
+			if (clientPassword != null) {
+				mqttClientOptions.setPassword(clientPassword.toCharArray());
+			}
 			mqttClientOptions.setCleanSession(this.isCleanSession());
 			if(this.keepAliveInterval != -1) {
 				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
@@ -293,10 +335,13 @@ public abstract class AbstractClient {
 			 * SSLContext sslContext = SSLContextUtils.createSSLContext("TLSv1.2", null, trustManager);
 			 * 
 			 */
-			 
-			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-			sslContext.init(null, null, null);
-			mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
+
+			if (isSecureConnection()) {
+				SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+				//LoggerUtility.info(CLASS_NAME, METHOD, "Provider: " + sslContext.getProvider().getName());
+				sslContext.init(null, null, null);
+				mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
+			}
 		} catch (MqttException | GeneralSecurityException e) {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to configure TLSv1.2 connection: " + e.getMessage());
 			e.printStackTrace();
@@ -322,6 +367,24 @@ public abstract class AbstractClient {
 		if(value != null) {
 			enabled = Boolean.parseBoolean(trimedValue(value));
 		} 
+		return enabled;
+	}
+	
+	private boolean isWebSocket() {
+		boolean enabled = false;
+		String value = options.getProperty("WebSocket");
+		if (value != null) {
+			enabled = Boolean.parseBoolean(trimedValue(value));
+		}
+		return enabled;
+	}
+	
+	private boolean isSecureConnection() {
+		boolean enabled = false;
+		String value = options.getProperty("Secure");
+		if (value != null) {
+			enabled = Boolean.parseBoolean(trimedValue(value));
+		}
 		return enabled;
 	}
 

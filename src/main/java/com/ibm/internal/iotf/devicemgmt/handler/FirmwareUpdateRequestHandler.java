@@ -83,8 +83,8 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 		DeviceFirmware firmware = getDMClient().getDeviceData().getDeviceFirmware();
 		if(firmware == null || getDMClient().getFirmwareHandler() == null) {
 			rc = ResponseCode.DM_FUNCTION_NOT_IMPLEMENTED;
-		} else if(firmware.getState() == DeviceFirmware.FirmwareState.IDLE.getState()) {
-			rc = ResponseCode.DM_BAD_REQUEST;
+		//} else if(firmware.getState() == DeviceFirmware.FirmwareState.IDLE.getState()) {
+		//	rc = ResponseCode.DM_BAD_REQUEST;
 		} else {
 			// Normal condition
 			
