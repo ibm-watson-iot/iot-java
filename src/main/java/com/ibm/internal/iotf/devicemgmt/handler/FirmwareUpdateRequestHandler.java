@@ -89,8 +89,6 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 			// Normal condition
 			
 			if (firmware.getUrl() != null) {
-				LoggerUtility.fine(CLASS_NAME, METHOD, "Fire Firmware update ");
-				getDMClient().getFirmwareHandler().updateFirmware(firmware);
 				rc = ResponseCode.DM_ACCEPTED;
 			} else {
 				rc = ResponseCode.DM_BAD_REQUEST;
@@ -100,6 +98,10 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 
 		response.add("rc", new JsonPrimitive(rc.getCode()));
 		respond(response);
+		if (rc == ResponseCode.DM_ACCEPTED) {
+			LoggerUtility.fine(CLASS_NAME, METHOD, "Fire Firmware update ");
+			getDMClient().getFirmwareHandler().updateFirmware(firmware);			
+		}
 	}
 
 }
