@@ -57,6 +57,7 @@ public abstract class AbstractClient {
 	
 	private static final String CLASS_NAME = AbstractClient.class.getName();
 	private static final String QUICK_START = "quickstart";
+	private static final int DEFAULT_MAX_INFLIGHT_MESSAGES = 100;
 	
 	protected static final String CLIENT_ID_DELIMITER = ":";
 	
@@ -271,6 +272,7 @@ public abstract class AbstractClient {
 			if(this.keepAliveInterval != -1) {
 				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
 			}
+			mqttClientOptions.setMaxInflight(getMaxInflight());
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
@@ -314,6 +316,8 @@ public abstract class AbstractClient {
 			if(this.keepAliveInterval != -1) {
 				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
 			}
+			
+			mqttClientOptions.setMaxInflight(getMaxInflight());
 			
 			/* This isn't needed as the production messaging.internetofthings.ibmcloud.com 
 			 * certificate should already be in trust chain.
@@ -386,6 +390,15 @@ public abstract class AbstractClient {
 			enabled = Boolean.parseBoolean(trimedValue(value));
 		}
 		return enabled;
+	}
+	
+	private int getMaxInflight() {
+		int maxInflight = DEFAULT_MAX_INFLIGHT_MESSAGES;
+		String value = options.getProperty("MaxInflightMessages");
+		if (value != null) {
+			maxInflight = Integer.parseInt(trimedValue(value));
+		}
+		return maxInflight;
 	}
 
 	/**
