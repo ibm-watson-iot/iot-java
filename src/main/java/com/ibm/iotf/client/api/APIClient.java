@@ -1705,15 +1705,17 @@ public class APIClient {
 		int code = 0;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
+		String method = "post";
 		try {
-			response = connect("post", sb.toString(), device.toString(), null);
+			response = connect(method, sb.toString(), device.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 201 || code == 400 || code == 409) {
-				// success
+				// Get the response
 				String result = this.readContent(response, METHOD);
 				jsonResponse = new JsonParser().parse(result);
 			}
 			if(code == 201) {
+				// Success
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -1723,21 +1725,27 @@ public class APIClient {
 			throw ex;
 		}
 		
-		if(code == 400) {
-			throw new IoTFCReSTException(400, "Invalid request (No body, invalid JSON, "
-					+ "unexpected key, bad value)", jsonResponse);
-		} else if(code == 401) {
-			throw new IoTFCReSTException(401, "The authentication token is empty or invalid");
-		} else if(code == 403) {
-			throw new IoTFCReSTException(403, "The authentication method is invalid or "
-					+ "the API key used does not exist");
-		} else if (code == 409) {
-			throw new IoTFCReSTException(409, "The device already exists", jsonResponse);  
-		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+		String reason = null;
+		switch (code) {
+		case 400:
+			reason = IoTFCReSTException.HTTP_ADD_DEVICE_ERR_400;
+			break;
+		case 401:
+			reason = IoTFCReSTException.HTTP_ADD_DEVICE_ERR_401;
+			break;
+		case 403:
+			reason = IoTFCReSTException.HTTP_ADD_DEVICE_ERR_403;
+			break;
+		case 409:
+			reason = IoTFCReSTException.HTTP_ADD_DEVICE_ERR_409;
+			break;
+		case 500:
+			reason = IoTFCReSTException.HTTP_ADD_DEVICE_ERR_500;
+			break;
+		default:
+			reason = IoTFCReSTException.HTTP_ERR_UNEXPECTED;
 		}
-		throwException(response, METHOD);
-		return null;
+		throw new IoTFCReSTException(method, sb.toString(), device.toString(), code, reason, jsonResponse);
 	}
 	
 	/**
@@ -2577,39 +2585,41 @@ public class APIClient {
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		int code = 0;
+		String method = "post";
 		try {
 			StringBuilder sb = new StringBuilder("https://");
 			sb.append(orgId).
 			   append('.').
 			   append(this.domain).append(BASIC_API_V0002_URL).
 			   append("/mgmt/custom/bundle");
-			response = connect("post", sb.toString(), request, null);
+			response = connect(method, sb.toString(), request, null);
 			code = response.getStatusLine().getStatusCode();
 			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 409 || code == 500) {
 				String result = this.readContent(response, METHOD);
 				jsonResponse = new JsonParser().parse(result);
 				if (code == 201) {
+					//Success
 					return jsonResponse.getAsJsonObject();
 				} else {
 					String reason = null;
 					switch (code) {
 					case 400:
-						reason = new String("Invalid request");
+						reason = IoTFCReSTException.HTTP_ADD_DM_EXTENSION_ERR_400;
 						break;
 					case 401:
-						reason = new String("Unauthorized");
+						reason = IoTFCReSTException.HTTP_ADD_DM_EXTENSION_ERR_401;
 						break;
 					case 403:
-						reason = new String("Forbidden");
+						reason = IoTFCReSTException.HTTP_ADD_DM_EXTENSION_ERR_403;
 						break;
 					case 409:
-						reason = new String("Conflict");
+						reason = IoTFCReSTException.HTTP_ADD_DM_EXTENSION_ERR_409;
 						break;
 					case 500:
-						reason = new String("Internal server error");
+						reason = IoTFCReSTException.HTTP_ADD_DM_EXTENSION_ERR_500;
 						break;
 					}
-					throw new IoTFCReSTException(code, reason, jsonResponse);
+					throw new IoTFCReSTException(method, sb.toString(), request, code, reason, jsonResponse);
 				}
 			} else {
 				throw new IoTFCReSTException(code, "Unexpected error");
@@ -2747,38 +2757,62 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure in initiating a DM request
 	 */
 	public boolean initiateDeviceManagementRequest(JsonObject request) throws IoTFCReSTException {
-		final String METHOD = "initiateDeviceManagementRequest";
+		try {
+			initiateDMRequest(request);
+			return true;
+		} catch (IoTFCReSTException e) {
+			throw e;
+		} catch (Exception e) {
+			throw e;
+		}
+		// Unreachable code
+		//return false;
+	}
+	
+	/**
+	 * Initiates a device management request, such as reboot.
+	 * 
+	 * @param request JSON object containing the management request
+	 * @return JSON object containing the response from Watson IoT Platform
+	 * @throws IoTFCReSTException Failure in initiating a DM request
+	 */
+	public JsonObject initiateDMRequest(JsonObject request) throws IoTFCReSTException {
+		final String METHOD = "initiateDMRequest";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
 		 */
 		StringBuilder sb = new StringBuilder("https://");
-		sb.append(orgId).
-		   append('.').
-		   append(this.domain).append(BASIC_API_V0002_URL).
+		sb.append(orgId).append('.').append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests");
 		
 		int code = 0;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
+		String method = "post";
 		try {
-			response = connect("post", sb.toString(), request.toString(), null);
+			response = connect(method, sb.toString(), request.toString(), null);
 			code = response.getStatusLine().getStatusCode();
-			if(code == 202) {
-				return true;
+			if (code == 202) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				return jsonResponse.getAsJsonObject();
 			}
-			String result = this.readContent(response, METHOD);
-			jsonResponse = new JsonParser().parse(result);
+			String reason = null;
+			switch (code) {
+			case 500:
+				reason = IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_500;
+				break;
+			default:
+				reason = IoTFCReSTException.HTTP_ERR_UNEXPECTED;
+			}
+			throw new IoTFCReSTException(method, sb.toString(), request.toString(), code, reason, null);
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in initiating the Device management Request "
 					+ "::"+e.getMessage());
 			ex.initCause(e);
 			throw ex;
 		}
-		if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
-		}
-		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
 	
 
