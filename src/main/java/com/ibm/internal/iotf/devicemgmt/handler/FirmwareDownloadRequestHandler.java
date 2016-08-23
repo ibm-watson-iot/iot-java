@@ -76,8 +76,6 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 			rc = ResponseCode.DM_BAD_REQUEST;		
 		} else {
 			if (deviceFirmware.getUrl() != null) {
-				LoggerUtility.fine(CLASS_NAME, METHOD, "fire firmware download");
-				getDMClient().getFirmwareHandler().downloadFirmware(deviceFirmware);
 				rc = ResponseCode.DM_ACCEPTED;
 			} else {
 				rc = ResponseCode.DM_BAD_REQUEST;
@@ -86,5 +84,9 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 		} 
 		response.add("rc", new JsonPrimitive(rc.getCode()));
 		respond(response);
+		if (rc == ResponseCode.DM_ACCEPTED) {
+			LoggerUtility.fine(CLASS_NAME, METHOD, "fire firmware download");
+			getDMClient().getFirmwareHandler().downloadFirmware(deviceFirmware);			
+		}
 	}
 }
