@@ -4,15 +4,15 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ibm.messaging</groupId>
-    <artifactId>com.ibm.iotf.client</artifactId>
-    <version>0.0.5-SNAPSHOT</version>
+    <artifactId>watson-iot</artifactId>
+    <version>0.1.4</version>
     <packaging>jar</packaging>
     <name>ibm-messaging/iot-java</name>
-    <description>IBM IoT Foundation client Library with samples from github https://github.com/ibm-messaging/iot-java</description>
+    <description>IBM Watson IoT client library to simplify device/gateway/application interactions with the IoT Platform</description>
     <url>https://github.com/ibm-messaging/iot-java</url>
 
     <scm>
-        <url>git@github.com:ibm-messaging/iot-java.git</url>
+        <url>https://github.com/ibm-messaging/iot-java</url>
         <connection>scm:git:git@github.com:ibm-messaging/iot-java.git</connection>
         <developerConnection>scm:git:git@github.com:ibm-messaging/iot-java.git</developerConnection>
     </scm>
@@ -37,14 +37,26 @@
             <organization>IBM</organization>
             <organizationUrl>http://www.ibm.com</organizationUrl>
         </developer>
+         <developer>
+            <name>Sathiskumar Palaniappan</name>
+            <email>sathipal@in.ibm.com</email>
+            <organization>IBM</organization>
+            <organizationUrl>http://www.ibm.com</organizationUrl>
+        </developer>
     </developers>
+    
+    <distributionManagement>
+  		<snapshotRepository>
+	    	<id>ossrh</id>
+	    	<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+	  	</snapshotRepository>
+  		<repository>
+    		<id>ossrh</id>
+    		<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+  		</repository>
+	</distributionManagement>
 
     <properties>
-
-        <!-- This project specific properties -->
-        <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-        <maven.build.skipTests>true</maven.build.skipTests>
-
         <!-- General properties -->
         <java.version>1.7</java.version>
 
@@ -53,12 +65,6 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-	<repositories>
-		<repository>
-			<id>Eclipse Paho Repo</id>
-			<url>https://repo.eclipse.org/content/repositories/paho-snapshots/</url>
-		</repository>
-	</repositories>
 
     <dependencies>
         <dependency>
@@ -70,17 +76,6 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
-        </dependency>
-        <dependency>
-            <groupId>org.fusesource</groupId>
-            <artifactId>sigar</artifactId>
-            <version>1.6.4</version>
-        </dependency>
-        <dependency>
-            <groupId>args4j</groupId>
-            <artifactId>args4j</artifactId>
-            <version>2.33</version>
-
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -97,27 +92,12 @@
         <dependency>
             <groupId>org.eclipse.paho</groupId>
             <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-            <version>1.0.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
             <version>3.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.cloudant</groupId>
-            <artifactId>cloudant-client</artifactId>
-            <version>1.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bidib.jbidib.org.qbang.rxtx</groupId>
-            <artifactId>rxtxcomm</artifactId>
-            <version>2.2</version>
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>
@@ -148,37 +128,6 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src</sourceDirectory>
-        <resources>
-            <resource>
-                <directory>src</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-            </resource>
-            <!-- <resource>
-                <directory>samples/iotfdevicemanagement/src</directory>
-                <excludes>
-                <exclude>**/*.java</exclude>
-                </excludes>
-                </resource>
-                <resource>
-                <directory>samples/iotfdeviceclient/src</directory>
-                <excludes>
-                <exclude>**/*.java</exclude>
-                </excludes>
-                </resource>
-            -->
-        </resources>
-        <testSourceDirectory>test</testSourceDirectory>
-        <testResources>
-            <testResource>
-                <directory>test</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-            </testResource>
-        </testResources>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -188,6 +137,17 @@
                     <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <delimiters>
+                        <delimiter>@</delimiter>
+                    </delimiters>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -211,10 +171,6 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
-                        <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                            <failOnError>false</failOnError>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -231,7 +187,58 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.3</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <goals>deploy</goals>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>with-deps</shadedClassifierName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
 </project>
