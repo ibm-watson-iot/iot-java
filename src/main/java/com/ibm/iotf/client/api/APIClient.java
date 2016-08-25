@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.cert.X509Certificate;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.net.util.Base64;
@@ -100,9 +103,21 @@ public class APIClient {
 		if(isGateway) {
 			authKey = "g/" + this.orgId + '/' + this.getGWDeviceType(opt) + '/' + this.getGWDeviceId(opt);
 		}
+		
+		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+				return new X509Certificate[0];
+			}
+
+			public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			}
+
+			public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			}
+		} };
 
 		sslContext = SSLContext.getInstance("TLSv1.2");
-		sslContext.init(null, null, null);
+		sslContext.init(null, trustAllCerts, null);
 	}
 	
 	/**
@@ -2790,28 +2805,33 @@ public class APIClient {
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		String method = "post";
+		IoTFCReSTException ex = null;
 		try {
 			response = connect(method, sb.toString(), request.toString(), null);
 			code = response.getStatusLine().getStatusCode();
-			if (code == 202) {
+			switch (code) {
+			case 202:
 				String result = this.readContent(response, METHOD);
 				jsonResponse = new JsonParser().parse(result);
-				return jsonResponse.getAsJsonObject();
-			}
-			String reason = null;
-			switch (code) {
+				break;
 			case 500:
-				reason = IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_500;
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_500, null);
 				break;
 			default:
-				reason = IoTFCReSTException.HTTP_ERR_UNEXPECTED;
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_ERR_UNEXPECTED, null);
 			}
-			throw new IoTFCReSTException(method, sb.toString(), request.toString(), code, reason, null);
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in initiating the Device management Request "
+			ex = new IoTFCReSTException("Failure in initiating the Device management Request "
 					+ "::"+e.getMessage());
 			ex.initCause(e);
-			throw ex;
+		}
+		if (jsonResponse != null) {
+			return jsonResponse.getAsJsonObject();
+		} else {
+			if (ex != null) {
+				throw ex;
+			}
+			return null;
 		}
 	}
 	
