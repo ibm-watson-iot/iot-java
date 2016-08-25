@@ -656,22 +656,29 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 						mqttClient.publish(topic, message);
 					}
 				} catch(MqttException ex) {
-					String payload = null;
-					try {
-						payload = new String(message.getPayload(), "UTF-8");
-					} catch (UnsupportedEncodingException e1) {	}
-					if(this.mqttAsyncClient.isConnected() == false) {
-						LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, " Connection Lost retrying to publish MSG :"+
-								payload +" on topic "+topic+" every 5 seconds");
-
-						// 	wait for 5 seconds and retry
+					long wait;
+					switch (ex.getReasonCode()) {
+					case MqttException.REASON_CODE_CLIENT_NOT_CONNECTED:
+					case MqttException.REASON_CODE_CLIENT_DISCONNECTING:
 						try {
-							Thread.sleep(5 * 1000);
-							continue;
-						} catch (InterruptedException e) {}
-					} else {
+							LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, " Connection Lost retrying to publish MSG :"+
+									new String(message.getPayload(), "UTF-8") + " on topic "+topic+" every 5 seconds");
+						} catch (UnsupportedEncodingException e1) {
+							e1.printStackTrace();
+						}
+						wait = 5 * 1000;
+						break;
+					case MqttException.REASON_CODE_MAX_INFLIGHT:
+						wait = 50;
+						break;
+					default:
 						throw ex;
 					}
+					// Retry
+					try {
+						Thread.sleep(wait);
+						continue;
+					} catch (InterruptedException e) {}
 				}
 
 				if (isConnected() == false) {
@@ -711,6 +718,10 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		publishQueue.add(jsonPubMsg);
 		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, ": Queued Topic(" + topic + ") qos=" +
 													qos + " payload (" + payload.toString() + ")");
+	}
+	
+	public void publish(String topic, JsonObject payload) throws MqttException {
+		publish(topic, payload, this.getMessagingQoS());
 	}
 
 	private void publish(JsonObject jsonPubMsg) throws MqttException, UnsupportedEncodingException {
@@ -955,6 +966,12 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			dmClient.unsubscribe(topic);
 		}
 
+		@Override
+		public void publish(String response, JsonObject payload)
+				throws MqttException {
+			dmClient.publish(response, payload);
+		}
+		
 		@Override
 		public void publish(String response, JsonObject payload, int qos)
 				throws MqttException {

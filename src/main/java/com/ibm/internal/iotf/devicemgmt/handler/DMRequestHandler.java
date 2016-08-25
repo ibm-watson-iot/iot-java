@@ -83,7 +83,7 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 		final String METHOD = "respond";
 		try {
 			DMAgentTopic topic = dmClient.getDMAgentTopic();
-			dmClient.publish(topic.getDMServerTopic(), payload, 1);
+			dmClient.publish(topic.getDMServerTopic(), payload);
 		} catch (MqttException e) {
 			LoggerUtility.severe(CLASS_NAME, METHOD, "Unexpected Mqtt Exception, code = " + e.getReasonCode());
 		}
@@ -93,7 +93,7 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 		final String METHOD = "notify";
 		try {
 			DMAgentTopic topic = dmClient.getDMAgentTopic();
-			dmClient.publish(topic.getNotifyTopic(), payload, 1);
+			dmClient.publish(topic.getNotifyTopic(), payload);
 		} catch (MqttException e) {
 			LoggerUtility.severe(CLASS_NAME, METHOD, "Unexpected Mqtt Exception, code = " + e.getReasonCode());
 		}

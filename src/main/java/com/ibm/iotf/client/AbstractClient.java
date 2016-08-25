@@ -58,6 +58,7 @@ public abstract class AbstractClient {
 	private static final String CLASS_NAME = AbstractClient.class.getName();
 	private static final String QUICK_START = "quickstart";
 	private static final int DEFAULT_MAX_INFLIGHT_MESSAGES = 100;
+	private static final int DEFAULT_MESSAGING_QOS = 1;
 	
 	protected static final String CLIENT_ID_DELIMITER = ":";
 	
@@ -392,13 +393,25 @@ public abstract class AbstractClient {
 		return enabled;
 	}
 	
-	private int getMaxInflight() {
+	public int getMaxInflight() {
 		int maxInflight = DEFAULT_MAX_INFLIGHT_MESSAGES;
 		String value = options.getProperty("MaxInflightMessages");
 		if (value != null) {
 			maxInflight = Integer.parseInt(trimedValue(value));
 		}
 		return maxInflight;
+	}
+	
+	public int getMessagingQoS() {
+		int qos = DEFAULT_MESSAGING_QOS;
+		String value = options.getProperty("MessagingQoS");
+		if (value != null) {
+			qos = Integer.parseInt(trimedValue(value));
+			if (qos < 0 || qos > 2) {
+				qos = DEFAULT_MESSAGING_QOS;
+			}
+		}
+		return qos;
 	}
 
 	/**
