@@ -104,17 +104,27 @@ public class APIClient {
 			authKey = "g/" + this.orgId + '/' + this.getGWDeviceType(opt) + '/' + this.getGWDeviceId(opt);
 		}
 		
-		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-				return new X509Certificate[0];
-			}
-
-			public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-			}
-
-			public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-			}
-		} };
+		TrustManager[] trustAllCerts = null;
+		boolean trustAll = false;
+		
+		String value = opt.getProperty("Trust-All-Certificates");
+		if (value != null) {
+			trustAll = Boolean.parseBoolean(trimedValue(value));
+		}
+		
+		if (trustAll) {
+			trustAllCerts = new TrustManager[] { new X509TrustManager() {
+				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+					return new X509Certificate[0];
+				}
+	
+				public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+				}
+	
+				public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+				}
+			} };
+		}
 
 		sslContext = SSLContext.getInstance("TLSv1.2");
 		sslContext.init(null, trustAllCerts, null);
