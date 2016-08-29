@@ -47,6 +47,8 @@ import com.ibm.internal.iotf.devicemgmt.DMServerTopic;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
+import com.ibm.iotf.devicemgmt.DeviceInfo;
+import com.ibm.iotf.devicemgmt.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.internal.iotf.devicemgmt.handler.DMRequestHandler;
 import com.ibm.internal.iotf.devicemgmt.ResponseCode;
@@ -282,6 +284,12 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		}
 
 		@Override
+		public void publish(String response, JsonObject payload)
+				throws MqttException {
+			gwClient.publish(response, payload);
+		}
+		
+		@Override
 		public void publish(String response, JsonObject payload, int qos)
 				throws MqttException {
 			gwClient.publish(response, payload, qos);
@@ -496,11 +504,18 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			
 		JsonObject data = new JsonObject();
 		data.add("supports", supports);
-		if (mc.getDeviceData().getDeviceInfo() != null) {
-			data.add("deviceInfo", mc.getDeviceData().getDeviceInfo().toJsonObject());
+		DeviceInfo devInfo = mc.getDeviceData().getDeviceInfo();
+		if (devInfo != null) {
+			JsonObject jsonDevInfo = devInfo.toJsonObject();
+			if (jsonDevInfo != null && !jsonDevInfo.isJsonNull())
+				data.add("deviceInfo", mc.getDeviceData().getDeviceInfo().toJsonObject());
 		}
-		if (mc.getDeviceData().getMetadata() != null) {
-			data.add("metadata", mc.getDeviceData().getMetadata().getMetadata());
+		DeviceMetadata metadta = mc.getDeviceData().getMetadata();
+		if (metadta != null) {
+			JsonObject jsonMetadata = metadta.toJsonObject().getAsJsonObject();
+			if (jsonMetadata != null && !jsonMetadata.isJsonNull()) {
+				data.add("metadata", mc.getDeviceData().getMetadata().getMetadata());
+			}
 		}
 		data.add("lifetime", new JsonPrimitive(lifetime));
 		jsonPayload.add("d", data);
@@ -1132,22 +1147,29 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 						mqttClient.publish(topic, message);
 					}
 				} catch(MqttException ex) {
-					String payload = null;
-					try {
-						payload = new String(message.getPayload(), "UTF-8");
-					} catch (UnsupportedEncodingException e1) {	}
-					if(this.mqttAsyncClient.isConnected() == false) {
-						LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, " Connection Lost retrying to publish MSG :"+
-								payload +" on topic "+topic+" every 5 seconds");
-					
-						// 	wait for 5 seconds and retry
+					long wait;
+					switch (ex.getReasonCode()) {
+					case MqttException.REASON_CODE_CLIENT_NOT_CONNECTED:
+					case MqttException.REASON_CODE_CLIENT_DISCONNECTING:
 						try {
-							Thread.sleep(5 * 1000);
-							continue;
-						} catch (InterruptedException e) {}
-					} else {
+							LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, " Connection Lost retrying to publish MSG :"+
+									new String(message.getPayload(), "UTF-8") + " on topic "+topic+" every 5 seconds");
+						} catch (UnsupportedEncodingException e1) {
+							e1.printStackTrace();
+						}
+						wait = 5 * 1000;
+						break;
+					case MqttException.REASON_CODE_MAX_INFLIGHT:
+						wait = 50;
+						break;
+					default:
 						throw ex;
 					}
+					// Retry
+					try {
+						Thread.sleep(wait);
+						continue;
+					} catch (InterruptedException e) {}
 				}
 			
 				if (isConnected() == false) {
@@ -1183,10 +1205,14 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		JsonObject jsonPubMsg = new JsonObject();
 		jsonPubMsg.addProperty("topic", topic);
 		jsonPubMsg.add("qos", new JsonPrimitive(qos));
-		jsonPubMsg.add("payload", payload);		
+		jsonPubMsg.add("payload", payload);
 		publishQueue.add(jsonPubMsg);
-		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, ": Queued Topic(" + topic + ") qos=" + 
-													qos + " payload (" + payload.toString() + ")");
+		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, ": Queued Topic(" + topic + ") qos=" +
+				qos + " payload (" + payload.toString() + ")");
+	}
+	
+	private void publish(String topic, JsonObject payload) throws MqttException {
+		publish(topic, payload, this.getMessagingQoS());
 	}
 	
 	private void publish(JsonObject jsonPubMsg) throws MqttException, UnsupportedEncodingException {
@@ -1239,7 +1265,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			return null;
 		}
 		
-		message.setQos(1);
+		message.setQos(this.getMessagingQoS());
 		
 		requests.put(uuid, message);
 		
@@ -1267,7 +1293,8 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			}
 		}
 		if (jsonResponse == null) {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "NO RESPONSE from Watson IoT Platform for request: " + jsonPayload.toString());
+			LoggerUtility.warn(CLASS_NAME, METHOD, "NO RESPONSE from Watson IoT Platform on topic " + topic 
+					+ " for request: " + jsonPayload.toString());
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Connected(" + isConnected() + ")");
 		}
 		return jsonResponse;

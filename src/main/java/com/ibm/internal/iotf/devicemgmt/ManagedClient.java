@@ -32,6 +32,8 @@ public interface ManagedClient {
 
 	public void unsubscribe(String topic) throws MqttException;
 
+	public void publish(String response, JsonObject payload) throws MqttException;
+	
 	public void publish(String response, JsonObject payload, int qos) throws MqttException;
 
 	public DeviceData getDeviceData();
