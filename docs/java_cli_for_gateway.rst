@@ -15,6 +15,9 @@ The constructor builds the Gateway client instance, and accepts a Properties obj
 * auth-method - Method of authentication (The only value currently supported is "token"). 
 * auth-token - API key token.
 * clean-session - true or false (required only if you want to connect the Gateway in durable subscription. By default the clean-session is set to true).
+* WebSocket - true or false (default is false, required if you want to connect the device using websockets)
+* Secure - true or false (default is true and recommended)
+* MaxInflightMessages - Sets the maximum number of inflight messages for the connection (default value is 100)
 
 **Note:** One must set clean-session to false to connect the Gateway in durable subscription. Refer to `Subscription Buffers and Clean Session <https://docs.internetofthings.ibmcloud.com/reference/mqtt/index.html#/subscription-buffers-and-clean-session#subscription-buffers-and-clean-session>`__ for more information about the clean session.
 
@@ -166,7 +169,31 @@ Events can be published at higher MQTT quality of service levels, but these even
     
     gwClient.publishGatewayEvent("status", event, 2);
 
-    
+Publish Gateway event using custom format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Events can be published in different formats, like JSON, String, Binary and etc.. By default, the library publishes the event in JSON format, but one can specify the data in different formats. For example, to publish data in String format use the following code snippet,(Note that the type of the payload must be String)
+
+.. code:: java
+
+	gwClient.connect();
+	String data = "cpu:"+getProcessCpuLoad();
+	boolean status = gwClient.publishGatewayEvent("load", data, "text", 2);
+			
+Any XML data can be converted to String and published as follows,
+
+.. code:: java
+		
+	status = gwClient.publishGatewayEvent("load", xmlConvertedString, "xml", 2);
+
+Similarly, to publish events in binary format, use the byte array as shown below,
+
+.. code:: java
+
+	gwClient.connect();
+	byte[] cpuLoad = new byte[] {30, 35, 30, 25};
+	status = gwClient.publishGatewayEvent("blink", cpuLoad , "binary", 1);
+			
 Publishing events from devices
 -------------------------------------------------------------------------------
 
@@ -187,6 +214,30 @@ The Gateway can publish events on behalf of any device connected via the Gateway
 
 One can use the overloaded publishDeviceEvent() method to publish the device event in the desired quality of service. Refer to `MQTT Connectivity for Gateways <https://docs.internetofthings.ibmcloud.com/gateways/mqtt.html>`__ documentation to know more about the topic structure used.
 
+Publish device event using custom format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Similar to gateway Events, the device events can be published in different formats as well. By default, the library publishes the event in JSON format, but one can specify the data in different formats. For example, to publish data in String format use the following code snippet, (Note that the type of the payload must be String)
+
+.. code:: java
+
+	gwClient.connect();
+	String data = "cpu:"+getProcessCpuLoad();
+	boolean status = gwClient.publishDeviceEvent(deviceType, deviceId, "load", data, "text", 2);
+			
+Any XML data can be converted to String and published as follows,
+
+.. code:: java
+		
+	status = gwClient.publishDeviceEvent(deviceType, deviceId, "load", xmlConvertedString, "xml", 2);
+
+Similarly, to publish events in binary format, use the byte array as shown below,
+
+.. code:: java
+
+	gwClient.connect();
+	byte[] cpuLoad = new byte[] {30, 35, 30, 25};
+	status = gwClient.publishDeviceEvent(deviceType, deviceId, "blink", cpuLoad , "binary", 1);
 ----
 
 
@@ -205,8 +256,8 @@ To process specific commands you need to register a command callback method. The
 
 * deviceType - The device type for which the command is received.
 * deviceId - The device id for which the command is received, Could be the Gateway or any device connected via the Gateway.
-* payload - The command payload.
-* format - The format of the command payload, currently only JSON format is supported in the Java Client Library.
+* data - The command payload.
+* format - The format of the command payload, JSON, binary, text and etc..
 * command - The name of the command.
 * timestamp - The org.joda.time.DateTime when the command is sent.
 
@@ -228,7 +279,7 @@ A sample implementation of the Command callback is shown below,
     	public void run() {
     	    while(true) {
     	        Command cmd = queue.take();
-    	        System.out.println("Command " + cmd.getPayload());
+    	        System.out.println("Command " + cmd.getData());
     	        
     	        // code to process the command
     	    }
