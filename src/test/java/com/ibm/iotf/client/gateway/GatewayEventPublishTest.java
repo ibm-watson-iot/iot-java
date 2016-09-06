@@ -215,8 +215,9 @@ public class GatewayEventPublishTest extends TestCase{
 	 * can publish its own events as well. 
 	 * 
 	 * The test verifies whether the gateway can publish an event to the Platform
+	 * @throws Exception 
 	 */
-	public void testGatewayEventPublishMethod() {
+	public void testGatewayEventPublishMethod() throws Exception {
 		
 		if(gwClient.isConnected() == false) {
 			return;
@@ -241,21 +242,28 @@ public class GatewayEventPublishTest extends TestCase{
 		
 		// publish using default QoS0
 		code = gwClient.publishGatewayEvent("blink", event, 1);
+
+		// custom publish
+		code = gwClient.publishGatewayEvent("blink", "rotation:80", "text", 1);
 		assertTrue("Failed to publish the event......", code);
-		
+
+		// custom publish
+		code = gwClient.publishGatewayEvent("blink", new byte[]{80}, "binary", 1);
+		assertTrue("Failed to publish the event......", code);
+
+		// try publish after disconnect
 		gwClient.disconnect();
 		code = gwClient.publishGatewayEvent("blink", event, 1);
 		assertFalse("Should not publish an event after disconnect......", code);
-		
-		// try publish after disconnect
 				
 		System.out.println("Successfully published a Gateway event !!");
 	}
 	
 	/**
 	 * The test verifies whether the gateway can publish an event for the attached device to the Platform
+	 * @throws Exception 
 	 */
-	public void testDeviceEventPublishMethod() {
+	public void testDeviceEventPublishMethod() throws Exception {
 		
 		if(gwClient.isConnected() == false) {
 			return;
@@ -280,6 +288,14 @@ public class GatewayEventPublishTest extends TestCase{
 
 		// Publish using default QoS1
 		code = gwClient.publishDeviceEvent(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "blink", null, 1);
+		assertTrue("Failed to publish the device event......", code);
+		
+		// Publish text event
+		code = gwClient.publishDeviceEvent(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "blink", "rotation:80", "text", 2);
+		assertTrue("Failed to publish the device event......", code);
+				
+		// Publish using default QoS1
+		code = gwClient.publishDeviceEvent(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "blink", new byte[]{90, 8, 9, 0}, "binary", 1);
 		assertTrue("Failed to publish the device event......", code);
 				
 		System.out.println("Successfully published a device event !!");
