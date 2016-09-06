@@ -14,6 +14,7 @@ package com.ibm.iotf.client.gateway;
 
 import java.io.IOException;
 import java.util.Properties;
+
 import junit.framework.TestCase;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -39,16 +40,71 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 	private static String GATEWAY_DEVICE_TYPE = "";
 	private static String GATEWAY_DEVICE_ID = "";
 	private static GatewayClient gwClient = null;
+	private static APIClient apiClient = null;
 	
 	public void setUp() {
 	    // do the setup
-	    createGatewayClient(GATEWAY_PROPERTIES_FILE);
+		createGatewayClient(GATEWAY_PROPERTIES_FILE);
+		try {
+	    	if(apiClient != null) {
+	    		addDeviceType(DEVICE_TYPE);
+	    		addDevice(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
+	    	}
+		} catch (IoTFCReSTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
-	
-	public void tearDown() {
+	public void tearDown() throws IoTFCReSTException {
 		gwClient.disconnect();
+		if(apiClient != null) {
+			apiClient.deleteDevice(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
+    		apiClient.deleteDeviceType(DEVICE_TYPE);
+    	}
 	}
+	
+	/**
+	 * This sample adds a device type using the Java Client Library. 
+	 * @throws IoTFCReSTException
+	 */
+	private void addDeviceType(String deviceType) throws IoTFCReSTException {
+		try {
+			System.out.println("<-- Checking if device type "+deviceType +" already created in Watson IoT Platform");
+			boolean exist = apiClient.isDeviceTypeExist(deviceType);
+			if (!exist) {
+				System.out.println("<-- Adding device type "+deviceType + " now..");
+				// device type to be created in WIoTP
+				apiClient.addDeviceType(deviceType, deviceType, null, null);
+			}
+		} catch(IoTFCReSTException e) {
+			System.err.println("ERROR: unable to add manually device type " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Add a device under the given gateway using the Java Client Library.
+	 * @throws IoTFCReSTException
+	 */
+	private void addDevice(String deviceType, String deviceId) throws IoTFCReSTException {
+		try {
+			System.out.println("<-- Checking if device " + deviceId +" with deviceType " +
+					deviceType +" exists in Watson IoT Platform");
+			boolean exist = this.gwClient.api().isDeviceExist(deviceType, deviceId);
+			if(!exist) {
+				System.out.println("<-- Creating device " + deviceId +" with deviceType " +
+						deviceType +" now..");
+				gwClient.api().registerDeviceUnderGateway(deviceType, deviceId,
+						this.gwClient.getGWDeviceType(), 
+						this.gwClient.getGWDeviceId());
+			}
+		} catch (IoTFCReSTException ex) {
+			
+			System.out.println("ERROR: unable to add manually device " + deviceId);
+		}
+	}
+	
 	/**
 	 * This method creates a GatewayClient instance by passing the required properties 
 	 * and connects the Gateway to the Watson IoT Platform by calling the connect function.
@@ -79,6 +135,18 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 			 */
 			GATEWAY_DEVICE_TYPE = trimedValue(props.getProperty("Gateway-Type"));
 			GATEWAY_DEVICE_ID = trimedValue(props.getProperty("Gateway-ID"));
+			
+			/**
+			 * We need APIClient to register the devicetype in Watson IoT Platform 
+			 */
+			Properties options = new Properties();
+			options.put("Organization-ID", props.getProperty("Organization-ID"));
+			options.put("id", "app" + (Math.random() * 10000));		
+			options.put("Authentication-Method","apikey");
+			options.put("API-Key", props.getProperty("API-Key"));		
+			options.put("Authentication-Token", props.getProperty("API-Token"));
+			
+			apiClient = new APIClient(options);
 			
 		} catch (Exception e) {
 			// Looks like the gateway.property file is not updated with registration details

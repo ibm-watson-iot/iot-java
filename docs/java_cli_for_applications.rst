@@ -20,6 +20,9 @@ The constructor builds the client instance, and accepts a Properties object cont
 * auth-token - API key token (required if auth-method is “apikey”).
 * clean-session - true or false (required only if you want to connect the application in durable subscription. By default the clean-session is set to true).
 * shared-subscription - true or false (required only if shared subscription needs to be enabled)
+* WebSocket - true or false (default is false, required if you want to connect the device using websockets)
+* Secure - true or false (default is true and recommended)
+* MaxInflightMessages - Sets the maximum number of inflight messages for the connection (default value is 100)
 
 **Note**: One must set shared-subscription to true to build scalable applications which will load balance messages across multiple instances of the application. Refer to the `scalable applications section <https://docs.internetofthings.ibmcloud.com/applications/mqtt.html#/scalable-applications#scalable-applications>`__ for more information about the load balancing.
 
@@ -163,7 +166,7 @@ To process the events received by your subscriptions you need to register an eve
 * event.deviceId - string
 * event.event - string
 * event.format - string
-* event.data - dict
+* event.data - Object
 * event.timestamp - datetime
 
 A sample implementation of the Event callback,
@@ -206,7 +209,7 @@ A sample implementation of the Event callback,
 			try {
 				e = evtQueue.take();
 				// In this example, we just output the event
-				System.out.println("Event:: " + e.getDeviceId() + ":" + e.getEvent() + ":" + e.getPayload());
+				System.out.println("Event:: " + e.getDeviceId() + ":" + e.getEvent() + ":" + e.getData());
 			} catch (InterruptedException e1) {
 				// Ignore the Interuppted exception, retry
 				continue;
@@ -353,6 +356,27 @@ Applications can publish events as if they originated from a Device.
     // publish the event on behalf of device
     myClient.publishEvent(deviceType, deviceId, "blink", event);
 
+Events can be published in different formats, like JSON, String, Binary and etc.. By default the library publishes the event in JSON format, but one can specify the data in different formats. For example, to publish data in String format use the following code snippet (Note that the payload must be in String format),
+
+.. code:: java
+
+	myClient.connect();
+	String data = "cpu:"+60;
+	status = myClient.publishEvent("load", data, "text", 2);
+			
+Any XML data can be converted to String and published as follows,
+
+.. code:: java
+		
+	status = myClient.publishEvent("load", xmlConvertedString, "xml", 2);
+
+Similarly to publish events in binary format, use the byte array as shown below,
+
+.. code:: java
+
+	myClient.connect();
+	byte[] cpuLoad = new byte[] {60, 35, 30, 25};
+	status = myClient.publishEvent("blink", cpuLoad , "binary", 1);
 ----
 
 Publishing commands to devices
@@ -371,6 +395,12 @@ Applications can publish commands to connected devices.
     //Registered flow allows 0, 1 and 2 QoS
     myAppClient.publishCommand(deviceType, deviceId, "stop", data);
 
+Similar to events, the commands can be published in different formats, like JSON, String, Binary as well. By default the library publishes the commands in JSON format, but one can specify the data in different formats. For example, to publish command in String format use the following code snippet (Note that the payload must be in String format),
+
+.. code:: java
+
+	myClient.connect();
+	myAppClient.publishCommand(deviceType, deviceId, "stop", "rotation:0", "text", 1);
 ----
 
 Examples

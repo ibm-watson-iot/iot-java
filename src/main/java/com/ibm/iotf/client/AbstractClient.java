@@ -108,6 +108,12 @@ public abstract class AbstractClient {
 	// Supported only for DM ManagedClient
 	protected MqttClient mqttClient = null;
 	protected MemoryPersistence persistence = null;
+	
+	protected static final boolean newFormat;
+	
+	static {
+		newFormat = Boolean.parseBoolean(System.getProperty("com.ibm.iotf.enableCustomFormat", "true"));
+	}
 
 	/**
 	 * Note that this class does not have a default constructor <br>
@@ -672,14 +678,7 @@ public abstract class AbstractClient {
 		br = new BufferedReader(new InputStreamReader(System.in));
 		
 		// Create the payload message in Json format
-		JsonObject message = new JsonObject();
-		
-		String timestamp = ISO8601_DATE_FORMAT.format(new Date());
-		message.addProperty("ts", timestamp);
-		
-		JsonElement dataElement = gson.toJsonTree(payload);
-		message.add("d", dataElement);
-		
+		JsonObject message = (JsonObject) gson.toJsonTree(payload);		
 		StringEntity input = new StringEntity(message.toString(), StandardCharsets.UTF_8);
 		
 		// Create the Http post request

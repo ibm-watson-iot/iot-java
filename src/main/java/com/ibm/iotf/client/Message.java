@@ -13,6 +13,7 @@
 package com.ibm.iotf.client;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,8 +42,11 @@ public class Message {
 	protected final static JsonParser JSON_PARSER = new JsonParser();
 	protected final static DateTimeFormatter DT_PARSER = ISODateTimeFormat.dateTimeParser();
 	
-	protected String payload;
-	protected String data = null;
+	@Deprecated
+	protected String payloadInString;
+	protected Object payload = null;
+	protected byte[] rawPayload = null;
+	@Deprecated
 	protected DateTime timestamp = null;
 	
 	/**
@@ -51,19 +55,12 @@ public class Message {
 	 * 				MqttMessage
 	 * @throws UnsupportedEncodingException If encoding is other than UTF8
 	 */
+	@Deprecated
 	public Message(MqttMessage msg) throws UnsupportedEncodingException{
 		final String METHOD = "Message(1)";
-		this.payload = new String(msg.getPayload(), "UTF8");
-		
+		this.payloadInString = new String(msg.getPayload(), "UTF8");
 		try {
-			JsonObject payloadJson = JSON_PARSER.parse(payload).getAsJsonObject();
-			if (payloadJson.has("d")) {
-				data = payloadJson.get("d").getAsJsonObject().toString();
-	
-			} else {
-				data = payloadJson.toString();
-			}
-		
+			JsonObject payloadJson = JSON_PARSER.parse(payloadInString).getAsJsonObject();
 			if (payloadJson.has("ts")) {
 				try {
 					timestamp = DT_PARSER.parseDateTime(payloadJson.get("ts").getAsString());
@@ -90,17 +87,13 @@ public class Message {
 	 */
 	public Message(MqttMessage msg, String format) throws UnsupportedEncodingException{
 		final String METHOD = "Message(2)";
-		this.payload = new String(msg.getPayload(), "UTF8");
+		this.rawPayload = msg.getPayload();
+		this.payloadInString = new String(msg.getPayload(), "UTF8");
+		this.payload = msg.getPayload();
 		
-		if(format.equalsIgnoreCase("json")) {
-
+		if("JSON".equalsIgnoreCase(format)) {
 			try {
-				JsonObject payloadJson = JSON_PARSER.parse(payload).getAsJsonObject();
-				if (payloadJson.has("d")) {
-					data = payloadJson.get("d").getAsJsonObject().toString();
-				} else {
-					data = payloadJson.toString();
-				}
+				JsonObject payloadJson = JSON_PARSER.parse(payloadInString ).getAsJsonObject();
 				if (payloadJson.has("ts")) {
 					try {
 						timestamp = DT_PARSER.parseDateTime(payloadJson.get("ts").getAsString());
@@ -115,20 +108,34 @@ public class Message {
 			} catch (JsonParseException jpe) {
 				LoggerUtility.warn(CLASS_NAME, METHOD, "JsonParseException thrown");							
 			}			
+		} else if("BINARY".equalsIgnoreCase(format)) {
+			timestamp = DateTime.now();
 		} else {
-			data = this.payload;
-			timestamp = DateTime.now();			
+			this.payload = this.payloadInString;
+			timestamp = DateTime.now();
 		}
-		
 	}
 	
-/////	
+	@Deprecated
 	public String getPayload() {
-		return payload;
+		if(this.payloadInString == null) {
+			return Arrays.toString((byte[])this.payload);
+		} else {
+			return payloadInString;
+		}
 	}
 
+	@Deprecated
 	public DateTime getTimestamp() {
 		return timestamp;
+	}
+	
+	/**
+	 * Returns the payload sent by the Watson IoT Platform in byte[] format
+	 * @return
+	 */
+	public byte[] getRawPayload() {
+		return this.rawPayload;
 	}
 
 	/**
@@ -136,7 +143,7 @@ public class Message {
 	 * Provides a human readable String representation of message, including timestamp and data.
 	 */
 	public String toString() {
-		return "[" + timestamp.toString() + "] " + data.toString(); 
+		return "[" + timestamp.toString() + "] " + getPayload(); 
 	}
 
 }
