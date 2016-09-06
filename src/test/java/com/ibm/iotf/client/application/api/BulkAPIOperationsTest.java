@@ -28,6 +28,8 @@ import com.google.gson.JsonParser;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
@@ -36,7 +38,7 @@ import com.ibm.iotf.client.api.APIClient;
  * This test verifies various bulk ReST operations that can be performed on Watson IoT Platform.
  *
  */
-
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BulkAPIOperationsTest extends TestCase {
 	
 	private final static String PROPERTIES_FILE_NAME = "/application.properties";
@@ -150,7 +152,7 @@ public class BulkAPIOperationsTest extends TestCase {
 	 *	]
 	 * @throws Exception 
 	 */
-	public void testBulkDeleteDevices() throws IoTFCReSTException {
+	public void test04BulkDeleteDevices() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;
 		}
@@ -225,7 +227,7 @@ public class BulkAPIOperationsTest extends TestCase {
 	 * This sample verifies the bulk addition of devices in IBM Watson IoT Platform
 	 * @throws Exception
 	 */
-	public void testBulkAddDevices() throws IoTFCReSTException {
+	public void test02BulkAddDevices() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;
 		}
@@ -278,7 +280,7 @@ public class BulkAPIOperationsTest extends TestCase {
 	 * This sample verifies the Bulk Get
 	 * @throws Exception
 	 */
-	public void testBulkGetAllDevices() throws IoTFCReSTException {
+	public void test03BulkGetAllDevices() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;
 		}
@@ -328,7 +330,7 @@ public class BulkAPIOperationsTest extends TestCase {
 	 * This sample verfies the get organization details API
 	 * @throws Exception
 	 */
-	public void testGetOrganizationDetails() throws IoTFCReSTException {
+	public void test01GetOrganizationDetails() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;
 		}
@@ -361,4 +363,22 @@ public class BulkAPIOperationsTest extends TestCase {
 			System.out.println(e.getHttpCode() + " " +e.getMessage());
 		}
 	}
+	
+	/**
+	 * This sample showcases how to Delete a device type using the Java Client Library.
+	 * @throws IoTFCReSTException
+	 */
+	public void test07deleteDeviceType() throws IoTFCReSTException {
+		System.out.println("Delete a device type "+DEVICE_TYPE);
+		try {
+			boolean status = this.apiClient.deleteDeviceType(DEVICE_TYPE);
+			assertFalse("Could not delete the device type", apiClient.isDeviceTypeExist(DEVICE_TYPE));
+		} catch(IoTFCReSTException e) {
+			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
+			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+		}
+	}
+
 }

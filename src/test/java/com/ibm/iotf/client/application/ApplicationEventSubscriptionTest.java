@@ -76,6 +76,80 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		myClient.disconnect();
 	}
 	
+	/**
+	 * This method publishes a device event such that the application will receive the same
+	 * and verifies that the event is same.
+	 */
+	private void stringEventPublish() {
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		DeviceClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new DeviceClient(props);
+			myClient.connect();
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+			
+		String s = "cpu:10";
+		try {
+			myClient.publishEvent("blink", s, "string", 2);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		myClient.disconnect();
+	}
+	
+	/**
+	 * This method publishes a device event such that the application will receive the same
+	 * and verifies that the event is same.
+	 */
+	private void binaryEventPublish() {
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		DeviceClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new DeviceClient(props);
+			myClient.connect();
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+			
+		byte[] payload = {1, 4, 5, 6, 7, 9, 10};
+		try {
+			myClient.publishEvent("blink", payload, "binary", 2);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		myClient.disconnect();
+	}
+	
 	@Test
 	public void test01EventSubscribe() {
 		/**
@@ -119,6 +193,106 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		myClient.subscribeToDeviceEvents(deviceType, deviceId);
 		
 		this.deviceEventPublish();
+		
+		int count = 0;
+		// wait for sometime before checking
+		while(eventbk.eventReceived == false && count++ <= 5) {
+			try {
+				Thread.sleep(1000);
+			} catch(InterruptedException e) {}
+		}
+		
+		myClient.disconnect();
+		assertTrue("Device Event is not received by application", eventbk.eventReceived);
+		//assertTrue("Device connectivity status is not received by application", statusbk.statusReceived);
+	}
+	
+	@Test
+	public void test10CustomEventSubscribe() {
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		ApplicationClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new ApplicationClient(props);
+			myClient.connect(5);
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+		
+		/**
+		 * Get the Device Type and Device Id on behalf the application will publish the event
+		 */
+		String deviceType = trimedValue(props.getProperty("Device-Type"));
+		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		
+		// Add event callback
+		MyEventCallback eventbk = new MyEventCallback();
+		myClient.setEventCallback(eventbk);
+		
+		myClient.subscribeToDeviceEvents(deviceType, deviceId);
+		this.binaryEventPublish();
+		
+		int count = 0;
+		// wait for sometime before checking
+		while(eventbk.eventReceived == false && count++ <= 5) {
+			try {
+				Thread.sleep(1000);
+			} catch(InterruptedException e) {}
+		}
+		
+		myClient.disconnect();
+		assertTrue("Device Event is not received by application", eventbk.eventReceived);
+		//assertTrue("Device connectivity status is not received by application", statusbk.statusReceived);
+	}
+
+	@Test
+	public void test11CustomEventSubscribe() {
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		ApplicationClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new ApplicationClient(props);
+			myClient.connect(5);
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+		
+		/**
+		 * Get the Device Type and Device Id on behalf the application will publish the event
+		 */
+		String deviceType = trimedValue(props.getProperty("Device-Type"));
+		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		
+		// Add event callback
+		MyEventCallback eventbk = new MyEventCallback();
+		myClient.setEventCallback(eventbk);
+		
+		myClient.subscribeToDeviceEvents(deviceType, deviceId);
+		this.stringEventPublish();
 		
 		int count = 0;
 		// wait for sometime before checking
@@ -1106,14 +1280,16 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		public void processEvent(Event e) {
 			eventReceived = true;
 			System.out.println("Received Event, name = "+e.getEvent() +
-					", format = " + e.getFormat() + ", Payload = "+e.getPayload() + ", time = "+e.getTimestamp());
+					", format = " + e.getFormat() + ", Payload = "+e.getPayload() + ", time = "+e.getTimestamp()
+					 + ",Raw Payload : " + e.getRawPayload() + ",data = "+ e.getData());
 		}
 
 		@Override
 		public void processCommand(Command cmd) {
 			cmdReceived = true;
 			System.out.println("Received command, name = "+cmd.getCommand() +
-					", format = " + cmd.getFormat() + ", Payload = "+cmd.getPayload() + ", time = "+cmd.getTimestamp());		
+					", format = " + cmd.getFormat() + ", Payload = "+cmd.getPayload() + ", time = "+cmd.getTimestamp()
+					+ ",Raw Payload : " + cmd.getRawPayload() + ",data = "+ cmd.getData());		
 		}		
 	}
 	

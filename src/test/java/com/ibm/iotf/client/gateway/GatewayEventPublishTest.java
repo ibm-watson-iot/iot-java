@@ -17,13 +17,11 @@ package com.ibm.iotf.client.gateway;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.eclipse.paho.client.mqttv3.MqttException;
-
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.device.DeviceClient;
 import com.ibm.iotf.client.gateway.GatewayClient;
+
 import junit.framework.TestCase;
 
 /**
@@ -57,8 +55,12 @@ public class GatewayEventPublishTest extends TestCase{
 		}
 	}
 	
-	public void tearDown() {
+	public void tearDown() throws IoTFCReSTException {
 		gwClient.disconnect();
+		if(apiClient != null) {
+			apiClient.deleteDevice(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
+    		apiClient.deleteDeviceType(DEVICE_TYPE);
+    	}
 	}
 	
 	/**

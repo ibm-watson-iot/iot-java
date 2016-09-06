@@ -13,6 +13,7 @@ import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceAction;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
@@ -121,10 +122,14 @@ public class GatewayManagementTest extends TestCase {
 		}
 	}
 	
-	public void tearDown() {
+	public void tearDown() throws IoTFCReSTException {
 		count++;
 		if(count == 13) {
 			gwClient.disconnect();
+			if(apiClient != null) {
+				apiClient.deleteDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
+	    		apiClient.deleteDeviceType(ATTACHED_DEVICE_TYPE);
+	    	}
 		}
 	}
 	

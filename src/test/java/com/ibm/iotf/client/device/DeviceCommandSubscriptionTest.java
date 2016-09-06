@@ -14,6 +14,7 @@ package com.ibm.iotf.client.device;
 
 import java.io.IOException;
 import java.util.Properties;
+
 import junit.framework.TestCase;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -36,7 +37,7 @@ public class DeviceCommandSubscriptionTest extends TestCase{
 	private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";
 	
 	@Test
-	public void testCommandReception() throws MqttException{
+	public void testCommandReception() throws Exception {
 		
 		/**
 		  * Load device properties
@@ -73,7 +74,59 @@ public class DeviceCommandSubscriptionTest extends TestCase{
 		}
 		
 		// Ask application to publish the command to this device now
-		publichCommand();
+		publichCommand(1);
+		
+		int count = 0;
+		// wait for sometime before checking
+		while(callback.commandReceived == false && count++ <= 5) {
+			try {
+				Thread.sleep(1000);
+			} catch(InterruptedException e) {}
+		}
+		
+		myClient.disconnect();
+		assertTrue("Command is not received by the device", callback.commandReceived);
+	}
+	
+	@Test
+	public void testCustomCommandReception() throws Exception {
+		
+		/**
+		  * Load device properties
+		  */
+		Properties props = new Properties();
+		try {
+			props.load(DeviceCommandSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			System.exit(-1);
+		}		
+		
+		
+		DeviceClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file			
+			myClient = new DeviceClient(props);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		//Pass the above implemented CommandCallback as an argument to this device client
+		MyCommandCallback callback = new MyCommandCallback();
+		myClient.setCommandCallback(callback);
+		//Connect to the IBM Watson IoT Platform	
+		try {
+			myClient.connect();
+		} catch (MqttException e1) {
+			// TODO Auto-generated catch block
+			throw e1;
+		} catch (java.lang.IllegalArgumentException e) {
+			// looks like the property file is not modified, exit silently
+			return;
+		}
+		
+		// Ask application to publish the command to this device now
+		publichCommand(2);
 		
 		int count = 0;
 		// wait for sometime before checking
@@ -87,7 +140,8 @@ public class DeviceCommandSubscriptionTest extends TestCase{
 		assertTrue("Device Event is not received by application", callback.commandReceived);
 	}
 	
-	private void publichCommand() {
+	
+	private void publichCommand(int type) throws Exception {
 		/**
 		  * Load device properties
 		  */
@@ -115,12 +169,16 @@ public class DeviceCommandSubscriptionTest extends TestCase{
 		String deviceType = trimedValue(props.getProperty("Device-Type"));
 		String deviceId = trimedValue(props.getProperty("Device-ID"));
 		
-		JsonObject data = new JsonObject();
-		data.addProperty("name", "stop-rotation");
-		data.addProperty("delay",  0);
-		
-		//Registered flow allows 0, 1 and 2 QoS
-		myAppClient.publishCommand(deviceType, deviceId, "stop", data);
+		if(type == 1) { // JSON
+			JsonObject data = new JsonObject();
+			data.addProperty("name", "stop-rotation");
+			data.addProperty("delay",  0);
+			
+			//Registered flow allows 0, 1 and 2 QoS
+			myAppClient.publishCommand(deviceType, deviceId, "stop", data);
+		} else {
+			myAppClient.publishCommand(deviceType, deviceId, "stop", "rotation:80", "custom", 1);
+		}
 		myAppClient.disconnect();
 	}
 
