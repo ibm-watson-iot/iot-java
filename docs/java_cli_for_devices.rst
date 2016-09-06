@@ -262,7 +262,7 @@ Events can be published at higher MQTT quality of servive levels, but these even
 Publish event using custom format
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Events can be published in different formats, like JSON, String, Binary and etc.. By default the library publishes the event in JSON format, but one can specify the data in different formats. For example, to publish data in String format use the following code snippet,
+Events can be published in different formats, like JSON, String, Binary and etc.. By default, the library publishes the event in JSON format, but one can specify the data in different formats. For example, to publish data in String format use the following code snippet,(Note that the type of the payload must be in String format)
 
 .. code:: java
 
@@ -277,7 +277,7 @@ Any XML data can be converted to String and published as follows,
 		
 		status = myClient.publishEvent("load", xmlConvertedString, "xml", 2);
 
-Similarly to publish events in binary format, use the byte array as shown below,
+Similarly, to publish events in binary format, use the byte array as shown below,
 
 .. code:: java
 
