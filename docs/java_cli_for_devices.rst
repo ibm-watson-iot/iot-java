@@ -19,6 +19,9 @@ The constructor builds the client instance, and accepts a Properties object cont
 * auth-method - Method of authentication (This is an optional field, needed only for registered flow and the only value currently supported is "token"). 
 * auth-token - API key token (This is an optional field, needed only for registered flow).
 * clean-session - true or false (required only if you want to connect the application in durable subscription. By default the clean-session is set to true).
+* WebSocket - true or false (default is false, required if you want to connect the device using websockets)
+* Secure - true or false (default is true and recommended)
+* MaxInflightMessages - Sets the maximum number of inflight messages for the connection (default value is 100)
 
 **Note:** One must set clean-session to false to connect the device in durable subscription. Refer to `Subscription Buffers and Clean Session <https://docs.internetofthings.ibmcloud.com/reference/mqtt/index.html#/subscription-buffers-and-clean-session#subscription-buffers-and-clean-session>`__ for more information about the clean session.
 
@@ -215,9 +218,9 @@ Publishing events
 -------------------------------------------------------------------------------
 Events are the mechanism by which devices publish data to the Watson IoT Platform. The device controls the content of the event and assigns a name for each event it sends.
 
-When an event is received by the IBM IoT Foundation the credentials of the connection on which the event was received are used to determine from which device the event was sent. With this architecture it is impossible for a device to impersonate another device.
+When an event is received by the Watson IoT Platform, the credentials of the connection on which the event was received are used to determine from which device the event was sent. With this architecture it is impossible for a device to impersonate another device.
 
-Events can be published at any of the three `quality of service levels <https://docs.internetofthings.ibmcloud.com/messaging/mqtt.html#/>` defined by the MQTT protocol.  By default events will be published as qos level 0.
+Events can be published at any of the three `quality of service levels <https://docs.internetofthings.ibmcloud.com/messaging/mqtt.html#/>` defined by the MQTT protocol.  By default events will be published as qos level 0 and with JSON format.
 
 Publish event using default quality of service
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -254,6 +257,34 @@ Events can be published at higher MQTT quality of servive levels, but these even
 			myClient.publishEvent("status", event, 2);
 
 
+----
+
+Publish event using custom format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Events can be published in different formats, like JSON, String, Binary and etc.. By default the library publishes the event in JSON format, but one can specify the data in different formats. For example, to publish data in String format use the following code snippet,
+
+.. code:: java
+
+			myClient.connect();
+			
+			String data = "cpu:"+getProcessCpuLoad();
+			status = myClient.publishEvent("load", data, "text", 2);
+			
+Any XML data can be converted to String and published as follows,
+
+.. code:: java
+		
+		status = myClient.publishEvent("load", xmlConvertedString, "xml", 2);
+
+Similarly to publish events in binary format, use the byte array as shown below,
+
+.. code:: java
+
+			myClient.connect();
+			
+			byte[] cpuLoad = new byte[] {30, 35, 30, 25};
+			status = myClient.publishEvent("blink", cpuLoad , "binary", 1);
 ----
 
 Publish event using HTTP(s)
