@@ -303,7 +303,7 @@ public class APIClient {
 	private String readContent(HttpResponse response, String method) 
 			throws IllegalStateException, IOException {
 		
-		BufferedReader br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+		BufferedReader br = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8));
 		String line = null;
 		try {
 			line = br.readLine();

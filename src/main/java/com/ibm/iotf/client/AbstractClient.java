@@ -675,8 +675,7 @@ public abstract class AbstractClient {
 		
 		LoggerUtility.fine(CLASS_NAME, METHOD, "ReST URL::"+sb.toString());
 		BufferedReader br = null;
-		br = new BufferedReader(new InputStreamReader(System.in));
-		
+	
 		// Create the payload message in Json format
 		JsonObject message = (JsonObject) gson.toJsonTree(payload);		
 		StringEntity input = new StringEntity(message.toString(), StandardCharsets.UTF_8);
@@ -722,7 +721,7 @@ public abstract class AbstractClient {
 					.append('\n');
 			}
 			log.append("\nResponse \n");
-			br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+			br = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8));
 			log.append(br.readLine());
 			LoggerUtility.severe(CLASS_NAME, METHOD, log.toString());
 			
