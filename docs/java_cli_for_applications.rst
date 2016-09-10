@@ -21,7 +21,6 @@ The constructor builds the client instance, and accepts a Properties object cont
 * clean-session - true or false (required only if you want to connect the application in durable subscription. By default the clean-session is set to true).
 * shared-subscription - true or false (required only if shared subscription needs to be enabled)
 * WebSocket - true or false (default is false, required if you want to connect the device using websockets)
-* Secure - true or false (default is true and recommended)
 * MaxInflightMessages - Sets the maximum number of inflight messages for the connection (default value is 100)
 
 **Note**: One must set shared-subscription to true to build scalable applications which will load balance messages across multiple instances of the application. Refer to the `scalable applications section <https://docs.internetofthings.ibmcloud.com/applications/mqtt.html#/scalable-applications#scalable-applications>`__ for more information about the load balancing.

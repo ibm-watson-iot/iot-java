@@ -391,7 +391,7 @@ public abstract class AbstractClient {
 	}
 	
 	private boolean isSecureConnection() {
-		boolean enabled = false;
+		boolean enabled = true;
 		String value = options.getProperty("Secure");
 		if (value != null) {
 			enabled = Boolean.parseBoolean(trimedValue(value));
