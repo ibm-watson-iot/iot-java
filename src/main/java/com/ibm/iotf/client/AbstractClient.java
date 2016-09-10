@@ -65,10 +65,12 @@ public abstract class AbstractClient {
 	//protected static final String DOMAIN = "messaging.staging.internetofthings.ibmcloud.com";
 	public static final String DEFAULT_DOMAIN = "internetofthings.ibmcloud.com";
 	protected static final String MESSAGING = "messaging";
-	protected static final int MQTT_PORT = 1883;
 	protected static final int MQTTS_PORT = 8883;
-	protected static final int WS_PORT = 1883;
 	protected static final int WSS_PORT = 443;
+	
+	protected static final int MQTT_PORT = 1883;
+	protected static final int WS_PORT = 1883;
+
 	private volatile boolean disconnectRequested = false;
 	
 	/* Wait for 1 second after each attempt for the first 10 attempts*/
@@ -185,7 +187,7 @@ public abstract class AbstractClient {
 		// clear the disconnect state when the user connects the client to Watson IoT Platform
 		disconnectRequested = false;  
 		
-		if (getOrgId() == QUICK_START || !isSecureConnection()) {
+		if (getOrgId() == QUICK_START) {
 			configureMqtt();
 		} else {
 			configureConnOptions();
@@ -288,24 +290,14 @@ public abstract class AbstractClient {
 	private void configureConnOptions() {
 		final String METHOD = "configureConnOptions";
 		String protocol = null;
-		int port;
-		if (isSecureConnection()) {
-			if (isWebSocket()) {
-				protocol = "wss://";
-				port = WSS_PORT;
-			} else {
-				protocol = "ssl://";
-				port = MQTTS_PORT;
-			}
+		int port = 0;
+		if (isWebSocket()) {
+			protocol = "wss://";
+			port = WSS_PORT;
 		} else {
-			if (isWebSocket()) {
-				protocol = "ws://";
-				port = WS_PORT;
-			} else {
-				protocol = "tcp://";
-				port = MQTT_PORT;
-			}
-		}
+			protocol = "ssl://";
+			port = MQTTS_PORT;
+		} 
 
 		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
 		try {
@@ -347,12 +339,10 @@ public abstract class AbstractClient {
 			 * 
 			 */
 
-			if (isSecureConnection()) {
-				SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-				//LoggerUtility.info(CLASS_NAME, METHOD, "Provider: " + sslContext.getProvider().getName());
-				sslContext.init(null, null, null);
-				mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
-			}
+			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+			//LoggerUtility.info(CLASS_NAME, METHOD, "Provider: " + sslContext.getProvider().getName());
+			sslContext.init(null, null, null);
+			mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
 		} catch (MqttException | GeneralSecurityException e) {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to configure TLSv1.2 connection: " + e.getMessage());
 			e.printStackTrace();
@@ -384,15 +374,6 @@ public abstract class AbstractClient {
 	private boolean isWebSocket() {
 		boolean enabled = false;
 		String value = options.getProperty("WebSocket");
-		if (value != null) {
-			enabled = Boolean.parseBoolean(trimedValue(value));
-		}
-		return enabled;
-	}
-	
-	private boolean isSecureConnection() {
-		boolean enabled = true;
-		String value = options.getProperty("Secure");
 		if (value != null) {
 			enabled = Boolean.parseBoolean(trimedValue(value));
 		}
