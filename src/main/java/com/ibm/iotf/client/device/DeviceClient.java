@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -178,9 +179,11 @@ public class DeviceClient extends AbstractClient {
 	 * This method reconnects when the connection is lost due to n/w interruption
 	 */
 	protected void reconnect() throws MqttException {
-		super.connect(true);
-		if (!getOrgId().equals("quickstart")) {
-			subscribeToCommands();
+		if (this.isAutomaticReconnect() == false) {
+			super.connect(true);
+			if (!getOrgId().equals("quickstart") && this.isCleanSession()) {
+				subscribeToCommands();
+			}
 		}
 	}
 	
@@ -263,7 +266,7 @@ public class DeviceClient extends AbstractClient {
 	
 
 	
-	private class MqttDeviceCallBack implements MqttCallback {
+	private class MqttDeviceCallBack implements MqttCallbackExtended {
 	
 		/**
 		 * If we lose connection trigger the connect logic to attempt to
@@ -318,6 +321,17 @@ public class DeviceClient extends AbstractClient {
 					LoggerUtility.fine(CLASS_NAME, METHOD, "Event received: " + cmd.toString());
 					commandCallback.processCommand(cmd);
 			    }
+			}
+		}
+
+		@Override
+		public void connectComplete(boolean reconnect, String serverURI) {
+			final String METHOD = "connectComplete";
+			if (reconnect) {
+				LoggerUtility.info(CLASS_NAME, METHOD, "Reconnected to " + serverURI );
+				if (!getOrgId().equals("quickstart")) {
+					subscribeToCommands();
+				}
 			}
 		}
 

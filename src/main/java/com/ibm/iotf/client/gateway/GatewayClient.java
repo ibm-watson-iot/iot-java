@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -57,7 +58,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * 
  * This is a derived class from AbstractClient.
  */
-public class GatewayClient extends AbstractClient implements MqttCallback{
+public class GatewayClient extends AbstractClient implements MqttCallbackExtended{
 	
 	private static final String CLASS_NAME = GatewayClient.class.getName();
 	
@@ -587,20 +588,24 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		final String METHOD = "connectionLost";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
 		try {
-			connect();
-		    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
-		    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
-		    while (iterator.hasNext()) {
-		        //Map.Entry pairs = (Map.Entry)iterator.next();
-		        Entry<String, Integer> pairs = iterator.next();
-		        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
-		        try {
-		        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
-				} catch (NumberFormatException | MqttException e1) {
-					e1.printStackTrace();
-				}
-//		        iterator.remove(); // avoids a ConcurrentModificationException
-		    }
+			if (this.isAutomaticReconnect() == false) {
+				connect();
+			}
+			if (this.isCleanSession() == true) {
+			    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
+			    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
+			    while (iterator.hasNext()) {
+			        //Map.Entry pairs = (Map.Entry)iterator.next();
+			        Entry<String, Integer> pairs = iterator.next();
+			        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
+			        try {
+			        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
+					} catch (NumberFormatException | MqttException e1) {
+						e1.printStackTrace();
+					}
+	//		        iterator.remove(); // avoids a ConcurrentModificationException
+			    }
+			}
 		} catch (MqttException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
@@ -678,6 +683,14 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 */
 	public void setGatewayCallback(GatewayCallback callback) {
 		this.gwCommandCallback  = callback;
+	}
+
+	@Override
+	public void connectComplete(boolean reconnect, String serverURI) {
+		final String METHOD = "connectComplete";
+		if (reconnect) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Reconnected to " + serverURI );
+		}
 	}
 
 }

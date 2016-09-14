@@ -319,6 +319,7 @@ public abstract class AbstractClient {
 			}
 			
 			mqttClientOptions.setMaxInflight(getMaxInflight());
+			mqttClientOptions.setAutomaticReconnect(isAutomaticReconnect());
 			
 			/* This isn't needed as the production messaging.internetofthings.ibmcloud.com 
 			 * certificate should already be in trust chain.
@@ -363,7 +364,7 @@ public abstract class AbstractClient {
 	 * 
 	 * @return boolean value containing whether its a clean session or not.
 	 */
-	private boolean isCleanSession() {
+	public boolean isCleanSession() {
 		boolean enabled = true;
 		String value = options.getProperty("Clean-Session");
 		if(value == null) {
@@ -375,7 +376,7 @@ public abstract class AbstractClient {
 		return enabled;
 	}
 	
-	private boolean isWebSocket() {
+	public boolean isWebSocket() {
 		boolean enabled = false;
 		String value = options.getProperty("WebSocket");
 		if (value != null) {
@@ -384,9 +385,18 @@ public abstract class AbstractClient {
 		return enabled;
 	}
 	
-	private boolean isSecureConnection() {
-		boolean enabled = false;
+	public boolean isSecureConnection() {
+		boolean enabled = true;
 		String value = options.getProperty("Secure");
+		if (value != null) {
+			enabled = Boolean.parseBoolean(trimedValue(value));
+		}
+		return enabled;
+	}
+	
+	public boolean isAutomaticReconnect() {
+		boolean enabled = false;
+		String value = options.getProperty("Automatic-Reconnect");
 		if (value != null) {
 			enabled = Boolean.parseBoolean(trimedValue(value));
 		}
