@@ -36,6 +36,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -101,6 +102,7 @@ public abstract class AbstractClient {
 	protected int messageCount = 0;
 	
 	protected MqttAsyncClient mqttAsyncClient = null;
+	private static final MemoryPersistence DATA_STORE = new MemoryPersistence();
 	protected MqttConnectOptions mqttClientOptions;
 	protected MqttCallback mqttCallback;
 	protected int keepAliveInterval = -1;  // default
@@ -183,6 +185,12 @@ public abstract class AbstractClient {
 			configureMqtt();
 		} else {
 			configureConnOptions();
+			if (isAutomaticReconnect()) {
+				DisconnectedBufferOptions disconnectedOpts = new DisconnectedBufferOptions();
+				disconnectedOpts.setBufferEnabled(true);
+				disconnectedOpts.setBufferSize(getDisconnectedBufferSize());
+				mqttAsyncClient.setBufferOpts(disconnectedOpts);
+			}
 		}
 		
 		while (tryAgain && disconnectRequested == false) {
@@ -303,8 +311,7 @@ public abstract class AbstractClient {
 
 		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
 		try {
-			persistence = new MemoryPersistence();
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, persistence);
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, DATA_STORE);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
 			if (clientUsername != null) {
@@ -401,6 +408,15 @@ public abstract class AbstractClient {
 			enabled = Boolean.parseBoolean(trimedValue(value));
 		}
 		return enabled;
+	}
+	
+	public int getDisconnectedBufferSize() {
+		int size = 5000;
+		String value = options.getProperty("Disconnected-Buffer-Size");
+		if (value != null) {
+			size = Integer.parseInt(value);
+		}
+		return size;
 	}
 	
 	public int getMaxInflight() {

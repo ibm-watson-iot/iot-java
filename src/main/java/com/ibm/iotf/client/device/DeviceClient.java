@@ -225,9 +225,10 @@ public class DeviceClient extends AbstractClient {
 	 * @return Whether the send was successful.
 	 */	
 	public boolean publishEvent(String event, Object data, int qos) {
-		if (!isConnected()) {
+		if (!isConnected() && !isAutomaticReconnect()) {
 			return false;
 		}
+		
 		final String METHOD = "publishEvent(2)";
 		JsonObject payload = new JsonObject();
 		
@@ -252,7 +253,11 @@ public class DeviceClient extends AbstractClient {
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;

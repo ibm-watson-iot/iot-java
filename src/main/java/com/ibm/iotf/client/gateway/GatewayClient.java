@@ -364,7 +364,7 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishDeviceEvent(String deviceType, String deviceId, String event, Object data, int qos) {
-		if (!isConnected()) {
+		if (!isConnected() && !isAutomaticReconnect()) {
 			return false;
 		}
 		final String METHOD = "publishEvent(5)";
@@ -386,7 +386,11 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;
