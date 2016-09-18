@@ -130,7 +130,7 @@ public class APIClient {
 	}
 	
 	/**
-	 * 
+	 * @param options List of properties 
 	 * @return the domain
 	 */
 	protected String getDomain(Properties options) {
@@ -2446,7 +2446,7 @@ public class APIClient {
 	/**
 	 * Get a specific registered device management extension.
 	 * 
-	 * @param bundleId
+	 * @param bundleId bundle id
 	 * @return If successful, JsonObject response from Watson IoT Platform.
 	 * @throws IoTFCReSTException if failed.
 	 * @see IoTFCReSTException

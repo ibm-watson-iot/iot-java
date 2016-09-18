@@ -264,13 +264,19 @@ public abstract class AbstractClient {
 	
 	private void configureMqtt() {
 		String protocol = null;
-		int port;
+		int port = getPortNumber();
 		if (isWebSocket()) {
 			protocol = "ws://";
-			port = WS_PORT;
+			// If there is no port specified use default
+			if(port == -1) {
+				port = WS_PORT;
+			}
 		} else {
 			protocol = "tcp://";
-			port = MQTT_PORT;
+			// If there is no port specified use default
+			if(port == -1) {
+				port = MQTT_PORT;
+			}
 		}
 		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
 
@@ -295,16 +301,32 @@ public abstract class AbstractClient {
 		}
 	}
 	
+	/**
+	 * 
+	 * @return the port number specified by the user
+	 */
+	private int getPortNumber() {
+		String port = options.getProperty("Port", "-1");
+		port = trimedValue(port);
+		return Integer.parseInt(port);
+	}
+	
 	private void configureConnOptions() {
 		final String METHOD = "configureConnOptions";
 		String protocol = null;
-		int port = 0;
+		int port = getPortNumber();
 		if (isWebSocket()) {
 			protocol = "wss://";
-			port = WSS_PORT;
+			// If there is no port specified use default
+			if(port == -1) {
+				port = WSS_PORT;
+			}
 		} else {
 			protocol = "ssl://";
-			port = MQTTS_PORT;
+			// If there is no port specified use default
+			if(port == -1) {
+				port = MQTTS_PORT;
+			}
 		} 
 
 		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;

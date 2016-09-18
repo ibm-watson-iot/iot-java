@@ -341,10 +341,11 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 	 *            Name of the dataset under which to publish the data
 	 * @param data
 	 *            Object to be added to the payload as the dataset
+	 * @param format the format of the event
 	 * @param qos
 	 *            Quality of Service - should be 0, 1 or 2
 	 * @return Whether the send was successful.
-	 * @throws Exception 
+	 * @throws Exception when the publish operation fails
 	 */	
 	public boolean publishGatewayEvent(String event, Object data, String format, int qos) throws Exception {
 		return publishDeviceEvent(this.getGWDeviceType(), this.getGWDeviceId(), event, data, format, qos);
@@ -414,7 +415,11 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;
@@ -441,6 +446,7 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
 	 * @return Whether the send was successful.
+	 * @throws Exception when the publish operation fails
 	 */
 	public boolean publishDeviceEvent(String deviceType, String deviceId, String event, Object data, String format, int qos) throws Exception {
 		if (!isConnected()) {

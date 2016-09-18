@@ -281,6 +281,7 @@ public class DeviceClient extends AbstractClient {
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
 	 * @return Whether the send was successful.
+	 * @throws Exception when the publish operation fails
 	 */
 	public boolean publishEvent(String event, Object data, String format, int qos) throws Exception {
 		if (!isConnected()) {
@@ -312,7 +313,11 @@ public class DeviceClient extends AbstractClient {
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;
