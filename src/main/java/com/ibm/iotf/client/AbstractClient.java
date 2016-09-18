@@ -36,6 +36,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -103,6 +104,7 @@ public abstract class AbstractClient {
 	protected int messageCount = 0;
 	
 	protected MqttAsyncClient mqttAsyncClient = null;
+	private static final MemoryPersistence DATA_STORE = new MemoryPersistence();
 	protected MqttConnectOptions mqttClientOptions;
 	protected MqttCallback mqttCallback;
 	protected int keepAliveInterval = -1;  // default
@@ -191,6 +193,12 @@ public abstract class AbstractClient {
 			configureMqtt();
 		} else {
 			configureConnOptions();
+			if (isAutomaticReconnect()) {
+				DisconnectedBufferOptions disconnectedOpts = new DisconnectedBufferOptions();
+				disconnectedOpts.setBufferEnabled(true);
+				disconnectedOpts.setBufferSize(getDisconnectedBufferSize());
+				mqttAsyncClient.setBufferOpts(disconnectedOpts);
+			}
 		}
 		
 		while (tryAgain && disconnectRequested == false) {
@@ -301,8 +309,7 @@ public abstract class AbstractClient {
 
 		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
 		try {
-			persistence = new MemoryPersistence();
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, persistence);
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, DATA_STORE);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
 			if (clientUsername != null) {
@@ -317,6 +324,7 @@ public abstract class AbstractClient {
 			}
 			
 			mqttClientOptions.setMaxInflight(getMaxInflight());
+			mqttClientOptions.setAutomaticReconnect(isAutomaticReconnect());
 			
 			/* This isn't needed as the production messaging.internetofthings.ibmcloud.com 
 			 * certificate should already be in trust chain.
@@ -359,7 +367,7 @@ public abstract class AbstractClient {
 	 * 
 	 * @return boolean value containing whether its a clean session or not.
 	 */
-	private boolean isCleanSession() {
+	public boolean isCleanSession() {
 		boolean enabled = true;
 		String value = options.getProperty("Clean-Session");
 		if(value == null) {
@@ -371,7 +379,7 @@ public abstract class AbstractClient {
 		return enabled;
 	}
 	
-	private boolean isWebSocket() {
+	public boolean isWebSocket() {
 		boolean enabled = false;
 		String value = options.getProperty("WebSocket");
 		if (value != null) {
@@ -380,6 +388,23 @@ public abstract class AbstractClient {
 		return enabled;
 	}
 	
+	public boolean isAutomaticReconnect() {
+		boolean enabled = false;
+		String value = options.getProperty("Automatic-Reconnect");
+		if (value != null) {
+			enabled = Boolean.parseBoolean(trimedValue(value));
+		}
+		return enabled;
+	}
+	
+	public int getDisconnectedBufferSize() {
+		int size = 5000;
+		String value = options.getProperty("Disconnected-Buffer-Size");
+		if (value != null) {
+			size = Integer.parseInt(value);
+		}
+		return size;
+	}
 	public int getMaxInflight() {
 		int maxInflight = DEFAULT_MAX_INFLIGHT_MESSAGES;
 		String value = options.getProperty("MaxInflightMessages");
