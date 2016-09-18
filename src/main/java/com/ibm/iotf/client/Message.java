@@ -132,7 +132,7 @@ public class Message {
 	
 	/**
 	 * Returns the payload sent by the Watson IoT Platform in byte[] format
-	 * @return
+	 * @return Raw payload in byte[]
 	 */
 	public byte[] getRawPayload() {
 		return this.rawPayload;

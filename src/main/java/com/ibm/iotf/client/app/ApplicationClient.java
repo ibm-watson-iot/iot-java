@@ -216,7 +216,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishEvent(String deviceType, String deviceId, String event, Object data, int qos) {
-		if (!isConnected()) {
+		if (!isConnected() && !isAutomaticReconnect()) {
 			return false;
 		}
 		final String METHOD = "publishEvent(5)";
@@ -244,7 +244,11 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;
@@ -272,6 +276,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
 	 * @return Whether the send was successful.
+	 * @throws Exception when the publish operation fails
 	 */
 	public boolean publishEvent(String deviceType, String deviceId, String event, Object data, String format, int qos) throws Exception {
 		if (!isConnected()) {
@@ -303,7 +308,11 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;
@@ -351,7 +360,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishCommand(String deviceType, String deviceId, String command, Object data, int qos) {
-		if (!isConnected()) {
+		if (!isConnected() && !isAutomaticReconnect()) {
 			return false;
 		}
 		final String METHOD = "publishCommand(5)";
@@ -379,7 +388,11 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;
@@ -398,8 +411,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 *            object of String which denotes deviceType 
 	 * @param deviceId
 	 *            object of String which denotes deviceId
-	 * @param event
-	 *            object of String which denotes event
+	 * @param command
+	 *            object of String which denotes the command
 	 * @param data
 	 *            Payload data
 	 * @param format
@@ -407,6 +420,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
 	 * @return Whether the send was successful.
+	 * @throws Exception when the publish operation fails
 	 */
 	public boolean publishCommand(String deviceType, String deviceId, String command, Object data, String format, int qos) throws Exception {
 		if (!isConnected()) {
@@ -438,7 +452,11 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;

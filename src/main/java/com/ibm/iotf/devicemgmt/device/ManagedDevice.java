@@ -841,6 +841,11 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	@Override
 	protected void reconnect() {
 		String METHOD = "reconnect";
+		
+		if (this.isAutomaticReconnect()) {
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Automatic Reconnect is already active for this client.");
+			return;
+		}
 
 		IMqttDeliveryToken[] tokens = this.mqttAsyncClient.getPendingDeliveryTokens();
 		try {

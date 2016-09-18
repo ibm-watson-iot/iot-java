@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -58,7 +59,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * 
  * This is a derived class from AbstractClient.
  */
-public class GatewayClient extends AbstractClient implements MqttCallback{
+public class GatewayClient extends AbstractClient implements MqttCallbackExtended{
 	
 	private static final String CLASS_NAME = GatewayClient.class.getName();
 	
@@ -340,10 +341,11 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 *            Name of the dataset under which to publish the data
 	 * @param data
 	 *            Object to be added to the payload as the dataset
+	 * @param format the format of the event
 	 * @param qos
 	 *            Quality of Service - should be 0, 1 or 2
 	 * @return Whether the send was successful.
-	 * @throws Exception 
+	 * @throws Exception when the publish operation fails
 	 */	
 	public boolean publishGatewayEvent(String event, Object data, String format, int qos) throws Exception {
 		return publishDeviceEvent(this.getGWDeviceType(), this.getGWDeviceId(), event, data, format, qos);
@@ -384,7 +386,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishDeviceEvent(String deviceType, String deviceId, String event, Object data, int qos) {
-		if (!isConnected()) {
+		if (!isConnected() && !isAutomaticReconnect()) {
 			return false;
 		}
 		final String METHOD = "publishEvent(5)";
@@ -413,7 +415,11 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;
@@ -440,6 +446,7 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
 	 * @return Whether the send was successful.
+	 * @throws Exception when the publish operation fails
 	 */
 	public boolean publishDeviceEvent(String deviceType, String deviceId, String event, Object data, String format, int qos) throws Exception {
 		if (!isConnected()) {
@@ -471,7 +478,11 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;
@@ -674,20 +685,24 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 		final String METHOD = "connectionLost";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
 		try {
-			connect();
-		    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
-		    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
-		    while (iterator.hasNext()) {
-		        //Map.Entry pairs = (Map.Entry)iterator.next();
-		        Entry<String, Integer> pairs = iterator.next();
-		        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
-		        try {
-		        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
-				} catch (NumberFormatException | MqttException e1) {
-					e1.printStackTrace();
-				}
-//		        iterator.remove(); // avoids a ConcurrentModificationException
-		    }
+			if (this.isAutomaticReconnect() == false) {
+				connect();
+			}
+			if (this.isCleanSession() == true) {
+			    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
+			    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
+			    while (iterator.hasNext()) {
+			        //Map.Entry pairs = (Map.Entry)iterator.next();
+			        Entry<String, Integer> pairs = iterator.next();
+			        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
+			        try {
+			        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
+					} catch (NumberFormatException | MqttException e1) {
+						e1.printStackTrace();
+					}
+	//		        iterator.remove(); // avoids a ConcurrentModificationException
+			    }
+			}
 		} catch (MqttException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
@@ -765,6 +780,14 @@ public class GatewayClient extends AbstractClient implements MqttCallback{
 	 */
 	public void setGatewayCallback(GatewayCallback callback) {
 		this.gwCommandCallback  = callback;
+	}
+
+	@Override
+	public void connectComplete(boolean reconnect, String serverURI) {
+		final String METHOD = "connectComplete";
+		if (reconnect) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Reconnected to " + serverURI );
+		}
 	}
 
 }
