@@ -70,8 +70,7 @@ public class APIClient {
 	private String deviceType = null;
 	private String deviceId = null;
 
-	private String domain;
-	private boolean isApplication = false;
+	private String domain;	
 	private boolean isQuickstart = false;
 	
 	//Enum for content-type header
@@ -92,9 +91,13 @@ public class APIClient {
 	public APIClient(Properties opt) throws NoSuchAlgorithmException, KeyManagementException {
 		boolean isGateway = false;		
 		String authKeyPassed = null;
-		if("gateway".equals(getAuthMethod(opt))) {
+		
+		authKeyPassed = getAuthMethod(opt);
+		if("gateway".equals(authKeyPassed)) {
 			isGateway = true;
 		}
+		else
+			authKey = authKeyPassed;
 		
 		String org = null;
 		org = opt.getProperty("org");
@@ -107,17 +110,11 @@ public class APIClient {
 		if(this.orgId.equalsIgnoreCase("quickstart"))
 			isQuickstart = true;
 		
-		if(!isQuickstart && isGateway == false) {
-			authKeyPassed = opt.getProperty("auth-key");
-			if(authKeyPassed == null) {				
-				authKeyPassed = opt.getProperty("API-Key");
-			}
-		
-			authKey = trimedValue(authKeyPassed);
-		}
-		
-		
 		if (!isQuickstart) {
+
+			if (isGateway == false && authKeyPassed == null)
+				authKey = getApiKey(opt);
+
 			if (authKey.equalsIgnoreCase("token"))
 				authKey = "use-token-auth";
 
@@ -126,9 +123,6 @@ public class APIClient {
 				token = opt.getProperty("Authentication-Token");
 			}
 			authToken = trimedValue(token);
-
-			System.out.println(authKey);
-			System.out.println(authToken);
 		}
 		
 		this.domain = getDomain(opt);
@@ -199,6 +193,14 @@ public class APIClient {
 			method = opt.getProperty("Authentication-Method");
 		}
 		
+		return trimedValue(method);
+	}
+	
+	private static String getApiKey(Properties opt) {
+		String method = opt.getProperty("auth-key");
+		if (method == null) {
+			method = opt.getProperty("API-Key");
+		}
 		return trimedValue(method);
 	}
 	
@@ -290,14 +292,13 @@ public class APIClient {
 			builder.setParameters(queryParameters);
 		}
 
-		ContentType content = ContentType.valueOf(contentType);
-		System.out.println("casePost from Connect Content-Type:" + content.getType());
+		ContentType content = ContentType.valueOf(contentType);		
 		
 		HttpPost post = new HttpPost(builder.build());
 		post.setEntity(input);
 		post.addHeader("Content-Type", content.getType());
 		post.addHeader("Accept", "application/json");
-		System.out.println("isQuickstart: "+isQuickstart+"encodedString: "+encodedString);
+		
 		if(isQuickstart == false)
 			post.addHeader("Authorization", "Basic " + encodedString);
 		try {
@@ -3266,8 +3267,7 @@ public class APIClient {
 		validateNull("Device ID", deviceId);
 		validateNull("Event Name", eventId);
 		ContentType content = ContentType.valueOf(contentType);
-		System.out.println("Content-Type:" + content.getType());
-
+		
 		/**
 		 * Form the url based on this swagger documentation
 		 */
@@ -3293,18 +3293,14 @@ public class APIClient {
 				.append("/types/").append(deviceType).append("/devices/")
 				.append(deviceId).append(MESSAGE).append(eventId);
 
-		System.out.println(sb.toString());
-		System.out.println(payload.toString());
-
+		
 		int code = 0;
 		boolean ret = false;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		try {
-			response = connect("post", sb.toString(), payload.toString(), null);
-			System.out.println(response);
-			code = response.getStatusLine().getStatusCode();
-			System.out.println(code);
+			response = connect("post", sb.toString(), payload.toString(), null);			
+			code = response.getStatusLine().getStatusCode();			
 			if (code == 200) {
 				// success
 				ret = true;
