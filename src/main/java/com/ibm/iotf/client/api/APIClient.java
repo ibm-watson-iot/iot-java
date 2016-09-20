@@ -2379,6 +2379,8 @@ public class APIClient {
 			} else {
 				throw new IoTFCReSTException(code, "Unexpected error");
 			}
+		} catch (IoTFCReSTException e) {
+			throw e;
 		} catch (Exception e) {
 			// This includes JsonSyntaxException
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding the Device Management Extension "
