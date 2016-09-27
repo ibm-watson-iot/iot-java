@@ -17,6 +17,24 @@ This Java Client Library requires following version of Java,
 
 ----
 
+Migration from release 0.1.5 to 0.2.1
+---------------------------------------
+
+Starting from release **0.2.1** the library doesn't add parent Json Element "d" in front of the actual event published. For example,
+
+    {"temp":56,"hum":70}
+    
+    
+But incase, if you need the old behavior run the application with the property **com.ibm.iotf.enableCustomFormat** set to false as follows,
+ 
+    java -Dcom.ibm.iotf.enableCustomFormat=false <...>
+    
+This will publish the message in old behavior as follows,
+
+    {"d":{"temp":56,"hum":70}}
+    
+----
+
 Maven support
 --------------------------------------------------------------------
 
