@@ -1034,7 +1034,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
 	/**
 	 * Publish an event to the IBM Watson IoT Platform using HTTP(S) <br>
-	 * 
+	 * @deprecated This API is exposed in APIClient
+	 * {@link com.ibm.iotf.client.api.APIClient.publishEventOverHTTP}
  	 * @param deviceType	Device Type
 	 * @param deviceId		Device ID
 	 * @param eventName  Name of the dataset under which to publish the data
@@ -1042,7 +1043,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * @return httpcode the return code
 	 * @throws Exception if the operation is not successful
 	 */
-	public int publishEventOverHTTP(String deviceType,
+	@Deprecated public int publishEventOverHTTP(String deviceType,
 									String deviceId,
 									String eventName, 
 									Object payload) throws Exception {
