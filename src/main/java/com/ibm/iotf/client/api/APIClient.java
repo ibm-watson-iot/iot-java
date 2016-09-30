@@ -67,78 +67,72 @@ public class APIClient {
 	private String authToken = null;
 	private SSLContext sslContext = null;
 	private String orgId = null;
-	private String deviceType = null;
-	private String deviceId = null;
+	private String mdeviceType = null;
+	private String mdeviceId = null;
 
 	private String domain;	
 	private boolean isQuickstart = false;
 	
-	//Enum for content-type header
-	enum ContentType { text("text/plain"), json("application/json"), xml("application/xml"), bin("application/octet-stream");
+	// Enum for content-type header
+	enum ContentType {
+		text("text/plain"), json("application/json"), xml("application/xml"), bin(
+				"application/octet-stream");
+
+		ContentType(String type) {
+			mType = type;
+		}
+
+		public String getType() {
+			return mType;
+		}
+
+		private String mType;
+
+	}//ending enum
 	
-	ContentType(String type) {
-		mType = type;
-	}
-	public String getType() {
-		return mType;
-	}
-	private String mType;
-	
-	}
 	private String contentType = "json";
 	private boolean isSecured = true;
 	
 	public APIClient(Properties opt) throws NoSuchAlgorithmException, KeyManagementException {
-		boolean isGateway = false;		
+		boolean isGateway = false;
 		String authKeyPassed = null;
 		
-		authKeyPassed = getAuthMethod(opt);
-		if("gateway".equals(authKeyPassed)) {
+		if("gateway".equalsIgnoreCase(APIClient.getAuthMethod(opt))) {
 			isGateway = true;
+		} else if("device".equalsIgnoreCase(APIClient.getAuthMethod(opt))) {
+			authKey = "use-token-auth";
+		} else {
+			authKeyPassed = opt.getProperty("auth-key");
+			if(authKeyPassed == null) {
+				authKeyPassed = opt.getProperty("API-Key");
+			}
+
+			authKey = trimedValue(authKeyPassed);
 		}
-		else
-			authKey = authKeyPassed;
 		
-		String org = null;
-		org = opt.getProperty("org");
+		String token = opt.getProperty("auth-token");
+		if(token == null) {
+			token = opt.getProperty("Authentication-Token");
+		}
+		authToken = trimedValue(token);
 		
+		String org = opt.getProperty("org");
 		if(org == null) {
 			org = opt.getProperty("Organization-ID");
 		}
 		
 		this.orgId = trimedValue(org);
-		if(this.orgId.equalsIgnoreCase("quickstart"))
-			isQuickstart = true;
-		
-		if (!isQuickstart) {
-
-			if (isGateway == false && authKeyPassed == null)
-				authKey = getApiKey(opt);
-
-			if (authKey.equalsIgnoreCase("token"))
-				authKey = "use-token-auth";
-
-			String token = opt.getProperty("auth-token");
-			if (token == null) {
-				token = opt.getProperty("Authentication-Token");
-			}
-			authToken = trimedValue(token);
-		}
-		
 		this.domain = getDomain(opt);
 		
-		this.deviceType = this.getGWDeviceType(opt);
-		this.deviceId = this.getGWDeviceId(opt);
+		if(this.orgId == null || this.orgId.equalsIgnoreCase("quickstart"))
+			isQuickstart = true;
 		
-		String type = null;
-		type = opt.getProperty("Content-Type");
-		if(type != null)
-			this.contentType = trimedValue(type);
-		
+		this.mdeviceType = this.getDeviceType(opt);
+		this.mdeviceId = this.getDeviceId(opt);
 		this.isSecured = this.IsSecuredConnection(opt);
 		
 		if(isGateway) {
-			authKey = "g/" + this.orgId + '/' + this.getGWDeviceType(opt) + '/' + this.getGWDeviceId(opt);
+			authKey = "g/" + this.orgId + '/' + mdeviceType + '/' + mdeviceId;
 		}
 		
 		TrustManager[] trustAllCerts = null;
@@ -208,7 +202,7 @@ public class APIClient {
 	 * old style - id
 	 * new style - Device-ID
 	 */
-	protected String getGWDeviceId(Properties options) {
+	protected String getDeviceId(Properties options) {
 		String id;
 		id = options.getProperty("Gateway-ID");
 		if(id == null) {
@@ -220,7 +214,7 @@ public class APIClient {
 		return trimedValue(id);
 	}
 	
-	protected String getGWDeviceType(Properties options) {
+	protected String getDeviceType(Properties options) {
 		String type;
 		type = options.getProperty("Gateway-Type");
 		if(type == null) {
@@ -412,6 +406,7 @@ public class APIClient {
 		/**
 		 * Form the url based on this swagger documentation
 		 */
+		System.out.println("OrgId:" + orgId+"**DeviceType: "+deviceType+ "**DeviceId: "+deviceId);
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
@@ -424,7 +419,9 @@ public class APIClient {
 		int code = 0;
 		HttpResponse response = null;
 		try {
+			//System.out.println("bfr connect: "+sb.toString());
 			response = connect("get", sb.toString(), null, null);
+			//System.out.println("bfr resp");
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				return true;
@@ -3263,11 +3260,10 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder();
 		String port;
 		validateNull("Organization ID", orgId);
-		validateNull("Device Type", deviceType);
-		validateNull("Device ID", deviceId);
+		validateNull("Device Type", mdeviceType);
+		validateNull("Device ID", mdeviceId);
 		validateNull("Event Name", eventId);
-		ContentType content = ContentType.valueOf(contentType);
-		
+				
 		/**
 		 * Form the url based on this swagger documentation
 		 */
@@ -3290,14 +3286,16 @@ public class APIClient {
 			
 		sb.append(orgId).append(".messaging.").append(domain).append(":")
 				.append(port).append(BASIC_API_V0002_URL).append(TYPE)
-				.append("/types/").append(deviceType).append("/devices/")
-				.append(deviceId).append(MESSAGE).append(eventId);
+				.append("/types/").append(mdeviceType).append("/devices/")
+				.append(mdeviceId).append(MESSAGE).append(eventId);
 
 		
 		int code = 0;
 		boolean ret = false;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
+		
+		System.out.println("authKey: "+ authKey+ " authToken: "+ this.authToken);
 		try {
 			response = connect("post", sb.toString(), payload.toString(), null);			
 			code = response.getStatusLine().getStatusCode();			
@@ -3352,8 +3350,51 @@ public class APIClient {
 	 */
  
 	public boolean publishDeviceEventOverHTTP(String eventId, JsonObject payload) throws Exception {
-		boolean ret = false;
+		boolean ret = false;		
 		ret = publishMessageOverHTTP(eventId, payload, false, false);
+		return ret;
+	}
+	
+	/**
+	 * Publishes events over HTTP for a device and application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+ 
+	public boolean publishDeviceEventOverHTTP(String eventId, JsonObject payload, String contenttype) throws Exception {
+		boolean ret = false;
+		contentType = contenttype;
+		ret = publishDeviceEventOverHTTP(eventId, payload);
+		return ret;
+	}
+
+	/**
+	 * Application Publishes events on behalf of device over HTTP 
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+ 
+	public boolean publishApplicationEventforDeviceOverHTTP(String deviceId, String deviceType, String eventId, JsonObject payload) throws Exception {
+		boolean ret = false;		
+		this.mdeviceId = deviceId;
+		this.mdeviceType = deviceType;
+		ret = publishMessageOverHTTP(eventId, payload, true, false);
 		return ret;
 	}
 	
@@ -3371,9 +3412,10 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure publishing event.	 * 
 	 */
  
-	public boolean publishApplicationEventforDeviceOverHTTP(String eventId, JsonObject payload) throws Exception {
-		boolean ret = false;
-		ret = publishMessageOverHTTP(eventId, payload, true, false);
+	public boolean publishApplicationEventforDeviceOverHTTP(String deviceId, String deviceType, String eventId, JsonObject payload, String contenttype) throws Exception {
+		boolean ret = false;		
+		contentType = contenttype;
+		ret = publishApplicationEventforDeviceOverHTTP(deviceId, deviceType, eventId, payload);
 		return ret;
 	}
 
@@ -3393,6 +3435,26 @@ public class APIClient {
 	public boolean publishCommandOverHTTP(String eventId, JsonObject payload) throws Exception {
 		boolean ret = false;
 		ret = publishMessageOverHTTP(eventId, payload, true, true);
+		return ret;
+	}
+	
+	/**
+	 * Publishes commands over HTTP for an application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+	public boolean publishCommandOverHTTP(String eventId, JsonObject payload, String contenttype) throws Exception {
+		boolean ret = false;
+		contentType = contenttype;
+		ret = publishCommandOverHTTP(eventId, payload);
 		return ret;
 	}
 
