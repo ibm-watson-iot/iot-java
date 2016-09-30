@@ -405,8 +405,7 @@ public class APIClient {
 		final String METHOD = "isDeviceExist";
 		/**
 		 * Form the url based on this swagger documentation
-		 */
-		System.out.println("OrgId:" + orgId+"**DeviceType: "+deviceType+ "**DeviceId: "+deviceId);
+		 */		
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
@@ -418,10 +417,8 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
-		try {
-			//System.out.println("bfr connect: "+sb.toString());
-			response = connect("get", sb.toString(), null, null);
-			//System.out.println("bfr resp");
+		try {			
+			response = connect("get", sb.toString(), null, null);			
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
 				return true;
@@ -3294,8 +3291,7 @@ public class APIClient {
 		boolean ret = false;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
-		
-		System.out.println("authKey: "+ authKey+ " authToken: "+ this.authToken);
+				
 		try {
 			response = connect("post", sb.toString(), payload.toString(), null);			
 			code = response.getStatusLine().getStatusCode();			
