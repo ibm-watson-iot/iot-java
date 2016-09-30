@@ -162,7 +162,7 @@ public class APIClient {
 	}
 	
 	/**
-	 * 
+	 * @param options List of properties 
 	 * @return the domain
 	 */
 	protected String getDomain(Properties options) {
@@ -2445,6 +2445,8 @@ public class APIClient {
 			} else {
 				throw new IoTFCReSTException(code, "Unexpected error");
 			}
+		} catch (IoTFCReSTException e) {
+			throw e;
 		} catch (Exception e) {
 			// This includes JsonSyntaxException
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding the Device Management Extension "
@@ -2512,7 +2514,7 @@ public class APIClient {
 	/**
 	 * Get a specific registered device management extension.
 	 * 
-	 * @param bundleId
+	 * @param bundleId bundle id
 	 * @return If successful, JsonObject response from Watson IoT Platform.
 	 * @throws IoTFCReSTException if failed.
 	 * @see IoTFCReSTException
