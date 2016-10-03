@@ -66,14 +66,39 @@ public class APIClient {
 	private String authToken = null;
 	private SSLContext sslContext = null;
 	private String orgId = null;
+	private String mdeviceType = null;
+	private String mdeviceId = null;
 
 	private String domain;
+	private boolean isQuickstart = false;
 	
+	// Enum for content-type header
+	enum ContentType {
+		text("text/plain"), json("application/json"), xml("application/xml"), bin(
+				"application/octet-stream");
+
+		ContentType(String type) {
+			mType = type;
+		}
+
+		public String getType() {
+			return mType;
+		}
+
+		private String mType;
+
+	}//ending enum
+	
+	private String contentType = "json";
+	private boolean isSecured = true;
 	public APIClient(Properties opt) throws NoSuchAlgorithmException, KeyManagementException {
 		boolean isGateway = false;
 		String authKeyPassed = null;
-		if("gateway".equals(getAuthMethod(opt))) {
+		
+		if("gateway".equalsIgnoreCase(APIClient.getAuthMethod(opt))) {
 			isGateway = true;
+		} else if("device".equalsIgnoreCase(APIClient.getAuthMethod(opt))) {
+			authKey = "use-token-auth";
 		} else {
 			authKeyPassed = opt.getProperty("auth-key");
 			if(authKeyPassed == null) {
@@ -99,8 +124,13 @@ public class APIClient {
 		this.orgId = trimedValue(org);
 		this.domain = getDomain(opt);
 		
+		if(this.orgId == null || this.orgId.equalsIgnoreCase("quickstart"))
+			isQuickstart = true;
+		this.mdeviceType = this.getDeviceType(opt);
+		this.mdeviceId = this.getDeviceId(opt);
+		this.isSecured = this.IsSecuredConnection(opt);
 		if(isGateway) {
-			authKey = "g/" + this.orgId + '/' + this.getGWDeviceType(opt) + '/' + this.getGWDeviceId(opt);
+			authKey = "g/" + this.orgId + '/' + mdeviceType + '/' + mdeviceId;
 		}
 		
 		TrustManager[] trustAllCerts = null;
@@ -158,11 +188,18 @@ public class APIClient {
 		return trimedValue(method);
 	}
 	
+	private static String getApiKey(Properties opt) {
+		String method = opt.getProperty("auth-key");
+		if (method == null) {
+			method = opt.getProperty("API-Key");
+		}
+		return trimedValue(method);
+	}
 	/*
 	 * old style - id
 	 * new style - Device-ID
 	 */
-	protected String getGWDeviceId(Properties options) {
+	protected String getDeviceId(Properties options) {
 		String id;
 		id = options.getProperty("Gateway-ID");
 		if(id == null) {
@@ -174,7 +211,7 @@ public class APIClient {
 		return trimedValue(id);
 	}
 	
-	protected String getGWDeviceType(Properties options) {
+	protected String getDeviceType(Properties options) {
 		String type;
 		type = options.getProperty("Gateway-Type");
 		if(type == null) {
@@ -184,6 +221,15 @@ public class APIClient {
 			type = options.getProperty("type");
 		}
 		return trimedValue(type);
+	}
+	protected boolean IsSecuredConnection(Properties options) {
+		boolean type = true;
+		String id;
+		id = options.getProperty("Secure");
+		if(id != null)
+			type = trimedValue(id).equalsIgnoreCase("true");
+		
+		return type;
 	}
 	
 	private static String trimedValue(String value) {
@@ -202,8 +248,12 @@ public class APIClient {
 			input = new StringEntity(jsonPacket, StandardCharsets.UTF_8);
 		}
 		
-		byte[] encoding = Base64.encodeBase64(new String(authKey + ":" + authToken).getBytes() );			
-		String encodedString = new String(encoding);
+		String encodedString = null;
+		if (!isQuickstart) {
+			byte[] encoding = Base64.encodeBase64(new String(authKey + ":"
+					+ authToken).getBytes());
+			encodedString = new String(encoding);
+		}
 		switch(httpOperation) {
 			case "post":
 				return casePostFromConnect(queryParameters, url, METHOD,input, encodedString);
@@ -224,10 +274,12 @@ public class APIClient {
 			builder.setParameters(queryParameters);
 		}
 
+		ContentType content = ContentType.valueOf(contentType);		
 		HttpPost post = new HttpPost(builder.build());
 		post.setEntity(input);
-		post.addHeader("Content-Type", "application/json");
+		post.addHeader("Content-Type", content.getType());
 		post.addHeader("Accept", "application/json");
+		if(isQuickstart == false)
 		post.addHeader("Authorization", "Basic " + encodedString);
 		try {
 			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
@@ -339,7 +391,7 @@ public class APIClient {
 		final String METHOD = "isDeviceExist";
 		/**
 		 * Form the url based on this swagger documentation
-		 */
+		 */		
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
@@ -351,7 +403,7 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
-		try {
+		try {			
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
@@ -3179,5 +3231,214 @@ public class APIClient {
 			ex.initCause(e);
 			throw ex;
 		}
+	}
+	
+	private void validateNull (String property, String value) throws Exception {
+		if(value == null || value == "")
+			throw new Exception(property + "cannot be NULL or Empty!");
+	}
+
+	private boolean publishMessageOverHTTP(String eventId, JsonObject payload,
+			boolean isApplication, boolean isCommand) throws Exception {
+
+		final String METHOD = "publishMessageOverHTTP";
+		StringBuilder sb = new StringBuilder();
+		String port;
+		validateNull("Organization ID", orgId);
+		validateNull("Device Type", mdeviceType);
+		validateNull("Device ID", mdeviceId);
+		validateNull("Event Name", eventId);
+				
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+
+		if (isSecured) {
+			sb.append("https://");
+			port = "8883";
+		} else {
+			sb.append("http://");
+			port = "1883";
+		}
+
+		String TYPE = "/device";
+		if (isApplication)
+			TYPE = "/application";
+
+		String MESSAGE = "/events/";
+		if(isCommand)
+			MESSAGE = "/commands/";
+			
+		sb.append(orgId).append(".messaging.").append(domain).append(":")
+				.append(port).append(BASIC_API_V0002_URL).append(TYPE)
+				.append("/types/").append(mdeviceType).append("/devices/")
+				.append(mdeviceId).append(MESSAGE).append(eventId);
+
+		
+		int code = 0;
+		boolean ret = false;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+				
+		try {
+			response = connect("post", sb.toString(), payload.toString(), null);			
+			code = response.getStatusLine().getStatusCode();			
+			if (code == 200) {
+				// success
+				ret = true;
+			}
+
+		} catch (Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException(
+					"Failure in adding the device Type " + "::"
+							+ e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+
+		if (code == 400) {
+			throw new IoTFCReSTException(400,
+					"Invalid request (No body, invalid JSON, "
+							+ "unexpected key, bad value)", jsonResponse);
+		} else if (code == 401) {
+			throw new IoTFCReSTException(401,
+					"The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(403,
+					"The authentication method is invalid or "
+							+ "the API key used does not exist");
+		} else if (code == 409) {
+			throw new IoTFCReSTException(409, "The device type already exists",
+					jsonResponse);
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		} else if (ret == false) {
+			throwException(response, METHOD);
+		}
+
+		return ret;
+	}
+	
+	/**
+	 * Publishes events over HTTP for a device and application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+ 
+	public boolean publishDeviceEventOverHTTP(String eventId, JsonObject payload) throws Exception {
+		boolean ret = false;		
+		ret = publishMessageOverHTTP(eventId, payload, false, false);
+		return ret;
+	}
+	
+	/**
+	 * Publishes events over HTTP for a device and application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+ 
+	public boolean publishDeviceEventOverHTTP(String eventId, JsonObject payload, String contenttype) throws Exception {
+		boolean ret = false;
+		contentType = contenttype;
+		ret = publishDeviceEventOverHTTP(eventId, payload);
+		return ret;
+	}
+
+	/**
+	 * Application Publishes events on behalf of device over HTTP 
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+ 
+	public boolean publishApplicationEventforDeviceOverHTTP(String deviceId, String deviceType, String eventId, JsonObject payload) throws Exception {
+		boolean ret = false;		
+		this.mdeviceId = deviceId;
+		this.mdeviceType = deviceType;
+		ret = publishMessageOverHTTP(eventId, payload, true, false);
+		return ret;
+	}
+	
+	/**
+	 * Application Publishes events on behalf of device over HTTP 
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+ 
+	public boolean publishApplicationEventforDeviceOverHTTP(String deviceId, String deviceType, String eventId, JsonObject payload, String contenttype) throws Exception {
+		boolean ret = false;		
+		contentType = contenttype;
+		ret = publishApplicationEventforDeviceOverHTTP(deviceId, deviceType, eventId, payload);
+		return ret;
+	}
+
+	/**
+	 * Publishes commands over HTTP for an application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+	public boolean publishCommandOverHTTP(String eventId, JsonObject payload) throws Exception {
+		boolean ret = false;
+		ret = publishMessageOverHTTP(eventId, payload, true, true);
+		return ret;
+	}
+	
+	/**
+	 * Publishes commands over HTTP for an application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+	public boolean publishCommandOverHTTP(String eventId, JsonObject payload, String contenttype) throws Exception {
+		boolean ret = false;
+		contentType = contenttype;
+		ret = publishCommandOverHTTP(eventId, payload);
+		return ret;
 	}
 }
