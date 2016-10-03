@@ -423,7 +423,7 @@ public class DeviceClient extends AbstractClient {
 	
 	/**
 	 * @deprecated
-	 * <br> Use this {@link com.ibm.iotf.client.api.APIClient#publishDeviceEventOverHTTP(String eventId, JsonObject payload, String contenttype)} method instead 
+	 * <br> Use this {@link com.ibm.iotf.client.api.APIClient#publishDeviceEventOverHTTP(String eventId, JsonObject payload, ContentType contenttype)} method instead 
 	 * Publish an event to the IBM Watson IoT Platform using HTTP(S)<br>
 	 * 
 	 * @param eventName  Name of the dataset under which to publish the data

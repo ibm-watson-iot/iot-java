@@ -73,7 +73,7 @@ public class APIClient {
 	private boolean isQuickstart = false;
 	
 	// Enum for content-type header
-	enum ContentType {
+		public enum ContentType {
 		text("text/plain"), json("application/json"), xml("application/xml"), bin(
 				"application/octet-stream");
 
@@ -89,7 +89,7 @@ public class APIClient {
 
 	}//ending enum
 	
-	private String contentType = "json";
+	private ContentType contentType = ContentType.json;
 	private boolean isSecured = true;
 	public APIClient(Properties opt) throws NoSuchAlgorithmException, KeyManagementException {
 		boolean isGateway = false;
@@ -274,10 +274,10 @@ public class APIClient {
 			builder.setParameters(queryParameters);
 		}
 
-		ContentType content = ContentType.valueOf(contentType);		
+		//ContentType content = ContentType.valueOf(contentType);		
 		HttpPost post = new HttpPost(builder.build());
 		post.setEntity(input);
-		post.addHeader("Content-Type", content.getType());
+		post.addHeader("Content-Type", contentType.getType());
 		post.addHeader("Accept", "application/json");
 		if(isQuickstart == false)
 		post.addHeader("Authorization", "Basic " + encodedString);
@@ -3353,7 +3353,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure publishing event.	 * 
 	 */
  
-	public boolean publishDeviceEventOverHTTP(String eventId, JsonObject payload, String contenttype) throws Exception {
+	public boolean publishDeviceEventOverHTTP(String eventId, JsonObject payload, ContentType contenttype) throws Exception {
 		boolean ret = false;
 		contentType = contenttype;
 		ret = publishDeviceEventOverHTTP(eventId, payload);
@@ -3396,7 +3396,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure publishing event.	 * 
 	 */
  
-	public boolean publishApplicationEventforDeviceOverHTTP(String deviceId, String deviceType, String eventId, JsonObject payload, String contenttype) throws Exception {
+	public boolean publishApplicationEventforDeviceOverHTTP(String deviceId, String deviceType, String eventId, JsonObject payload, ContentType contenttype) throws Exception {
 		boolean ret = false;		
 		contentType = contenttype;
 		ret = publishApplicationEventforDeviceOverHTTP(deviceId, deviceType, eventId, payload);
@@ -3435,7 +3435,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure publishing event.	 * 
 	 */
-	public boolean publishCommandOverHTTP(String eventId, JsonObject payload, String contenttype) throws Exception {
+	public boolean publishCommandOverHTTP(String eventId, JsonObject payload, ContentType contenttype) throws Exception {
 		boolean ret = false;
 		contentType = contenttype;
 		ret = publishCommandOverHTTP(eventId, payload);

@@ -22,6 +22,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
+import com.ibm.iotf.client.api.APIClient.ContentType;
 import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.client.device.DeviceClient;
 
@@ -424,7 +425,7 @@ public class DeviceEventPublishTest extends TestCase{
 					
 		boolean code = false;
 		try {
-			code = myClient.api().publishDeviceEventOverHTTP("blink", event, "json");
+			code = myClient.api().publishDeviceEventOverHTTP("blink", event, ContentType.json);
 		} catch (java.lang.IllegalArgumentException e) {
 			// looks like the proerties file is not edited, just ignore
 			return;
