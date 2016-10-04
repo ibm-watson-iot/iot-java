@@ -32,6 +32,7 @@ import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.AbstractClient;
+import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.util.LoggerUtility;
 
 
@@ -47,6 +48,8 @@ public class DeviceClient extends AbstractClient {
 	private static final Pattern COMMAND_PATTERN = Pattern.compile("iot-2/cmd/(.+)/fmt/(.+)");
 	
 	private CommandCallback commandCallback = null;
+
+	private APIClient apiClient;
 	
 	/**
 	 * This constructor allows external user to pass the existing MqttAsyncClient 
@@ -87,6 +90,10 @@ public class DeviceClient extends AbstractClient {
 			this.clientPassword = getAuthToken();
 		}
 		createClient(this.new MqttDeviceCallBack());
+		
+		options.setProperty("auth-method", "device");
+		
+		this.apiClient = new APIClient(options);
 	}
 	
 	/*
@@ -193,6 +200,16 @@ public class DeviceClient extends AbstractClient {
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Returns the {@link com.ibm.iotf.client.api.APIClient} that allows the users to interact with 
+	 * Watson IoT Platform API's to publish device events using HTTPS.
+	 * 
+	 * @return APIClient
+	 */
+	public APIClient api() {
+		return this.apiClient;
 	}
 
 	/**
@@ -405,6 +422,8 @@ public class DeviceClient extends AbstractClient {
 	}
 	
 	/**
+	 * @deprecated
+	 * <br> Use this {@link com.ibm.iotf.client.api.APIClient#publishDeviceEventOverHTTP(String eventId, JsonObject payload, ContentType contenttype)} method instead 
 	 * Publish an event to the IBM Watson IoT Platform using HTTP(S)<br>
 	 * 
 	 * @param eventName  Name of the dataset under which to publish the data
