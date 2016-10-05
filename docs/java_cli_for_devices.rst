@@ -306,7 +306,7 @@ Apart from MQTT, the devices can publish events to IBM Watson IoT Platform using
 			event.addProperty("cpu",  90);
 			event.addProperty("mem",  70);
 			
-    	int httpCode = myClient.publishEventOverHTTP("blink", event);
+    	boolean response = myClient.api().publishDeviceEventOverHTTP("blink", event, ContentType.json);
     	
 The complete code can be found in the device example `HttpDeviceEventPublish <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/device/HttpDeviceEventPublish.java>`__
  
@@ -327,7 +327,7 @@ Also, It is possible for an application to publish the event on behalf of a devi
 			event.addProperty("cpu",  90);
 			event.addProperty("mem",  70);
 			
-    	code = myClient.publishEventOverHTTP(deviceType, deviceId, "blink", event);
+    	boolean status = myClient.publishApplicationEventforDeviceOverHTTP(deviceId, deviceType, "blink", event, ContentType.json);
  
 
 The complete code can be found in the application example `HttpApplicationDeviceEventPublish <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/HttpApplicationDeviceEventPublish.java>`__
