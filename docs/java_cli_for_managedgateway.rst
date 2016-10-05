@@ -75,6 +75,11 @@ Constructs a ManagedGateway instance by accepting the DeviceData and the followi
 * Authentication-Method - Method of authentication (The only value currently supported is "token"). 
 * Authentication-Token - API key token
 * clean-session - true or false (required only if you want to connect the Gateway in durable subscription. By default the clean-session is set to true).
+* Port - Specify the port to connect to, supported ports are 8883 and 443. (default port is 8883). 
+* WebSocket - true or false (default is false, required if you want to connect the device using websockets).
+* MaxInflightMessages - Sets the maximum number of inflight messages for the connection (default value is 100).
+* Automatic-Reconnect - true or false (default: false). When set, the library will automatically attempt to reconnect to the Watson IoT Platform while the client is in disconnected state.
+* Disconnected-Buffer-Size - The maximum number of messages that will be stored in memory while the client is disconnected. Default: 5000.
 
 **Note:** One must set clean-session to false to connect the Gateway in durable subscription. Refer to `Subscription Buffers and Clean Session <https://docs.internetofthings.ibmcloud.com/reference/mqtt/index.html#/subscription-buffers-and-clean-session#subscription-buffers-and-clean-session>`__ for more information about the clean session.
 

@@ -20,8 +20,11 @@ The constructor builds the client instance, and accepts a Properties object cont
 * auth-token - API key token (required if auth-method is “apikey”).
 * clean-session - true or false (required only if you want to connect the application in durable subscription. By default the clean-session is set to true).
 * shared-subscription - true or false (required only if shared subscription needs to be enabled)
-* WebSocket - true or false (default is false, required if you want to connect the device using websockets)
-* MaxInflightMessages - Sets the maximum number of inflight messages for the connection (default value is 100)
+* Port - Specify the port to connect to, supported ports are 8883 and 443. (default port is 8883). 
+* WebSocket - true or false (default is false, required if you want to connect the device using websockets).
+* MaxInflightMessages - Sets the maximum number of inflight messages for the connection (default value is 100).
+* Automatic-Reconnect - true or false (default: false). When set, the library will automatically attempt to reconnect to the Watson IoT Platform while the client is in disconnected state.
+* Disconnected-Buffer-Size - The maximum number of messages that will be stored in memory while the client is disconnected. Default: 5000.
 
 **Note**: One must set shared-subscription to true to build scalable applications which will load balance messages across multiple instances of the application. Refer to the `scalable applications section <https://docs.internetofthings.ibmcloud.com/applications/mqtt.html#/scalable-applications#scalable-applications>`__ for more information about the load balancing.
 
