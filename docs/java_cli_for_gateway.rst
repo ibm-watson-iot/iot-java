@@ -1,1 +1,0 @@
-For more information about how to develop java code for connecting gateways to your Watson IoT Platform instance, see [Developing gateways](https://console.ng.bluemix.net/docs/services/IoT/gateways/gw_dev_index.html) in the Bluemix documentation.
