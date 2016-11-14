@@ -88,7 +88,7 @@ public class GatewayAPIOperationsTest extends TestCase {
 		}
 		
 		try {
-			String deviceTypeToBeAdded = "{\"id\": \"" + DEVICE_TYPE + "\",\"description\": "
+			String deviceTypeToBeAdded = "{\"id\": \"" + "GatewayDT" + "\",\"description\": "
 				+ "\"TestDT\",\"deviceInfo\": {\"fwVersion\": \"1.0.0\",\"hwVersion\": \"1.0\"},\"metadata\": {}}";
 		
 			JsonElement type = new JsonParser().parse(deviceTypeToBeAdded);

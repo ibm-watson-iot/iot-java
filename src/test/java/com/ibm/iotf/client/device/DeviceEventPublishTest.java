@@ -377,9 +377,9 @@ public class DeviceEventPublishTest extends TestCase{
 		event.addProperty("cpu",  90);
 		event.addProperty("mem",  70);
 					
-		int code = 0;
+		boolean code = false;
 		try {
-			code = myClient.publishEventOverHTTP("blink", event);
+			code = myClient.api().publishDeviceEventOverHTTP("blink", event);
 		} catch (java.lang.IllegalArgumentException e) {
 			// looks like the proerties file is not edited, just ignore
 			return;
@@ -387,7 +387,7 @@ public class DeviceEventPublishTest extends TestCase{
 			e.printStackTrace();
 		}
 
-		assertEquals("Failed to publish the event......", 200, code);
+		assertEquals("Failed to publish the event......", true, code);
 	}
 	
 	/**
@@ -476,9 +476,9 @@ public class DeviceEventPublishTest extends TestCase{
 		event.addProperty("cpu",  90);
 		event.addProperty("mem",  70);
 					
-		int code = 0;
+		boolean code = false;
 		try {
-			code = myClient.publishEventOverHTTP(deviceType, deviceId, "blink", event);
+			code = myClient.api().publishApplicationEventforDeviceOverHTTP(deviceId, deviceType, "blink", event);
 		} catch (java.lang.IllegalArgumentException e) {
 			// looks like the proerties file is not edited, just ignore
 			return;
@@ -486,7 +486,7 @@ public class DeviceEventPublishTest extends TestCase{
 			e.printStackTrace();
 		}
 
-		assertEquals("Failed to publish the event......", 200, code);
+		assertEquals("Failed to publish the event......", true, code);
 	}
 	
 	/**

@@ -188,13 +188,6 @@ public class APIClient {
 		return trimedValue(method);
 	}
 	
-	private static String getApiKey(Properties opt) {
-		String method = opt.getProperty("auth-key");
-		if (method == null) {
-			method = opt.getProperty("API-Key");
-		}
-		return trimedValue(method);
-	}
 	/*
 	 * old style - id
 	 * new style - Device-ID
@@ -282,7 +275,8 @@ public class APIClient {
 		if(isQuickstart == false)
 		post.addHeader("Authorization", "Basic " + encodedString);
 		try {
-			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
+			HttpClient client = HttpClientBuilder.create().useSystemProperties().setSslcontext(sslContext).build();
+			
 			return client.execute(post);
 		} catch (IOException e) {
 			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
@@ -302,7 +296,7 @@ public class APIClient {
 		put.addHeader("Accept", "application/json");
 		put.addHeader("Authorization", "Basic " + encodedString);
 		try {
-			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
+			HttpClient client = HttpClientBuilder.create().useSystemProperties().setSslcontext(sslContext).build();
 			return client.execute(put);
 		} catch (IOException e) {
 			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
@@ -322,7 +316,7 @@ public class APIClient {
 		get.addHeader("Accept", "application/json");
 		get.addHeader("Authorization", "Basic " + encodedString);
 		try {
-			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
+			HttpClient client = HttpClientBuilder.create().useSystemProperties().setSslcontext(sslContext).build();					
 			return client.execute(get);
 		} catch (IOException e) {
 			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
@@ -343,7 +337,7 @@ public class APIClient {
 		delete.addHeader("Accept", "application/json");
 		delete.addHeader("Authorization", "Basic " + encodedString);
 		try {
-			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
+			HttpClient client = HttpClientBuilder.create().useSystemProperties().setSslcontext(sslContext).build();					
 			return client.execute(delete);
 		} catch (IOException e) {
 			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
