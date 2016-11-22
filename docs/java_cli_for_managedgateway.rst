@@ -145,8 +145,8 @@ The gateway can invoke sendDeviceManageRequest() method to make the attached dev
 
 .. code:: java
 
-	managedGateway.sendGatewayManageRequest(typeId, deviceId, lifetime, true, true);
-	
+	sendDeviceManageRequest(typeId, deviceId, lifetime, true, true);
+
 As shown, this method accepts the details of the attached device apart from the lifetime and device/firmware support parameters. The gateway can also use the overloaded sendDeviceManageRequest() method to specify the DeviceData for the attached device.
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/manage-device#manage-device>`__ for more information about the manage operation.
@@ -156,20 +156,20 @@ Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/
 Unmanage request - gateway
 -----------------------------------------------------
 
-A gateway can invoke sendGatewayUnmanageRequet() method when it no longer needs to be managed. The IBM Watson Internet of Things Platform will no longer send new device management requests for this gateway and all device management requests from the gateway (only for the gateway and not for the attached devices) will be rejected other than a **Manage** request.
+A gateway can invoke sendGatewayUnmanageRequest() method when it no longer needs to be managed. The IBM Watson Internet of Things Platform will no longer send new device management requests for this gateway and all device management requests from the gateway (only for the gateway and not for the attached devices) will be rejected other than a **Manage** request.
 
 .. code:: java
 
-	managedGateway.sendGatewayUnmanageRequet();
+	managedGateway.sendGatewayUnmanageRequest();
 
 Unmanage request - attached devices
 -----------------------------------------------------
 
-The gateway can invoke sendDeviceUnmanageRequet() method to move the attached device from managed state to unmanaged state. The IBM Watson Internet of Things Platform will no longer send new device management requests for this device and all device management requests from the gateway for this attached device will be rejected other than a **Manage** request.
+The gateway can invoke sendDeviceUnmanageRequest() method to move the attached device from managed state to unmanaged state. The IBM Watson Internet of Things Platform will no longer send new device management requests for this device and all device management requests from the gateway for this attached device will be rejected other than a **Manage** request.
 
 .. code:: java
 
-	managedGateway.sendDeviceUnmanageRequet();
+	managedGateway.sendDeviceUnmanageRequest();
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/unmanage-device#unmanage-device>`__ for more information about the Unmanage operation.
 
