@@ -233,7 +233,7 @@ public class APIClient {
 	}
 	
 	private HttpResponse connect(String httpOperation, String url, String jsonPacket, 
-			List<NameValuePair> queryParameters) throws IoTFCReSTException, URISyntaxException, IOException {
+			List<NameValuePair> queryParameters) throws URISyntaxException, IOException {
 		final String METHOD = "connect";
 		
 		StringEntity input = null;
@@ -2660,8 +2660,8 @@ public class APIClient {
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the Device management Request "
-					+ "::"+e.getMessage());
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the DM Request for ID ("
+					+ requestId + ")::"+e.getMessage());
 			ex.initCause(e);
 			throw ex;
 		}
@@ -2703,8 +2703,8 @@ public class APIClient {
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the Device management Request "
-					+ "::"+e.getMessage());
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in getting the DM Request for ID (" 
+					+ requestId + ")::" + e.getMessage());
 			ex.initCause(e);
 			throw ex;
 		}
@@ -3341,6 +3341,7 @@ public class APIClient {
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
 	 * for more information about the schema to be used
+	 * @param contenttype Content type
 	 * 
 	 * @return boolean indicates status of publishing event.
 	 *  
@@ -3357,6 +3358,8 @@ public class APIClient {
 	/**
 	 * Application Publishes events on behalf of device over HTTP 
 	 * 
+	 * @param deviceId Device ID
+	 * @param deviceType Device type
 	 * @param eventId String representing the eventId to be added. 
 	 * @param payload JSON object representing the payload to be added. Refer to  
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
@@ -3366,8 +3369,7 @@ public class APIClient {
 	 * @return boolean indicates status of publishing event.
 	 *  
 	 * @throws IoTFCReSTException Failure publishing event.	 * 
-	 */
- 
+	 */ 
 	public boolean publishApplicationEventforDeviceOverHTTP(String deviceId, String deviceType, String eventId, JsonObject payload) throws Exception {
 		boolean ret = false;		
 		this.mdeviceId = deviceId;
@@ -3379,17 +3381,19 @@ public class APIClient {
 	/**
 	 * Application Publishes events on behalf of device over HTTP 
 	 * 
+	 * @param deviceId Device ID
+	 * @param deviceType Device type
 	 * @param eventId String representing the eventId to be added. 
 	 * @param payload JSON object representing the payload to be added. Refer to  
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
 	 * for more information about the schema to be used
+	 * @param contenttype Content type
 	 * 
 	 * @return boolean indicates status of publishing event.
 	 *  
 	 * @throws IoTFCReSTException Failure publishing event.	 * 
 	 */
- 
 	public boolean publishApplicationEventforDeviceOverHTTP(String deviceId, String deviceType, String eventId, JsonObject payload, ContentType contenttype) throws Exception {
 		boolean ret = false;		
 		contentType = contenttype;
@@ -3424,6 +3428,7 @@ public class APIClient {
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
 	 * for more information about the schema to be used
+	 * @param contenttype Content type
 	 * 
 	 * @return boolean indicates status of publishing event.
 	 *  
