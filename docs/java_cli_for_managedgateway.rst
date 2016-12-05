@@ -145,8 +145,8 @@ The gateway can invoke sendDeviceManageRequest() method to make the attached dev
 
 .. code:: java
 
-	managedGateway.sendGatewayManageRequest(typeId, deviceId, lifetime, true, true);
-	
+	managedGateway.sendDeviceManageRequest(typeId, deviceId, lifetime, true, true);
+
 As shown, this method accepts the details of the attached device apart from the lifetime and device/firmware support parameters. The gateway can also use the overloaded sendDeviceManageRequest() method to specify the DeviceData for the attached device.
 
 Refer to the `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/index.html#/manage-device#manage-device>`__ for more information about the manage operation.
