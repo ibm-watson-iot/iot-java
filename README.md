@@ -1,16 +1,18 @@
 Java Client Library - Introduction
 ============================================
 
-This Java Client Library can be used to simplify interactions with the [IBM Watson IoT Platform] (https://internetofthings.ibmcloud.com). The documentation is divided into following sections:  
+Use the Java Client Library to simplify interactions with [IBM Watson IoT Platform] (https://internetofthings.ibmcloud.com). 
 
-- The [Device section] (https://console.ng.bluemix.net/docs/services/IoT/devices/libraries/java.html) contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
+The following documentation is provided to help you to get started:
+
+- The [Device section](https://console.ng.bluemix.net/docs/services/IoT/devices/libraries/java.html) contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
 - The [Managed Device section] (docs/java_cli_for_manageddevice.rst) contains information on how devices can connect to the Watson IoT Platform Device Management service using Java ibmiotf Client Library and perform device management operations like firmware update, location update, and diagnostics update.
-- The [Gateway section] (docs/java_cli_for_gateway.rst) contains information on how gateways publish events and handle commands for itself and for the attached devices using the Java ibmiotf Client Library. 
-- The [Gateway Management section] (docs/java_cli_for_managedgateway.rst) contains information on how to connect the gateway as Managed Gateway to IBM Watson IoT Platform and manage the attached devices.
-- The [Application section] (https://console.ng.bluemix.net/docs/services/IoT/applications/libraries/java.html) details how applications can use the Java ibmiotf Client Library to interact with devices.
-- The [API section] (docs/java_cli_for_api.rst)  contains information on how applications can use the Java ibmiotf Client Library to interact with the organization in the Watson IoT Platform through ReST APIs
+- The [Gateway section](https://console.ng.bluemix.net/docs/services/IoT/gateways/libraries/java_cli_gw.html) contains information on how gateways publish events and handle commands for itself and for the attached devices using the Java ibmiotf Client Library. 
+- The [Gateway Management section](https://console.ng.bluemix.net/docs/services/IoT/gateways/libraries/java_cli_managed_gw.html) contains information on how to connect the gateway as Managed Gateway to IBM Watson IoT Platform and manage the attached devices.
+- The [Application section](https://console.ng.bluemix.net/docs/services/IoT/applications/libraries/java.html) details how applications can use the Java ibmiotf Client Library to interact with devices.
+- The [API section] (docs/java_cli_for_api.rst)  contains information on how applications can use the Java ibmiotf Client Library to interact with the organization in the Watson IoT Platform through REST APIs
 
-This Java Client Library requires following version of Java,
+The Java Client Library requires either of the following versions of Java:
 
 *  [Java 7] (http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html)
 *  [Java 8] (https://java.com/en/download/)
@@ -20,16 +22,16 @@ This Java Client Library requires following version of Java,
 Migration from release 0.1.5 to 0.2.1
 ---------------------------------------
 
-Starting from release **0.2.1** the library doesn't add parent Json Element "d" in front of the actual event published. For example,
+Starting from release **0.2.1**, the library doesn't add parent JSON Element "d" in front of the actual event that is published, as outlined in the following example:
 
     {"temp":56,"hum":70}
     
     
-But incase, if you need the old behavior run the application with the property **com.ibm.iotf.enableCustomFormat** set to false as follows,
+If you need to revert back to the previous behavior, run the application with the property **com.ibm.iotf.enableCustomFormat** set to false as follows:
  
     java -Dcom.ibm.iotf.enableCustomFormat=false <...>
     
-This will publish the message in old behavior as follows,
+This will publish the message in old format as follows:
 
     {"d":{"temp":56,"hum":70}}
     
@@ -38,7 +40,7 @@ This will publish the message in old behavior as follows,
 Maven support
 --------------------------------------------------------------------
 
-The library artifact is pushed to the maven. Use the following maven dependency to include this library in your java application.
+The library artifact is pushed to the maven. Use the following maven dependency to include this library in your Java application.
 
     <dependency>
         <groupId>com.ibm.messaging</groupId>
@@ -47,11 +49,11 @@ The library artifact is pushed to the maven. Use the following maven dependency 
     </dependency>
     
 
-However if you want to build the library by yourself, use the following maven command,
+However, if you want to build the library by yourself, use the following maven command:
 
     mvn clean package -Dmaven.test.skip=true
     
-The above command quickly builds the library by skipping the tests and the `target` directory contains the output jar files. However, if you want to run the tests as well, then modify the property files present under directory `src/test/resources` and run the following maven command,
+The above command quickly builds the library by skipping the test and the `target` directory contains the output jar files. However, if you also want to run the tests, modify the property files that are in the directory `src/test/resources`, and then run the following maven command:
     
     mvn clean package
 
@@ -68,7 +70,7 @@ When you use maven, the dependencies are downloaded automatically.
 
 Samples
 -------------------------------------------------------------------------------
-In order to search & find the samples easily, we moved the samples to corresponding repositories and 
+You can find samples in each of the corresponding repositories as follows:
 
 * [Device samples] (https://github.com/ibm-messaging/iot-device-samples) - Repository contains all device (also device management) related samples in different programming languages. Information and instructions regarding the use of these samples can be found in their respective directories.
 * [Gateway Samples] (https://github.com/ibm-messaging/iot-gateway-samples) - Repository contains all Gateway (also gateway management) related samples in different programming languages.
@@ -81,20 +83,20 @@ In order to search & find the samples easily, we moved the samples to correspond
 Dependencies
 -------------------------------------------------------------------------------
 
--  [Paho MQTT Java Client] (https://repo.eclipse.org/content/repositories/paho-releases/org/eclipse/paho/org.eclipse.paho.client.mqttv3/1.1.0/org.eclipse.paho.client.mqttv3-1.1.0.jar) - provides a client class which enable applications to connect to an MQTT broker
--  [google-gson] (https://code.google.com/p/google-gson/) - library for interacting with JSON objects
--  [Apache Commons Logging] (http://commons.apache.org/proper/commons-logging/download_logging.cgi) - library for logging various informations
--  [Apache Commons Codec] (https://commons.apache.org/proper/commons-codec/download_codec.cgi) - provides common encoder and decoder functionalities such as Base64
--  [Apache Commons Lang] (https://commons.apache.org/proper/commons-lang/download_lang.cgi) - provides methods for manipulating core Java classes
--  [Apache Commons Net] (https://commons.apache.org/proper/commons-net/download_net.cgi) - provides method for client side Internet protocols.
--  [Apache Ant] (http://ant.apache.org/) - build tool for automated builds
--  [Apache HttpClient] (https://hc.apache.org/downloads.cgi) - A HTTP Client library
--  [Apache HttpCore] (https://hc.apache.org/downloads.cgi)  - A HTTP Core library
--  [Joda-Time] (http://www.joda.org/joda-time/download.html) - The date and time library for Java 
+-  [Paho MQTT Java Client] (https://repo.eclipse.org/content/repositories/paho-releases/org/eclipse/paho/org.eclipse.paho.client.mqttv3/1.1.0/org.eclipse.paho.client.mqttv3-1.1.0.jar) - Provides a client class that enables applications to connect to an MQTT broker.
+-  [google-gson] (https://code.google.com/p/google-gson/) - A library for interacting with JSON objects.
+-  [Apache Commons Logging] (http://commons.apache.org/proper/commons-logging/download_logging.cgi) - A library for logging various types of information.
+-  [Apache Commons Codec] (https://commons.apache.org/proper/commons-codec/download_codec.cgi) - Provides common encoder and decoder functionalities, for example, Base64.
+-  [Apache Commons Lang] (https://commons.apache.org/proper/commons-lang/download_lang.cgi) - Provides methods for manipulating core Java classes.
+-  [Apache Commons Net] (https://commons.apache.org/proper/commons-net/download_net.cgi) - Provides methods for client side Internet protocols.
+-  [Apache Ant] (http://ant.apache.org/) - A build tool for automated builds.
+-  [Apache HttpClient] (https://hc.apache.org/downloads.cgi) - A HTTP Client library.
+-  [Apache HttpCore] (https://hc.apache.org/downloads.cgi)  - A HTTP Core library.
+-  [Joda-Time] (http://www.joda.org/joda-time/download.html) - The date and time library for Java. 
 
 ----
 
 License
 -----------------------
 
-The library is shipped with Eclipse Public License and refer to the [License file] (LICENSE) for more information about the licensing.
+The library is shipped with Eclipse Public License. For more information about the public licensing, see the [License file](LICENSE).
