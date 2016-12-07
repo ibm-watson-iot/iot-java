@@ -3,7 +3,7 @@ Java Client Library - Introduction
 
 Use the Java Client Library to simplify interactions with [IBM Watson IoT Platform] (https://internetofthings.ibmcloud.com). 
 
-The documentation is divided into following sections:  
+The following documentation is provided to help you to get started:
 
 - The [Device section](https://console.ng.bluemix.net/docs/services/IoT/devices/libraries/java.html) contains information on how devices publish events and handle commands using the Java ibmiotf Client Library. 
 - The [Managed Device section] (docs/java_cli_for_manageddevice.rst) contains information on how devices can connect to the Watson IoT Platform Device Management service using Java ibmiotf Client Library and perform device management operations like firmware update, location update, and diagnostics update.
