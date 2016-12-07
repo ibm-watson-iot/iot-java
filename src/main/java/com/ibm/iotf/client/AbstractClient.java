@@ -687,7 +687,7 @@ public abstract class AbstractClient {
 			sb.append("https://");
 		}
 		sb.append(organization)
-			.append(".internetofthings.ibmcloud.com/api/v0002");
+			.append(".messaging.internetofthings.ibmcloud.com/api/v0002");
 			
 		if(device == true) {
 			sb.append("/device");
