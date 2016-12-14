@@ -39,6 +39,9 @@ public class IoTFCReSTException extends Exception {
 	public static final String HTTP_ADD_DM_EXTENSION_ERR_500 =
 			"Internal server error";
 	public static final String HTTP_INITIATE_DM_REQUEST_ERR_500 = HTTP_ERR_500;
+	public static final String HTTP_GET_DM_REQUEST_ERR_404 =
+			"Request status not found";
+	public static final String HTTP_GET_DM_REQUEST_ERR_500 = HTTP_ERR_500;
 	
 	private String method = null;
 	private String url = null;
