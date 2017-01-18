@@ -2694,27 +2694,40 @@ public class APIClient {
 		int code = 0;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
+		IoTFCReSTException ex = null;
+		String method = "get";
 		try {
-			response = connect("get", sb.toString(), null, null);
+			response = connect(method, sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
-			String result = this.readContent(response, METHOD);
-			jsonResponse = new JsonParser().parse(result);
-			if(code == 200) {
-				return jsonResponse.getAsJsonObject();
+			switch (code) {
+			case 200:
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				break;
+			case 404:
+				ex = new IoTFCReSTException(method, sb.toString(), null, code, IoTFCReSTException.HTTP_GET_DM_REQUEST_ERR_404, null);
+				break;
+			case 500:
+				ex = new IoTFCReSTException(method, sb.toString(), null, code, IoTFCReSTException.HTTP_GET_DM_REQUEST_ERR_500, null);
+				break;
+			default:
+				ex = new IoTFCReSTException(method, sb.toString(), null, code, IoTFCReSTException.HTTP_ERR_UNEXPECTED, null);
 			}
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in getting the DM Request for ID (" 
+			ex = new IoTFCReSTException("Failure in getting the DM Request for ID (" 
 					+ requestId + ")::" + e.getMessage());
 			ex.initCause(e);
 			throw ex;
 		}
-		if (code == 500) {
-			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
-		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "Request status not found");
+		
+		if (jsonResponse != null) {
+			return jsonResponse.getAsJsonObject();
+		} else {
+			if (ex != null) {
+				throw ex;
+			}
+			return null;
 		}
-		throwException(response, METHOD);
-		return null;
 	}
 
 	/**
