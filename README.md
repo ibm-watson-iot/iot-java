@@ -19,6 +19,25 @@ The Java Client Library requires either of the following versions of Java:
 
 ----
 
+Supported Features
+------------------
+
+| Feature   |      Supported?      |
+|----------|:-------------:|
+| Device connectivity |  &#10004; |
+| Gateway connectivity |    &#10004;   |
+| Application connectivity | &#10004; |
+| Watson IoT API | &#10004; |
+| SSL/TLS | &#10004; |
+| Client side Certificate based authentication | &#10008; |
+| Device Management | &#10004; |
+| Device Management Extension(DME) | &#10008; |
+| Scalable Application | &#10004; |
+| Auto reconnect | &#10004; |
+| Websocket | &#10004; |
+| Event/Command publish using MQTT| &#10004; |
+| Event/Command publish using HTTP| &#10004; |
+
 Migration from release 0.1.5 to 0.2.1
 ---------------------------------------
 
