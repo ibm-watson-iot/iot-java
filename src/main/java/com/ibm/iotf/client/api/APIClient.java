@@ -2602,6 +2602,18 @@ public class APIClient {
 				String result = this.readContent(response, METHOD);
 				jsonResponse = new JsonParser().parse(result);
 				break;
+			case 400:
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_400, null);
+				break;
+			case 401:
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_401, null);
+				break;
+			case 403:
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_403, null);
+				break;
+			case 404:
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_404, null);
+				break;
 			case 500:
 				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_500, null);
 				break;

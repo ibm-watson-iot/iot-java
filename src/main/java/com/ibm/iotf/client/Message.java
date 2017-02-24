@@ -70,6 +70,7 @@ public class Message {
 			} else {
 				timestamp = DateTime.now();
 			}
+			this.payload = payloadJson;
 		} catch (JsonSyntaxException e) {
 			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "JsonSyntaxException thrown", e);
 		} catch (JsonParseException jpe) {
@@ -103,6 +104,7 @@ public class Message {
 				} else {
 					timestamp = DateTime.now();
 				}
+				this.payload = payloadJson;
 			} catch (JsonSyntaxException e) {
 				LoggerUtility.warn(CLASS_NAME, METHOD, "JsonSyntaxException thrown");
 			} catch (JsonParseException jpe) {
