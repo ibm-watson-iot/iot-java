@@ -177,9 +177,16 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 		String id;
 		id = options.getProperty("Gateway-ID");
 		if(id == null) {
-			return getDeviceId();
+			return super.getDeviceId();
 		}
 		return trimedValue(id);
+	}
+	
+	/**
+	 * Returns the Gateway ID
+	 */
+	public String getDeviceId() {
+		return this.getGWDeviceId();
 	}
 	
 	public String getGWDeviceType() {
