@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2016 IBM Corporation and other Contributors.
+ Copyright (c) 2016-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -34,7 +34,8 @@ public class DeviceDMAgentTopic implements DMAgentTopic {
 		ADD_DIAG_LOG("iotdevice-1/add/diag/log"),
 		CLEAR_DIAG_LOG("iotdevice-1/clear/diag/log"),
 		NOTIFY("iotdevice-1/notify"),
-		RESPONSE("iotdevice-1/response");
+		RESPONSE("iotdevice-1/response"),
+		DME_ACTION_TOPIC("iotdm-1/mgmt/custom/#");
 			
 		private Topic(String name) {
 			this.name = name;
@@ -93,6 +94,11 @@ public class DeviceDMAgentTopic implements DMAgentTopic {
 	@Override
 	public String getNotifyTopic() {
 		return Topic.NOTIFY.getName();
+	}
+	
+	@Override 
+	public String getDMEActionTopic() {
+		return Topic.DME_ACTION_TOPIC.getName();
 	}
 
 }

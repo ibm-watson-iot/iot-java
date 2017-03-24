@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+ Copyright (c) 2015-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -24,6 +24,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -37,6 +39,8 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.ibm.iotf.client.device.DMEAction;
+import com.ibm.iotf.client.device.DMEActionCallback;
 import com.ibm.iotf.client.device.DeviceClient;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceData;
@@ -81,6 +85,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 	private static final String CLASS_NAME = ManagedDevice.class.getName();
 	private static final int REGISTER_TIMEOUT_VALUE = 60 * 1000 * 2; // wait for 2 minute
+	private static final Pattern DME_ACTION_PATTERN = Pattern.compile("iotdm-1/mgmt/custom/(.+)/(.+)");
 
 	private final SynchronousQueue<JsonObject> queue = new SynchronousQueue<JsonObject>();
 
@@ -99,10 +104,12 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 	private boolean supportDeviceActions = false;
 	private boolean supportFirmwareActions = false;
+	private String[] bundleIds;
 	private boolean bManaged = false;
 	private Date dormantTime;
 	private String responseSubscription = null;
 	private ManagedDeviceClient client;
+	private DMEActionCallback dmeActionCallback;
 
     /**
      * Constructor that creates a ManagedDevice object, but does not connect to
@@ -233,12 +240,14 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 *
 	 * @param supportDeviceActions Tells whether the device supports Device actions or not.
 	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
+	 *        
+	 * @param bundleIds Array of Device Management Extension bundleIds
 	 *
 	 * @return boolean response containing the status of the manage request
 	 * @throws MqttException When there is a failure
 	 */
 	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
-			boolean supportDeviceActions) throws MqttException {
+			boolean supportDeviceActions, String[] bundleIds) throws MqttException {
 
 		final String METHOD = "manage";
 
@@ -255,10 +264,16 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 		this.supportDeviceActions = supportDeviceActions;
 		this.supportFirmwareActions = supportFirmwareActions;
+		this.bundleIds = bundleIds;
 		JsonObject jsonPayload = new JsonObject();
 		JsonObject supports = new JsonObject();
 		supports.add("deviceActions", new JsonPrimitive(supportDeviceActions));
 		supports.add("firmwareActions", new JsonPrimitive(supportFirmwareActions));
+		if(bundleIds != null && bundleIds.length > 0) {
+			for(int i = 0; i < bundleIds.length; i++) {
+				supports.add(bundleIds[i], new JsonPrimitive(true));
+			}
+		}
 
 		JsonObject data = new JsonObject();
 		data.add("supports", supports);
@@ -294,12 +309,80 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				dormantTime = new Date(currentTime.getTime() + (lifetime * 1000));
 			}
 			success = true;
+			// subscribe to DME requests
+			this.subscribe(this.client.getDMAgentTopic().getDMEActionTopic(), 1, this);
 		}
 		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Success (" + success + ")");
 
 		bManaged = success;
 		return success;
 	}
+	
+	/**
+	 * <p>Send a device manage request to Watson IoT Platform</p>
+	 *
+	 * <p>A Device uses this request to become a managed device.
+	 * It should be the first device management request sent by the
+	 * Device after connecting to the IBM Watson IoT Platform.
+	 * It would be usual for a device management agent to send this
+	 * whenever is starts or restarts.</p>
+	 *
+	 * <p>This method connects the device to Watson IoT Platform connect if its not connected already</p>
+	 *
+	 * @param lifetime The length of time in seconds within
+	 *        which the device must send another Manage device request.
+	 *        if set to 0, the managed device will not become dormant.
+	 *        When set, the minimum supported setting is 3600 (1 hour).
+	 *
+	 * @param supportFirmwareActions Tells whether the device supports firmware actions or not.
+	 *        The device must add a firmware handler to handle the firmware requests.
+	 *
+	 * @param supportDeviceActions Tells whether the device supports Device actions or not.
+	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
+	 *        
+	 * @param bundleId Unique identifier for a device management extension
+	 *
+	 * @return boolean response containing the status of the manage request
+	 * @throws MqttException When there is a failure
+	 */
+	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
+			boolean supportDeviceActions, String bundleId) throws MqttException {
+
+		return sendManageRequest(lifetime, supportFirmwareActions, supportDeviceActions, new String[]{bundleId});
+	}
+	
+	/**
+	 * <p>Send a device manage request to Watson IoT Platform</p>
+	 *
+	 * <p>A Device uses this request to become a managed device.
+	 * It should be the first device management request sent by the
+	 * Device after connecting to the IBM Watson IoT Platform.
+	 * It would be usual for a device management agent to send this
+	 * whenever is starts or restarts.</p>
+	 *
+	 * <p>This method connects the device to Watson IoT Platform connect if its not connected already</p>
+	 *
+	 * @param lifetime The length of time in seconds within
+	 *        which the device must send another Manage device request.
+	 *        if set to 0, the managed device will not become dormant.
+	 *        When set, the minimum supported setting is 3600 (1 hour).
+	 *
+	 * @param supportFirmwareActions Tells whether the device supports firmware actions or not.
+	 *        The device must add a firmware handler to handle the firmware requests.
+	 *
+	 * @param supportDeviceActions Tells whether the device supports Device actions or not.
+	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
+	 *
+	 * @return boolean response containing the status of the manage request
+	 * @throws MqttException When there is a failure
+	 */
+	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
+			boolean supportDeviceActions) throws MqttException {
+
+		return sendManageRequest(lifetime, supportFirmwareActions, supportDeviceActions, (String[])null);
+	}
+	
+	// DeviceDMAgentTopic
 
 	/**
 	 * Update the location.
@@ -851,7 +934,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		try {
 			super.connect();
 		} catch (MqttException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -868,7 +950,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			try {
 
 				LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "lifetime (" + lifetime + ")");
-				sendManageRequest(lifetime, this.supportFirmwareActions, this.supportDeviceActions);
+				sendManageRequest(lifetime, this.supportFirmwareActions, this.supportDeviceActions, this.bundleIds);
 
 				if(tokens != null) {
 					LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Republishing messages start");
@@ -886,6 +968,10 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public void setDMEActionCallback(DMEActionCallback dmeActionCallback) {
+		this.dmeActionCallback = dmeActionCallback;
 	}
 
 	@Override
@@ -913,7 +999,20 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				}
 			}
 		} else {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "Unknown topic (" + topic + ")");
+			Matcher matcher = DME_ACTION_PATTERN.matcher(topic);
+			if (matcher.matches()) {
+				String bundleId = matcher.group(1);
+				String actionId = matcher.group(2);
+				String responsePayload = new String (message.getPayload(), "UTF-8");
+				JsonObject payload = new JsonParser().parse(responsePayload).getAsJsonObject();
+				DMEAction action = new DMEAction(bundleId, actionId, payload);
+				LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Received a DME action " + responsePayload);
+				if(this.dmeActionCallback != null) {
+					this.dmeActionCallback.processAction(action);
+				}
+		    } else {
+		    	LoggerUtility.warn(CLASS_NAME, METHOD, "Unknown topic (" + topic + ")");
+		    }
 		}
 	}
 
@@ -1075,5 +1174,17 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	private void terminateHandlers() {
 		fwHandler = null;
 		actionHandler = null;
+	}
+
+	public void sendDMEResponse(int rc, String requestId) {
+		JsonObject response = new JsonObject();
+		response.addProperty("reqId", requestId);
+		response.addProperty("rc", rc);
+		try {
+			this.publish(this.client.getDMAgentTopic().getDMServerTopic(), response);
+		} catch (MqttException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
