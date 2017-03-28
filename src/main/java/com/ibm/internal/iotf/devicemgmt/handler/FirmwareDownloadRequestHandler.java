@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+  Copyright (c) 2015-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -63,7 +63,7 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 	 * If firmware download is not supported, set rc to 501 and optionally set message accordingly.
 	 */
 	@Override
-	public void handleRequest(JsonObject jsonRequest) {
+	public void handleRequest(JsonObject jsonRequest, String topic) {
 		final String METHOD = "handleRequest";
 		ResponseCode rc;
 		

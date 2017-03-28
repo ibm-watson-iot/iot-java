@@ -103,12 +103,5 @@ public class GatewayDMAgentTopic implements DMAgentTopic {
 	public String getNotifyTopic() {
 		return topicStarter + Topic.NOTIFY.getName();
 	}
-
-	@Override
-	public String getDMEActionTopic() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }
 	

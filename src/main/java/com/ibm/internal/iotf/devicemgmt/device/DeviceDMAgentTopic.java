@@ -34,9 +34,8 @@ public class DeviceDMAgentTopic implements DMAgentTopic {
 		ADD_DIAG_LOG("iotdevice-1/add/diag/log"),
 		CLEAR_DIAG_LOG("iotdevice-1/clear/diag/log"),
 		NOTIFY("iotdevice-1/notify"),
-		RESPONSE("iotdevice-1/response"),
-		DME_ACTION_TOPIC("iotdm-1/mgmt/custom/#");
-			
+		RESPONSE("iotdevice-1/response");
+		
 		private Topic(String name) {
 			this.name = name;
 		}
@@ -95,11 +94,5 @@ public class DeviceDMAgentTopic implements DMAgentTopic {
 	public String getNotifyTopic() {
 		return Topic.NOTIFY.getName();
 	}
-	
-	@Override 
-	public String getDMEActionTopic() {
-		return Topic.DME_ACTION_TOPIC.getName();
-	}
-
 }
 	

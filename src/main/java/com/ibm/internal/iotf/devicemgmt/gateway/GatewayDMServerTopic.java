@@ -1,12 +1,13 @@
 /**
  *****************************************************************************
- Copyright (c) 2016 IBM Corporation and other Contributors.
+ Copyright (c) 2016-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Sathiskumar Palaniappan - Initial Contribution
+ Michael P Robertson - Add DME support
  *****************************************************************************
  *
  */
@@ -42,6 +43,7 @@ public class GatewayDMServerTopic implements DMServerTopic {
 		INITIATE_FACTORY_RESET("mgmt/initiate/device/factory_reset"),
 		INITIATE_FIRMWARE_DOWNLOAD("mgmt/initiate/firmware/download"),
 		INITIATE_FIRMWARE_UPDATE("mgmt/initiate/firmware/update"),
+		INITIATE_CUSTOM_ACTION("mgmt/custom/#"),
 		DEVICE_UPDATE("device/update");
 		
 		private ServerTopic(String name) {
@@ -76,6 +78,8 @@ public class GatewayDMServerTopic implements DMServerTopic {
 			case "mgmt/initiate/firmware/download": return INITIATE_FIRMWARE_DOWNLOAD;
 			
 			case "mgmt/initiate/firmware/update": return INITIATE_FIRMWARE_UPDATE;
+			
+			case "mgmt/custom/#": return INITIATE_CUSTOM_ACTION;
 			
 			case "device/update": return DEVICE_UPDATE;
 			
@@ -130,5 +134,11 @@ public class GatewayDMServerTopic implements DMServerTopic {
 
 		return topicStarter + ServerTopic.INITIATE_FIRMWARE_UPDATE.getName();
 	}
+	
+	@Override
+	public String getInitiateCustomAction() {
+		return topicStarter + ServerTopic.INITIATE_CUSTOM_ACTION.getName();
+	}
+
 }
 

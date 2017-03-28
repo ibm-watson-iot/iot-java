@@ -8,6 +8,7 @@
  Contributors:
  Mike Tran - Initial Contribution
  Sathiskumar Palaniappan - Initial Contribution
+ Michael P Robertson - Add DME support
  *****************************************************************************
  *
  */
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.ibm.internal.iotf.devicemgmt.DMServerTopic;
+import com.ibm.internal.iotf.devicemgmt.device.DeviceDMAgentTopic.Topic;
 
 /**
  * List of Service topics where the IBM Watson IoT Platform server
@@ -34,6 +36,7 @@ public class DeviceDMServerTopic implements DMServerTopic {
 		SERVER_TOPIC.put("iotdm-1/mgmt/initiate/device/factory_reset", ServerTopic.INITIATE_FACTORY_RESET);
 		SERVER_TOPIC.put("iotdm-1/mgmt/initiate/firmware/download", ServerTopic.INITIATE_FIRMWARE_DOWNLOAD);
 		SERVER_TOPIC.put("iotdm-1/mgmt/initiate/firmware/update", ServerTopic.INITIATE_FIRMWARE_UPDATE);
+		SERVER_TOPIC.put("iotdm-1/mgmt/custom/#", ServerTopic.INITIATE_CUSTOM_ACTION);
 		SERVER_TOPIC.put("iotdm-1/device/update", ServerTopic.DEVICE_UPDATE);
 	}
 	
@@ -46,8 +49,9 @@ public class DeviceDMServerTopic implements DMServerTopic {
 		INITIATE_FACTORY_RESET("iotdm-1/mgmt/initiate/device/factory_reset"),
 		INITIATE_FIRMWARE_DOWNLOAD("iotdm-1/mgmt/initiate/firmware/download"),
 		INITIATE_FIRMWARE_UPDATE("iotdm-1/mgmt/initiate/firmware/update"),
+		INITIATE_CUSTOM_ACTION("iotdm-1/mgmt/custom/#"),
 		DEVICE_UPDATE("iotdm-1/device/update");
-		
+
 		private ServerTopic(String name) {
 			this.name = name;
 		}
@@ -120,4 +124,10 @@ public class DeviceDMServerTopic implements DMServerTopic {
 
 		return ServerTopic.INITIATE_FIRMWARE_UPDATE.getName();
 	}
+	
+	@Override
+	public String getInitiateCustomAction() {
+		return ServerTopic.INITIATE_CUSTOM_ACTION.getName();
+	}
+
 }

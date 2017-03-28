@@ -8,14 +8,17 @@
  Contributors:
  Mike Tran - Initial Contribution
  Sathiskumar Palaniappan - Extended from DeviceClient
+ Michael P Robertson - Add DME support
  *****************************************************************************
  *
  */
 package com.ibm.iotf.devicemgmt.device;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -39,9 +42,8 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import com.ibm.iotf.client.device.DMEAction;
-import com.ibm.iotf.client.device.DMEActionCallback;
 import com.ibm.iotf.client.device.DeviceClient;
+import com.ibm.iotf.devicemgmt.CustomActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
@@ -85,7 +87,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 	private static final String CLASS_NAME = ManagedDevice.class.getName();
 	private static final int REGISTER_TIMEOUT_VALUE = 60 * 1000 * 2; // wait for 2 minute
-	private static final Pattern DME_ACTION_PATTERN = Pattern.compile("iotdm-1/mgmt/custom/(.+)/(.+)");
 
 	private final SynchronousQueue<JsonObject> queue = new SynchronousQueue<JsonObject>();
 
@@ -95,6 +96,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 	private DeviceFirmwareHandler fwHandler = null;
 	private DeviceActionHandler actionHandler = null;
+	private CustomActionHandler customActionHandler = null;
 
 	//Map to handle duplicate responses
 	private Map<String, MqttMessage> requests = new HashMap<String, MqttMessage>();
@@ -104,12 +106,11 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 	private boolean supportDeviceActions = false;
 	private boolean supportFirmwareActions = false;
-	private String[] bundleIds;
+	private List<String> bundleIds;
 	private boolean bManaged = false;
 	private Date dormantTime;
 	private String responseSubscription = null;
 	private ManagedDeviceClient client;
-	private DMEActionCallback dmeActionCallback;
 
     /**
      * Constructor that creates a ManagedDevice object, but does not connect to
@@ -241,13 +242,13 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @param supportDeviceActions Tells whether the device supports Device actions or not.
 	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
 	 *        
-	 * @param bundleIds Array of Device Management Extension bundleIds
+	 * @param bundleIds List of Device Management Extension bundleIds
 	 *
 	 * @return boolean response containing the status of the manage request
 	 * @throws MqttException When there is a failure
 	 */
 	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
-			boolean supportDeviceActions, String[] bundleIds) throws MqttException {
+			boolean supportDeviceActions, List<String> bundleIds) throws MqttException {
 
 		final String METHOD = "manage";
 
@@ -269,9 +270,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		JsonObject supports = new JsonObject();
 		supports.add("deviceActions", new JsonPrimitive(supportDeviceActions));
 		supports.add("firmwareActions", new JsonPrimitive(supportFirmwareActions));
-		if(bundleIds != null && bundleIds.length > 0) {
-			for(int i = 0; i < bundleIds.length; i++) {
-				supports.add(bundleIds[i], new JsonPrimitive(true));
+		if(bundleIds != null && bundleIds.size() > 0) {
+			for(int i = 0; i < bundleIds.size(); i++) {
+				supports.add(bundleIds.get(i), new JsonPrimitive(true));
 			}
 		}
 
@@ -309,8 +310,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				dormantTime = new Date(currentTime.getTime() + (lifetime * 1000));
 			}
 			success = true;
-			// subscribe to DME requests
-			this.subscribe(this.client.getDMAgentTopic().getDMEActionTopic(), 1, this);
 		}
 		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Success (" + success + ")");
 
@@ -348,7 +347,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
 			boolean supportDeviceActions, String bundleId) throws MqttException {
 
-		return sendManageRequest(lifetime, supportFirmwareActions, supportDeviceActions, new String[]{bundleId});
+		List bundleList = new ArrayList();
+		bundleList.add(bundleId);
+		return sendManageRequest(lifetime, supportFirmwareActions, supportDeviceActions, bundleList);
 	}
 	
 	/**
@@ -379,7 +380,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
 			boolean supportDeviceActions) throws MqttException {
 
-		return sendManageRequest(lifetime, supportFirmwareActions, supportDeviceActions, (String[])null);
+		return sendManageRequest(lifetime, supportFirmwareActions, supportDeviceActions, (List<String>)null);
 	}
 	
 	// DeviceDMAgentTopic
@@ -970,10 +971,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		}
 	}
 	
-	public void setDMEActionCallback(DMEActionCallback dmeActionCallback) {
-		this.dmeActionCallback = dmeActionCallback;
-	}
-
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		final String METHOD = "messageArrived";
@@ -999,20 +996,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				}
 			}
 		} else {
-			Matcher matcher = DME_ACTION_PATTERN.matcher(topic);
-			if (matcher.matches()) {
-				String bundleId = matcher.group(1);
-				String actionId = matcher.group(2);
-				String responsePayload = new String (message.getPayload(), "UTF-8");
-				JsonObject payload = new JsonParser().parse(responsePayload).getAsJsonObject();
-				DMEAction action = new DMEAction(bundleId, actionId, payload);
-				LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Received a DME action " + responsePayload);
-				if(this.dmeActionCallback != null) {
-					this.dmeActionCallback.processAction(action);
-				}
-		    } else {
-		    	LoggerUtility.warn(CLASS_NAME, METHOD, "Unknown topic (" + topic + ")");
-		    }
+			LoggerUtility.warn(CLASS_NAME, METHOD, "Unknown topic (" + topic + ")");
 		}
 	}
 
@@ -1119,6 +1103,12 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			return dmClient.fwHandler;
 		}
 
+
+		@Override
+		public CustomActionHandler getCustomActionHandler() {
+			return dmClient.customActionHandler;
+		}
+
 	}
 
 	/**
@@ -1170,21 +1160,33 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		}
 		this.actionHandler = actionHandler;
 	}
+	
+	/**
+	 * <p>Adds a device action handler which is of type {@link com.ibm.iotf.devicemgmt.CustomActionHandler}</p>
+	 * 
+	 * <p>If a Gateway or Device supports custom actions, this abstract class {@link com.ibm.iotf.devicemgmt.CustomActionHandler}
+	 * should be extended by the Gateway or Device code.</p>  
+	 * 
+	 * <p>The method {@link com.ibm.iotf.devicemgmt.CustomActionHandler#handleCustomAction}
+	 * must be implemented by the subclass to handle the actions sent by the IBM Watson IoT Platform.</p>
+	 * 
+	 * @param actionHandler Handler to handle the custom action
+	 * @throws Exception
+	 */
+	public void addCustomActionHandler(CustomActionHandler actionHandler) throws Exception {
+		final String METHOD = "addDeviceActionHandler";
+		if(this.actionHandler != null) {
+			LoggerUtility.severe(CLASS_NAME, METHOD, "Custom Action Handler is already set, "
+					+ "so can not add the new Custom Action handler !");
+			throw new Exception("Custom Action Handler is already set, "
+						+ "so can not add the new Custom Action handler !");
+		}
+		this.customActionHandler = actionHandler;
+	}
 
 	private void terminateHandlers() {
 		fwHandler = null;
 		actionHandler = null;
-	}
-
-	public void sendDMEResponse(int rc, String requestId) {
-		JsonObject response = new JsonObject();
-		response.addProperty("reqId", requestId);
-		response.addProperty("rc", rc);
-		try {
-			this.publish(this.client.getDMAgentTopic().getDMServerTopic(), response);
-		} catch (MqttException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		customActionHandler = null;
 	}
 }

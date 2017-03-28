@@ -32,6 +32,4 @@ public interface DMAgentTopic {
 
 	public String getNotifyTopic();
 
-	String getDMEActionTopic();
-
 }

@@ -16,6 +16,7 @@ import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
+import com.ibm.iotf.devicemgmt.CustomActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
@@ -50,5 +51,7 @@ public interface ManagedClient {
 	public DeviceActionHandler getActionHandler();
 
 	DeviceFirmwareHandler getFirmwareHandler();
+	
+	public CustomActionHandler getCustomActionHandler();
 
 }
