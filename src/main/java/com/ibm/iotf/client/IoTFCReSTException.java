@@ -1,12 +1,13 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+ Copyright (c) 2015-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Sathiskumar Palaniappan - Initial Contribution
+ Michael P Robertson - Add DME support
  *****************************************************************************
  *
  */
@@ -38,14 +39,15 @@ public class IoTFCReSTException extends Exception {
 			"Conflict";
 	public static final String HTTP_ADD_DM_EXTENSION_ERR_500 =
 			"Internal server error";
-	public static final String HTTP_INITIATE_DM_REQUEST_ERR_400 = "The request is invalid";
-	public static final String HTTP_INITIATE_DM_REQUEST_ERR_401 = "The authentication token is empty or invalid";
+	public static final String HTTP_GET_DM_REQUEST_ERR_500 = HTTP_ERR_500;
+	public static final String HTTP_GET_DM_REQUEST_ERR_404 = "Requested status not found";
+
+	public static final String HTTP_INITIATE_DM_REQUEST_ERR_500 = HTTP_ERR_500;
+	public static final String HTTP_INITIATE_DM_REQUEST_ERR_400 = HTTP_ADD_DEVICE_ERR_400;
+	public static final String HTTP_INITIATE_DM_REQUEST_ERR_401 = HTTP_ADD_DEVICE_ERR_401;
 	public static final String HTTP_INITIATE_DM_REQUEST_ERR_403 = "One or more of the devices does not support the requested action";
 	public static final String HTTP_INITIATE_DM_REQUEST_ERR_404 = "One or more of the devices does not exist";
-	public static final String HTTP_INITIATE_DM_REQUEST_ERR_500 = HTTP_ERR_500;
-	public static final String HTTP_GET_DM_REQUEST_ERR_404 =
-			"Request status not found";
-	public static final String HTTP_GET_DM_REQUEST_ERR_500 = HTTP_ERR_500;
+	 	
 	
 	private String method = null;
 	private String url = null;

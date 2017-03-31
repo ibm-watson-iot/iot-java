@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+ Copyright (c) 2015-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -8,13 +8,16 @@
  Contributors:
  Mike Tran - Initial Contribution
  Sathiskumar Palaniappan - Modified to include Resource Model
+ Michael P Robertson - Add DME support
  *****************************************************************************
  *
  */
 package com.ibm.iotf.devicemgmt;
 
+import com.ibm.internal.iotf.devicemgmt.ConcreteCustomAction;
 import com.ibm.internal.iotf.devicemgmt.ConcreteDeviceAction;
 import com.ibm.internal.iotf.devicemgmt.DeviceMgmt;
+import com.ibm.iotf.client.CustomAction;
 import com.ibm.iotf.devicemgmt.resource.Resource;
 import com.ibm.iotf.devicemgmt.resource.StringResource;
 
@@ -38,6 +41,7 @@ public class DeviceData {
 	private DeviceMgmt mgmt = null;
 	private DeviceMetadata metadata = null;
 	private DeviceAction deviceAction = null;
+	private CustomAction customAction = null;
 	
 	private Resource root = new StringResource(Resource.ROOT_RESOURCE_NAME, "");
 	
@@ -132,6 +136,17 @@ public class DeviceData {
 		
 		return deviceAction;
 	}
+	
+	/**
+	 * Returns the custom action object
+	 * @return CustomAction object or null
+	 */
+	public CustomAction getCustomAction() {
+		if(this.customAction == null) {
+			this.customAction = new ConcreteCustomAction(typeId, deviceId);
+		}
+		return customAction;
+	}
 
 	/**
 	 * A builder class that helps to construct the DeviceData object. 
@@ -201,7 +216,6 @@ public class DeviceData {
 			mgmt.getDeviceFirmware().setDeviceId(deviceId);
 		}
 	}
-
 
 	/**
 	 * Returns the Resource for the given name

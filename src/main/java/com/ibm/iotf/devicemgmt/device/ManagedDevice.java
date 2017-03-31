@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+ Copyright (c) 2015-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -8,14 +8,17 @@
  Contributors:
  Mike Tran - Initial Contribution
  Sathiskumar Palaniappan - Extended from DeviceClient
+ Michael P Robertson - Add DME support
  *****************************************************************************
  *
  */
 package com.ibm.iotf.devicemgmt.device;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -24,6 +27,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -38,6 +43,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.client.device.DeviceClient;
+import com.ibm.iotf.devicemgmt.CustomActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
@@ -90,6 +96,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 	private DeviceFirmwareHandler fwHandler = null;
 	private DeviceActionHandler actionHandler = null;
+	private CustomActionHandler customActionHandler = null;
 
 	//Map to handle duplicate responses
 	private Map<String, MqttMessage> requests = new HashMap<String, MqttMessage>();
@@ -99,6 +106,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 	private boolean supportDeviceActions = false;
 	private boolean supportFirmwareActions = false;
+	private List<String> bundleIds;
 	private boolean bManaged = false;
 	private Date dormantTime;
 	private String responseSubscription = null;
@@ -233,12 +241,14 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 *
 	 * @param supportDeviceActions Tells whether the device supports Device actions or not.
 	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
+	 *        
+	 * @param bundleIds List of Device Management Extension bundleIds
 	 *
 	 * @return boolean response containing the status of the manage request
 	 * @throws MqttException When there is a failure
 	 */
 	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
-			boolean supportDeviceActions) throws MqttException {
+			boolean supportDeviceActions, List<String> bundleIds) throws MqttException {
 
 		final String METHOD = "manage";
 
@@ -255,10 +265,16 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 		this.supportDeviceActions = supportDeviceActions;
 		this.supportFirmwareActions = supportFirmwareActions;
+		this.bundleIds = bundleIds;
 		JsonObject jsonPayload = new JsonObject();
 		JsonObject supports = new JsonObject();
 		supports.add("deviceActions", new JsonPrimitive(supportDeviceActions));
 		supports.add("firmwareActions", new JsonPrimitive(supportFirmwareActions));
+		if(bundleIds != null && bundleIds.size() > 0) {
+			for(int i = 0; i < bundleIds.size(); i++) {
+				supports.add(bundleIds.get(i), new JsonPrimitive(true));
+			}
+		}
 
 		JsonObject data = new JsonObject();
 		data.add("supports", supports);
@@ -300,6 +316,74 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		bManaged = success;
 		return success;
 	}
+	
+	/**
+	 * <p>Send a device manage request to Watson IoT Platform</p>
+	 *
+	 * <p>A Device uses this request to become a managed device.
+	 * It should be the first device management request sent by the
+	 * Device after connecting to the IBM Watson IoT Platform.
+	 * It would be usual for a device management agent to send this
+	 * whenever is starts or restarts.</p>
+	 *
+	 * <p>This method connects the device to Watson IoT Platform connect if its not connected already</p>
+	 *
+	 * @param lifetime The length of time in seconds within
+	 *        which the device must send another Manage device request.
+	 *        if set to 0, the managed device will not become dormant.
+	 *        When set, the minimum supported setting is 3600 (1 hour).
+	 *
+	 * @param supportFirmwareActions Tells whether the device supports firmware actions or not.
+	 *        The device must add a firmware handler to handle the firmware requests.
+	 *
+	 * @param supportDeviceActions Tells whether the device supports Device actions or not.
+	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
+	 *        
+	 * @param bundleId Unique identifier for a device management extension
+	 *
+	 * @return boolean response containing the status of the manage request
+	 * @throws MqttException When there is a failure
+	 */
+	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
+			boolean supportDeviceActions, String bundleId) throws MqttException {
+
+		List bundleList = new ArrayList();
+		bundleList.add(bundleId);
+		return sendManageRequest(lifetime, supportFirmwareActions, supportDeviceActions, bundleList);
+	}
+	
+	/**
+	 * <p>Send a device manage request to Watson IoT Platform</p>
+	 *
+	 * <p>A Device uses this request to become a managed device.
+	 * It should be the first device management request sent by the
+	 * Device after connecting to the IBM Watson IoT Platform.
+	 * It would be usual for a device management agent to send this
+	 * whenever is starts or restarts.</p>
+	 *
+	 * <p>This method connects the device to Watson IoT Platform connect if its not connected already</p>
+	 *
+	 * @param lifetime The length of time in seconds within
+	 *        which the device must send another Manage device request.
+	 *        if set to 0, the managed device will not become dormant.
+	 *        When set, the minimum supported setting is 3600 (1 hour).
+	 *
+	 * @param supportFirmwareActions Tells whether the device supports firmware actions or not.
+	 *        The device must add a firmware handler to handle the firmware requests.
+	 *
+	 * @param supportDeviceActions Tells whether the device supports Device actions or not.
+	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
+	 *
+	 * @return boolean response containing the status of the manage request
+	 * @throws MqttException When there is a failure
+	 */
+	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
+			boolean supportDeviceActions) throws MqttException {
+
+		return sendManageRequest(lifetime, supportFirmwareActions, supportDeviceActions, (List<String>)null);
+	}
+	
+	// DeviceDMAgentTopic
 
 	/**
 	 * Update the location.
@@ -851,7 +935,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		try {
 			super.connect();
 		} catch (MqttException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -868,7 +951,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			try {
 
 				LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "lifetime (" + lifetime + ")");
-				sendManageRequest(lifetime, this.supportFirmwareActions, this.supportDeviceActions);
+				sendManageRequest(lifetime, this.supportFirmwareActions, this.supportDeviceActions, this.bundleIds);
 
 				if(tokens != null) {
 					LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Republishing messages start");
@@ -887,7 +970,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			}
 		}
 	}
-
+	
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		final String METHOD = "messageArrived";
@@ -1020,6 +1103,12 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			return dmClient.fwHandler;
 		}
 
+
+		@Override
+		public CustomActionHandler getCustomActionHandler() {
+			return dmClient.customActionHandler;
+		}
+
 	}
 
 	/**
@@ -1071,9 +1160,33 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		}
 		this.actionHandler = actionHandler;
 	}
+	
+	/**
+	 * <p>Adds a device action handler which is of type {@link com.ibm.iotf.devicemgmt.CustomActionHandler}</p>
+	 * 
+	 * <p>If a Gateway or Device supports custom actions, this abstract class {@link com.ibm.iotf.devicemgmt.CustomActionHandler}
+	 * should be extended by the Gateway or Device code.</p>  
+	 * 
+	 * <p>The method {@link com.ibm.iotf.devicemgmt.CustomActionHandler#handleCustomAction}
+	 * must be implemented by the subclass to handle the actions sent by the IBM Watson IoT Platform.</p>
+	 * 
+	 * @param actionHandler Handler to handle the custom action
+	 * @throws Exception
+	 */
+	public void addCustomActionHandler(CustomActionHandler actionHandler) throws Exception {
+		final String METHOD = "addDeviceActionHandler";
+		if(this.actionHandler != null) {
+			LoggerUtility.severe(CLASS_NAME, METHOD, "Custom Action Handler is already set, "
+					+ "so can not add the new Custom Action handler !");
+			throw new Exception("Custom Action Handler is already set, "
+						+ "so can not add the new Custom Action handler !");
+		}
+		this.customActionHandler = actionHandler;
+	}
 
 	private void terminateHandlers() {
 		fwHandler = null;
 		actionHandler = null;
+		customActionHandler = null;
 	}
 }

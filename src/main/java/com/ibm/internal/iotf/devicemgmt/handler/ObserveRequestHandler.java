@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+ Copyright (c) 2015-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -35,7 +35,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * <blockquote>
  * {
  * 	"d": {
- * 		"fields": [ "string" ]
+ * 		"fields":  [ "string" ]
  * 	},
  * 	"reqId": "string"
  * }
@@ -66,7 +66,7 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 	 * Handles the observe request from IBM Watson IoT Platform
 	 */
 	@Override
-	protected void handleRequest(JsonObject jsonRequest) {
+	protected void handleRequest(JsonObject jsonRequest, String topic) {
 		JsonObject response = new JsonObject();
 		JsonArray responseArray = new JsonArray();
 		JsonObject d = (JsonObject) jsonRequest.get("d");
