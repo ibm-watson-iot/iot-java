@@ -13,10 +13,20 @@ Constructor
 The constructor builds the client instance, and accepts a Properties object containing the following definitions:
 
 * org - Your organization ID. (This is a required field. In case of quickstart flow, provide org as quickstart.)
+* domain - (Optional) The messaging endpoint URL. By default the value is "internetofthings.ibmcloud.com"(Watson IoT Production server)
 * id - The unique ID of your application within your organization.
 * auth-method - Method of authentication (the only value currently supported is “apikey”).
 * auth-key - API key (required if auth-method is “apikey”).
 * auth-token - API key token (required if auth-method is “apikey”).
+* clean-session - true or false (required only if you want to connect the application in durable subscription. By default the clean-session is set to true).
+* shared-subscription - true or false (required only if shared subscription needs to be enabled)
+* Port - Specify the port to connect to, supported ports are 8883 and 443. (default port is 8883). 
+* WebSocket - true or false (default is false, required if you want to connect the device using websockets).
+* MaxInflightMessages - Sets the maximum number of inflight messages for the connection (default value is 100).
+* Automatic-Reconnect - true or false (default: false). When set, the library will automatically attempt to reconnect to the Watson IoT Platform while the client is in disconnected state.
+* Disconnected-Buffer-Size - The maximum number of messages that will be stored in memory while the client is disconnected. Default: 5000.
+
+**Note**: One must set shared-subscription to true to build scalable applications which will load balance messages across multiple instances of the application. Refer to the `scalable applications section <https://docs.internetofthings.ibmcloud.com/applications/mqtt.html#/scalable-applications#scalable-applications>`__ for more information about the load balancing.
 
 The Properties object creates definitions which are used to interact with the Watson IoT Platform module. If no options are provided or organization is provided as quickstart, the client will connect to the Watson IoT Platform Quickstart, and default to an unregistered device.
 
@@ -64,6 +74,7 @@ The application configuration file must be in the following format:
 
     [application]
     org=$orgId
+    domain=$domain
     id=$myApplication
     auth-method=apikey
     auth-key=$key
@@ -74,16 +85,25 @@ The application configuration file must be in the following format:
 Connecting to the Watson IoT Platform
 ----------------------------------------------------
 
-Connect to the Watson IoT Platform by calling the *connect* function.
+Connect to the Watson IoT Platform by calling the *connect* function. The connect function takes an optional boolean parameter autoRetry (by default autoRetry is true) that controls allows the library to retry the connection when there is an MqttException. Note that the library won't retry when there is a MqttSecurityException due to incorrect device registration details passed even if the autoRetry is set to true.
+
+Also, one can use the **setKeepAliveInterval(int)** method before calling connect() to set the MQTT "keep alive" interval. This value, measured in seconds, defines the maximum time interval between messages sent or received. It enables the client to detect if the server is no longer available, without having to wait for the TCP/IP timeout. The client will ensure that at least one message travels across the network within each keep alive period. In the absence of a data-related message during the time period, the client sends a very small "ping" message, which the server will acknowledge. A value of 0 disables keepalive processing in the client. The default value is 60 seconds.
 
 .. code:: java
 
     Properties props = ApplicationClient.parsePropertiesFile(new File("C:\\temp\\application.prop"));
     ApplicationClient myClient = new ApplicationClient(props);
-    
+    myClient.setKeepAliveInterval(120);
     myClient.connect();
     
+Also, use the overloaded connect(int numberOfTimesToRetry) function to control the number of retries when there is a connection failure.
 
+.. code:: java
+
+    DeviceClient myClient = new DeviceClient(options);
+    myClient.setKeepAliveInterval(120);
+    myClient.connect(10);
+    
 After the successful connection to the IoTF service, the application client can perform the following operations, like subscribing to device events, subscribing to device status, publishing device events and commands.
 
 ----
@@ -148,7 +168,7 @@ To process the events received by your subscriptions you need to register an eve
 * event.deviceId - string
 * event.event - string
 * event.format - string
-* event.data - dict
+* event.data - Object
 * event.timestamp - datetime
 
 A sample implementation of the Event callback,
@@ -159,15 +179,46 @@ A sample implementation of the Event callback,
   import com.ibm.iotf.client.app.EventCallback;
   import com.ibm.iotf.client.app.Command;
   
-  public class MyEventCallback implements EventCallback {
-      public void processEvent(Event e) {
-          System.out.println("Event:: " + e.getDeviceId() + ":" + e.getEvent() + ":" + e.getPayload());
-      }
-      
-      public void processCommand(Command cmd) {
-          System.out.println("Command " + cmd.getPayload());
-      }
-  }
+  import java.util.concurrent.BlockingQueue;
+  import java.util.concurrent.LinkedBlockingQueue;
+  
+  /**
+    * A sample Event callback class that processes the device events in separate thread.
+    *
+    */
+   class MyEventCallback implements EventCallback, Runnable {
+
+	// A queue to hold & process the Events for smooth handling of MQTT messages
+	private BlockingQueue<Event> evtQueue = new LinkedBlockingQueue<Event>();
+		
+	public void processEvent(Event e) {
+		try {
+			evtQueue.put(e);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+	}
+
+	@Override
+	public void processCommand(Command cmd) {
+		System.out.println("Command received:: " + cmd);			
+	}
+
+	@Override
+	public void run() {
+		while(true) {
+			Event e = null;
+			try {
+				e = evtQueue.take();
+				// In this example, we just output the event
+				System.out.println("Event:: " + e.getDeviceId() + ":" + e.getEvent() + ":" + e.getData());
+			} catch (InterruptedException e1) {
+				// Ignore the Interuppted exception, retry
+				continue;
+			}
+		}
+	}
+    }
 
 Once the event callback is added to the ApplicationClient, the processEvent() method is invoked whenever any event is published on the subscribed criteria, The following snippet shows how to add the Event call back into ApplicationClient instance,
 
@@ -307,6 +358,27 @@ Applications can publish events as if they originated from a Device.
     // publish the event on behalf of device
     myClient.publishEvent(deviceType, deviceId, "blink", event);
 
+Events can be published in different formats, like JSON, String, Binary and etc.. By default the library publishes the event in JSON format, but one can specify the data in different formats. For example, to publish data in String format use the following code snippet (Note that the payload must be in String format),
+
+.. code:: java
+
+	myClient.connect();
+	String data = "cpu:"+60;
+	status = myClient.publishEvent("load", data, "text", 2);
+			
+Any XML data can be converted to String and published as follows,
+
+.. code:: java
+		
+	status = myClient.publishEvent("load", xmlConvertedString, "xml", 2);
+
+Similarly to publish events in binary format, use the byte array as shown below,
+
+.. code:: java
+
+	myClient.connect();
+	byte[] cpuLoad = new byte[] {60, 35, 30, 25};
+	status = myClient.publishEvent("blink", cpuLoad , "binary", 1);
 ----
 
 Publishing commands to devices
@@ -325,6 +397,12 @@ Applications can publish commands to connected devices.
     //Registered flow allows 0, 1 and 2 QoS
     myAppClient.publishCommand(deviceType, deviceId, "stop", data);
 
+Similar to events, the commands can be published in different formats, like JSON, String, Binary as well. By default the library publishes the commands in JSON format, but one can specify the data in different formats. For example, to publish command in String format use the following code snippet (Note that the payload must be in String format),
+
+.. code:: java
+
+	myClient.connect();
+	myAppClient.publishCommand(deviceType, deviceId, "stop", "rotation:0", "text", 1);
 ----
 
 Examples

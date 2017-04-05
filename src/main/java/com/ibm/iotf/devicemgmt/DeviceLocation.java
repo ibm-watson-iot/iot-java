@@ -88,7 +88,7 @@ public class DeviceLocation extends Resource {
 	/**
 	 * Updates each of the resources with the new value
 	 * 
-	 * @param fromLocation
+	 * @param fromLocation The location that needs to be updated
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
 	 */
@@ -99,7 +99,7 @@ public class DeviceLocation extends Resource {
 	/**
 	 * Updates each of the resources with the new value
 	 * 
-	 * @param fromLocation
+	 * @param fromLocation The location that needs to be updated
 	 * @param fireEvent - boolean to indicate whether to fire the update event.
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)

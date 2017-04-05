@@ -12,6 +12,7 @@ Constructor
 The constructor builds the client instance, and accepts a Properties object containing the following definitions:
 
 * org - Your organization ID
+* domain - (Optional) The messaging endpoint URL. By default the value is "internetofthings.ibmcloud.com"(Watson IoT Production server)
 * auth-key - API key
 * auth-token - API key token
 
@@ -23,10 +24,10 @@ The following code snippet shows how to construct the APIClient instance using t
     
     import com.ibm.iotf.client.api.ApiClient;
     ...
-    Properties options = new Properties();
-    options.put("org", "uguhsp");
-    options.put("API-Key", "<API-Key>");
-    options.put("Authentication-Token", "<Authentication-Token>");
+    Properties props = new Properties();
+    props.put("org", "uguhsp");
+    props.put("API-Key", "<API-Key>");
+    props.put("Authentication-Token", "<Authentication-Token>");
     
     APIClient apiClient = new APIClient(props);
     ...
@@ -479,78 +480,6 @@ Refer to the Problem Determination section of the `IBM Watson IoT Platform API <
 
 ----
 
-Historical Event Retrieval
-----------------------------------
-Application can use this operation to view events from all devices, view events from a device type or to view events for a specific device.
-
-Refer to the Historical Event Retrieval section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
-
-View events from all devices
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Method getHistoricalEvents() can be used to view events across all devices registered to the organization.
-
-.. code:: java
-
-    JsonElement response = apiClient.getHistoricalEvents();
-
-The response will contain more parameters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. Other parameters in the response are required to make further call, for example, the *_bookmark* element can be used to page through results. Issue the first request without specifying a bookmark, then take the bookmark returned in the response and provide it on the request for the next page. Repeat until the end of the result set indicated by the absence of a bookmark. Each request must use exactly the same values for the other parameters, or the results are undefined.
-
-In order to pass the *_bookmark* or any other condition, the overloaded method must be used. The overloaded method takes the parameters in the form of org.apache.http.message.BasicNameValuePair as shown below,
-
-.. code:: java
-
-    parameters.add(new BasicNameValuePair("evt_type", "blink"));
-    parameters.add(new BasicNameValuePair("start", "1445420849839"));
-    
-    JsonElement response = this.apiClient.getHistoricalEvents(parameters);
-
-The above snippet returns the events which are of type *blink* and received after time *1445420849839*.
-
-View events from a device type
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Method getHistoricalEvents() can be used to view events from all the devices of a particular device type. 
-
-.. code:: java
-
-    JsonElement response = this.apiClient.getHistoricalEvents(iotsample-ardunio);
-
-The response will contain more parameters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. As mentioned in the *view events from all devices* section, the overloaded method can be used to control the output.
-
-.. code:: java
-
-    parameters.add(new BasicNameValuePair("evt_type", "blink"));
-    parameters.add(new BasicNameValuePair("summarize", "{cpu,mem}"));
-    parameters.add(new BasicNameValuePair("summarize_type", "avg"));
-    
-    JsonElement response = this.apiClient.getHistoricalEvents("iotsample-ardunio", parameters);
-			
-The above snippet returns the events which are of device type *iotsample-ardunio*, event type *blink* and aggregates the fields *cpu* & *mem* and computes the average.
-
-View events from a device
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Method getHistoricalEvents() can be used to view events from a specific device.
-
-.. code:: java
-
-    JsonElement response = this.apiClient.getHistoricalEvents(iotsample-ardunio, ardunio01);
-
-The response will contain more parameters and application needs to retrieve the JSON element *events* from the response to get the array of events returned. As mentioned in the *view events from all devices* section, the overloaded method can be used to control the output.
-
-.. code:: java
-
-    parameters.add(new BasicNameValuePair("evt_type", "blink"));
-    parameters.add(new BasicNameValuePair("summarize", "{cpu,mem}"));
-    parameters.add(new BasicNameValuePair("summarize_type", "avg"));
-    
-    JsonElement response = apiClient.getHistoricalEvents("iotsample-ardunio", "ardunio01", parameters);
-			
-The above snippet returns the events which are of device *ardunio01*, event type *blink* and aggregates the fields *cpu* & *mem* and computes the average.
-
-----
-
 Device Management request operations
 ----------------------------------------------------
 
@@ -708,6 +637,78 @@ Method getDeviceManagementRequestStatusByDevice() can be used to get an individu
 
 ----
 
+Device Management Extension(DME)
+----------------------------------------------------
+
+An extension package is a JSON document which defines a set of device management actions. The actions can be initiated against one or more devices which support those actions. The actions are initiated in the same way as the default device management actions by using either the Watson IoT Platform dashboard or the device management REST APIs.
+
+Refer to the DME section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+
+Get a Device Management Extension(DME)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDeviceManagementExtension() can be used to retrieve the information about a specific registered device management extension. FOr example,
+
+.. code:: java
+   
+    apiClient.getDeviceManagementExtension("example-dme-actions-v1");
+
+Create a Device Management Extension package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method addDeviceManagementExtension() can be used to add a specific DME package into the Watson IoT Platform. For example,
+
+.. code:: java
+
+    String BUNDLE_TO_BE_ADDED = "{\"bundleId\": \"example-dme-actions-v1\",\"displayName\": "
+            + "{\"en_US\": \"example-dme Actions v1\"},\"version\": \"1.0\",\"actions\": "
+            + "{\"updatePublishInterval\": {\"actionDisplayName\": {\"en_US\": \"Update Pubslish Interval\"},"
+            + "\"parameters\": [{\"name\": \"publishInvertval\",\"value\": 5,"
+            + "\"required\": \"false\"}]}}}";
+    try {
+        JsonObject response = this.apiClient.addDeviceManagementExtension(BUNDLE_TO_BE_ADDED);
+        System.out.println(response);
+    } catch(IoTFCReSTException e) {
+        System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+        // Print if there is a partial response
+        System.out.println(e.getResponse());
+    }
+
+Overloaded method allows one to send the String (instead of JsonObject) to create a DME package.
+
+Delete a DME package
+~~~~~~~~~~~~~~~~~~~~
+
+Method deleteDeviceManagementExtension() can be used to deleted an already registered DME package. For example,
+
+.. code:: java
+
+    // Pass the bundleId that needs to be removed
+    apiClient.deleteDeviceManagementExtension("example-dme-actions-v1");
+
+Initiate a DME request
+~~~~~~~~~~~~~~~~~~~~~~
+
+Initiating DME request is same as initiating the out of the `Device Management requests <https://github.com/ibm-watson-iot/iot-java/blob/master/docs/java_cli_for_api.rst#initiate-a-device-management-request>`__ like, Firmware update and reboot. Method initiateDeviceManagementRequest() can be used to initiate a custom action, such as install a new plugin. For example,
+
+.. code:: java
+
+    String req = "{\"action\": \"example-dme-actions-v1/updatePublishInterval\", \"parameters\": [{\"name\": \"PublishInterval\", \"value\":5}],\"devices\": [{" +
+                 "\"typeId\":\"" + deviceType + "\",\"deviceId\":\"" + deviceId + "\"}]}";
+    System.out.println(req);
+    JsonParser parser = new JsonParser();
+    JsonObject jsonReq = (JsonObject) parser.parse(req);
+		
+    try {
+        this.apiClient.initiateDeviceManagementRequest(jsonReq);
+    } catch (IoTFCReSTException e) {
+        System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+        // Print if there is a partial response
+        System.out.println(e.getResponse());
+    }
+	
+----
+
 Usage management
 ----------------------------------------------------
 
@@ -727,19 +728,6 @@ Method getActiveDevices() can be used to retrieve the number of active devices o
     JsonElement response = this.apiClient.getActiveDevices(start, end, true);
 
 The above snippet returns the devices that are active between 2015-09-01 and 2015-10-01 with a daily breakdown.
-
-Get Historical data usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Method getHistoricalDataUsage() can be used to retrieve the amount of storage being used by historical event data for a specified period of time. For example,
-
-.. code:: java
-    
-    String start = "2015-09-01";
-    String end = "2015-10-01";
-    JsonElement response = this.apiClient.getHistoricalDataUsage(start, end, false);
-
-The above snippet returns the amount of storage being used by historical event data between 2015-09-01 and 2015-10-01 without a daily breakdown.
 
 Get data traffic
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -775,7 +763,6 @@ Examples
 * `SampleDeviceTypeAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleDeviceTypeAPIOperations.java>`__ - Sample that showcases various Device Type API operations like list all, create, delete, view and update device types in Internet of Things Platform.
 * `SampleDeviceAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleDeviceAPIOperations.java>`__ - A sample that showcases various Device operations like list, add, remove, view, update, view location and view management information of a device in Internet of Things Platform.
 * `SampleDeviceDiagnosticsAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleDeviceDiagnosticsAPIOperations.java>`__ - A sample that showcases various Device Diagnostic operations like clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Platform.
-* `SampleHistorianAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleHistorianAPIOperations.java>`__ - A sample that showcases how to retrieve historical events from Internet of Things Platform.
 * `SampleDeviceManagementAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleDeviceManagementAPIOperations.java>`__ - A sample that showcases various device management request operations that can be performed on Internet of Things Platform.
 * `SampleUsageManagementAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleUsageManagementAPIOperations.java>`__ - A sample that showcases various Usage management operations that can be performed on Internet of Things Platform.
 

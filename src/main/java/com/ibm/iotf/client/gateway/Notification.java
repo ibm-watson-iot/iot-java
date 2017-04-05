@@ -36,7 +36,7 @@ public class Notification {
 	 * 			Object of String which denotes command id
 	 * @param msg
 	 * 			Object of MqttMessage which denotes actual message
-	 * @throws UnsupportedEncodingException 
+	 * @throws UnsupportedEncodingException When the format is not UTF-8 
 	 * 
 	 */	
 	public Notification(String type, String id, MqttMessage msg) throws UnsupportedEncodingException{

@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+ Copyright (c) 2015-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -34,7 +34,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * <br>Watson IoT Platform can send this request to a device to update values of one or more device attributes. 
  * Supported update targets are location, metadata, device information and firmware.
  * <p>Topic
- *	<li>iotdm-1/device/update
+ *	<br>iotdm-1/device/update
  * <br><br>Message format
  * <br>Request:
  * <br>{
@@ -47,10 +47,12 @@ import com.ibm.iotf.util.LoggerUtility;
  * <br>It is a complex field matching the device model. 
  * <br>Only writeable fields should be updated as a result of this operation.
  * <br>Values can be updated in:
+ * <ul class="simple">
  *   <li>location		(see Update location section for details)
  *   <li>metadata		(Optional)
  *   <li>deviceInfo		(Optional)
  *   <li>mgmt.firmware	(see Firmware update process for details)
+ * </ul>
  * <br><br>Response:
  * <br>{
  *    <br>"rc": number,
@@ -78,15 +80,6 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 	}
 	
 	/**
-	 * Subscribe to update topic
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getDeviceUpdateTopic());
-	}
-	
-	/**
 	 * Returns the update topic
 	 */
 	@Override
@@ -96,22 +89,13 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 	}
 
 	/**
-	 * Unsubscribe update topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getDeviceUpdateTopic());
-	}
-	
-	/**
 	 * This method handles all the update requests from IBM Watson IoT Platform
 	 */
 	@Override
-	public void handleRequest(JsonObject jsonRequest) {
+	public void handleRequest(JsonObject jsonRequest, String topic) {
 		final String METHOD = "handleRequest";
 		List<Resource> fireRequiredResources = new ArrayList<Resource>();
-		JsonArray fields = null;
+		JsonArray fields;
 		ResponseCode rc = ResponseCode.DM_UPDATE_SUCCESS;
 		JsonObject response = new JsonObject();
 		JsonObject d = (JsonObject)jsonRequest.get("d");

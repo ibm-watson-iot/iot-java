@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+ Copyright (c) 2015-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -29,6 +29,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * {
  * 	"reqId": "string"
  * }
+ * </blockquote>
  */	
 public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 
@@ -45,24 +46,6 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 		return topic.getInitiateFirmwareUpdate();
 	}
 	
-	/**
-	 * subscribe to Initiate firmware update topic
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getInitiateFirmwareUpdate());
-	}
-
-	/**
-	 * Unsubscribe Initiate firmware update topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getInitiateFirmwareUpdate());
-	}
-
 	/**
 	 * If this operation can be initiated immediately, rc should be set to 202.
 	 * 
@@ -89,9 +72,9 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 	 *  should be set to the value of mgmt.firmware.version.
 	 */
 	@Override
-	public void handleRequest(JsonObject jsonRequest) {
+	public void handleRequest(JsonObject jsonRequest, String topic) {
 		final String METHOD = "handleRequest";
-		ResponseCode rc = ResponseCode.DM_INTERNAL_ERROR;
+		ResponseCode rc;
 		
 		JsonObject response = new JsonObject();
 		response.add("reqId", jsonRequest.get("reqId"));
@@ -100,14 +83,12 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 		DeviceFirmware firmware = getDMClient().getDeviceData().getDeviceFirmware();
 		if(firmware == null || getDMClient().getFirmwareHandler() == null) {
 			rc = ResponseCode.DM_FUNCTION_NOT_IMPLEMENTED;
-		} else if(firmware.getState() == DeviceFirmware.FirmwareState.IDLE.getState()) {
-			rc = ResponseCode.DM_BAD_REQUEST;
+		//} else if(firmware.getState() == DeviceFirmware.FirmwareState.IDLE.getState()) {
+		//	rc = ResponseCode.DM_BAD_REQUEST;
 		} else {
 			// Normal condition
 			
 			if (firmware.getUrl() != null) {
-				LoggerUtility.fine(CLASS_NAME, METHOD, "Fire Firmware update ");
-				getDMClient().getFirmwareHandler().updateFirmware(firmware);
 				rc = ResponseCode.DM_ACCEPTED;
 			} else {
 				rc = ResponseCode.DM_BAD_REQUEST;
@@ -117,6 +98,10 @@ public class FirmwareUpdateRequestHandler extends DMRequestHandler {
 
 		response.add("rc", new JsonPrimitive(rc.getCode()));
 		respond(response);
+		if (rc == ResponseCode.DM_ACCEPTED) {
+			LoggerUtility.fine(CLASS_NAME, METHOD, "Fire Firmware update ");
+			getDMClient().getFirmwareHandler().updateFirmware(firmware);			
+		}
 	}
 
 }

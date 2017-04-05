@@ -15,7 +15,6 @@ package com.ibm.iotf.client.app;
 import java.io.UnsupportedEncodingException;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-
 import com.ibm.iotf.client.Message;
 
 
@@ -38,8 +37,8 @@ public class Command extends Message {
 	 * 			Object of String which denotes command format, say json
 	 * @param msg
 	 * 			MqttMessage
-	 * @see <a href="Paho Client Library">http://www.eclipse.org/paho/files/javadoc/index.html</a> 
-	 * @throws UnsupportedEncodingException 
+	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
+	 * @throws UnsupportedEncodingException When the encoding format id not UTF-8 
 	 * 
 	 */	
 	public Command(String type, String id, String command, String format, MqttMessage msg) throws UnsupportedEncodingException{
@@ -50,20 +49,53 @@ public class Command extends Message {
 		this.format = format;
 	}
 	
+	/**
+	 * Returns the device type
+	 * @return Returns the device type
+	 */
 	public String getDeviceType() {
 		return type;
 	}
 
+	/**
+	 * Returns the device Id
+	 * @return Returns the device Id
+	 */
 	public String getDeviceId() {
 		return id;
 	}
 	
+	/**
+	 * Returns the name of the command
+	 * @return Returns the name of the command
+	 */
 	public String getCommand() {
 		return command;
 	}
 	
+	/**
+	 * This method is deprecated. Instead use {@link #getData()} or {@link #getRawPayload()}
+	 */
+	@Deprecated
+	public String getPayload() {
+		return super.getPayload();
+	}
+	
+	/**
+	 * Returns the format in string
+	 * @return format in String
+	 */
 	public String getFormat() {
 		return format;
+	}
+	
+	/**
+	 * Returns the actual MQTT payload sent by the application
+	 * 
+	 * @return returns the command in either JSON, byte[] or String type based on the format specified.
+	 */
+	public Object getData() {
+		return this.payload;
 	}
 	
 	/**
@@ -71,13 +103,6 @@ public class Command extends Message {
 	 * Provides a human readable String representation of this Command, including the timestamp, command type, command id and payload passed.
 	 */
 	public String toString() {
-		if(format.equalsIgnoreCase("json")) {
-			return "Command [" + timestamp.toString() + "] " + type + ":" + id + " - " + command + ": " + data.toString();
-			
-			//This else condition has been added to handle the commands which do not have json format
-		} else {
-			return "Command [" + timestamp.toString() + "] " + type + ":" + id + " - " + command + ": " + payload.toString();			
-		}
- 
+		return "Command [" + timestamp.toString() + "] " + type + ":" + id + " - " + command + ": " + this.getPayload();
 	}
 }

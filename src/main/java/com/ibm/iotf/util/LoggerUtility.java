@@ -57,7 +57,7 @@ public class LoggerUtility {
 	}
 
 	public static void log(Level level, String className, String method,
-			String message, Exception e) {
+			String message, Throwable e) {
 		String threadName = Thread.currentThread().getName();
 		LOGGER.logp(level, className, method, threadName + ": "+ message, e);
 	}

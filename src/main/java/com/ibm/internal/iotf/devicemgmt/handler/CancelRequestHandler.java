@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+ Copyright (c) 2017 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -35,6 +35,7 @@ import com.ibm.internal.iotf.devicemgmt.ResponseCode;
  *       ]
  *  }
  * }
+ * </blockquote>
  */
 public class CancelRequestHandler extends DMRequestHandler {
 
@@ -47,8 +48,8 @@ public class CancelRequestHandler extends DMRequestHandler {
 	 * This method handles the cancel request messages from IBM Watson IoT Platform
 	 */
 	@Override
-	protected void handleRequest(JsonObject jsonRequest) {
-		JsonArray fields = null;
+	protected void handleRequest(JsonObject jsonRequest, String topic) {
+		JsonArray fields;
 		JsonObject d = (JsonObject)jsonRequest.get("d");
 		if (d != null) {
 			fields = (JsonArray)d.get("data");
@@ -66,16 +67,6 @@ public class CancelRequestHandler extends DMRequestHandler {
 		respond(response);
 	}
 	
-	
-	/**
-	 * Subscribe to cancel topic 
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getCancelTopic());
-	}
-	
 	/**
 	 * Return the cancel topic
 	 */
@@ -84,15 +75,5 @@ public class CancelRequestHandler extends DMRequestHandler {
 		DMServerTopic topic = this.getDMClient().getDMServerTopic();
 		return topic.getCancelTopic();
 	}
-
-	/**
-	 * Unsubscribe the cancel topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getCancelTopic());
-	}
-
 
 }

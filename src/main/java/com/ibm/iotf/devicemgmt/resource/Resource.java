@@ -195,7 +195,7 @@ public abstract class Resource<T> {
 	/**
 	 * Add a new listener to be notified when the value is changed.
 	 * 
-	 * @param listener
+	 * @param listener PropertyChangeListener
 	 */
 	public synchronized void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcsExternal.addPropertyChangeListener(listener);
@@ -205,7 +205,8 @@ public abstract class Resource<T> {
 	/**
 	 * Add a new listener to be notified when the location is changed.
 	 * 
-	 * @param listener
+	 * @param type The type of listener
+	 * @param listener PropertyChangeListener
 	 */
 	public synchronized void addPropertyChangeListener(ChangeListenerType type, PropertyChangeListener listener) {
 		if(type == ChangeListenerType.INTERNAL) {
@@ -218,7 +219,7 @@ public abstract class Resource<T> {
 	/**
 	 * Remove the specified listener.
 	 *  
-	 * @param listener
+	 * @param listener PropertyChangeListener
 	 */
 	public synchronized void removePropertyChangeListener(PropertyChangeListener listener) {
 		pcsInternal.removePropertyChangeListener(listener);
@@ -230,7 +231,8 @@ public abstract class Resource<T> {
 	/**
 	 * Requests that Watson IoT Platform to respond when it receives update notification.
 	 * This implies that the update call will be blocked until a response is received or timed out.
-	 * @param responseRequired
+	 * 
+	 * @param responseRequired boolean specifying whether response is required or not
 	 */
 	public void waitForResponse(boolean responseRequired) {
 		this.responseRequired = responseRequired;
@@ -247,7 +249,8 @@ public abstract class Resource<T> {
 	
 	/**
 	 * Used by the client library to set return code received in the response from Watson IoT Platform.
-	 * @param rc
+
+	 * @param rc return code to be set
 	 */
 	public void setRC(int rc) {
 		this.rc = rc;

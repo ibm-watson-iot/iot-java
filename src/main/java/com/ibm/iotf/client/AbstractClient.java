@@ -18,7 +18,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -36,12 +36,14 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -55,12 +57,21 @@ import com.ibm.iotf.util.LoggerUtility;
 public abstract class AbstractClient {
 	
 	private static final String CLASS_NAME = AbstractClient.class.getName();
+	private static final String QUICK_START = "quickstart";
+	private static final int DEFAULT_MAX_INFLIGHT_MESSAGES = 100;
+	private static final int DEFAULT_MESSAGING_QOS = 1;
+	
 	protected static final String CLIENT_ID_DELIMITER = ":";
 	
 	//protected static final String DOMAIN = "messaging.staging.internetofthings.ibmcloud.com";
-	protected static final String DOMAIN = "messaging.internetofthings.ibmcloud.com";
-	protected static final int MQTT_PORT = 1883;
+	public static final String DEFAULT_DOMAIN = "internetofthings.ibmcloud.com";
+	protected static final String MESSAGING = "messaging";
 	protected static final int MQTTS_PORT = 8883;
+	protected static final int WSS_PORT = 443;
+	
+	protected static final int MQTT_PORT = 1883;
+	protected static final int WS_PORT = 1883;
+
 	private volatile boolean disconnectRequested = false;
 	
 	/* Wait for 1 second after each attempt for the first 10 attempts*/
@@ -93,11 +104,20 @@ public abstract class AbstractClient {
 	protected int messageCount = 0;
 	
 	protected MqttAsyncClient mqttAsyncClient = null;
+	private static final MemoryPersistence DATA_STORE = new MemoryPersistence();
 	protected MqttConnectOptions mqttClientOptions;
 	protected MqttCallback mqttCallback;
+	protected int keepAliveInterval = -1;  // default
 	
 	// Supported only for DM ManagedClient
 	protected MqttClient mqttClient = null;
+	protected MemoryPersistence persistence = null;
+	
+	protected static final boolean newFormat;
+	
+	static {
+		newFormat = Boolean.parseBoolean(System.getProperty("com.ibm.iotf.enableCustomFormat", "true"));
+	}
 
 	/**
 	 * Note that this class does not have a default constructor <br>
@@ -112,7 +132,7 @@ public abstract class AbstractClient {
 	
 	/**
 	 * This constructor allows external user to pass the existing MqttAsyncClient 
-	 * @param mqttAsyncClient
+	 * @param mqttAsyncClient the MQTTAsyncClient that has the connectivity parameters set
 	 */
 	protected AbstractClient(MqttAsyncClient mqttAsyncClient) {
 		this.mqttAsyncClient = mqttAsyncClient;
@@ -120,7 +140,7 @@ public abstract class AbstractClient {
 
 	/**
 	 * This constructor allows external user to pass the existing MqttClient 
-	 * @param mqttClient
+	 * @param mqttClient the MQTTClient that has the connectivity parameters set
 	 */
 	protected AbstractClient(MqttClient mqttClient) {
 		this.mqttClient = mqttClient;
@@ -130,7 +150,7 @@ public abstract class AbstractClient {
 	 * Create the Paho MQTT Client that will underpin the Device client.
 	 * @param callback
 	 * 			MqttCallback 
-	 * @see <a href="Paho Client Library">http://www.eclipse.org/paho/files/javadoc/index.html</a> 
+	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
 	 * 
 	 */	
 
@@ -143,8 +163,8 @@ public abstract class AbstractClient {
 	}
 	
 	/**
-	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception 
-	 * based on the value set in retry parameter. </br>
+	 * <p>Connects the device to IBM Watson IoT Platform and retries when there is an exception 
+	 * based on the value set in retry parameter. <br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
 	 * 
@@ -153,21 +173,32 @@ public abstract class AbstractClient {
 	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
 	 * </ul>
 	 * 
-	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
-	 * @throws MqttSecurityException
+	 * @param numberOfRetryAttempts - How many number of times to retry when there is a failure in connecting to Watson
+	 * IoT Platform.
+	 * @throws MqttException see above
 	 **/
-	public void connect(boolean autoRetry) throws MqttException {
+	public void connect(int numberOfRetryAttempts) throws MqttException {
 		final String METHOD = "connect";
+		// return if its already connected
+		if(mqttAsyncClient != null && mqttAsyncClient.isConnected()) {
+			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Client is already connected");
+			return;
+		}
 		boolean tryAgain = true;
 		int connectAttempts = 0;
 		// clear the disconnect state when the user connects the client to Watson IoT Platform
 		disconnectRequested = false;  
 		
-		if (getOrgId() == "quickstart") {
+		if (getOrgId() == QUICK_START) {
 			configureMqtt();
-		}
-		else {
-			configureMqtts();
+		} else {
+			configureConnOptions();
+			if (isAutomaticReconnect()) {
+				DisconnectedBufferOptions disconnectedOpts = new DisconnectedBufferOptions();
+				disconnectedOpts.setBufferEnabled(true);
+				disconnectedOpts.setBufferSize(getDisconnectedBufferSize());
+				mqttAsyncClient.setBufferOpts(disconnectedOpts);
+			}
 		}
 		
 		while (tryAgain && disconnectRequested == false) {
@@ -185,8 +216,7 @@ public abstract class AbstractClient {
 				throw e;
 				
 			} catch (MqttException e) {
-				Throwable t = e.getCause();
-				if(!autoRetry) {
+				if(connectAttempts > numberOfRetryAttempts) {
 					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Connecting to Watson IoT Platform failed", e);
 	                // We must give up as the host doesn't exist.
 	                throw e;
@@ -210,27 +240,113 @@ public abstract class AbstractClient {
 		}
 	}
 	
+	/**
+	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception 
+	 * based on the value set in retry parameter. <br>
+	 * 
+	 * This method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
+	 * @throws MqttException refer above
+	 **/
+	public void connect(boolean autoRetry) throws MqttException {
+		if(autoRetry == false) {
+			connect(0);
+		} else {
+			connect(Integer.MAX_VALUE);
+		}
+	}
+	
 	private void configureMqtt() {
-		String serverURI = "tcp://" + getOrgId() + "." + DOMAIN + ":" + MQTT_PORT;
+		String protocol = null;
+		int port = getPortNumber();
+		if (isWebSocket()) {
+			protocol = "ws://";
+			// If there is no port specified use default
+			if(port == -1) {
+				port = WS_PORT;
+			}
+		} else {
+			protocol = "tcp://";
+			// If there is no port specified use default
+			if(port == -1) {
+				port = MQTT_PORT;
+			}
+		}
+		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
+
 		try {
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
+			persistence = new MemoryPersistence();
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, persistence);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
+			if (clientUsername != null) {
+				mqttClientOptions.setUserName(clientUsername);
+			}
+			if (clientPassword != null) {
+				mqttClientOptions.setPassword(clientPassword.toCharArray());
+			}
+			mqttClientOptions.setCleanSession(this.isCleanSession());
+			if(this.keepAliveInterval != -1) {
+				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
+			}
+			mqttClientOptions.setMaxInflight(getMaxInflight());
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private void configureMqtts() {
-		final String METHOD = "configureMqtts";
-		String serverURI = "ssl://" + getOrgId() + "." + DOMAIN + ":" + MQTTS_PORT;
+	/**
+	 * 
+	 * @return the port number specified by the user
+	 */
+	private int getPortNumber() {
+		String port = options.getProperty("Port", "-1");
+		port = trimedValue(port);
+		return Integer.parseInt(port);
+	}
+	
+	private void configureConnOptions() {
+		final String METHOD = "configureConnOptions";
+		String protocol = null;
+		int port = getPortNumber();
+		if (isWebSocket()) {
+			protocol = "wss://";
+			// If there is no port specified use default
+			if(port == -1) {
+				port = WSS_PORT;
+			}
+		} else {
+			protocol = "ssl://";
+			// If there is no port specified use default
+			if(port == -1) {
+				port = MQTTS_PORT;
+			}
+		} 
+
+		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
 		try {
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, DATA_STORE);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
-			mqttClientOptions.setUserName(clientUsername);
-			mqttClientOptions.setPassword(clientPassword.toCharArray());
+			if (clientUsername != null) {
+				mqttClientOptions.setUserName(clientUsername);
+			}
+			if (clientPassword != null) {
+				mqttClientOptions.setPassword(clientPassword.toCharArray());
+			}
 			mqttClientOptions.setCleanSession(this.isCleanSession());
+			if(this.keepAliveInterval != -1) {
+				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
+			}
+			
+			mqttClientOptions.setMaxInflight(getMaxInflight());
+			mqttClientOptions.setAutomaticReconnect(isAutomaticReconnect());
 			
 			/* This isn't needed as the production messaging.internetofthings.ibmcloud.com 
 			 * certificate should already be in trust chain.
@@ -252,8 +368,9 @@ public abstract class AbstractClient {
 			 * SSLContext sslContext = SSLContextUtils.createSSLContext("TLSv1.2", null, trustManager);
 			 * 
 			 */
-			 
+
 			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+			//LoggerUtility.info(CLASS_NAME, METHOD, "Provider: " + sslContext.getProvider().getName());
 			sslContext.init(null, null, null);
 			mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
 		} catch (MqttException | GeneralSecurityException e) {
@@ -262,13 +379,17 @@ public abstract class AbstractClient {
 		}
 	}
 	
+	public void setKeepAliveInterval(int keepAliveInterval) {
+		this.keepAliveInterval = keepAliveInterval;
+	}
+	
 	/**
 	 * 
 	 * Check whether the clean session is disabled
 	 * 
 	 * @return boolean value containing whether its a clean session or not.
 	 */
-	private boolean isCleanSession() {
+	public boolean isCleanSession() {
 		boolean enabled = true;
 		String value = options.getProperty("Clean-Session");
 		if(value == null) {
@@ -278,6 +399,53 @@ public abstract class AbstractClient {
 			enabled = Boolean.parseBoolean(trimedValue(value));
 		} 
 		return enabled;
+	}
+	
+	public boolean isWebSocket() {
+		boolean enabled = false;
+		String value = options.getProperty("WebSocket");
+		if (value != null) {
+			enabled = Boolean.parseBoolean(trimedValue(value));
+		}
+		return enabled;
+	}
+	
+	public boolean isAutomaticReconnect() {
+		boolean enabled = false;
+		String value = options.getProperty("Automatic-Reconnect");
+		if (value != null) {
+			enabled = Boolean.parseBoolean(trimedValue(value));
+		}
+		return enabled;
+	}
+	
+	public int getDisconnectedBufferSize() {
+		int size = 5000;
+		String value = options.getProperty("Disconnected-Buffer-Size");
+		if (value != null) {
+			size = Integer.parseInt(value);
+		}
+		return size;
+	}
+	public int getMaxInflight() {
+		int maxInflight = DEFAULT_MAX_INFLIGHT_MESSAGES;
+		String value = options.getProperty("MaxInflightMessages");
+		if (value != null) {
+			maxInflight = Integer.parseInt(trimedValue(value));
+		}
+		return maxInflight;
+	}
+	
+	public int getMessagingQoS() {
+		int qos = DEFAULT_MESSAGING_QOS;
+		String value = options.getProperty("MessagingQoS");
+		if (value != null) {
+			qos = Integer.parseInt(trimedValue(value));
+			if (qos < 0 || qos > 2) {
+				qos = DEFAULT_MESSAGING_QOS;
+			}
+		}
+		return qos;
 	}
 
 	/**
@@ -386,13 +554,33 @@ public abstract class AbstractClient {
 		}
 		return clientProperties;
 	}
+
+	/**
+	 * 
+	 * @return the domain
+	 */
+	protected String getDomain() {
+		String domain;
+		domain = options.getProperty("domain");
+		
+		if(domain == null) {
+			domain = options.getProperty("Domain");
+		}
+		domain = trimedValue(domain);
+		
+		if(domain != null && !("".equals(domain))) {
+			return domain;
+		} else {
+			return DEFAULT_DOMAIN;
+		}
+	}
 	
-	/*
-	 * old style - org
-	 * new style - Organization-ID
+	/**
+	 * 
+	 * @return the organization id
 	 */
 	public String getOrgId() {
-		String org = null;
+		String org;
 		org = options.getProperty("org");
 		
 		if(org == null) {
@@ -406,7 +594,7 @@ public abstract class AbstractClient {
 	 * new style - Device-ID
 	 */
 	public String getDeviceId() {
-		String id = null;
+		String id;
 		id = options.getProperty("id");
 		if(id == null) {
 			id = options.getProperty("Device-ID");
@@ -425,6 +613,8 @@ public abstract class AbstractClient {
 	 * Accessor method to retrieve Authendication Method
 	 * old style - auth-method
 	 * new style - Authentication-Method
+	 * 
+	 * @return The Authentication method
 	 */	
 	public String getAuthMethod() {
 		String method = options.getProperty("auth-method");
@@ -455,6 +645,7 @@ public abstract class AbstractClient {
 	
 	/**
 	 * @param organization  Organization ID (Either "quickstart" or the registered organization ID)
+	 * @param domain		Domain of the Watson IoT Platform, for example internetofthings.ibmcloud.com
 	 * @param deviceType	Device Type
 	 * @param deviceId		Device ID
 	 * @param eventName		Name of the Event
@@ -466,6 +657,7 @@ public abstract class AbstractClient {
 	 * @throws Exception	throws exception when http post fails
 	 */
 	protected static int publishEventsThroughHttps(String organization,
+			String domain,
 			String deviceType,
 			String deviceId,
 			String eventName,
@@ -477,10 +669,11 @@ public abstract class AbstractClient {
 		final String METHOD = "publishEventsThroughHttps";
 
 		validateNull("Organization ID", organization);
+		validateNull("Domain", domain);
 		validateNull("Device Type", deviceType);
 		validateNull("Device ID", deviceId);
 		validateNull("Event Name", eventName);
-		if("quickstart".equalsIgnoreCase(organization) == false) {
+		if(QUICK_START.equalsIgnoreCase(organization) == false) {
 			validateNull("Authentication Method", authKey);
 			validateNull("Authentication Token", authToken);
 		}
@@ -488,13 +681,13 @@ public abstract class AbstractClient {
 		StringBuilder sb = new StringBuilder();
 		
 		// Form the URL
-		if("quickstart".equalsIgnoreCase(organization)) {
+		if(QUICK_START.equalsIgnoreCase(organization)) {
 			sb.append("http://");
 		} else {
 			sb.append("https://");
 		}
 		sb.append(organization)
-			.append(".internetofthings.ibmcloud.com/api/v0002");
+			.append(".messaging.internetofthings.ibmcloud.com/api/v0002");
 			
 		if(device == true) {
 			sb.append("/device");
@@ -510,24 +703,10 @@ public abstract class AbstractClient {
 		
 		LoggerUtility.fine(CLASS_NAME, METHOD, "ReST URL::"+sb.toString());
 		BufferedReader br = null;
-		br = new BufferedReader(new InputStreamReader(System.in));
-		
+	
 		// Create the payload message in Json format
-		JsonObject message = new JsonObject();
-		
-		String timestamp = ISO8601_DATE_FORMAT.format(new Date());
-		message.addProperty("ts", timestamp);
-		
-		JsonElement dataElement = gson.toJsonTree(payload);
-		message.add("d", dataElement);
-		
-		StringEntity input = null;
-		try {
-			input = new StringEntity(message.toString());
-		} catch (UnsupportedEncodingException e) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to carry out the ReST request");
-			throw e;
-		}
+		JsonObject message = (JsonObject) gson.toJsonTree(payload);		
+		StringEntity input = new StringEntity(message.toString(), StandardCharsets.UTF_8);
 		
 		// Create the Http post request
 		HttpPost post = new HttpPost(sb.toString());
@@ -535,7 +714,7 @@ public abstract class AbstractClient {
 		post.addHeader("Content-Type", "application/json");
 		post.addHeader("Accept", "application/json");
 		
-		if("quickstart".equalsIgnoreCase(organization) == false) {
+		if(QUICK_START.equalsIgnoreCase(organization) == false) {
 			byte[] encoding = Base64.encodeBase64(new String(authKey + ":" + authToken).getBytes() );			
 			String encodedString = new String(encoding);
 			post.addHeader("Authorization", "Basic " + encodedString);
@@ -570,7 +749,7 @@ public abstract class AbstractClient {
 					.append('\n');
 			}
 			log.append("\nResponse \n");
-			br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+			br = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8));
 			log.append(br.readLine());
 			LoggerUtility.severe(CLASS_NAME, METHOD, log.toString());
 			
@@ -584,4 +763,6 @@ public abstract class AbstractClient {
 			}
 		}
 	}
+
+	
 }

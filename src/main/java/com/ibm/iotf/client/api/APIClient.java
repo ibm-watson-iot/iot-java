@@ -15,15 +15,19 @@ package com.ibm.iotf.client.api;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.cert.X509Certificate;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.net.util.Base64;
@@ -43,6 +47,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.ibm.iotf.client.AbstractClient;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -55,17 +60,45 @@ public class APIClient {
 
 	private static final String CLASS_NAME = APIClient.class.getName();
 	
-	private static final String BASIC_API_V0002_URL = "internetofthings.ibmcloud.com/api/v0002";
+	private static final String BASIC_API_V0002_URL = "/api/v0002";
 
 	private String authKey = null;
 	private String authToken = null;
 	private SSLContext sslContext = null;
 	private String orgId = null;
+	private String mdeviceType = null;
+	private String mdeviceId = null;
+
+	private String domain;
+	private boolean isQuickstart = false;
+	
+	// Enum for content-type header
+		public enum ContentType {
+		text("text/plain"), json("application/json"), xml("application/xml"), bin(
+				"application/octet-stream");
+
+		ContentType(String type) {
+			mType = type;
+		}
+
+		public String getType() {
+			return mType;
+		}
+
+		private String mType;
+
+	}//ending enum
+	
+	private ContentType contentType = ContentType.json;
+	private boolean isSecured = true;
 	public APIClient(Properties opt) throws NoSuchAlgorithmException, KeyManagementException {
 		boolean isGateway = false;
 		String authKeyPassed = null;
-		if("gateway".equals(getAuthMethod(opt))) {
+		
+		if("gateway".equalsIgnoreCase(APIClient.getAuthMethod(opt))) {
 			isGateway = true;
+		} else if("device".equalsIgnoreCase(APIClient.getAuthMethod(opt))) {
+			authKey = "use-token-auth";
 		} else {
 			authKeyPassed = opt.getProperty("auth-key");
 			if(authKeyPassed == null) {
@@ -89,13 +122,61 @@ public class APIClient {
 		}
 		
 		this.orgId = trimedValue(org);
+		this.domain = getDomain(opt);
 		
+		if(this.orgId == null || this.orgId.equalsIgnoreCase("quickstart"))
+			isQuickstart = true;
+		this.mdeviceType = this.getDeviceType(opt);
+		this.mdeviceId = this.getDeviceId(opt);
+		this.isSecured = this.IsSecuredConnection(opt);
 		if(isGateway) {
-			authKey = "g-" + this.orgId + '-' + this.getGWDeviceType(opt) + '-' + this.getGWDeviceId(opt);
+			authKey = "g/" + this.orgId + '/' + mdeviceType + '/' + mdeviceId;
+		}
+		
+		TrustManager[] trustAllCerts = null;
+		boolean trustAll = false;
+		
+		String value = opt.getProperty("Trust-All-Certificates");
+		if (value != null) {
+			trustAll = Boolean.parseBoolean(trimedValue(value));
+		}
+		
+		if (trustAll) {
+			trustAllCerts = new TrustManager[] { new X509TrustManager() {
+				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+					return new X509Certificate[0];
+				}
+	
+				public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+				}
+	
+				public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+				}
+			} };
 		}
 
 		sslContext = SSLContext.getInstance("TLSv1.2");
-		sslContext.init(null, null, null);
+		sslContext.init(null, trustAllCerts, null);
+	}
+	
+	/**
+	 * @param options List of properties 
+	 * @return the domain
+	 */
+	protected String getDomain(Properties options) {
+		String domain;
+		domain = options.getProperty("domain");
+		
+		if(domain == null) {
+			domain = options.getProperty("Domain");
+		}
+		domain = trimedValue(domain);
+		
+		if(domain != null && !("".equals(domain))) {
+			return domain;
+		} else {
+			return AbstractClient.DEFAULT_DOMAIN;
+		}
 	}
 	
 	private static String getAuthMethod(Properties opt) {
@@ -111,8 +192,8 @@ public class APIClient {
 	 * old style - id
 	 * new style - Device-ID
 	 */
-	protected String getGWDeviceId(Properties options) {
-		String id = null;
+	protected String getDeviceId(Properties options) {
+		String id;
 		id = options.getProperty("Gateway-ID");
 		if(id == null) {
 			id = options.getProperty("Device-ID");
@@ -123,8 +204,8 @@ public class APIClient {
 		return trimedValue(id);
 	}
 	
-	protected String getGWDeviceType(Properties options) {
-		String type = null;
+	protected String getDeviceType(Properties options) {
+		String type;
 		type = options.getProperty("Gateway-Type");
 		if(type == null) {
 			type = options.getProperty("Device-Type");
@@ -133,6 +214,15 @@ public class APIClient {
 			type = options.getProperty("type");
 		}
 		return trimedValue(type);
+	}
+	protected boolean IsSecuredConnection(Properties options) {
+		boolean type = true;
+		String id;
+		id = options.getProperty("Secure");
+		if(id != null)
+			type = trimedValue(id).equalsIgnoreCase("true");
+		
+		return type;
 	}
 	
 	private static String trimedValue(String value) {
@@ -143,112 +233,123 @@ public class APIClient {
 	}
 	
 	private HttpResponse connect(String httpOperation, String url, String jsonPacket, 
-			ArrayList<NameValuePair> queryParameters) throws IoTFCReSTException, URISyntaxException, IOException {
+			List<NameValuePair> queryParameters) throws URISyntaxException, IOException {
 		final String METHOD = "connect";
 		
 		StringEntity input = null;
-		try {
-			if(jsonPacket != null) {
-				input = new StringEntity(jsonPacket);
-			}
-		} catch (UnsupportedEncodingException e) {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to carry out the ReST request");
-			throw e;
+		if(jsonPacket != null) {
+			input = new StringEntity(jsonPacket, StandardCharsets.UTF_8);
 		}
 		
-		byte[] encoding = Base64.encodeBase64(new String(authKey + ":" + authToken).getBytes() );			
-		String encodedString = new String(encoding);
+		String encodedString = null;
+		if (!isQuickstart) {
+			byte[] encoding = Base64.encodeBase64(new String(authKey + ":"
+					+ authToken).getBytes());
+			encodedString = new String(encoding);
+		}
 		switch(httpOperation) {
 			case "post":
-				URIBuilder builder = new URIBuilder(url);
-				if(queryParameters != null) {
-					builder.setParameters(queryParameters);
-				}
-
-				HttpPost post = new HttpPost(builder.build());
-				post.setEntity(input);
-				post.addHeader("Content-Type", "application/json");
-				post.addHeader("Accept", "application/json");
-				post.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
-					HttpResponse response = client.execute(post);
-					return response;
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				} finally {
-
-				}
-
+				return casePostFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "put":
-				URIBuilder putBuilder = new URIBuilder(url);
-				if(queryParameters != null) {
-					putBuilder.setParameters(queryParameters);
-				}
-				HttpPut put = new HttpPut(putBuilder.build());
-				put.setEntity(input);
-				put.addHeader("Content-Type", "application/json");
-				put.addHeader("Accept", "application/json");
-				put.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
-					HttpResponse response = client.execute(put);
-					return response;
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				} finally {
-
-				}
-				
+				return casePutFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "get":
-
-				URIBuilder getBuilder = new URIBuilder(url);
-				if(queryParameters != null) {
-					getBuilder.setParameters(queryParameters);
-				}
-				HttpGet get = new HttpGet(getBuilder.build());
-				get.addHeader("Content-Type", "application/json");
-				get.addHeader("Accept", "application/json");
-				get.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
-					HttpResponse response = client.execute(get);
-					return response;
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				}			
-
+				return caseGetFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "delete":
-				URIBuilder deleteBuilder = new URIBuilder(url);
-				if(queryParameters != null) {
-					deleteBuilder.setParameters(queryParameters);
-				}
-
-				HttpDelete delete = new HttpDelete(deleteBuilder.build());
-				delete.addHeader("Content-Type", "application/json");
-				delete.addHeader("Accept", "application/json");
-				delete.addHeader("Authorization", "Basic " + encodedString);
-				try {
-					HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();					
-					return client.execute(delete);
-				} catch (IOException e) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
-					throw e;
-				} finally {
-
-				}
+				return caseDeleteFromConnect(queryParameters, url, METHOD,input, encodedString);
 		}
 		return null;
 			
 	}
 	
+	private HttpResponse casePostFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+		URIBuilder builder = new URIBuilder(url);
+		if(queryParameters != null) {
+			builder.setParameters(queryParameters);
+		}
+
+		//ContentType content = ContentType.valueOf(contentType);		
+		HttpPost post = new HttpPost(builder.build());
+		post.setEntity(input);
+		post.addHeader("Content-Type", contentType.getType());
+		post.addHeader("Accept", "application/json");
+		if(isQuickstart == false)
+		post.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().useSystemProperties().setSslcontext(sslContext).build();
+			
+			return client.execute(post);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		}  
+		
+	}
+	
+	private HttpResponse casePutFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+		URIBuilder putBuilder = new URIBuilder(url);
+		if(queryParameters != null) {
+			putBuilder.setParameters(queryParameters);
+		}
+		HttpPut put = new HttpPut(putBuilder.build());
+		put.setEntity(input);
+		put.addHeader("Content-Type", "application/json");
+		put.addHeader("Accept", "application/json");
+		put.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().useSystemProperties().setSslcontext(sslContext).build();
+			return client.execute(put);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		} 
+
+	}
+	
+	private HttpResponse caseGetFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+
+		URIBuilder getBuilder = new URIBuilder(url);
+		if(queryParameters != null) {
+			getBuilder.setParameters(queryParameters);
+		}
+		HttpGet get = new HttpGet(getBuilder.build());
+		get.addHeader("Content-Type", "application/json");
+		get.addHeader("Accept", "application/json");
+		get.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().useSystemProperties().setSslcontext(sslContext).build();					
+			return client.execute(get);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		}			
+
+	}
+	
+	private HttpResponse caseDeleteFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+
+		URIBuilder deleteBuilder = new URIBuilder(url);
+		if(queryParameters != null) {
+			deleteBuilder.setParameters(queryParameters);
+		}
+
+		HttpDelete delete = new HttpDelete(deleteBuilder.build());
+		delete.addHeader("Content-Type", "application/json");
+		delete.addHeader("Accept", "application/json");
+		delete.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().useSystemProperties().setSslcontext(sslContext).build();					
+			return client.execute(delete);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		} 
+
+	}
+	
 	private String readContent(HttpResponse response, String method) 
 			throws IllegalStateException, IOException {
 		
-		BufferedReader br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+		BufferedReader br = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8));
 		String line = null;
 		try {
 			line = br.readLine();
@@ -278,17 +379,17 @@ public class APIClient {
 	 * @param deviceId String which contains device id
 	 * 
 	 * @return A boolean response containing the status
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException When there is a failure in device information
 	 */
 	public boolean isDeviceExist(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "isDeviceExist";
 		/**
 		 * Form the url based on this swagger documentation
-		 */
+		 */		
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -296,7 +397,7 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
-		try {
+		try {			
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200) {
@@ -332,8 +433,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonObject
-	 * @throws IOException 
+	 * @return JsonObject containing the device details
+	 * @throws IoTFCReSTException When there is a failure in device information
 	 */
 	public JsonObject getDevice(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getDevice";
@@ -343,7 +444,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -389,8 +490,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonObject
-	 * @throws IOException 
+	 * @return JsonObject containing the device location
+	 * @throws IoTFCReSTException Failure in getting the device location 
 	 */
 	public JsonObject getDeviceLocation(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getDeviceLocation";
@@ -400,7 +501,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -445,7 +546,7 @@ public class APIClient {
 	 *   
 	 * @return A JSON response containing the status of the update operation.
 	 * 
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in updting the device location
 	 */
 	public JsonObject updateDeviceLocation(String deviceType, String deviceId, 
 			JsonElement location) throws IoTFCReSTException {
@@ -456,7 +557,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -504,8 +605,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonObject
-	 * @throws IOException 
+	 * @return JsonObject containing the device management information
+	 * @throws IoTFCReSTException Failure in getting the device management information 
 	 */
 	public JsonObject getDeviceManagementInformation(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getDeviceManagementInformation";
@@ -515,7 +616,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -560,7 +661,7 @@ public class APIClient {
 	 *   
 	 * @return A JSON response containing the status of the update operation.
 	 * 
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in updating the device
 	 */
 	public JsonObject updateDevice(String deviceType, String deviceId, 
 			JsonElement propertiesToBeModified) throws IoTFCReSTException {
@@ -572,7 +673,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -623,7 +724,7 @@ public class APIClient {
 	 *   
 	 * @return details about an organization.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the organization details 
 	 */
 	public JsonObject getOrganizationDetails() throws IoTFCReSTException {
 		final String METHOD = "getOrganizationDetails";
@@ -635,7 +736,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/");
 		
 		int code = 0;
@@ -687,9 +788,9 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of devices.</p>
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving all the devices 
 	 */
-	public JsonObject getAllDevices(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDevices(List<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getDevices(1)";
 		/**
 		 * Form the url based on this swagger documentation
@@ -697,7 +798,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/bulk/devices");
 		
 		int code = 0;
@@ -741,7 +842,7 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of devices.</p>
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving all the devices 
 	 */
 	public JsonObject getAllDevices() throws IoTFCReSTException {
 		return getAllDevices((ArrayList<NameValuePair>)null);
@@ -766,9 +867,9 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of devices.</p>
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the devices 
 	 */
-	public JsonObject retrieveDevices(String deviceType, ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject retrieveDevices(String deviceType, List<NameValuePair> parameters) throws IoTFCReSTException {
 		
 		final String METHOD = "getDevices(typeID)";
 		/**
@@ -778,7 +879,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).append("/devices");
 				   
@@ -827,7 +928,7 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of devices.</p>
 	 * 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the devices 
 	 */
 	public JsonObject retrieveDevices(String deviceType) throws IoTFCReSTException {
 		return retrieveDevices(deviceType, (ArrayList)null);
@@ -848,7 +949,7 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of devices.</p>
 	 * 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException failure in getting the devices 
 	 */
 	public JsonObject getDevicesConnectedThroughGateway(String gatewayType, String gatewayId) throws IoTFCReSTException {
 		final String METHOD = "getDevicesConnectedThroughGateway(typeID, deviceId)";
@@ -859,7 +960,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(gatewayType).
 		   append("/devices/").
@@ -914,9 +1015,9 @@ public class APIClient {
 	 * 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of device types.</p>
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the device types 
 	 */
-	public JsonObject getAllDeviceTypes(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDeviceTypes(List<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getDeviceTypes";
 		/**
 		 * Form the url based on this swagger documentation
@@ -926,7 +1027,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types");
 		
 		HttpResponse response = null;
@@ -967,7 +1068,7 @@ public class APIClient {
 	 * <p> The response will contain more parameters that can be used to issue the next request. 
 	 * The result element will contain the current list of device types.</p>
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving all the device types 
 	 */
 	public JsonObject getDeviceTypes() throws IoTFCReSTException {
 		return getAllDeviceTypes(null);
@@ -982,7 +1083,7 @@ public class APIClient {
 	 * for more information about the response</p>.
 	 * @param deviceType The device type to be checked in Watson IoT Platform
 	 * @return A boolean response containing the status
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in checking if device type exists
 	 */
 	public boolean isDeviceTypeExist(String deviceType) throws IoTFCReSTException {
 		final String METHOD = "isDeviceTypeExist";
@@ -992,7 +1093,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType);
 		
@@ -1031,9 +1132,11 @@ public class APIClient {
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Device_Types/get_device_types_typeId">link</a>
 	 * for more information about the response</p>.
 	 *   
+	 * @param  deviceType the type of the device in String
+	 *  
 	 * @return A JSON response containing the device type.
 	 * 
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the device type 
 	 */
 	public JsonObject getDeviceType(String deviceType) throws IoTFCReSTException {
 		final String METHOD = "getDeviceType";
@@ -1043,7 +1146,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType);
 		
@@ -1084,10 +1187,10 @@ public class APIClient {
 	 * <p> Refer to the
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Device_Types/put_device_types_typeId">link</a>
 	 * for more information about the response</p>.
-	 *   
-	 * @return A JSON response containing the status of the update operation.
 	 * 
-	 * @throws IoTFCReSTException 
+	 * @param deviceType The type of device in String  
+	 * @return A JSON response containing the status of the update operation.
+	 * @throws IoTFCReSTException Failure in updating the device type
 	 */
 	public JsonObject updateDeviceType(String deviceType, JsonElement updatedValues) throws IoTFCReSTException {
 		final String METHOD = "updateDeviceType";
@@ -1097,7 +1200,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType);
 		
@@ -1146,7 +1249,7 @@ public class APIClient {
 	 * 
 	 * @return JSON object containing the response of device type.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding the device type
 	 */
 
 	public JsonObject addDeviceType(JsonElement deviceType) throws IoTFCReSTException {
@@ -1158,7 +1261,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types");
 		
 		int code = 0;
@@ -1208,7 +1311,7 @@ public class APIClient {
 	 * 
 	 * @return JSON object containing the response of device type.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding the gateway device type
 	 */
 
 	public JsonObject addGatewayDeviceType(JsonElement deviceType) throws IoTFCReSTException {
@@ -1233,7 +1336,7 @@ public class APIClient {
 	 * 
 	 * @return JSON object containing the response of device type.
 	 * 
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in adding the device type
 	 */
 
 	public JsonObject addDeviceType(String id, String description, 
@@ -1245,7 +1348,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types");
 
 		JsonObject input = new JsonObject();
@@ -1275,7 +1378,7 @@ public class APIClient {
 	 * 
 	 * @return JSON object containing the response of device type.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in deleting the device type
 	 */
 
 	public boolean deleteDeviceType(String typeId) throws IoTFCReSTException {
@@ -1286,7 +1389,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(typeId);
 		
@@ -1317,277 +1420,6 @@ public class APIClient {
 	}
 	
 	/**
-	 * This method retrieves events across all devices registered in the organization. 
-	 * Use the overloaded method to control the output.
-	 *  
-	 * <p> Refer to the
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian">link</a>
-	 * for more information about the query parameters and response in JSON format.</p>
-	 * 
-	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
-	 */
-	public JsonElement getHistoricalEvents() throws IoTFCReSTException {		
-		return getHistoricalEvents(null, null, null);
-	}
-	
-	/**
-	 * This method retrieves events across all devices registered in the organization. 
-	 * Use the overloaded method to control the output.
-	 *  
-	 * <p> Refer to the
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian">link</a>
-	 * for more information about the query parameters and response in JSON format.</p>
-	 * 
-	 * @param parameters Contains the list of query parameters as specified in the 
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian">link</a>
-	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
-	 */
-	public JsonElement getHistoricalEvents(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {		
-		return getHistoricalEvents(null, null, parameters);
-	}
-	
-	/**
-	 * This method retrieves events across all devices of a particular device type. 
-	 * Use the overloaded method to control the output.
-	 *  
-	 * <p> Refer to the
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian_types_deviceType">link</a>
-	 * for more information about the query parameters and response in JSON format.</p>
-	 * 
-	 * @param deviceType String which contains device type
-	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
-	 */
-	public JsonElement getHistoricalEvents(String deviceType) throws IoTFCReSTException {		
-		return getHistoricalEvents(deviceType, null, null);
-	}
-	
-	/**
-	 * This method retrieves events across all devices of a particular device type but with a
-	 * list of query parameters,
-	 *  
-	 * <p> Refer to the
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian_types_deviceType">link</a>
-	 * for more information about the query parameters and response in JSON format.</p>
-	 * 
-	 * @param deviceType String which contains device type
-	 * @param parameters Contains the list of query parameters as specified in the 
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian_types_deviceType">link</a>
-	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
-	 */
-	public JsonElement getHistoricalEvents(String deviceType, 
-			ArrayList<NameValuePair> parameters) throws IoTFCReSTException {		
-		return getHistoricalEvents(deviceType, null, parameters);
-	}
-
-	/**
-	 * This method retrieves events based on the device ID
-	 * 
-	 * <p> Refer to the
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian_types_deviceType_devices_deviceId">link</a>
-	 * for more information about the query parameters and response in JSON format.</p>
-	 * 
-	 * @param deviceType String which contains device type
-	 * @param deviceId String which contains device id
-	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
-	 */
-	public JsonElement getHistoricalEvents(String deviceType, String deviceId) throws IoTFCReSTException {
-		return getHistoricalEvents(deviceType, deviceId, null);
-	}
-	
-	/**
-	 * This method retrieves events based on the device ID
-	 * 
-	 * <p> Refer to the
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian_types_deviceType_devices_deviceId">link</a>
-	 * for more information about the query parameters and response in JSON format.</p>
-	 * 
-	 * @param deviceType String which contains device type
-	 * @param deviceId String which contains device id
-	 * @param parameters Contains the list of query parameters as specified in the 
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian_types_deviceType_devices_deviceId">link</a>
-	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
-	 */
-	public JsonElement getHistoricalEvents(String deviceType, 
-			String deviceId, ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
-		final String METHOD = "getHistoricalEvents(3)";
-		/**
-		 * Form the url based on this swagger documentation
-		 */
-		StringBuilder sb = new StringBuilder("https://");
-		sb.append(orgId).
-		   append('.').
-		   append(BASIC_API_V0002_URL).
-		   append("/historian");
-		
-		if(deviceType != null) {
-			sb.append("/types/").append(deviceType);
-		}
-		
-		if(deviceId != null) {
-			sb.append("/devices/").append(deviceId);
-		}
-		
-		int code = 0;
-		HttpResponse response = null;
-		try {
-			response = connect("get", sb.toString(), null, parameters);
-			code = response.getStatusLine().getStatusCode();
-			String result = this.readContent(response, METHOD);
-			JsonElement jsonResponse = new JsonParser().parse(result);
-			return jsonResponse;
-		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException(code, "Failure in retrieving "
-					+ "the Historical events. :: "+e.getMessage());
-			ex.initCause(e);
-		}
-		throwException(response, METHOD);
-		return null;
-	}
-	
-	/**
-	 * This method retrieves events based on the device ID
-	 * 
-	 * <p> Refer to the
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian_types_deviceType_devices_deviceId">link</a>
-	 * for more information about the query parameters and response in JSON format.</p>
-	 * 
-	 * @param deviceType String which contains device type
-	 * @param deviceId String which contains device id
-	 * 
-	 * @param bookmark (can be empty or null) Used for paging through results. Issue the first request without specifying a bookmark, 
-	 * then take the bookmark returned in the response and provide it on the request for the next page. 
-	 * Repeat until the end of the result set indicated by the absence of a bookmark. 
-	 * Each request must use exactly the same values for the other parameters, or the results are undefined.
-	 * 
-	 * @param evtType (can be empty or null) Restrict results only to those events published under this event identifier.
-	 * @param start (can be empty or null) Number of milliseconds since January 1, 1970, 00:00:00 GMT). Restrict results to events published after this date
-	 * @param end (can be empty or null)  Number of milliseconds since January 1, 1970, 00:00:00 GMT). Restrict results to events published before this date
-	 * 
-	 * @return JsonArray
-	 * @throws IoTFCReSTException
-	 */
-	public JsonElement getHistoricalEvents(String deviceType, 
-			String deviceId, 
-			String bookmark,
-			String evtType, 
-			String start, 
-			String end) throws IoTFCReSTException {
-		
-		return getHistoricalEvents(deviceType, deviceId, bookmark, evtType, start, end, -1, null, null);
-	}
-	
-	/**
-	 * This method retrieves events based on the device ID
-	 * 
-	 * <p> Refer to the
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Historical_Event_Retrieval/get_historian_types_deviceType_devices_deviceId">link</a>
-	 * for more information about the query parameters and response in JSON format.</p>
-	 * 
-	 * @param deviceType String which contains device type
-	 * @param deviceId String which contains device id
-	 * 
-	 * @param bookmark (can be empty or null) Used for paging through results. Issue the first request without specifying a bookmark, 
-	 * then take the bookmark returned in the response and provide it on the request for the next page. 
-	 * Repeat until the end of the result set indicated by the absence of a bookmark. 
-	 * Each request must use exactly the same values for the other parameters, or the results are undefined.
-	 * 
-	 * @param evtType (can be empty or null) Restrict results only to those events published under this event identifier.
-	 * @param start (can be empty or null) Number of milliseconds since January 1, 1970, 00:00:00 GMT). Restrict results to events published after this date
-	 * @param end (can be empty or null)  Number of milliseconds since January 1, 1970, 00:00:00 GMT). Restrict results to events published before this date
-	 * @param top Number between 1 and 100. Restrict the number of records returned (default=100)
-	 * @param summarize Array. A list of fields from the JSON event payload on which to perform the aggregate function specified by the summarize_type parameter. 
-	 * The format for the parameter is {field1,field2,...,fieldN}
-	 * 
-	 * @param summarizeType The aggregation to perform on the fields specified by the summarize parameter.
-	 * @return JsonElement containing the HistoricalEvents matching the given criteria
-	 * @throws IoTFCReSTException
-	 */
-	public JsonElement getHistoricalEvents(String deviceType, 
-			String deviceId, 
-			String bookmark,
-			String evtType, 
-			String start, 
-			String end,
-			int top,
-			String summarize,
-			String summarizeType) throws IoTFCReSTException {
-		
-		final String METHOD = "getHistoricalEvents(9)";
-		/**
-		 * Form the url based on this swagger documentation
-		 */
-		StringBuilder sb = new StringBuilder("https://");
-		sb.append(orgId).
-		   append('.').
-		   append(BASIC_API_V0002_URL).
-		   append("/historian/");
-		
-		if(deviceType != null) {
-			sb.append("types/").append(deviceType);
-		}
-		
-		if(deviceId != null) {
-			sb.append("/devices/").append(deviceId);
-		}
-		
-		/**
-		 * Create the query parameters based on the swagger UI
-		 */
-		
-		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
-		if(bookmark != null) {
-			parameters.add(new BasicNameValuePair("_bookmark", bookmark));
-		}
-		if(evtType != null) {
-			parameters.add(new BasicNameValuePair("evt_type", evtType));
-		}
-		if(start != null) {
-			parameters.add(new BasicNameValuePair("start", start));
-		}
-		if(end != null) {
-			parameters.add(new BasicNameValuePair("end", end));
-		}
-		if(top >=0 && top <= 100) {
-			parameters.add(new BasicNameValuePair("top", Integer.toString(top)));
-		}
-		if(summarize != null) {
-			parameters.add(new BasicNameValuePair("summarize", summarize));
-		}
-		if(summarizeType != null) {
-			parameters.add(new BasicNameValuePair("summarize_type", summarizeType));
-		}
-		
-		int code = 0;
-		HttpResponse response = null;
-		try {
-			response = connect("get", sb.toString(), null, parameters);
-			code = response.getStatusLine().getStatusCode();
-			String result = this.readContent(response, METHOD);
-			JsonElement jsonResponse = new JsonParser().parse(result);
-			return jsonResponse;
-		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException(code, "Failure in retrieving "
-					+ "the Historical events. :: "+e.getMessage());
-			ex.initCause(e);
-		}
-		throwException(response, METHOD);
-		return null;
-	}
-
-
-	/**
 	 * This method registers a device, by accepting more parameters. Refer to 
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/post_device_types_typeId_devices">link</a> 
 	 * for more information about the schema to be used
@@ -1601,7 +1433,7 @@ public class APIClient {
 	 * @param metadata JsonObject representing the device metadata (can be null).
 	 * 
 	 * @return JsonObject containing the registered device details
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in registering the device
 	 */
 	public JsonObject registerDevice(String deviceType, String deviceId, 
 			String authToken, JsonElement deviceInfo, JsonElement location, 
@@ -1614,7 +1446,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices");
@@ -1654,7 +1486,7 @@ public class APIClient {
 	 * 
 	 * @return JsonObject containing the generated authentication token for the device. 
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in registering the device
 	 */
 
 	public JsonObject registerDevice(String typeId, JsonElement device) throws IoTFCReSTException {
@@ -1666,7 +1498,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(typeId).
 		   append("/devices");
@@ -1674,15 +1506,17 @@ public class APIClient {
 		int code = 0;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
+		String method = "post";
 		try {
-			response = connect("post", sb.toString(), device.toString(), null);
+			response = connect(method, sb.toString(), device.toString(), null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 201 || code == 400 || code == 409) {
-				// success
+				// Get the response
 				String result = this.readContent(response, METHOD);
 				jsonResponse = new JsonParser().parse(result);
 			}
 			if(code == 201) {
+				// Success
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -1692,21 +1526,27 @@ public class APIClient {
 			throw ex;
 		}
 		
-		if(code == 400) {
-			throw new IoTFCReSTException(400, "Invalid request (No body, invalid JSON, "
-					+ "unexpected key, bad value)", jsonResponse);
-		} else if(code == 401) {
-			throw new IoTFCReSTException(401, "The authentication token is empty or invalid");
-		} else if(code == 403) {
-			throw new IoTFCReSTException(403, "The authentication method is invalid or "
-					+ "the API key used does not exist");
-		} else if (code == 409) {
-			throw new IoTFCReSTException(409, "The device already exists", jsonResponse);  
-		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+		String reason = null;
+		switch (code) {
+		case 400:
+			reason = IoTFCReSTException.HTTP_ADD_DEVICE_ERR_400;
+			break;
+		case 401:
+			reason = IoTFCReSTException.HTTP_ADD_DEVICE_ERR_401;
+			break;
+		case 403:
+			reason = IoTFCReSTException.HTTP_ADD_DEVICE_ERR_403;
+			break;
+		case 409:
+			reason = IoTFCReSTException.HTTP_ADD_DEVICE_ERR_409;
+			break;
+		case 500:
+			reason = IoTFCReSTException.HTTP_ADD_DEVICE_ERR_500;
+			break;
+		default:
+			reason = IoTFCReSTException.HTTP_ERR_UNEXPECTED;
 		}
-		throwException(response, METHOD);
-		return null;
+		throw new IoTFCReSTException(method, sb.toString(), device.toString(), code, reason, jsonResponse);
 	}
 	
 	/**
@@ -1726,7 +1566,7 @@ public class APIClient {
 	 * 
 	 * @return JsonObject containing the generated authentication token for the device. 
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in registering the device under the given Gateway
 	 */
 
 	public JsonObject registerDeviceUnderGateway(String typeId, String gatewayId, 
@@ -1752,7 +1592,7 @@ public class APIClient {
 	 * @param deviceId
 	 * 				object of String which represents device id
 	 * @return boolean to denote success or failure of operation
-	 * @throws IOException 
+	 * @throws IoTFCReSTException Failure in deleting the device
 	 */
 	public boolean deleteDevice(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "deleteDevice";
@@ -1762,7 +1602,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -1807,7 +1647,7 @@ public class APIClient {
 	 * @param deviceId
 	 * 				object of String which represents device id
 	 * @return boolean to denote success or failure of operation
-	 * @throws IOException 
+	 * @throws IoTFCReSTException Failure in clearing the diagnostic logs 
 	 */
 	public boolean clearAllDiagnosticLogs(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "clearDiagnosticLogs";
@@ -1818,7 +1658,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -1858,8 +1698,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonArray
-	 * @throws IOException 
+	 * @return JsonArray Containing all the diagnostic logs
+	 * @throws IoTFCReSTException Failure in retrieving all the diagnostic logs
 	 */
 	public JsonArray getAllDiagnosticLogs(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getAllDiagnosticLogs";
@@ -1869,7 +1709,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -1913,10 +1753,11 @@ public class APIClient {
 	 * 
  	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
+	 * @param log the Log message to be added
 
 	 * @return boolean containing the status of the load addition.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding the diagnostic logs
 	 */
 
 	public boolean addDiagnosticLog(String deviceType, String deviceId, JsonElement log) throws IoTFCReSTException {
@@ -1927,7 +1768,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -1971,7 +1812,7 @@ public class APIClient {
 	 * @param logId object of String which represents log id
 	 *  
 	 * @return boolean to denote success or failure of operation
-	 * @throws IOException 
+	 * @throws IoTFCReSTException Failure in deleting the diagnostic log
 	 */
 	public boolean deleteDiagnosticLog(String deviceType, String deviceId, String logId) throws IoTFCReSTException {
 		final String METHOD = "deleteDiagnosticLog";
@@ -1981,7 +1822,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -2012,12 +1853,17 @@ public class APIClient {
 	}
 	
 	private void throwException(HttpResponse response, String method) throws IoTFCReSTException {
-		int code = response.getStatusLine().getStatusCode();
+		int code = 0;
 		JsonElement jsonResponse = null;
-		try {
-			String result = this.readContent(response, method);
-			jsonResponse = new JsonParser().parse(result);
-		} catch(Exception e) {}
+	
+		if(response != null) {
+			code = response.getStatusLine().getStatusCode();
+		
+			try {
+				String result = this.readContent(response, method);
+				jsonResponse = new JsonParser().parse(result);
+			} catch(Exception e) {}
+		}
 		
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
@@ -2038,7 +1884,7 @@ public class APIClient {
 	 *  
 	 * @return JsonObject the DiagnosticLog in JSON Format
 	 * 
-	 * @throws IOException 
+	 * @throws IoTFCReSTException Failure in retrieving the diagnostic log
 	 */
 	public JsonObject getDiagnosticLog(String deviceType, String deviceId, String logId) throws IoTFCReSTException {
 		final String METHOD = "getDiagnosticLog";
@@ -2048,7 +1894,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -2095,7 +1941,7 @@ public class APIClient {
 	 * @param deviceId
 	 * 				object of String which represents device id
 	 * @return boolean to denote success or failure of operation
-	 * @throws IOException 
+	 * @throws IoTFCReSTException Failure in clearing all the diagnostic error codes 
 	 */
 	public boolean clearAllDiagnosticErrorCodes(String deviceType, String deviceId) throws IoTFCReSTException {
 		String METHOD = "clearAllDiagnosticErrorCodes";
@@ -2106,7 +1952,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -2145,8 +1991,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonArray
-	 * @throws IOException 
+	 * @return JsonArray Containing all the diagnostic error codes
+	 * @throws IoTFCReSTException Failure in retrieving the error codes
 	 */
 	public JsonArray getAllDiagnosticErrorCodes(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getAllDiagnosticErrorCodes";
@@ -2156,7 +2002,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -2203,7 +2049,7 @@ public class APIClient {
 	 * 
 	 * @return boolean containing the status of the add operation.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding the error codes
 	 */
 
 	public boolean addDiagnosticErrorCode(String deviceType, String deviceId, JsonElement errorcode) throws IoTFCReSTException {
@@ -2214,7 +2060,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/device/types/").
 		   append(deviceType).
 		   append("/devices/").
@@ -2258,7 +2104,7 @@ public class APIClient {
 	 * 
 	 * @return boolean containing the status of the add operation.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding the error codes
 	 */
 
 	public boolean addDiagnosticErrorCode(String deviceType, String deviceId, 
@@ -2288,8 +2134,8 @@ public class APIClient {
 	 * @param deviceType String which contains device type
 	 * @param deviceId String which contains device id
 	 * 
-	 * @return JsonArray
-	 * @throws IOException 
+	 * @return JsonArray Containing the device connection logs
+	 * @throws IoTFCReSTException Failure in retrieving the device connection logs 
 	 */
 	public JsonArray getDeviceConnectionLogs(String deviceType, String deviceId) throws IoTFCReSTException {
 		final String METHOD = "getDeviceConnectionLogs";
@@ -2299,7 +2145,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/logs/connection");
 		
 		// add the query parameters
@@ -2352,7 +2198,7 @@ public class APIClient {
 	 * @return JsonArray containing the generated authentication tokens for all the devices 
 	 * for all devices. 
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in adding devices
 	 */
 
 	public JsonArray addMultipleDevices(JsonArray arryOfDevicesToBeAdded) throws IoTFCReSTException {
@@ -2363,7 +2209,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/bulk/devices/add");
 
 		int code = 0;
@@ -2411,7 +2257,7 @@ public class APIClient {
 	 * 
 	 * @return JsonArray containing the status of the operations for all the devices
 	 *  
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in deleting devices
 	 */
 	public JsonArray deleteMultipleDevices(JsonArray arryOfDevicesToBeDeleted) throws IoTFCReSTException {
 		final String METHOD = "bulkDevicesRemove";
@@ -2421,7 +2267,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/bulk/devices/remove");
 
 		int code = 0;
@@ -2462,7 +2308,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the list of device management requests.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving all DM requests
 	 */
 	
 	public JsonObject getAllDeviceManagementRequests() throws IoTFCReSTException {
@@ -2476,9 +2322,9 @@ public class APIClient {
 	 * @param parameters list of query parameters that controls the output.
 	 * 
 	 * @return JSON response containing the list of device management requests.
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException Failure in retrieving all DM requests
 	 */
-	public JsonObject getAllDeviceManagementRequests(ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDeviceManagementRequests(List<NameValuePair> parameters) throws IoTFCReSTException {
 		final String METHOD = "getAllDeviceManagementRequests";
 		/**
 		 * Form the url based on this swagger documentation
@@ -2487,7 +2333,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests");
 		
 		int code = 0;
@@ -2516,47 +2362,277 @@ public class APIClient {
 	}
 	
 	/**
+	 * Add a Device Management Extension.
+	 * 
+	 * @param request JSON object containing the the DM Extension request.
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * @throws IoTFCReSTException if failed.
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject addDeviceManagementExtension(JsonObject request) throws IoTFCReSTException {
+		return addDeviceManagementExtension(request.toString());
+	}
+	
+	/**
+	 * Add a Device Management Extension.
+	 * 
+	 * @param request JSON string containing the the DM Extension request.
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * @throws IoTFCReSTException if failed.
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject addDeviceManagementExtension(String request) throws IoTFCReSTException {
+		final String METHOD = "addDeviceManagementExtension";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		String method = "post";
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/mgmt/custom/bundle");
+			response = connect(method, sb.toString(), request, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 409 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 201) {
+					//Success
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = IoTFCReSTException.HTTP_ADD_DM_EXTENSION_ERR_400;
+						break;
+					case 401:
+						reason = IoTFCReSTException.HTTP_ADD_DM_EXTENSION_ERR_401;
+						break;
+					case 403:
+						reason = IoTFCReSTException.HTTP_ADD_DM_EXTENSION_ERR_403;
+						break;
+					case 409:
+						reason = IoTFCReSTException.HTTP_ADD_DM_EXTENSION_ERR_409;
+						break;
+					case 500:
+						reason = IoTFCReSTException.HTTP_ADD_DM_EXTENSION_ERR_500;
+						break;
+					}
+					throw new IoTFCReSTException(method, sb.toString(), request, code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (IoTFCReSTException e) {
+			throw e;
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding the Device Management Extension "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+	
+	/**
+	 * Delete a registered Device Management Extension.
+	 * 
+	 * @param bundleId The bundle ID of the registered Device Management Extension.
+	 * @throws IoTFCReSTException if failed.
+	 * @see IoTFCReSTException
+	 */
+	public void deleteDeviceManagementExtension(String bundleId) throws IoTFCReSTException {
+		final String METHOD = "deleteDeviceManagementExtension";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/mgmt/custom/bundle/" + bundleId);
+			response = connect("delete", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 204) {
+				//Success
+				return;
+			}
+			if (code == 400 || code == 401 || code == 403 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = new String("Invalid request");
+						break;
+					case 401:
+						reason = new String("Unauthorized");
+						break;
+					case 403:
+						reason = new String("Forbidden");
+						break;
+					case 500:
+						reason = new String("Internal server error");
+						break;
+					}
+					throw new IoTFCReSTException(code, reason, jsonResponse);
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding the Device Management Extension "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}		
+	}
+
+	/**
+	 * Get a specific registered device management extension.
+	 * 
+	 * @param bundleId bundle id
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * @throws IoTFCReSTException if failed.
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject getDeviceManagementExtension(String bundleId) throws IoTFCReSTException {
+		final String METHOD = "addDeviceManagementExtension";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/mgmt/custom/bundle/" + bundleId);
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 200 || code == 400 || code == 401 || code == 403 || code == 404 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 200) {
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = new String("Invalid request");
+						break;
+					case 401:
+						reason = new String("Unauthorized");
+						break;
+					case 403:
+						reason = new String("Forbidden");
+						break;
+					case 404:
+						reason = new String("Not Found");
+						break;
+					case 500:
+						reason = new String("Internal server error");
+						break;
+					}
+					throw new IoTFCReSTException(code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding the Device Management Extension "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+
+	/**
 	 * Initiates a device management request, such as reboot.
 	 * 
 	 * @param request JSON object containing the management request
 	 * 
 	 * @return boolean response containing the status of the initiate DM request
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in initiating a DM request
 	 */
 	public boolean initiateDeviceManagementRequest(JsonObject request) throws IoTFCReSTException {
-		final String METHOD = "initiateDeviceManagementRequest";
+		try {
+			initiateDMRequest(request);
+			return true;
+		} catch (IoTFCReSTException e) {
+			throw e;
+		} catch (Exception e) {
+			throw e;
+		}
+		// Unreachable code
+		//return false;
+	}
+	
+	/**
+	 * Initiates a device management request, such as reboot.
+	 * 
+	 * @param request JSON object containing the management request
+	 * @return JSON object containing the response from Watson IoT Platform
+	 * @throws IoTFCReSTException Failure in initiating a DM request
+	 */
+	public JsonObject initiateDMRequest(JsonObject request) throws IoTFCReSTException {
+		final String METHOD = "initiateDMRequest";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
 		 */
 		StringBuilder sb = new StringBuilder("https://");
-		sb.append(orgId).
-		   append('.').
-		   append(BASIC_API_V0002_URL).
+		sb.append(orgId).append('.').append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests");
 		
 		int code = 0;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
+		String method = "post";
+		IoTFCReSTException ex = null;
 		try {
-			response = connect("post", sb.toString(), request.toString(), null);
+			response = connect(method, sb.toString(), request.toString(), null);
 			code = response.getStatusLine().getStatusCode();
-			if(code == 202) {
-				return true;
+			switch (code) {
+			case 202:
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				break;
+			case 400:
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_400, null);
+				break;
+			case 401:
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_401, null);
+				break;
+			case 403:
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_403, null);
+				break;
+			case 404:
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_404, null);
+				break;
+			case 500:
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_500, null);
+				break;
+			default:
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_ERR_UNEXPECTED, null);
 			}
-			String result = this.readContent(response, METHOD);
-			jsonResponse = new JsonParser().parse(result);
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in initiating the Device management Request "
+			ex = new IoTFCReSTException("Failure in initiating the Device management Request "
 					+ "::"+e.getMessage());
 			ex.initCause(e);
-			throw ex;
 		}
-		if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
+		if (jsonResponse != null) {
+			return jsonResponse.getAsJsonObject();
+		} else {
+			if (ex != null) {
+				throw ex;
+			}
+			return null;
 		}
-		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
 	
 
@@ -2570,7 +2646,7 @@ public class APIClient {
 	 * @param requestId String ID representing the management request
 	 * @return JSON response containing the newly initiated request.
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in deleting a DM request
 	 */
 	public boolean deleteDeviceManagementRequest(String requestId) throws IoTFCReSTException {
 		String METHOD = "deleteDeviceManagementRequest";
@@ -2581,7 +2657,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests/").append(requestId);
 
 		int code = 0;
@@ -2596,8 +2672,8 @@ public class APIClient {
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the Device management Request "
-					+ "::"+e.getMessage());
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the DM Request for ID ("
+					+ requestId + ")::"+e.getMessage());
 			ex.initCause(e);
 			throw ex;
 		}
@@ -2613,7 +2689,7 @@ public class APIClient {
 	 * @param requestId String ID representing the management request
 	 * @return JSON response containing the device management request
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving a DM request
 	 */
 	public JsonObject getDeviceManagementRequest(String requestId) throws IoTFCReSTException {
 		final String METHOD = "getDeviceManagementRequest";
@@ -2624,33 +2700,46 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests/").append(requestId);
 		
 		int code = 0;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
+		IoTFCReSTException ex = null;
+		String method = "get";
 		try {
-			response = connect("get", sb.toString(), null, null);
+			response = connect(method, sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
-			String result = this.readContent(response, METHOD);
-			jsonResponse = new JsonParser().parse(result);
-			if(code == 200) {
-				return jsonResponse.getAsJsonObject();
+			switch (code) {
+			case 200:
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				break;
+			case 404:
+				ex = new IoTFCReSTException(method, sb.toString(), null, code, IoTFCReSTException.HTTP_GET_DM_REQUEST_ERR_404, null);
+				break;
+			case 500:
+				ex = new IoTFCReSTException(method, sb.toString(), null, code, IoTFCReSTException.HTTP_GET_DM_REQUEST_ERR_500, null);
+				break;
+			default:
+				ex = new IoTFCReSTException(method, sb.toString(), null, code, IoTFCReSTException.HTTP_ERR_UNEXPECTED, null);
 			}
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the Device management Request "
-					+ "::"+e.getMessage());
+			ex = new IoTFCReSTException("Failure in getting the DM Request for ID (" 
+					+ requestId + ")::" + e.getMessage());
 			ex.initCause(e);
 			throw ex;
 		}
-		if (code == 500) {
-			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
-		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "Request status not found");
+		
+		if (jsonResponse != null) {
+			return jsonResponse.getAsJsonObject();
+		} else {
+			if (ex != null) {
+				throw ex;
+			}
+			return null;
 		}
-		throwException(response, METHOD);
-		return null;
 	}
 
 	/**
@@ -2661,10 +2750,10 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the device management request
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving a DM request status
 	 */
 	public JsonObject getDeviceManagementRequestStatus(String requestId, 
-			ArrayList<NameValuePair> parameters) throws IoTFCReSTException {
+			List<NameValuePair> parameters) throws IoTFCReSTException {
 		
 		final String METHOD = "getDeviceManagementRequestStatus";
 		/**
@@ -2674,7 +2763,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests/").
 		   append(requestId).
 		   append("/deviceStatus");
@@ -2711,7 +2800,7 @@ public class APIClient {
 	 * @param requestId String ID representing the management request
 	 * @return JSON response containing the device management request
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the DM request status
 	 */
 	public JsonObject getDeviceManagementRequestStatus(String requestId) throws IoTFCReSTException {
 		return getDeviceManagementRequestStatus(requestId, null);
@@ -2727,7 +2816,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the device management request
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the DM request device status
 	 */
 	public JsonObject getDeviceManagementRequestStatusByDevice(String requestId, 
 			String deviceType, String deviceId) throws IoTFCReSTException {
@@ -2740,7 +2829,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/mgmt/requests/").
 		   append(requestId).
 		   append("/deviceStatus/").
@@ -2787,7 +2876,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the active devices over a period of time
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving all active device details
 	 */
 	public JsonObject getActiveDevices(String startDate, String endDate, boolean detail) throws IoTFCReSTException {
 		final String METHOD = "getActiveDevices";
@@ -2798,7 +2887,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/usage/active-devices");
 		
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -2849,7 +2938,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the active devices over a period of time
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving historical data usage
 	 */
 	public JsonObject getHistoricalDataUsage(String startDate, String endDate, boolean detail) throws IoTFCReSTException {
 		final String METHOD = "getHistoricalDataUsage";
@@ -2860,7 +2949,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/usage/historical-data");
 		
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -2911,7 +3000,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the active devices over a period of time
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the data traffic
 	 */
 	public JsonObject getDataTraffic(String startDate, String endDate, boolean detail) throws IoTFCReSTException {
 		final String METHOD = "getDataTraffic";
@@ -2922,7 +3011,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/usage/data-traffic");
 		
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -2965,7 +3054,7 @@ public class APIClient {
 	 * 
 	 * @return JSON response containing the status of services for an organization
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in retrieving the service status
 	 */
 	public JsonObject getServiceStatus() throws IoTFCReSTException {
 		final String METHOD = "getServiceStatus";
@@ -2976,7 +3065,7 @@ public class APIClient {
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
-		   append(BASIC_API_V0002_URL).
+		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/service-status");
 		
 		int code = 0;
@@ -3017,7 +3106,7 @@ public class APIClient {
 	 * 
 	 * @return JsonObject containing the generated authentication token for the device. 
 	 *  
-	 * @throws IoTFCReSTException 
+	 * @throws IoTFCReSTException Failure in registering a device under the gateway
 	 */
 
 	public JsonObject registerDeviceUnderGateway(String deviceType, String deviceId,
@@ -3029,5 +3118,351 @@ public class APIClient {
 		deviceObj.addProperty("gatewayTypeId", gwTypeId);
 		
 		return this.registerDevice(deviceType, deviceObj);
+	}
+	
+	        /**
+	 * This method retrieves all last events for a specific device
+	 * 
+	 * <p>
+	 * Refer to the <a href=
+	 * "https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Event_Cache/get_device_types_deviceType_devices_deviceId_events"
+	 * >link</a> for more information about the query parameters and response in
+	 * JSON format.
+	 * </p>
+	 * 
+	 * @param deviceType
+	 *            String which contains device type
+	 * @param deviceId
+	 *            String which contains device id
+	 * 
+	 * @return JsonElement containing the last event
+	 * @throws IoTFCReSTException Failure in retrieving the last event
+	 */
+	public JsonElement getLastEvents(String deviceType, String deviceId)
+			throws IoTFCReSTException {
+
+		String METHOD = "getLastEvents(2)";
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).append('.').append(this.domain).append(BASIC_API_V0002_URL)
+				.append("/device");
+
+		if (deviceType != null) {
+			sb.append("/types/").append(deviceType);
+		}
+
+		if (deviceId != null) {
+			sb.append("/devices/").append(deviceId);
+		}
+		sb.append("/events");
+
+		int code = 0;
+		HttpResponse response = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			String result = this.readContent(response, METHOD);
+			JsonElement jsonResponse = new JsonParser().parse(result);
+
+			code = response.getStatusLine().getStatusCode();
+			if (code == 400) {
+				throw new IoTFCReSTException(400, "Invalid request",
+						jsonResponse);
+			} else if (code == 403) {
+				throw new IoTFCReSTException(403, "Forbidden", jsonResponse);
+			} else if (code == 500) {
+				throw new IoTFCReSTException(500, "Internal server error",
+						jsonResponse);
+			}
+
+			return jsonResponse;
+		} catch (Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException(code,
+					"Failure in retrieving " + "the last events. :: "
+							+ e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+
+	/**
+	 * This method returns last event for a specific event id for a specific
+	 * device
+	 * 
+	 * <p>
+	 * Refer to the <a href=
+	 * "https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Event_Cache/get_device_types_deviceType_devices_deviceId_events_eventName"
+	 * >link</a> for more information about the query parameters and response in
+	 * JSON format.
+	 * </p>
+	 * 
+	 * @param deviceType
+	 *            String which contains device type
+	 * @param deviceId
+	 *            String which contains device id
+	 * @param eventId
+	 *            String which contains event id
+	 * 
+	 * @return JsonElement Containing the last event
+	 * @throws IoTFCReSTException Failure in retrieving the last event
+	 */
+	public JsonElement getLastEvent(String deviceType, String deviceId,
+			String eventId) throws IoTFCReSTException {
+
+		String METHOD = "getLastEvent(3)";
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).append('.').append(this.domain).append(BASIC_API_V0002_URL)
+				.append("/device");
+
+		if (deviceType != null) {
+			sb.append("/types/").append(deviceType);
+		}
+
+		if (deviceId != null) {
+			sb.append("/devices/").append(deviceId);
+		}
+
+		if (eventId != null) {
+			sb.append("/events/").append(eventId);
+		}
+
+		int code = 0;
+		HttpResponse response = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			JsonElement jsonResponse = new JsonParser().parse(result);
+
+			if (code == 400) {
+				throw new IoTFCReSTException(400, "Invalid request",
+						jsonResponse);
+			} else if (code == 403) {
+				throw new IoTFCReSTException(403, "Forbidden", jsonResponse);
+			} else if (code == 500) {
+				throw new IoTFCReSTException(500, "Internal server error",
+						jsonResponse);
+			}
+
+			return jsonResponse;
+		} catch (Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException(code,
+					"Failure in retrieving " + "the last event. :: "
+							+ e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+	
+	private void validateNull (String property, String value) throws Exception {
+		if(value == null || value == "")
+			throw new Exception(property + "cannot be NULL or Empty!");
+	}
+
+	private boolean publishMessageOverHTTP(String eventId, JsonObject payload,
+			boolean isApplication, boolean isCommand) throws Exception {
+
+		final String METHOD = "publishMessageOverHTTP";
+		StringBuilder sb = new StringBuilder();
+		String port;
+		validateNull("Organization ID", orgId);
+		validateNull("Device Type", mdeviceType);
+		validateNull("Device ID", mdeviceId);
+		validateNull("Event Name", eventId);
+				
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+
+		if (isSecured) {
+			sb.append("https://");
+			port = "8883";
+		} else {
+			sb.append("http://");
+			port = "1883";
+		}
+
+		String TYPE = "/device";
+		if (isApplication)
+			TYPE = "/application";
+
+		String MESSAGE = "/events/";
+		if(isCommand)
+			MESSAGE = "/commands/";
+			
+		sb.append(orgId).append(".messaging.").append(domain).append(":")
+				.append(port).append(BASIC_API_V0002_URL).append(TYPE)
+				.append("/types/").append(mdeviceType).append("/devices/")
+				.append(mdeviceId).append(MESSAGE).append(eventId);
+
+		
+		int code = 0;
+		boolean ret = false;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+				
+		try {
+			response = connect("post", sb.toString(), payload.toString(), null);			
+			code = response.getStatusLine().getStatusCode();			
+			if (code == 200) {
+				// success
+				ret = true;
+			}
+
+		} catch (Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException(
+					"Failure in adding the device Type " + "::"
+							+ e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+
+		if (code == 400) {
+			throw new IoTFCReSTException(400,
+					"Invalid request (No body, invalid JSON, "
+							+ "unexpected key, bad value)", jsonResponse);
+		} else if (code == 401) {
+			throw new IoTFCReSTException(401,
+					"The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(403,
+					"The authentication method is invalid or "
+							+ "the API key used does not exist");
+		} else if (code == 409) {
+			throw new IoTFCReSTException(409, "The device type already exists",
+					jsonResponse);
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		} else if (ret == false) {
+			throwException(response, METHOD);
+		}
+
+		return ret;
+	}
+	
+	/**
+	 * Publishes events over HTTP for a device and application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+ 
+	public boolean publishDeviceEventOverHTTP(String eventId, JsonObject payload) throws Exception {
+		boolean ret = false;		
+		ret = publishMessageOverHTTP(eventId, payload, false, false);
+		return ret;
+	}
+	
+	/**
+	 * Publishes events over HTTP for a device and application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * @param contenttype Content type
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+ 
+	public boolean publishDeviceEventOverHTTP(String eventId, JsonObject payload, ContentType contenttype) throws Exception {
+		boolean ret = false;
+		contentType = contenttype;
+		ret = publishDeviceEventOverHTTP(eventId, payload);
+		return ret;
+	}
+
+	/**
+	 * Application Publishes events on behalf of device over HTTP 
+	 * 
+	 * @param deviceId Device ID
+	 * @param deviceType Device type
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */ 
+	public boolean publishApplicationEventforDeviceOverHTTP(String deviceId, String deviceType, String eventId, JsonObject payload) throws Exception {
+		boolean ret = false;		
+		this.mdeviceId = deviceId;
+		this.mdeviceType = deviceType;
+		ret = publishMessageOverHTTP(eventId, payload, true, false);
+		return ret;
+	}
+	
+	/**
+	 * Application Publishes events on behalf of device over HTTP 
+	 * 
+	 * @param deviceId Device ID
+	 * @param deviceType Device type
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * @param contenttype Content type
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+	public boolean publishApplicationEventforDeviceOverHTTP(String deviceId, String deviceType, String eventId, JsonObject payload, ContentType contenttype) throws Exception {
+		boolean ret = false;		
+		contentType = contenttype;
+		ret = publishApplicationEventforDeviceOverHTTP(deviceId, deviceType, eventId, payload);
+		return ret;
+	}
+
+	/**
+	 * Publishes commands over HTTP for an application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+	public boolean publishCommandOverHTTP(String eventId, JsonObject payload) throws Exception {
+		boolean ret = false;
+		ret = publishMessageOverHTTP(eventId, payload, true, true);
+		return ret;
+	}
+	
+	/**
+	 * Publishes commands over HTTP for an application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * @param contenttype Content type
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+	public boolean publishCommandOverHTTP(String eventId, JsonObject payload, ContentType contenttype) throws Exception {
+		boolean ret = false;
+		contentType = contenttype;
+		ret = publishCommandOverHTTP(eventId, payload);
+		return ret;
 	}
 }

@@ -13,10 +13,19 @@ Constructor
 The constructor builds the client instance, and accepts a Properties object containing the following definitions:
 
 * org - Your organization ID. (This is a required field. In case of quickstart flow, provide org as quickstart.)
+* domain - (Optional) The messaging endpoint URL. By default the value is "internetofthings.ibmcloud.com"(Watson IoT Production server)
 * type - The type of your device. (This is a required field.)
 * id - The ID of your device. (This is a required field.
 * auth-method - Method of authentication (This is an optional field, needed only for registered flow and the only value currently supported is "token"). 
 * auth-token - API key token (This is an optional field, needed only for registered flow).
+* clean-session - true or false (required only if you want to connect the application in durable subscription. By default the clean-session is set to true).
+* Port - Specify the port to connect to, supported ports are 8883 and 443. (default port is 8883). 
+* WebSocket - true or false (default is false, required if you want to connect the device using websockets).
+* MaxInflightMessages - Sets the maximum number of inflight messages for the connection (default value is 100).
+* Automatic-Reconnect - true or false (default: false). When set, the library will automatically attempt to reconnect to the Watson IoT Platform while the client is in disconnected state.
+* Disconnected-Buffer-Size - The maximum number of messages that will be stored in memory while the client is disconnected. Default: 5000.
+
+**Note:** One must set clean-session to false to connect the device in durable subscription. Refer to `Subscription Buffers and Clean Session <https://docs.internetofthings.ibmcloud.com/reference/mqtt/index.html#/subscription-buffers-and-clean-session#subscription-buffers-and-clean-session>`__ for more information about the clean session.
 
 The Properties object creates definitions which are used to interact with the Watson IoT Platform module. 
 
@@ -172,6 +181,7 @@ The content of the configuration file must be in the following format:
 
     [device]
     org=$orgId
+    domain=$domain
     typ=$myDeviceType
     id=$myDeviceId
     auth-method=token
@@ -180,14 +190,39 @@ The content of the configuration file must be in the following format:
 
 ----
 
+Connecting to the Watson IoT Platform
+----------------------------------------------------
+
+Connect to the Watson IoT Platform by calling the *connect* function. The connect function takes an optional boolean parameter autoRetry (by default autoRetry is true) that controls allows the library to retry the connection when there is an MqttException. Note that the library won't retry when there is a MqttSecurityException due to incorrect device registration details passed even if the autoRetry is set to true.
+
+Also, one can use the setKeepAliveInterval(int) method before calling connect() to set the MQTT "keep alive" interval. This value, measured in seconds, defines the maximum time interval between messages sent or received. It enables the client to detect if the server is no longer available, without having to wait for the TCP/IP timeout. The client will ensure that at least one message travels across the network within each keep alive period. In the absence of a data-related message during the time period, the client sends a very small "ping" message, which the server will acknowledge. A value of 0 disables keepalive processing in the client. The default value is 60 seconds.
+
+.. code:: java
+
+    DeviceClient myClient = new DeviceClient(options);
+    myClient.setKeepAliveInterval(120);
+    myClient.connect(true);
+    
+Also, use the overloaded connect(int numberOfTimesToRetry) function to control the number of retries when there is a connection failure.
+
+.. code:: java
+
+    DeviceClient myClient = new DeviceClient(options);
+    
+    myClient.connect(10);
+
+After the successful connection to the IoTF service, the device client can perform the following operations, like publishing events and subscribe to device commands from application.
+
+----
+
 
 Publishing events
 -------------------------------------------------------------------------------
 Events are the mechanism by which devices publish data to the Watson IoT Platform. The device controls the content of the event and assigns a name for each event it sends.
 
-When an event is received by the IBM IoT Foundation the credentials of the connection on which the event was received are used to determine from which device the event was sent. With this architecture it is impossible for a device to impersonate another device.
+When an event is received by the Watson IoT Platform, the credentials of the connection on which the event was received are used to determine from which device the event was sent. With this architecture it is impossible for a device to impersonate another device.
 
-Events can be published at any of the three `quality of service levels <https://docs.internetofthings.ibmcloud.com/messaging/mqtt.html#/>` defined by the MQTT protocol.  By default events will be published as qos level 0.
+Events can be published at any of the three `quality of service levels <https://docs.internetofthings.ibmcloud.com/messaging/mqtt.html#/>` defined by the MQTT protocol.  By default events will be published as qos level 0 and with JSON format.
 
 Publish event using default quality of service
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -226,6 +261,34 @@ Events can be published at higher MQTT quality of servive levels, but these even
 
 ----
 
+Publish event using custom format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Events can be published in different formats, like JSON, String, Binary and etc.. By default, the library publishes the event in JSON format, but one can specify the data in different formats. For example, to publish data in String format use the following code snippet,(Note that the type of the payload must be in String format)
+
+.. code:: java
+
+			myClient.connect();
+			
+			String data = "cpu:"+getProcessCpuLoad();
+			status = myClient.publishEvent("load", data, "text", 2);
+			
+Any XML data can be converted to String and published as follows,
+
+.. code:: java
+		
+		status = myClient.publishEvent("load", xmlConvertedString, "xml", 2);
+
+Similarly, to publish events in binary format, use the byte array as shown below,
+
+.. code:: java
+
+			myClient.connect();
+			
+			byte[] cpuLoad = new byte[] {30, 35, 30, 25};
+			status = myClient.publishEvent("blink", cpuLoad , "binary", 1);
+----
+
 Publish event using HTTP(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Apart from MQTT, the devices can publish events to IBM Watson IoT Platform using HTTP(s) by following 3 simple steps,
@@ -243,7 +306,7 @@ Apart from MQTT, the devices can publish events to IBM Watson IoT Platform using
 			event.addProperty("cpu",  90);
 			event.addProperty("mem",  70);
 			
-    	int httpCode = myClient.publishEventOverHTTP("blink", event);
+    	boolean response = myClient.api().publishDeviceEventOverHTTP("blink", event, ContentType.json);
     	
 The complete code can be found in the device example `HttpDeviceEventPublish <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/device/HttpDeviceEventPublish.java>`__
  
@@ -264,7 +327,7 @@ Also, It is possible for an application to publish the event on behalf of a devi
 			event.addProperty("cpu",  90);
 			event.addProperty("mem",  70);
 			
-    	code = myClient.publishEventOverHTTP(deviceType, deviceId, "blink", event);
+    	boolean status = myClient.publishApplicationEventforDeviceOverHTTP(deviceId, deviceType, "blink", event, ContentType.json);
  
 
 The complete code can be found in the application example `HttpApplicationDeviceEventPublish <https://github.com/ibm-messaging/iot-java/blob/master/samples/iotfdeviceclient/src/com/ibm/iotf/sample/client/application/HttpApplicationDeviceEventPublish.java>`__
@@ -286,7 +349,8 @@ The messages are returned as an instance of the Command class which has the foll
 	package com.ibm.iotf.sample.client.device;
 
 	import java.util.Properties;
-
+	import java.util.concurrent.BlockingQueue;
+	import java.util.concurrent.LinkedBlockingQueue;
 
 	import com.ibm.iotf.client.device.Command;
 	import com.ibm.iotf.client.device.CommandCallback;
@@ -294,17 +358,35 @@ The messages are returned as an instance of the Command class which has the foll
 
 
 	//Implement the CommandCallback class to provide the way in which you want the command to be handled
-	class MyNewCommandCallback implements CommandCallback{
-		
-		public MyNewCommandCallback() {
+	class MyNewCommandCallback implements CommandCallback, Runnable {
+	
+		// A queue to hold & process the commands for smooth handling of MQTT messages
+		private BlockingQueue<Command> queue = new LinkedBlockingQueue<Command>();
+	
+		/**
+	 	* This method is invoked by the library whenever there is command matching the subscription criteria
+	 	*/
+		@Override
+		public void processCommand(Command cmd) {
+			try {
+				queue.put(cmd);
+			} catch (InterruptedException e) {
+			}			
 		}
 
-		//In this sample, we are just displaying the command the moment the device recieves it
 		@Override
-		public void processCommand(Command command) {
-			System.out.println("COMMAND RECEIVED = '" + command.getCommand() + "'\twith Payload = '" + command.getPayload() + "'");			
+		public void run() {
+			while(true) {
+				Command cmd = null;
+				try {
+					//In this sample, we just display the command
+					cmd = queue.take();
+					System.out.println("COMMAND RECEIVED = '" + cmd.getCommand() + "'\twith Payload = '" + cmd.getPayload() + "'");
+				} catch (InterruptedException e) {}
+			}
 		}
 	}
+
 
 	public class RegisteredDeviceCommandSubscribe {
 

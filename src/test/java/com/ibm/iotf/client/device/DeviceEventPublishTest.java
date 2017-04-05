@@ -22,8 +22,10 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
+import com.ibm.iotf.client.api.APIClient.ContentType;
 import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.client.device.DeviceClient;
+
 import junit.framework.TestCase;
 
 /**
@@ -53,7 +55,7 @@ public class DeviceEventPublishTest extends TestCase{
 				
 		//Connect to the IBM Watson IoT Platform
 		try {
-			myClient.connect();
+			myClient.connect(true);
 		} catch (MqttException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -118,6 +120,71 @@ public class DeviceEventPublishTest extends TestCase{
 	/**
 	 * This test expects a properties file containing the device registration details. Failing to
 	 * provide the same, the test will return immediately and show as passed.
+	 */
+	@Test
+	public void testRegisteredPublishWithEmptyObject(){			
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(DeviceEventPublishTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		DeviceClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new DeviceClient(props);
+			myClient.connect(true);
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+			
+		boolean code = myClient.publishEvent("blink", null);
+		myClient.disconnect();
+		assertTrue("Failed to publish the event......", code);
+	}
+	
+	/**
+	 * NegativeTest - try to publish after disconnect, it should return immediately 
+	 */
+	@Test
+	public void testPublishAfterDisconnect(){			
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(DeviceEventPublishTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		DeviceClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new DeviceClient(props);
+			myClient.connect(true);
+			myClient.disconnect();
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+			
+		boolean code = myClient.publishEvent("blink", null);
+		assertFalse("Successfully publish the event even after disconnect......", code);
+	}
+	
+	/**
+	 * This test expects a properties file containing the device registration details. Failing to
+	 * provide the same, the test will return immediately and show as passed.
 	 * 
 	 * This test publishes the event in QoS 0
 	 */
@@ -161,9 +228,10 @@ public class DeviceEventPublishTest extends TestCase{
 	 * provide the same, the test will return immediately and show as passed.
 	 * 
 	 * This test publishes the event in QoS 2
+	 * @throws Exception 
 	 */
 	@Test
-	public void testRegisteredPublishQos2(){			
+	public void testCustomPublishQos2() throws Exception{			
 		/**
 		 * Load device properties
 		 */
@@ -186,13 +254,46 @@ public class DeviceEventPublishTest extends TestCase{
 			return;
 		}
 			
-		//Generate a JSON object of the event to be published
-		JsonObject event = new JsonObject();
-		event.addProperty("name", "foo");
-		event.addProperty("cpu",  90);
-		event.addProperty("mem",  70);
-					
-		boolean code = myClient.publishEvent("blink", event, 2);
+		byte[] ss = new byte[]{1, 2, 3 ,4};
+		System.out.println(ss.getClass().getName());
+		
+		boolean code = myClient.publishEvent("blink", new byte[]{1, 2, 3, 4, 54}, "binary", 2);
+		myClient.disconnect();
+		assertTrue("Failed to publish the event......", code);
+	}
+	
+	/**
+	 * This test expects a properties file containing the device registration details. Failing to
+	 * provide the same, the test will return immediately and show as passed.
+	 * 
+	 * This test publishes the event in QoS 2
+	 * @throws Exception 
+	 */
+	@Test
+	public void testCustomPublishString() throws Exception{			
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(DeviceEventPublishTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		DeviceClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new DeviceClient(props);
+			myClient.connect();
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+			
+		boolean code = myClient.publishEvent("blink", "cpu:90", "binary", 2);
 		myClient.disconnect();
 		assertTrue("Failed to publish the event......", code);
 	}
@@ -276,9 +377,9 @@ public class DeviceEventPublishTest extends TestCase{
 		event.addProperty("cpu",  90);
 		event.addProperty("mem",  70);
 					
-		int code = 0;
+		boolean code = false;
 		try {
-			code = myClient.publishEventOverHTTP("blink", event);
+			code = myClient.api().publishDeviceEventOverHTTP("blink", event);
 		} catch (java.lang.IllegalArgumentException e) {
 			// looks like the proerties file is not edited, just ignore
 			return;
@@ -286,7 +387,53 @@ public class DeviceEventPublishTest extends TestCase{
 			e.printStackTrace();
 		}
 
-		assertEquals("Failed to publish the event......", 200, code);
+		assertEquals("Failed to publish the event......", true, code);
+	}
+	
+	/**
+	 * This test expects a properties file containing the device registration details. Failing to
+	 * provide the same, the test will return immediately and show as passed.
+	 */
+	@Test
+	public void testRegisteredPublishHttp_new(){			
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(DeviceEventPublishTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		DeviceClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new DeviceClient(props);
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+			
+		//Generate a JSON object of the event to be published
+		JsonObject event = new JsonObject();
+		event.addProperty("name", "foo");
+		event.addProperty("cpu",  90);
+		event.addProperty("mem",  70);
+					
+		boolean code = false;
+		try {
+			code = myClient.api().publishDeviceEventOverHTTP("blink", event, ContentType.json);
+		} catch (java.lang.IllegalArgumentException e) {
+			// looks like the proerties file is not edited, just ignore
+			return;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		assertEquals("Failed to publish the event......", true, code);
 	}
 	
 	/**
@@ -329,9 +476,9 @@ public class DeviceEventPublishTest extends TestCase{
 		event.addProperty("cpu",  90);
 		event.addProperty("mem",  70);
 					
-		int code = 0;
+		boolean code = false;
 		try {
-			code = myClient.publishEventOverHTTP(deviceType, deviceId, "blink", event);
+			code = myClient.api().publishApplicationEventforDeviceOverHTTP(deviceId, deviceType, "blink", event);
 		} catch (java.lang.IllegalArgumentException e) {
 			// looks like the proerties file is not edited, just ignore
 			return;
@@ -339,7 +486,60 @@ public class DeviceEventPublishTest extends TestCase{
 			e.printStackTrace();
 		}
 
-		assertEquals("Failed to publish the event......", 200, code);
+		assertEquals("Failed to publish the event......", true, code);
+	}
+	
+	/**
+	 * This test expects a properties file containing the application details, also the device details. Failing to
+	 * provide the same, the test will return immediately and show as passed.
+	 */
+	@Test
+	public void testApplicationEventPublishOnBehalfOfDeviceOverHTTP_new(){			
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(DeviceEventPublishTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		ApplicationClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new ApplicationClient(props);
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+		
+		/**
+		 * Get the Device Type and Device Id on behalf the application will publish the event
+		 */
+		String deviceType = trimedValue(props.getProperty("Device-Type"));
+		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		
+			
+		//Generate a JSON object of the event to be published
+		JsonObject event = new JsonObject();
+		event.addProperty("name", "foo");
+		event.addProperty("cpu",  90);
+		event.addProperty("mem",  70);
+					
+		boolean code = false;
+		try {
+			code = myClient.api().publishApplicationEventforDeviceOverHTTP(deviceType, deviceId, "blink", event);
+		} catch (java.lang.IllegalArgumentException e) {
+			// looks like the proerties file is not edited, just ignore
+			return;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		assertEquals("Failed to publish the event......", true, code);
 	}
 	
 	private static String trimedValue(String value) {

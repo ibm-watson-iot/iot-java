@@ -15,7 +15,7 @@
 package com.ibm.iotf.devicemgmt;
 
 /**
- * <p>This class encapsulates the device action like reboot & factory reset.</p>
+ * This class encapsulates the device action like reboot and factory reset.
  * 
  */
 public interface DeviceAction {
@@ -59,6 +59,7 @@ public interface DeviceAction {
 	 * there is a failure.</p>
 	 * 
 	 * @param status Failure status of the current device action
+	 * @param message Failure message to be reported
 	 */
 	public void setStatus(Status status, String message);
 	

@@ -74,10 +74,20 @@ ManagedDevice exposes 2 different constructors to support different user pattern
 Constructs a ManagedDevice instance by accepting the DeviceData and the following properties,
 
 * Organization-ID - Your organization ID.
+* Domain - (Optional) The messaging endpoint URL. By default the value is "internetofthings.ibmcloud.com"(Watson IoT Production server)
 * Device-Type - The type of your device.
 * Device-ID - The ID of your device.
 * Authentication-Method - Method of authentication (The only value currently supported is "token"). 
 * Authentication-Token - API key token
+* clean-session - true or false (required only if you want to connect the device in durable subscription. By default the clean-session is set to true).
+* Port - Specify the port to connect to, supported ports are 8883 and 443. (default port is 8883). 
+* WebSocket - true or false (default is false, required if you want to connect the device using websockets).
+* MaxInflightMessages - Sets the maximum number of inflight messages for the connection (default value is 100).
+* Automatic-Reconnect - true or false (default: false). When set, the library will automatically attempt to reconnect to the Watson IoT Platform while the client is in disconnected state.
+* Disconnected-Buffer-Size - The maximum number of messages that will be stored in memory while the client is disconnected. Default: 5000.
+
+**Note:** One must set clean-session to false to connect the device in durable subscription. Refer to `Subscription Buffers and Clean Session <https://docs.internetofthings.ibmcloud.com/reference/mqtt/index.html#/subscription-buffers-and-clean-session#subscription-buffers-and-clean-session>`__ for more information about the clean session.
+
 
 All these properties are required to interact with the IBM Watson Internet of Things Platform. 
 
@@ -136,7 +146,7 @@ The device can invoke sendManageRequest() method to participate in device manage
 
 .. code:: java
 
-	managedDevice.manage(0, true, true);
+	managedDevice.sendManageRequest(0, true, true);
 	
 As shown, this method accepts following 3 parameters,
 
@@ -570,6 +580,123 @@ The created handler needs to be added to the ManagedDevice instance so that the 
 	managedDevice.addDeviceActionHandler(actionHandler);
 
 Refer to `this page <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/requests.html#/device-actions-reboot#device-actions-reboot>`__ for more information about the Device Action.
+
+----
+
+Device Management Extension (DME) Packages
+-----------------------------------------------------
+An extension package is a JSON document which defines a set of device management actions. The actions can be initiated 
+against one or more devices which support those actions. The actions are initiated in the same way as the default device
+management actions by using either the IoT Platform dashboard or the device management REST APIs.
+
+For Device management extension package format, refer to `documentation <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/custom_actions.html>`__.
+
+Supporting Custom Device Management Actions
+------------------------------------------------------
+Device management actions defined in an extension package may only be initiated against devices which support those actions.
+A device specifies what types of actions it supports when it publishes a manage request to the IoT Platform. In order to
+allow a device to receive custom actions defined in a particular extension package, the device must specify that extension’s
+bundle identifier in the supports object when publishing a manage request.
+
+Device can call manage() API with the list of bundleIds to inform the Watson IoT Platform that the device
+supports Device Management Extension Actions for the provided list of bundle Ids present in the manage request.
+
+Here is the code snippet to publish a manage request to indicate Watson IoT Platform that device supports DME Actions:
+
+.. code:: java
+
+	dmClient.sendManageRequest(0, false, false, "example-dme-actions-v1");
+
+The last parameter specifies the custom action that the device supports.
+
+Handling Custom Device Management Actions
+-------------------------------------------------
+When a custom action is initiated against a device to the Watson IoT Platform, an MQTT message will be published to the device. The
+message will contain any parameters that were specified as part of the request. The device must add a CustomActionHandler to receive & process the message. The messages are returned as an instance of the CustomAction class which has the following properties:
+
+* bundleId - Unique identifier for the device management extension
+* actionId - The Custom action that is initiated
+* typeId - The device type against the custom action is initiated
+* deviceId - The device against the custom action is initiated
+* payload - The actual message containing the list of parameters in Json format
+* reqId - The request Id to be used to respond to the custom action request 
+
+Below is the sample implementation of a CustomActionHandler,
+
+.. code:: java
+
+    import java.util.concurrent.BlockingQueue;
+    import java.util.concurrent.LinkedBlockingQueue;
+
+    import com.google.gson.JsonArray;
+    import com.google.gson.JsonElement;
+    import com.google.gson.JsonObject;
+    import com.ibm.iotf.client.CustomAction;
+    import com.ibm.iotf.client.CustomAction.Status;
+    import com.ibm.iotf.devicemgmt.CustomActionHandler;
+
+    public class MyCustomActionHandler extends CustomActionHandler implements Runnable {
+
+	    // A queue to hold & process the commands for smooth handling of MQTT messages
+	    private BlockingQueue<CustomAction> queue = new LinkedBlockingQueue<CustomAction>();
+	    private long publishInterval = 1000;  // default 1 second
+
+	    @Override
+	    public void run() {
+		    while(true) {
+			    CustomAction action = null;
+    			try {
+	    			action = queue.take();
+					// In this example, we will change the publish interval rate based on the
+					// value we receive from the DME request
+		    		System.out.println(" "+action.getActionId()+ " "+action.getPayload());
+			    	JsonArray fields = action.getPayload().get("d").getAsJsonObject().get("fields").getAsJsonArray();
+				    for(JsonElement field : fields) {
+					    JsonObject fieldObj = field.getAsJsonObject();
+    					if("PublishInterval".equals(fieldObj.get("field").getAsString())) {
+	    					long val = fieldObj.get("value").getAsLong();
+		    				this.publishInterval = val * 1000;
+			        		System.out.println("Updated the publish interval to "+val);
+					    }
+				    }
+    				action.setStatus(Status.OK);
+				
+	    		} catch (InterruptedException e) {}
+		    }
+    	}
+
+	    public long getPublishInterval() {
+		    return this.publishInterval;
+	    }
+
+    	@Override
+	    public void handleCustomAction(CustomAction action) {
+		    try {
+			    queue.put(action);
+    			} catch (InterruptedException e) {
+	    	}	
+		
+    	}
+    }
+
+When the CustomActionHandler is added to the ManagedDevice instance, the handleCustomAction() method is invoked whenever any custom action is initiated by the application.
+
+The following code sample outlines how to add the CustomActionHandler into the ManagedDevice instance.
+
+.. code:: java
+
+    MyCustomActionHandler handler = new MyCustomActionHandler();
+    dmClient.addCustomActionHandler(handler);	
+	
+When the device receives the custom action message, it is expected to either execute the action or respond with an error code indicating that it cannot complete the action at this time. The device must use the *setStatus()* method to set the status of the action as follows,
+
+.. code:: java
+
+    action.setStatus(Status.OK);
+        
+The complete code can be found in the `device management samples <https://github.com/ibm-messaging/iot-python/tree/master/samples/managedDevice/>`__.
+
+For complete details on Device Management Extension, refer to `Extending Device Management <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/custom_actions.html>`__.	
 
 ----
 

@@ -13,9 +13,7 @@
 package com.ibm.iotf.client.device;
 
 import java.io.UnsupportedEncodingException;
-
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-
 import com.ibm.iotf.client.Message;
 
 /**
@@ -24,10 +22,10 @@ import com.ibm.iotf.client.Message;
  * 
  */
 
-
 public class Command extends Message{
 
-	private String command, format;
+	private String command;
+	private String format;
 
 	/**
 	 * Note that this class does not have a default constructor <br>
@@ -39,24 +37,44 @@ public class Command extends Message{
 	 * 			Format is a String which can contain values such as "json"
 	 * @param msg
 	 * 			MqttMessage 
-	 * @see <a href="Paho Client Library">http://www.eclipse.org/paho/files/javadoc/index.html</a> 
+	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
 	 * @throws
-	 * 			UnsupportedEncodingException
+	 * 			UnsupportedEncodingException When the Format is not UTF-8
 	 * 
 	 */	
-	
 	public Command(String command, String format, MqttMessage msg) throws UnsupportedEncodingException{
-		super(msg);
+		super(msg, format);
 		this.command = command;
 		this.format = format;
 	}
 	
+	/**
+	 * Returns the name of the command
+	 * @return the name of the command 
+	 */
 	public String getCommand() {
 		return command;
 	}
 	
 	public String getFormat() {
-		return format;
+		return format.toString();
+	}
+	
+	/**
+	 * This method is deprecated. Instead use {@link #getData()} or {@link #getRawPayload()}
+	 */
+	@Deprecated
+	public String getPayload() {
+		return super.getPayload();
+	}
+	
+	/**
+	 * Returns the actual MQTT payload sent by the application
+	 * 
+	 * @return returns the command in either JSON, byte[] or String type based on the format specified.
+	 */
+	public Object getData() {
+		return this.payload;
 	}
 
 	/**
@@ -64,7 +82,7 @@ public class Command extends Message{
 	 * Provides a human readable String representation of this Command, including the timestamp and the actual command passed.
 	 */
 	public String toString() {
-		return "[" + timestamp.toString() + "] " + command + ": " + data.toString(); 
+		return "[" + timestamp.toString() + "] " + command + ": " + this.getPayload(); 
 	}
 
 }

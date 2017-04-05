@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+ Copyright (c) 2015-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -36,9 +36,11 @@ import com.ibm.iotf.util.LoggerUtility;
  * {
  * 	"reqId": "string"
  * }
+ * </blockquote>
  */
 public class RebootRequestHandler extends DMRequestHandler implements PropertyChangeListener {
 
+	private static final String REQ_ID = "reqId";
 	private JsonElement reqId;
 
 	public RebootRequestHandler(ManagedClient dmClient) {
@@ -55,35 +57,17 @@ public class RebootRequestHandler extends DMRequestHandler implements PropertyCh
 	}
 	
 	/**
-	 * Subscribe to Initiate reboot topic
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getInitiateRebootTopic());
-	}
-
-	/**
-	 * unsubscribe Initiate reboot topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getInitiateRebootTopic());
-	}
-
-	/**
 	 * Handle initiate reboot request from IBM Watson IoT Platform
 	 */
 	@Override
-	protected void handleRequest(JsonObject jsonRequest) {
+	protected void handleRequest(JsonObject jsonRequest, String topic) {
 		final String METHOD = "handleRequest";
 		
 		DeviceAction action = getDMClient().getDeviceData().getDeviceAction();
 		if (action == null || getDMClient().getActionHandler() == null) {
 			// this should never happen
 			JsonObject response = new JsonObject();
-			response.add("reqId", jsonRequest.get("reqId"));
+			response.add(REQ_ID, jsonRequest.get(REQ_ID));
 			response.add("rc", new JsonPrimitive(ResponseCode.DM_FUNCTION_NOT_IMPLEMENTED.getCode()));
 			respond(response);
 		} else {
@@ -91,7 +75,7 @@ public class RebootRequestHandler extends DMRequestHandler implements PropertyCh
 			// remove any other listener that are listening for the status update
 			((ConcreteDeviceAction)action).clearListener();
 			((ConcreteDeviceAction)action).addPropertyChangeListener(this);
-			this.reqId = jsonRequest.get("reqId");
+			this.reqId = jsonRequest.get(REQ_ID);
 			DeviceActionHandler handler = getDMClient().getActionHandler();
 			handler.handleReboot(action);
 		} 
@@ -103,7 +87,7 @@ public class RebootRequestHandler extends DMRequestHandler implements PropertyCh
 			try {
 				ConcreteDeviceAction action = (ConcreteDeviceAction) evt.getNewValue();
 				JsonObject response = action.toJsonObject();
-				response.add("reqId", reqId);
+				response.add(REQ_ID, reqId);
 				respond(response);
 			} catch(Exception e) {
 				LoggerUtility.warn(CLASS_NAME, "propertyChange", e.getMessage());

@@ -8,12 +8,17 @@
  Contributors:
  Mike Tran - Initial Contribution
  Sathiskumar Palaniappan - Initial Contribution
+ Michael P Robertson - Add DME support
  *****************************************************************************
  *
  */
 package com.ibm.internal.iotf.devicemgmt.device;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.ibm.internal.iotf.devicemgmt.DMServerTopic;
+import com.ibm.internal.iotf.devicemgmt.device.DeviceDMAgentTopic.Topic;
 
 /**
  * List of Service topics where the IBM Watson IoT Platform server
@@ -22,6 +27,19 @@ import com.ibm.internal.iotf.devicemgmt.DMServerTopic;
 public class DeviceDMServerTopic implements DMServerTopic {
 	
 	private static DeviceDMServerTopic instance = new DeviceDMServerTopic();
+	private static final Map<String, Object> SERVER_TOPIC = new HashMap<>();
+	static {
+		SERVER_TOPIC.put("iotdm-1/response", ServerTopic.RESPONSE);
+		SERVER_TOPIC.put("iotdm-1/observe", ServerTopic.OBSERVE);
+		SERVER_TOPIC.put("iotdm-1/cancel", ServerTopic.CANCEL);
+		SERVER_TOPIC.put("iotdm-1/mgmt/initiate/device/reboot", ServerTopic.INITIATE_REBOOT);
+		SERVER_TOPIC.put("iotdm-1/mgmt/initiate/device/factory_reset", ServerTopic.INITIATE_FACTORY_RESET);
+		SERVER_TOPIC.put("iotdm-1/mgmt/initiate/firmware/download", ServerTopic.INITIATE_FIRMWARE_DOWNLOAD);
+		SERVER_TOPIC.put("iotdm-1/mgmt/initiate/firmware/update", ServerTopic.INITIATE_FIRMWARE_UPDATE);
+		SERVER_TOPIC.put("iotdm-1/mgmt/custom/#", ServerTopic.INITIATE_CUSTOM_ACTION);
+		SERVER_TOPIC.put("iotdm-1/device/update", ServerTopic.DEVICE_UPDATE);
+	}
+	
 
 	enum ServerTopic {
 		RESPONSE("iotdm-1/response"),
@@ -31,8 +49,9 @@ public class DeviceDMServerTopic implements DMServerTopic {
 		INITIATE_FACTORY_RESET("iotdm-1/mgmt/initiate/device/factory_reset"),
 		INITIATE_FIRMWARE_DOWNLOAD("iotdm-1/mgmt/initiate/firmware/download"),
 		INITIATE_FIRMWARE_UPDATE("iotdm-1/mgmt/initiate/firmware/update"),
+		INITIATE_CUSTOM_ACTION("iotdm-1/mgmt/custom/#"),
 		DEVICE_UPDATE("iotdm-1/device/update");
-		
+
 		private ServerTopic(String name) {
 			this.name = name;
 		}
@@ -51,25 +70,7 @@ public class DeviceDMServerTopic implements DMServerTopic {
 		 * @return the ServerTopic for the given string
 		 */
 		public static ServerTopic get(String topic) {
-			switch(topic) {
-			case "iotdm-1/response": return RESPONSE;
-			
-			case ("iotdm-1/observe"): return OBSERVE;
-			
-			case "iotdm-1/cancel": return CANCEL;
-			
-			case "iotdm-1/mgmt/initiate/device/reboot": return INITIATE_REBOOT;
-			
-			case "iotdm-1/mgmt/initiate/device/factory_reset": return INITIATE_FACTORY_RESET;
-			
-			case "iotdm-1/mgmt/initiate/firmware/download": return INITIATE_FIRMWARE_DOWNLOAD;
-			
-			case "iotdm-1/mgmt/initiate/firmware/update": return INITIATE_FIRMWARE_UPDATE;
-			
-			case "iotdm-1/device/update": return DEVICE_UPDATE;
-			
-			}
-			return null;
+			return (ServerTopic)SERVER_TOPIC.get(topic);
 		}
 
 	}
@@ -123,5 +124,10 @@ public class DeviceDMServerTopic implements DMServerTopic {
 
 		return ServerTopic.INITIATE_FIRMWARE_UPDATE.getName();
 	}
-}
+	
+	@Override
+	public String getInitiateCustomAction() {
+		return ServerTopic.INITIATE_CUSTOM_ACTION.getName();
+	}
 
+}

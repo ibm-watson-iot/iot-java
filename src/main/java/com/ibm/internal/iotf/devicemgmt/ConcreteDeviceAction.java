@@ -22,7 +22,7 @@ import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.devicemgmt.DeviceAction;
 
 /**
- * <p>This class encapsulates the device action like reboot & factory reset.</p>
+ * This class encapsulates the device action like reboot and factory reset.
  * 
  */
 public class ConcreteDeviceAction implements DeviceAction {
@@ -94,7 +94,7 @@ public class ConcreteDeviceAction implements DeviceAction {
 	/**
 	 * Add a new listener to be notified when device action status is changed. 
 	 * 
-	 * @param listener
+	 * @param listener PropertyChangeListener
 	 */
 	public synchronized void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(DEVICE_ACTION_STATUS_UPDATE, listener);

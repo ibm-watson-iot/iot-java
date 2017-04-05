@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+  Copyright (c) 2015-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -29,6 +29,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * {
  * 	"reqId": "string"
  * }
+ * </blockquote>
  */	
 public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 
@@ -48,24 +49,6 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 	}
 	
 	/**
-	 * subscribe to initiate firmware download topic
-	 */
-	@Override
-	protected void subscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		subscribe(topic.getInitiateFirmwareDownload());
-	}
-
-	/**
-	 * Unsubscribe initiate firmware download topic
-	 */
-	@Override
-	protected void unsubscribe() {
-		DMServerTopic topic = this.getDMClient().getDMServerTopic();
-		unsubscribe(topic.getInitiateFirmwareDownload());
-	}
-
-	/**
 	 * Following are actions that needs to be taken after receiving the command
 	 * 
 	 * If mgmt.firmware.state is not 0 ("Idle") an error should be reported with 
@@ -80,9 +63,9 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 	 * If firmware download is not supported, set rc to 501 and optionally set message accordingly.
 	 */
 	@Override
-	public void handleRequest(JsonObject jsonRequest) {
+	public void handleRequest(JsonObject jsonRequest, String topic) {
 		final String METHOD = "handleRequest";
-		ResponseCode rc = ResponseCode.DM_INTERNAL_ERROR;
+		ResponseCode rc;
 		
 		JsonObject response = new JsonObject();
 		response.add("reqId", jsonRequest.get("reqId"));
@@ -93,8 +76,6 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 			rc = ResponseCode.DM_BAD_REQUEST;		
 		} else {
 			if (deviceFirmware.getUrl() != null) {
-				LoggerUtility.fine(CLASS_NAME, METHOD, "fire firmware download");
-				getDMClient().getFirmwareHandler().downloadFirmware(deviceFirmware);
 				rc = ResponseCode.DM_ACCEPTED;
 			} else {
 				rc = ResponseCode.DM_BAD_REQUEST;
@@ -103,5 +84,9 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 		} 
 		response.add("rc", new JsonPrimitive(rc.getCode()));
 		respond(response);
+		if (rc == ResponseCode.DM_ACCEPTED) {
+			LoggerUtility.fine(CLASS_NAME, METHOD, "fire firmware download");
+			getDMClient().getFirmwareHandler().downloadFirmware(deviceFirmware);			
+		}
 	}
 }

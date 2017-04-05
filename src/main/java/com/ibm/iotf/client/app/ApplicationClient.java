@@ -13,11 +13,13 @@
 package com.ibm.iotf.client.app;
 
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,7 +28,6 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
-import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -55,12 +56,13 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
 	private HashMap<String, Integer> subscriptions = new HashMap<String, Integer>();
 	
+	
 	/**
 	 * Create an application client for the IBM Watson IoT Platform. 
 	 * Connecting to specific org on IBM Watson IoT Platform
 	 * @param options
 	 * 					An object of the class Properties
-	 * @throws Exception 
+	 * @throws Exception Failure in parsing the properties 
 	 */
 	public ApplicationClient(Properties options) throws Exception {
 		super(options);
@@ -162,7 +164,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	}
 	
 	/**
-	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception.</br>
+	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception.<br>
 	 * 
 	 * This method does not retry when the following exceptions occur.</p>
 	 * 
@@ -171,29 +173,10 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
 	 * </ul>
 	 * 
-	 * @throws MqttSecurityException
+	 * @throws MqttException when the security credentials are wrong
 	 **/
 	public void connect() throws MqttException {
 		super.connect(true);
-	}
-	
-	/**
-	 * <p>Connects the application to IBM Watson IoT Platform and retries when there is an exception 
-	 * based on the value set in retry parameter. </br>
-	 * 
-	 * This method does not retry when the following exceptions occur.</p>
-	 * 
-	 * <ul class="simple">
-	 *  <li> MqttSecurityException - One or more credentials are wrong
-	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
-	 * </ul>
-	 * 
-	 * @param autoRetry - tells whether to retry the connection when the connection attempt fails.
-	 * @throws MqttSecurityException
-	 **/
-	@Override
-	public void connect(boolean autoRetry ) throws MqttException {
-		super.connect(autoRetry);
 	}
 	
 	/**
@@ -233,24 +216,25 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishEvent(String deviceType, String deviceId, String event, Object data, int qos) {
-		if (!isConnected()) {
+		if (!isConnected() && !isAutomaticReconnect()) {
 			return false;
 		}
 		final String METHOD = "publishEvent(5)";
-		JsonObject payload = new JsonObject();
-		
-		String timestamp = ISO8601_DATE_FORMAT.format(new Date());
-		payload.addProperty("ts", timestamp);
-		
+		String topic = "iot-2/type/" + deviceType + "/id/" + deviceId + "/evt/" + event + "/fmt/json";
+		JsonObject payload = null;
 		// Handle null object
 		if(data == null) {
 			data = new JsonObject();
 		}
-
-		JsonElement dataElement = gson.toJsonTree(data);
-		payload.add("d", dataElement);
-		
-		String topic = "iot-2/type/" + deviceType + "/id/" + deviceId + "/evt/" + event + "/fmt/json";
+		if(newFormat == false) {
+			payload = new JsonObject();
+			String timestamp = ISO8601_DATE_FORMAT.format(new Date());
+			payload.addProperty("ts", timestamp);
+			JsonElement dataElement = gson.toJsonTree(data);
+			payload.add("d", dataElement);
+		} else {
+			payload = (JsonObject) gson.toJsonTree(data);
+		}
 		
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic   = " + topic);
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Payload = " + payload.toString());
@@ -260,7 +244,75 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
+		} catch (MqttPersistenceException e) {
+			e.printStackTrace();
+			return false;
+		} catch (MqttException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Publish event, on the behalf of a device, to the IBM Watson IoT Platform. <br>
+	 * This method will attempt to create a JSON obejct out of the payload
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param event
+	 *            object of String which denotes event
+	 * @param data
+	 *            Payload data
+	 * @param format
+	 * 			The message format
+	 * @param qos
+	 *            Quality of Service, in int - can have values 0,1,2
+	 * @return Whether the send was successful.
+	 * @throws Exception when the publish operation fails
+	 */
+	public boolean publishEvent(String deviceType, String deviceId, String event, Object data, String format, int qos) throws Exception {
+		if (!isConnected()) {
+			return false;
+		}
+		final String METHOD = "publishEvent(5)";
+		String topic = "iot-2/type/" + deviceType + "/id/" + deviceId + "/evt/" + event + "/fmt/" + format;
+		Object payload = null;
+		MqttMessage msg = null;
+		// Handle null object
+		if(data == null) {
+			data = new JsonObject();
+		}
+		if(data.getClass() == String.class) {
+			payload = data;
+			msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
+		} else if(data.getClass().getName().equals("[B")) { // checking for byte array
+			msg = new MqttMessage((byte[]) data);
+			payload = Arrays.toString((byte[]) data);
+		} else {
+			payload = gson.toJsonTree(data);
+			msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
+		} 
+		
+		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic   = " + topic);
+		LoggerUtility.fine(CLASS_NAME, METHOD, "Payload = " + payload.toString());
+		
+		msg.setQos(qos);
+		msg.setRetained(false);
+		
+		try {
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;
@@ -308,24 +360,25 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishCommand(String deviceType, String deviceId, String command, Object data, int qos) {
-		if (!isConnected()) {
+		if (!isConnected() && !isAutomaticReconnect()) {
 			return false;
 		}
 		final String METHOD = "publishCommand(5)";
-		JsonObject payload = new JsonObject();
-		
-		String timestamp = ISO8601_DATE_FORMAT.format(new Date());
-		payload.addProperty("ts", timestamp);
-		
+		Object payload = null;
+		String topic = "iot-2/type/" + deviceType + "/id/" + deviceId + "/cmd/" + command + "/fmt/json";
 		// Handle null object
 		if(data == null) {
 			data = new JsonObject();
 		}
-
-		JsonElement dataElement = gson.toJsonTree(data);
-		payload.add("d", dataElement);
-		
-		String topic = "iot-2/type/" + deviceType + "/id/" + deviceId + "/cmd/" + command + "/fmt/json";
+		if(newFormat == false) {
+			payload = new JsonObject();
+			String timestamp = ISO8601_DATE_FORMAT.format(new Date());
+			((JsonObject) payload).addProperty("ts", timestamp);
+			JsonElement dataElement = gson.toJsonTree(data);
+			((JsonObject) payload).add("d", dataElement);
+		} else {
+			payload = gson.toJsonTree(data);
+		}
 		
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic   = " + topic);
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Payload = " + payload.toString());
@@ -335,7 +388,75 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 		msg.setRetained(false);
 		
 		try {
-			mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
+		} catch (MqttPersistenceException e) {
+			e.printStackTrace();
+			return false;
+		} catch (MqttException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Publish event, on the behalf of a device, to the IBM Watson IoT Platform. <br>
+	 * This method will attempt to create a JSON obejct out of the payload
+	 * 
+	 * @param deviceType
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param command
+	 *            object of String which denotes the command
+	 * @param data
+	 *            Payload data
+	 * @param format
+	 * 			The message format
+	 * @param qos
+	 *            Quality of Service, in int - can have values 0,1,2
+	 * @return Whether the send was successful.
+	 * @throws Exception when the publish operation fails
+	 */
+	public boolean publishCommand(String deviceType, String deviceId, String command, Object data, String format, int qos) throws Exception {
+		if (!isConnected()) {
+			return false;
+		}
+		final String METHOD = "publishCommand(6)";
+		String topic = "iot-2/type/" + deviceType + "/id/" + deviceId + "/cmd/" + command + "/fmt/"+ format;
+		Object payload = null;
+		MqttMessage msg = null;
+		// Handle null object
+		if(data == null) {
+			data = new JsonObject();
+		}
+		if(data.getClass() == String.class) {
+			payload = data;
+			msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
+		} else if(data.getClass().getName().equals("[B")) { // checking for byte array
+			msg = new MqttMessage((byte[]) data);
+			payload = Arrays.toString((byte[]) data); // for debug
+		} else {
+			payload = (JsonObject) gson.toJsonTree(data);
+			msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
+		}
+		
+		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic   = " + topic);
+		LoggerUtility.fine(CLASS_NAME, METHOD, "Payload = " + payload.toString());
+		
+		msg.setQos(qos);
+		msg.setRetained(false);
+		
+		try {
+			if (isConnected() && !isAutomaticReconnect()) {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+			} else {
+				mqttAsyncClient.publish(topic, msg);
+			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 			return false;
@@ -420,7 +541,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 */
 	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, int qos) {
 		try {
-			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/json";
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/+";
 			subscriptions.put(newTopic, new Integer(qos));
 			mqttAsyncClient.subscribe(newTopic, qos);
 		} catch (MqttException e) {
@@ -488,7 +609,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 */
 	public void unsubscribeFromDeviceEvents(String deviceType, String deviceId, String event) {
 		try {
-			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/json";
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/+";
 			subscriptions.remove(newTopic);
 			mqttAsyncClient.unsubscribe(newTopic);
 
@@ -567,7 +688,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 */
 	public void unsubscribeFromDeviceCommands(String deviceType, String deviceId, String command) {
 		try {
-			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/json";
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/+";
 			subscriptions.remove(newTopic);
 			mqttAsyncClient.unsubscribe(newTopic);
 
@@ -639,7 +760,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 */
 	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command, int qos) {
 		try {
-			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/json";
+			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/" + command + "/fmt/+";
 			subscriptions.put(newTopic, new Integer(qos));
 			mqttAsyncClient.subscribe(newTopic, qos);
 		} catch (MqttException e) {
@@ -792,27 +913,28 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 */
 	public void connectionLost(Throwable e) {
 		final String METHOD = "connectionLost";
-		LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
+		LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.getMessage(), e);
 		try {
 			connect();
+			Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
+		    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
+		    while (iterator.hasNext() && this.isConnected()) {
+		        //Map.Entry pairs = (Map.Entry)iterator.next();
+		        Entry<String, Integer> pairs = iterator.next();
+		        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
+		        try {
+		        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
+				} catch (NumberFormatException | MqttException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+//		        iterator.remove(); // avoids a ConcurrentModificationException
+		    }
 		} catch (MqttException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
-	    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
-	    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
-	    while (iterator.hasNext()) {
-	        //Map.Entry pairs = (Map.Entry)iterator.next();
-	        Entry<String, Integer> pairs = iterator.next();
-	        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
-	        try {
-	        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString()));
-			} catch (NumberFormatException | MqttException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-//	        iterator.remove(); // avoids a ConcurrentModificationException
-	    }
+	    
 	}
 	
 	/**
@@ -912,7 +1034,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	
 	/**
 	 * Publish an event to the IBM Watson IoT Platform using HTTP(S) <br>
-	 * 
+	 * @deprecated This API is exposed in APIClient
+	 * <br> Use this {@link com.ibm.iotf.client.api.APIClient#publishApplicationEventforDeviceOverHTTP}
  	 * @param deviceType	Device Type
 	 * @param deviceId		Device ID
 	 * @param eventName  Name of the dataset under which to publish the data
@@ -920,11 +1043,11 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 * @return httpcode the return code
 	 * @throws Exception if the operation is not successful
 	 */
-	public int publishEventOverHTTP(String deviceType,
+	@Deprecated public int publishEventOverHTTP(String deviceType,
 									String deviceId,
 									String eventName, 
 									Object payload) throws Exception {
-		return publishEventsThroughHttps(this.getOrgId(), deviceType, deviceId, 
+		return publishEventsThroughHttps(this.getOrgId(), this.getDomain(), deviceType, deviceId, 
 				eventName, false, this.getAuthKey(), this.getAuthToken(), payload);
 	}
 

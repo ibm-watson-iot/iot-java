@@ -1,6 +1,6 @@
 /**
  *****************************************************************************
- Copyright (c) 2015-16 IBM Corporation and other Contributors.
+ Copyright (c) 2015-17 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -8,13 +8,16 @@
  Contributors:
  Mike Tran - Initial Contribution
  Sathiskumar Palaniappan - Modified to include Resource Model
+ Michael P Robertson - Add DME support
  *****************************************************************************
  *
  */
 package com.ibm.iotf.devicemgmt;
 
+import com.ibm.internal.iotf.devicemgmt.ConcreteCustomAction;
 import com.ibm.internal.iotf.devicemgmt.ConcreteDeviceAction;
 import com.ibm.internal.iotf.devicemgmt.DeviceMgmt;
+import com.ibm.iotf.client.CustomAction;
 import com.ibm.iotf.devicemgmt.resource.Resource;
 import com.ibm.iotf.devicemgmt.resource.StringResource;
 
@@ -38,6 +41,7 @@ public class DeviceData {
 	private DeviceMgmt mgmt = null;
 	private DeviceMetadata metadata = null;
 	private DeviceAction deviceAction = null;
+	private CustomAction customAction = null;
 	
 	private Resource root = new StringResource(Resource.ROOT_RESOURCE_NAME, "");
 	
@@ -80,6 +84,7 @@ public class DeviceData {
 	
 	/**
 	 * Returns the Device type
+	 * @return returns the typeID
 	 */
 	public String getTypeId() {
 		return typeId;
@@ -87,6 +92,7 @@ public class DeviceData {
 	
 	/**
 	 * Returns the Device ID
+	 * @return returns the device ID
 	 */
 	public String getDeviceId() {
 		return deviceId;
@@ -94,6 +100,7 @@ public class DeviceData {
 	
 	/**
 	 * Returns the DeviceInfo object
+	 * @return DeviceInfo returns the deviceinfo object
 	 */
 	public DeviceInfo getDeviceInfo() {
 		return deviceInfo;
@@ -101,13 +108,15 @@ public class DeviceData {
 	
 	/**
 	 * Return the DeviceLocation object
+	 * @return DeviceLocation returns location of the device
 	 */
 	public DeviceLocation getDeviceLocation() {
 		return deviceLocation;
 	}
 
 	/**
-	 * Returns the DeviceFirmware object 
+	 * Returns the DeviceFirmware object
+	 * @return  DeviceFirmware returns the device firmware object
 	 */
 	public DeviceFirmware getDeviceFirmware() {
 		if(mgmt != null) {
@@ -126,6 +135,17 @@ public class DeviceData {
 		}
 		
 		return deviceAction;
+	}
+	
+	/**
+	 * Returns the custom action object
+	 * @return CustomAction object or null
+	 */
+	public CustomAction getCustomAction() {
+		if(this.customAction == null) {
+			this.customAction = new ConcreteCustomAction(typeId, deviceId);
+		}
+		return customAction;
 	}
 
 	/**
@@ -197,7 +217,6 @@ public class DeviceData {
 		}
 	}
 
-
 	/**
 	 * Returns the Resource for the given name
 	 * 
@@ -219,6 +238,11 @@ public class DeviceData {
 	 */
 	public DeviceMetadata getMetadata() {
 		return this.metadata;
+	}
+
+	public void setLocation(DeviceLocation location) {
+		this.deviceLocation = location;
+		root.add(location);
 	}
 
 }

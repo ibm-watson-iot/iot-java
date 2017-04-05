@@ -36,7 +36,7 @@ public enum ResponseCode {
 		return code;
 	}
 
-	public static ResponseCode get(int rc) {
+	/*public static ResponseCode get(int rc) {
 		switch(rc) {
 			case 200: return DM_SUCCESS;
 			case 202: return DM_ACCEPTED;
@@ -47,5 +47,5 @@ public enum ResponseCode {
 			case 501: return DM_FUNCTION_NOT_IMPLEMENTED;
 		}
 		return DM_SUCCESS;
-	}
+	}*/
 }

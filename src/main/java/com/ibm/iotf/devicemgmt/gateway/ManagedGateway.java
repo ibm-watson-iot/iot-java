@@ -17,6 +17,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -40,6 +41,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.ibm.iotf.devicemgmt.CustomActionHandler;
 import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.internal.iotf.devicemgmt.ManagedClient;
 import com.ibm.internal.iotf.devicemgmt.DMAgentTopic;
@@ -47,6 +49,8 @@ import com.ibm.internal.iotf.devicemgmt.DMServerTopic;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
+import com.ibm.iotf.devicemgmt.DeviceInfo;
+import com.ibm.iotf.devicemgmt.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.internal.iotf.devicemgmt.handler.DMRequestHandler;
 import com.ibm.internal.iotf.devicemgmt.ResponseCode;
@@ -63,7 +67,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * 
  * <p> This is a derived class from {@link com.ibm.iotf.client.gateway.GatewayClient} and can be used by 
  * Gateway devices to perform both <b>Device operations and Device Management operations</b>, 
- * i.e, the Gateways can use this class to do the following, <p>
+ * i.e, the Gateways can use this class to do the following, </p>
  * 
  * <ul class="simple">
  * <li>Connect devices behind the Gateway to IBM Watson IoT Platform
@@ -88,7 +92,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	
 	private static final Pattern GATEWAY_RESPONSE_PATTERN = Pattern.compile("iotdm-1/type/(.+)/id/(.+)/response");
 	private static final String GATEWAY_RESPONSE_TOPIC = "iotdm-1/type/+/id/+/response";
-	
+
 	private volatile boolean running = false;
 	private JsonObject dummy = new JsonObject();
 	private ManagedGatewayDevice gateway;
@@ -96,6 +100,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	
 	private DeviceFirmwareHandler fwHandler = null;
 	private DeviceActionHandler actionHandler = null;
+	private CustomActionHandler customActionHandler = null;
 	
 	//Map to handle duplicate responses
 	private Map<String, MqttMessage> requests = new HashMap<String, MqttMessage>();
@@ -170,10 +175,17 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	/**
 	 * <p>This method connects the Gateway to the IBM IBM Watson IoT Platform.</p>
 	 * <p>Note that the Gateway needs to make a call manage() to participate in Device
-	 * Management activities.<p> 
+	 * Management activities.</p> 
 	 * 
-	 * This method does nothing if the Gateway is already connected.
-	 * @throws MqttException 
+	 * <p> This method does nothing if the Gateway is already connected.
+	 * This method does not retry when the following exceptions occur.</p>
+	 * 
+	 * <ul class="simple">
+	 *  <li> MqttSecurityException - One or more credentials are wrong
+	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
+	 * </ul>
+	 * 
+	 * @throws MqttException refer above
 	 * 
 	 */	
 	public void connect() throws MqttException {
@@ -183,6 +195,36 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			return;
 		}
 		super.connect();
+	}
+	
+	/**
+	 * Returns the DeviceData of the gateway.
+	 *  
+	 * @return DeviceData returns the gateway device data
+	 */
+	public DeviceData getGatewayDeviceData() {
+		if(this.gateway != null) {
+			return this.gateway.getDeviceData();
+		} else {
+			return null;
+		}
+	}
+	
+	/**
+	 * Returns the DeviceData of the attached device.
+	 * @param typeId the device type of the device
+	 * @param deviceId the device id of the device 
+	 * @return DeviceData returns the attached device's device data
+	 */
+	public DeviceData getAttachedDeviceData(String typeId, String deviceId) {
+		
+		String key = typeId + ':' + deviceId;
+		ManagedGatewayDevice mc = (ManagedGatewayDevice) this.devicesMap.get(key);
+		if(mc == null) {
+			return null;
+		} else {
+			return mc.getDeviceData();
+		}
 	}
 	
 	private class ManagedGatewayDevice implements ManagedClient {
@@ -211,9 +253,14 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		public boolean isFirmwareActions() {
 			return firmwareActions;
 		}
+		
+		public List<String> getCustomActions() {
+			return this.bundleIds;
+		}
 
 		private boolean bManaged = false;
 		private Date dormantTime;
+		private List<String> bundleIds;
 
 		private ManagedGatewayDevice(ManagedGateway gwClient, DeviceData deviceData) {
 			this.gwClient = gwClient;
@@ -224,14 +271,16 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 
 		public ManagedGatewayDevice(ManagedGateway gwClient,
 				DeviceData deviceData, boolean supportsFirmwareActions,
-				boolean supportDeviceActions) {
+				boolean supportDeviceActions, List<String> bundleIds) {
 			this.gwClient = gwClient;
 			this.deviceData = deviceData;
 			this.gatewayDMAgentTopic = new GatewayDMAgentTopic(deviceData.getTypeId(), deviceData.getDeviceId());
 			this.gatewayDMServerTopic = new GatewayDMServerTopic(deviceData.getTypeId(), deviceData.getDeviceId());
 			this.firmwareActions = supportsFirmwareActions;
 			this.deviceActions = supportDeviceActions;
+			this.bundleIds = bundleIds;
 		}
+		
 
 		@Override
 		public void subscribe(String topic, int qos,
@@ -244,6 +293,12 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			gwClient.unsubscribe(topic);
 		}
 
+		@Override
+		public void publish(String response, JsonObject payload)
+				throws MqttException {
+			gwClient.publish(response, payload);
+		}
+		
 		@Override
 		public void publish(String response, JsonObject payload, int qos)
 				throws MqttException {
@@ -296,6 +351,10 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			this.deviceActions = supportDeviceActions;
 		}
 		
+		public void setSupportsCustomActions(List<String> bundleIds) {
+			this.bundleIds = bundleIds;
+		}
+		
 		@Override
 		public DeviceActionHandler getActionHandler() {
 			return this.gwClient.actionHandler;
@@ -304,6 +363,11 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		@Override
 		public DeviceFirmwareHandler getFirmwareHandler() {
 			return gwClient.fwHandler;
+		}
+		
+		@Override 
+		public CustomActionHandler getCustomActionHandler() {
+			return gwClient.customActionHandler;
 		}
 	}
 	
@@ -331,7 +395,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        The Gateway must add a Device action handler to handle the reboot and factory reset requests.
 	 * 
 	 * @return boolean containing the status of the manage request
-	 * @throws MqttException
+	 * @throws MqttException when failure
 	 */
 	public boolean sendGatewayManageRequest(long lifetime, boolean supportFirmwareActions, 
 			boolean supportDeviceActions) throws MqttException {
@@ -340,8 +404,47 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			this.devicesMap.put(gatewayKey, this.gateway);
 		}
 		return this.sendDeviceManageRequest(this.getGWDeviceType(), getGWDeviceId(), gateway.getDeviceData(),
-				lifetime, supportFirmwareActions, supportDeviceActions);
+				lifetime, supportFirmwareActions, supportDeviceActions, (List<String>)null);
 	}
+	
+	/**
+	 * <p>Sends a manage request to IBM Watson IoT Platform</p>
+	 * 
+	 * <p>A Gateway uses this request to become a managed device. 
+	 * It should be the first device management request sent by the 
+	 * Gateway after connecting to the IBM Watson IoT Platform. 
+	 * It would be usual for a device management agent to send this 
+	 * whenever is starts or restarts.</p>
+	 * 
+	 * <p>This method connects the Gateway to IBM Watson IoT Platform if its not connected already</p>
+	 * 
+	 * @param lifetime The length of time in seconds within 
+	 *        which the Gateway must send another Manage device request.
+	 *        if set to 0, the managed Gateway will not become dormant. 
+	 *        When set, the minimum supported setting is 3600 (1 hour).
+	 * 
+	 * @param supportFirmwareActions Tells whether the Gateway supports firmware actions or not.
+	 *        The Gateway must add a firmware handler to handle the firmware requests.
+	 * 
+	 * @param supportDeviceActions Tells whether the Gateway supports Device actions or not.
+	 *        The Gateway must add a Device action handler to handle the reboot and factory reset requests.
+	 *
+	 * @param bundleIds List of bundle Ids to uniquely identify the device management extensions that this gateway supports, 
+     *		  The device must add a Custom action handler to handle the custom action requests
+     *
+	 * @return boolean containing the status of the manage request
+	 * @throws MqttException when failure
+	 */
+	public boolean sendGatewayManageRequest(long lifetime, boolean supportFirmwareActions, 
+			boolean supportDeviceActions, List<String> bundleIds) throws MqttException {
+		// Add the gateway to the map if its not added already
+		if(!this.devicesMap.containsKey(this.gatewayKey)) {
+			this.devicesMap.put(gatewayKey, this.gateway);
+		}
+		return this.sendDeviceManageRequest(this.getGWDeviceType(), getGWDeviceId(), gateway.getDeviceData(),
+				lifetime, supportFirmwareActions, supportDeviceActions, bundleIds);
+	}
+	
 	
 	
 	/**
@@ -372,14 +475,55 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
 	 *        
 	 * @return True if successful
-	 * @throws MqttException
+	 * @throws MqttException when failure
 	 */
 	public boolean sendDeviceManageRequest(String typeId, String deviceId, 
 			long lifetime, boolean supportFirmwareActions, 
 			boolean supportDeviceActions) throws MqttException {
 		
 		return this.sendDeviceManageRequest(typeId, deviceId, null, 
-				lifetime, supportFirmwareActions, supportDeviceActions);
+				lifetime, supportFirmwareActions, supportDeviceActions, null);
+		
+	}
+	
+	/**
+	 * <p>Sends a device manage request to IBM Watson IoT Platform</p>
+	 * 
+	 * <p>A Gateway uses this request to manage the device connected to it, 
+	 * It should be the first device management request sent for the 
+	 * device after connecting to the IBM Watson IoT Platform. 
+	 * It would be usual for a device management agent to send this 
+	 * whenever is starts or restarts.</p>
+	 * 
+	 * <p>This method connects the Gateway/Device to IBM Watson IoT Platform if 
+	 * its not connected already</p>
+	 * 
+	 * @param typeId The typeId of the device connected to the gateway
+	 * 
+	 * @param deviceId The deviceId of the device connected to the gateway
+	 * 
+	 * @param lifetime The length of time in seconds within 
+	 *        which the device must send another Manage device request.
+	 *        if set to 0, the managed device will not become dormant. 
+	 *        When set, the minimum supported setting is 3600 (1 hour).
+	 * 
+	 * @param supportFirmwareActions Tells whether the device supports firmware actions or not.
+	 *        The device must add a firmware handler to handle the firmware requests.
+	 * 
+	 * @param supportDeviceActions Tells whether the device supports Device actions or not.
+	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
+	 *   
+	 * @param bundleIds array of bundle Ids to uniquely identify the device management extensions  
+	 *        
+	 * @return True if successful
+	 * @throws MqttException when failure
+	 */
+	public boolean sendDeviceManageRequest(String typeId, String deviceId, 
+			long lifetime, boolean supportFirmwareActions, 
+			boolean supportDeviceActions, List<String> bundleIds) throws MqttException {
+		
+		return this.sendDeviceManageRequest(typeId, deviceId, null, 
+				lifetime, supportFirmwareActions, supportDeviceActions, bundleIds);
 		
 	}
 	
@@ -413,7 +557,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
        
 	 * @return True if successful
-	 * @throws MqttException
+	 * @throws MqttException when failure
 	 */
 	public boolean sendDeviceManageRequest(String typeId, 
 									String deviceId, 
@@ -421,6 +565,53 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 									long lifetime,
 									boolean supportFirmwareActions, 
 									boolean supportDeviceActions) throws MqttException {
+		
+		return this.sendDeviceManageRequest(typeId, deviceId, deviceData, 
+				lifetime, supportFirmwareActions, supportDeviceActions, null);
+		
+	}
+	
+	/**
+	 * <p>Sends a device manage request to IBM Watson IoT Platform</p>
+	 * 
+	 * <p>A Gateway uses this request to manage the device connected to it, 
+	 * It should be the first device management request sent for the 
+	 * device after connecting to the IBM Watson IoT Platform. 
+	 * It would be usual for a device management agent to send this 
+	 * whenever is starts or restarts.</p>
+	 * 
+	 * <p>This method connects the Gateway/Device to IBM Watson IoT Platform if 
+	 * its not connected already</p>
+	 * 
+	 * @param typeId The typeId of the device connected to the gateway
+	 * 
+	 * @param deviceId The deviceId of the device connected to the gateway
+	 * 
+	 * @param deviceData The DeviceData containing the information about the device
+	 *  
+	 * @param lifetime The length of time in seconds within 
+	 *        which the device must send another Manage device request.
+	 *        if set to 0, the managed device will not become dormant. 
+	 *        When set, the minimum supported setting is 3600 (1 hour).
+	 * 
+	 * @param supportFirmwareActions Tells whether the device supports firmware actions or not.
+	 *        The device must add a firmware handler to handle the firmware requests.
+	 * 
+	 * @param supportDeviceActions Tells whether the device supports Device actions or not.
+	 *        The device must add a Device action handler to handle the reboot and factory reset requests.
+     *
+     * @param bundleIds List of bundle Ids to uniquely identify the device management extensions that this device supports, 
+     *		  The device must add a Custom action handler to handle the custom action requests
+     * 
+	 * @return True if successful
+	 * @throws MqttException when failure
+	 */
+	public boolean sendDeviceManageRequest(String typeId, 
+									String deviceId, 
+									DeviceData deviceData,
+									long lifetime,
+									boolean supportFirmwareActions, 
+									boolean supportDeviceActions, List<String> bundleIds) throws MqttException {
 		
 		final String METHOD = "manage";
 		
@@ -433,10 +624,11 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			if(deviceData == null) {
 				deviceData = new DeviceData.Builder().typeId(typeId).deviceId(deviceId).build();
 			}
-			mc = new ManagedGatewayDevice(this, deviceData, supportFirmwareActions, supportDeviceActions);
+			mc = new ManagedGatewayDevice(this, deviceData, supportFirmwareActions, supportDeviceActions, bundleIds);
 		} else {
 			mc.setSupportsFirmwareActions(supportFirmwareActions);
 			mc.setSupportDeviceActions(supportDeviceActions);
+			mc.setSupportsCustomActions(bundleIds);
 		}
 		
 		if(reponseSubscription == false) {
@@ -456,14 +648,25 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		JsonObject supports = new JsonObject();
 		supports.add("deviceActions", new JsonPrimitive(supportDeviceActions));
 		supports.add("firmwareActions", new JsonPrimitive(supportFirmwareActions));
-			
+		if(bundleIds != null && bundleIds.size() > 0) {
+			for(int i = 0; i < bundleIds.size(); i++) {
+				supports.add(bundleIds.get(i), new JsonPrimitive(true));
+			}
+		}
 		JsonObject data = new JsonObject();
 		data.add("supports", supports);
-		if (mc.getDeviceData().getDeviceInfo() != null) {
-			data.add("deviceInfo", mc.getDeviceData().getDeviceInfo().toJsonObject());
+		DeviceInfo devInfo = mc.getDeviceData().getDeviceInfo();
+		if (devInfo != null) {
+			JsonObject jsonDevInfo = devInfo.toJsonObject();
+			if (jsonDevInfo != null && !jsonDevInfo.isJsonNull())
+				data.add("deviceInfo", mc.getDeviceData().getDeviceInfo().toJsonObject());
 		}
-		if (mc.getDeviceData().getMetadata() != null) {
-			data.add("metadata", mc.getDeviceData().getMetadata().getMetadata());
+		DeviceMetadata metadta = mc.getDeviceData().getMetadata();
+		if (metadta != null) {
+			JsonObject jsonMetadata = metadta.toJsonObject().getAsJsonObject();
+			if (jsonMetadata != null && !jsonMetadata.isJsonNull()) {
+				data.add("metadata", mc.getDeviceData().getMetadata().getMetadata());
+			}
 		}
 		data.add("lifetime", new JsonPrimitive(lifetime));
 		jsonPayload.add("d", data);
@@ -579,6 +782,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * @param longitude Longitude in decimal degrees using WGS84
 	 * @param elevation	Elevation in meters using WGS84
 	 * @param measuredDateTime When the location information is retrieved
+	 * @param updatedDateTime When the location information is updated
 	 * @param accuracy	Accuracy of the position in meters
 	 * 
 	 * @return code indicating whether the update is successful or not 
@@ -722,7 +926,9 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	
 	/**
 	 * Clear the Device(connected through the Gateway) Logs from IBM Watson IoT Platform.
-	 * 
+	 *
+	 * @param typeId the device type of the attached device
+	 * @param deviceId the device Id of the attached device
 	 * @return code indicating whether the clear operation is successful or not 
 	 *        (200 means success, otherwise unsuccessful).
 	 */
@@ -918,7 +1124,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * 
 	 * @return
 	 * 		True if the unmanage command is successful
-	 * @throws MqttException
+	 * @throws MqttException When failure
 	 */
 	public boolean sendGatewayUnmanageRequet() throws MqttException {
 		return sendDeviceUnmanageRequet(getGWDeviceType(), getGWDeviceId());
@@ -937,7 +1143,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * 
 	 * @return
 	 * 		True if the unmanage command is successful
-	 * @throws MqttException
+	 * @throws MqttException when failure
 	 */
 	public boolean sendDeviceUnmanageRequet(String typeId, String deviceId) throws MqttException {
 		
@@ -1092,22 +1298,29 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 						mqttClient.publish(topic, message);
 					}
 				} catch(MqttException ex) {
-					String payload = null;
-					try {
-						payload = new String(message.getPayload(), "UTF-8");
-					} catch (UnsupportedEncodingException e1) {	}
-					if(this.mqttAsyncClient.isConnected() == false) {
-						LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, " Connection Lost retrying to publish MSG :"+
-								payload +" on topic "+topic+" every 5 seconds");
-					
-						// 	wait for 5 seconds and retry
+					long wait;
+					switch (ex.getReasonCode()) {
+					case MqttException.REASON_CODE_CLIENT_NOT_CONNECTED:
+					case MqttException.REASON_CODE_CLIENT_DISCONNECTING:
 						try {
-							Thread.sleep(5 * 1000);
-							continue;
-						} catch (InterruptedException e) {}
-					} else {
+							LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, " Connection Lost retrying to publish MSG :"+
+									new String(message.getPayload(), "UTF-8") + " on topic "+topic+" every 5 seconds");
+						} catch (UnsupportedEncodingException e1) {
+							e1.printStackTrace();
+						}
+						wait = 5 * 1000;
+						break;
+					case MqttException.REASON_CODE_MAX_INFLIGHT:
+						wait = 50;
+						break;
+					default:
 						throw ex;
 					}
+					// Retry
+					try {
+						Thread.sleep(wait);
+						continue;
+					} catch (InterruptedException e) {}
 				}
 			
 				if (isConnected() == false) {
@@ -1143,10 +1356,14 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		JsonObject jsonPubMsg = new JsonObject();
 		jsonPubMsg.addProperty("topic", topic);
 		jsonPubMsg.add("qos", new JsonPrimitive(qos));
-		jsonPubMsg.add("payload", payload);		
+		jsonPubMsg.add("payload", payload);
 		publishQueue.add(jsonPubMsg);
-		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, ": Queued Topic(" + topic + ") qos=" + 
-													qos + " payload (" + payload.toString() + ")");
+		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, ": Queued Topic(" + topic + ") qos=" +
+				qos + " payload (" + payload.toString() + ")");
+	}
+	
+	private void publish(String topic, JsonObject payload) throws MqttException {
+		publish(topic, payload, this.getMessagingQoS());
 	}
 	
 	private void publish(JsonObject jsonPubMsg) throws MqttException, UnsupportedEncodingException {
@@ -1199,7 +1416,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			return null;
 		}
 		
-		message.setQos(1);
+		message.setQos(this.getMessagingQoS());
 		
 		requests.put(uuid, message);
 		
@@ -1227,7 +1444,8 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			}
 		}
 		if (jsonResponse == null) {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "NO RESPONSE from Watson IoT Platform for request: " + jsonPayload.toString());
+			LoggerUtility.warn(CLASS_NAME, METHOD, "NO RESPONSE from Watson IoT Platform on topic " + topic 
+					+ " for request: " + jsonPayload.toString());
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Connected(" + isConnected() + ")");
 		}
 		return jsonResponse;
@@ -1296,7 +1514,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 						}
 						LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "lifetime (" + lifetime + ")");
 						this.sendDeviceManageRequest(mc.getTypeId(), mc.getDeviceId(), 
-								lifetime, mc.isFirmwareActions(), mc.isDeviceActions());
+								lifetime, mc.isFirmwareActions(), mc.isDeviceActions(), mc.getCustomActions());
 					} catch (MqttException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -1444,5 +1662,18 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	private void terminateHandlers() {
 		fwHandler = null;
 		actionHandler = null;
+		customActionHandler = null;
+	}
+	
+	public void addCustomActionHandler(CustomActionHandler actionHandler) throws Exception {
+		final String METHOD = "addCustomActionHandler";
+		if(this.customActionHandler != null) {
+			LoggerUtility.severe(CLASS_NAME, METHOD, "Custom Action Handler is already set, "
+						+ "so can not add the new Custom Action Handler !");
+					
+			throw new Exception("Custom Action Handler is already set, "
+							+ "so can not add the new Custom Action Handler !");
+		}
+		this.customActionHandler = actionHandler;
 	}
 }

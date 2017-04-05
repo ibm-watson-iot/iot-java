@@ -45,11 +45,7 @@ public class DeviceFirmware extends Resource {
 	 * attribute describes the status of the firmware download. The possible values for 
 	 * <code class="docutils literal"><span class="pre">mgmt.firmware.state</span></code> are:</p>
 	 * <table border="1" class="docutils">
-	 * 	<colgroup>
-	 * 	<col width="12%" />
-	 * 	<col width="11%" />
-	 * 	<col width="77%" />
-	 * </colgroup>
+	 * <caption>mgmt.firmware.state</caption>
 	 * <thead valign="bottom">
 	 * 	<tr class="row-odd"><th class="head">Value</th>
 	 * 	<th class="head">State</th>
@@ -96,11 +92,7 @@ public class DeviceFirmware extends Resource {
 	 * attribute describes the status of firmware update. The possible values for <code class="docutils literal">
 	 * <span class="pre">mgmt.firmware.status</span></code> are:</p>
 	 * <table border="1" class="docutils">
-	 * <colgroup>
-	 * <col width="13%" />
-	 * <col width="20%" />
-	 * <col width="67%" />
-	 * </colgroup>
+	 * <caption>mgmt.firmware.status</caption>
 	 * <thead valign="bottom">
 	 * <tr class="row-odd"><th class="head">Value</th>
 	 * <th class="head">State</th>
@@ -194,7 +186,7 @@ public class DeviceFirmware extends Resource {
 	/**
 	 * Update the Firmware object with new values
 	 * 
-	 * @param firmware
+	 * @param firmware The device firmware object to be updated
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
 	 */
@@ -205,7 +197,7 @@ public class DeviceFirmware extends Resource {
 	/**
 	 * Update the Firmware object with new values
 	 * 
-	 * @param firmware
+	 * @param firmware The device firmware object to be updated
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
 	 */
@@ -217,7 +209,7 @@ public class DeviceFirmware extends Resource {
 	/**
 	 * Update the Firmware object with new values
 	 * 
-	 * @param firmware
+	 * @param firmware The device firmware object to be updated
 	 * @param fireEvent - whether to fire an update event of not
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
@@ -289,6 +281,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Returns the firmware URL
+	 * @return String the Firmware URL
 	 */
 	public String getUrl() {
 		if (this.url != null) {
@@ -300,6 +293,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Set the firmware URL
+	 * @param url URL that needs to be set
 	 */
 	public void setUrl(String url) {
 		this.setUrl(url, true);
@@ -321,6 +315,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Returns the firmware Verifier
+	 * @return String returns the Firmware verifier or null
 	 */
 	public String getVerifier() {
 		if (this.verifier != null) {
@@ -332,6 +327,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Set the firmware verifier
+	 * @param verifier verifier that needs to be set
 	 */
 	public void setVerifier(String verifier) {
 		setVerifier(verifier, true);
@@ -352,6 +348,7 @@ public class DeviceFirmware extends Resource {
 
 	/**
 	 * Returns the firmware state
+	 * @return returns the state of the Firmware
 	 */
 	public int getState() {
 		return this.state.getValue().intValue();
@@ -359,6 +356,8 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Set the firmware state
+	 * 
+	 * @param state the state needs to be set
 	 */
 	public void setState(FirmwareState state) {
 		setState(state, true);
@@ -381,6 +380,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Returns the name of the firmware
+	 * @return returns the name of the firmware
 	 */
 	public String getName() {
 		if(this.name != null) {
@@ -392,6 +392,8 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Set the name of the firmware
+	 * 
+	 * @param name The name of the firmware to be set to
 	 */
 	public void setName(String name) {
 		this.setName(name, true);
@@ -413,6 +415,7 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Returns the Firmware Update status
+	 * @return Returns the Firmware Update status.
 	 */
 	public int getUpdateStatus() {
 		return this.updateStatus.getValue().intValue();
@@ -420,6 +423,8 @@ public class DeviceFirmware extends Resource {
 	
 	/**
 	 * Set the Firmware Update status
+	 * 
+	 * @param updateStatus the firmware update status to be set to
 	 */
 	public void setUpdateStatus(FirmwareUpdateStatus updateStatus) {
 		this.setUpdateStatus(updateStatus, true);

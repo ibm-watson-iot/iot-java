@@ -41,8 +41,8 @@ public class Command extends Message {
 	 * 			Object of String which denotes command format, say json
 	 * @param msg
 	 * 			MqttMessage
-	 * @see <a href="Paho Client Library">http://www.eclipse.org/paho/files/javadoc/index.html</a> 
-	 * @throws UnsupportedEncodingException 
+	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
+	 * @throws UnsupportedEncodingException when the format is not UTF-8
 	 * 
 	 */	
 	public Command(String type, String id, String command, String format, MqttMessage msg) throws UnsupportedEncodingException{
@@ -70,17 +70,19 @@ public class Command extends Message {
 	}
 	
 	/**
+	 * Returns the actual MQTT payload sent by the application
+	 * 
+	 * @return returns the command in either JSON, byte[] or String type based on the format specified.
+	 */
+	public Object getData() {
+		return this.payload;
+	}
+	
+	/**
 	 * 
 	 * Provides a human readable String representation of this Command, including the timestamp, command type, command id and payload passed.
 	 */
 	public String toString() {
-		if(format.equalsIgnoreCase("json")) {
-			return "Command [" + timestamp.toString() + "] " + type + ":" + id + " - " + command + ": " + data.toString();
-			
-			//This else condition has been added to handle the commands which do not have json format
-		} else {
-			return "Command [" + timestamp.toString() + "] " + type + ":" + id + " - " + command + ": " + payload.toString();			
-		}
- 
+		return "Command [" + timestamp.toString() + "] " + type + ":" + id + " - " + command + ": " + this.getPayload();
 	}
 }

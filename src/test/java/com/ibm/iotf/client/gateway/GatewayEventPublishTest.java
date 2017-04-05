@@ -8,8 +8,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- * Surbhi Agarwal - Initial contribution
- * Sathiskumar P - Added quickstart flow
+ * Sathiskumar Palaniappan - Initial contribution
  *****************************************************************************
  */
 
@@ -22,6 +21,7 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.gateway.GatewayClient;
+
 import junit.framework.TestCase;
 
 /**
@@ -31,8 +31,6 @@ import junit.framework.TestCase;
  */
 
 public class GatewayEventPublishTest extends TestCase{
-	
-	private static boolean setUpIsDone = false;
 	
 	// Properties file containing the Registration details of the gateway, to connect to Watson IoT Platform
 	// Present in the maven resource directory
@@ -44,10 +42,6 @@ public class GatewayEventPublishTest extends TestCase{
 	private static APIClient apiClient = null;
 	
 	public void setUp() {
-	    if (setUpIsDone) {
-	        return;
-	    }
-	    
 	    // do the setup
 	    createGatewayClient(PROPERTIES_FILE_NAME);
 	    try {
@@ -59,8 +53,78 @@ public class GatewayEventPublishTest extends TestCase{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	    setUpIsDone = true;
 	}
+	
+	public void tearDown() throws IoTFCReSTException {
+		gwClient.disconnect();
+		if(apiClient != null) {
+			apiClient.deleteDevice(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
+    		apiClient.deleteDeviceType(DEVICE_TYPE);
+    	}
+	}
+	
+	/**
+	 * NegativeTest, pass quickstart value to the organization
+	 */
+	public void tesGatewayConnect01(){
+
+		//Provide the device specific data using Properties class
+		Properties options = new Properties();
+		options.setProperty("org", "quickstart");
+		options.setProperty("type", "iotsample-arduino");
+		options.setProperty("id", "00aabbccde03");
+				
+		GatewayClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new GatewayClient(options);
+		} catch (Exception e) {
+			return;
+		}
+		fail("Gateway should not be supported in quickstart mode");
+	}
+	
+	/**
+	 * NegativeTest, pass null value to the organization
+	 */
+	public void tesGatewayConnect02(){
+
+		//Provide the device specific data using Properties class
+		Properties options = new Properties();
+		options.setProperty("type", "iotsample-arduino");
+		options.setProperty("id", "00aabbccde03");
+				
+		GatewayClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new GatewayClient(options);
+		} catch (Exception e) {
+			return;
+		}
+		fail("Gateway should not be supported in quickstart mode");
+	}
+	
+	/**
+	 * NegativeTest, pass null value to the organization
+	 */
+	public void tesGatewayConnect03(){
+
+		//Provide the device specific data using Properties class
+		Properties options = new Properties();
+		options.setProperty("org", "hello");
+		options.setProperty("type", "iotsample-arduino");
+		options.setProperty("id", "00aabbccde03");
+				
+		GatewayClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new GatewayClient(options);
+		} catch (Exception e) {
+			return;
+		}
+		fail("Gateway should not be supported in quickstart mode");
+	}
+	
 	
 	/**
 	 * This method creates a GatewayClient instance by passing the required properties 
@@ -151,8 +215,9 @@ public class GatewayEventPublishTest extends TestCase{
 	 * can publish its own events as well. 
 	 * 
 	 * The test verifies whether the gateway can publish an event to the Platform
+	 * @throws Exception 
 	 */
-	public void testGatewayEventPublishMethod() {
+	public void testGatewayEventPublishMethod() throws Exception {
 		
 		if(gwClient.isConnected() == false) {
 			return;
@@ -166,13 +231,39 @@ public class GatewayEventPublishTest extends TestCase{
 		
 		boolean code = gwClient.publishGatewayEvent("blink", event, 2);
 		assertTrue("Failed to publish the event......", code);
+		
+		// publish using default QoS
+		code = gwClient.publishGatewayEvent("blink", event);
+		assertTrue("Failed to publish the event......", code);
+		
+		// publish using default QoS0
+		code = gwClient.publishGatewayEvent("blink", event, 0);
+		assertTrue("Failed to publish the event......", code);
+		
+		// publish using default QoS0
+		code = gwClient.publishGatewayEvent("blink", event, 1);
+
+		// custom publish
+		code = gwClient.publishGatewayEvent("blink", "rotation:80", "text", 1);
+		assertTrue("Failed to publish the event......", code);
+
+		// custom publish
+		code = gwClient.publishGatewayEvent("blink", new byte[]{80}, "binary", 1);
+		assertTrue("Failed to publish the event......", code);
+
+		// try publish after disconnect
+		gwClient.disconnect();
+		code = gwClient.publishGatewayEvent("blink", event, 1);
+		assertFalse("Should not publish an event after disconnect......", code);
+				
 		System.out.println("Successfully published a Gateway event !!");
 	}
 	
 	/**
 	 * The test verifies whether the gateway can publish an event for the attached device to the Platform
+	 * @throws Exception 
 	 */
-	public void testDeviceEventPublishMethod() {
+	public void testDeviceEventPublishMethod() throws Exception {
 		
 		if(gwClient.isConnected() == false) {
 			return;
@@ -186,6 +277,27 @@ public class GatewayEventPublishTest extends TestCase{
 		
 		boolean code = gwClient.publishDeviceEvent(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "blink", event, 2);
 		assertTrue("Failed to publish the device event......", code);
+		
+		// Publish using default QoS
+		code = gwClient.publishDeviceEvent(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "blink", event);
+		assertTrue("Failed to publish the device event......", code);
+		
+		// Publish using QoS0
+		code = gwClient.publishDeviceEvent(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "blink", event, 0);
+		assertTrue("Failed to publish the device event......", code);
+
+		// Publish using default QoS1
+		code = gwClient.publishDeviceEvent(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "blink", null, 1);
+		assertTrue("Failed to publish the device event......", code);
+		
+		// Publish text event
+		code = gwClient.publishDeviceEvent(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "blink", "rotation:80", "text", 2);
+		assertTrue("Failed to publish the device event......", code);
+				
+		// Publish using default QoS1
+		code = gwClient.publishDeviceEvent(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "blink", new byte[]{90, 8, 9, 0}, "binary", 1);
+		assertTrue("Failed to publish the device event......", code);
+				
 		System.out.println("Successfully published a device event !!");
 	}
 	

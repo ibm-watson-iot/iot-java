@@ -46,7 +46,7 @@ public abstract class Status {
 	private int readMsg = 0;
 	private int readBytes = 0;
 	private int writeBytes = 0;
-	private String reason = "";
+	private String reason;
 	
 	private String payload;
 	
@@ -105,8 +105,8 @@ public abstract class Status {
 
 	/**
 	 * This class does not have a default constructor and has a single argument constructor
-	 * @param msg
-	 * @throws UnsupportedEncodingException
+	 * @param msg The MQTT message
+	 * @throws UnsupportedEncodingException Failure when the Format is not UTF-8
 	 */
 	public Status(MqttMessage msg) throws UnsupportedEncodingException{
 		this.payload = new String(msg.getPayload(), "UTF8");
@@ -117,18 +117,25 @@ public abstract class Status {
 		clientAddr = payloadJson.get("ClientAddr").getAsString();
 		protocol = payloadJson.get("Protocol").getAsString();
 		clientId = payloadJson.get("ClientID").getAsString();
-		user = payloadJson.get("User").getAsString();
 		time = DT_PARSER.parseDateTime(payloadJson.get("Time").getAsString());
 		action = payloadJson.get("Action").getAsString();
-		connectTime = payloadJson.get("ConnectTime").getAsString();
+		
 		port = payloadJson.get("Port").getAsInt();
 		
 		if (action.equals("Disconnect")) {
+			if (payloadJson.has("User"))
+				user = payloadJson.get("User").getAsString();
+			else
+				user = new String();
+			connectTime = payloadJson.get("ConnectTime").getAsString();
 			writeMsg = payloadJson.get("WriteMsg").getAsInt();
 			readMsg = payloadJson.get("ReadMsg").getAsInt();
 			readBytes = payloadJson.get("ReadBytes").getAsInt();
 			writeBytes = payloadJson.get("WriteBytes").getAsInt();
-			reason = payloadJson.get("Reason").getAsString();
+			if (payloadJson.has("Reason"))
+				reason = payloadJson.get("Reason").getAsString();
+			else
+				reason = new String();
 		}
 		
 	}
