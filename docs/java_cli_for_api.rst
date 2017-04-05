@@ -658,7 +658,7 @@ Create a Device Management Extension package
 
 Method addDeviceManagementExtension() can be used to add a specific DME package into the Watson IoT Platform. For example,
 
-..code:: java
+.. code:: java
 
 	String BUNDLE_TO_BE_ADDED = "{\"bundleId\": \"example-dme-actions-v1\",\"displayName\": "
 			+ "{\"en_US\": \"example-dme Actions v1\"},\"version\": \"1.0\",\"actions\": "
@@ -682,7 +682,7 @@ Delete a DME package
 
 Method deleteDeviceManagementExtension() can be used to deleted an already registered DME package. For example,
 
-..code:: java
+.. code:: java
 
 	// Pass the bundleId that needs to be removed
     apiClient.deleteDeviceManagementExtension("example-dme-actions-v1");
@@ -692,7 +692,7 @@ Initiate a DME request
 
 Initiating DME request is same as initiating the out of the `Device Management requests <https://github.com/ibm-watson-iot/iot-java/blob/master/docs/java_cli_for_api.rst#initiate-a-device-management-request>`__ like, Firmware update and reboot. Method initiateDeviceManagementRequest() can be used to initiate a custom action, such as install a new plugin. For example,
 
-..code:: java
+.. code:: java
 
     String req = "{\"action\": \"example-dme-actions-v1/updatePublishInterval\", \"parameters\": [{\"name\": \"PublishInterval\", \"value\":5}],\"devices\": [{" +
 					"\"typeId\":\"" + deviceType + "\",\"deviceId\":\"" + deviceId + "\"}]}";

@@ -683,14 +683,14 @@ When the CustomActionHandler is added to the ManagedDevice instance, the handleC
 
 The following code sample outlines how to add the CustomActionHandler into the ManagedDevice instance.
 
-..code:: java
+.. code:: java
 
     MyCustomActionHandler handler = new MyCustomActionHandler();
 	dmClient.addCustomActionHandler(handler);	
 	
 When the device receives the custom action message, it is expected to either execute the action or respond with an error code indicating that it cannot complete the action at this time. The device must use the *setStatus()* method to set the status of the action as follows,
 
-..code:: java
+.. code:: java
 
     action.setStatus(Status.OK);
         
