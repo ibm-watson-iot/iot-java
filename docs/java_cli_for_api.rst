@@ -660,19 +660,19 @@ Method addDeviceManagementExtension() can be used to add a specific DME package 
 
 .. code:: java
 
-	String BUNDLE_TO_BE_ADDED = "{\"bundleId\": \"example-dme-actions-v1\",\"displayName\": "
+    String BUNDLE_TO_BE_ADDED = "{\"bundleId\": \"example-dme-actions-v1\",\"displayName\": "
 			+ "{\"en_US\": \"example-dme Actions v1\"},\"version\": \"1.0\",\"actions\": "
 			+ "{\"updatePublishInterval\": {\"actionDisplayName\": {\"en_US\": \"Update Pubslish Interval\"},"
 			+ "\"parameters\": [{\"name\": \"publishInvertval\",\"value\": 5,"
 			+ "\"required\": \"false\"}]}}}";
-    try {
+	try {
 	    JsonObject response = this.apiClient.addDeviceManagementExtension(BUNDLE_TO_BE_ADDED);
 		System.out.println(response);
-	} catch(IoTFCReSTException e) {
+    } catch(IoTFCReSTException e) {
 		System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 		// Print if there is a partial response
 		System.out.println(e.getResponse());
-	}
+    }
 
 	
 Overloaded method allows one to send the String (instead of JsonObject) to create a DME package.
@@ -684,7 +684,7 @@ Method deleteDeviceManagementExtension() can be used to deleted an already regis
 
 .. code:: java
 
-	// Pass the bundleId that needs to be removed
+    // Pass the bundleId that needs to be removed
     apiClient.deleteDeviceManagementExtension("example-dme-actions-v1");
 
 Initiate a DME request
@@ -696,17 +696,17 @@ Initiating DME request is same as initiating the out of the `Device Management r
 
     String req = "{\"action\": \"example-dme-actions-v1/updatePublishInterval\", \"parameters\": [{\"name\": \"PublishInterval\", \"value\":5}],\"devices\": [{" +
 					"\"typeId\":\"" + deviceType + "\",\"deviceId\":\"" + deviceId + "\"}]}";
-		System.out.println(req);
-		JsonParser parser = new JsonParser();
-		JsonObject jsonReq = (JsonObject) parser.parse(req);
+	System.out.println(req);
+	JsonParser parser = new JsonParser();
+	JsonObject jsonReq = (JsonObject) parser.parse(req);
 		
-		try {
-			this.apiClient.initiateDeviceManagementRequest(jsonReq);
-		} catch (IoTFCReSTException e) {
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
-		}
+	try {
+		this.apiClient.initiateDeviceManagementRequest(jsonReq);
+	} catch (IoTFCReSTException e) {
+		System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+		// Print if there is a partial response
+		System.out.println(e.getResponse());
+	}
 	
 ----
 

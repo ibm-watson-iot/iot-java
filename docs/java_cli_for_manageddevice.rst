@@ -686,7 +686,7 @@ The following code sample outlines how to add the CustomActionHandler into the M
 .. code:: java
 
     MyCustomActionHandler handler = new MyCustomActionHandler();
-	dmClient.addCustomActionHandler(handler);	
+    dmClient.addCustomActionHandler(handler);	
 	
 When the device receives the custom action message, it is expected to either execute the action or respond with an error code indicating that it cannot complete the action at this time. The device must use the *setStatus()* method to set the status of the action as follows,
 
@@ -694,7 +694,7 @@ When the device receives the custom action message, it is expected to either exe
 
     action.setStatus(Status.OK);
         
-The complete code can be found in the device management samples `<https://github.com/ibm-messaging/iot-python/tree/master/samples/managedDevice/>`__.
+The complete code can be found in the `device management samples <https://github.com/ibm-messaging/iot-python/tree/master/samples/managedDevice/>`__.
 
 For complete details on Device Management Extension, refer to `Extending Device Management <https://docs.internetofthings.ibmcloud.com/devices/device_mgmt/custom_actions.html>`__.	
 
