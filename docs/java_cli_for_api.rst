@@ -637,6 +637,79 @@ Method getDeviceManagementRequestStatusByDevice() can be used to get an individu
 
 ----
 
+Device Management Extension(DME)
+----------------------------------------------------
+
+An extension package is a JSON document which defines a set of device management actions. The actions can be initiated against one or more devices which support those actions. The actions are initiated in the same way as the default device management actions by using either the Watson IoT Platform dashboard or the device management REST APIs.
+
+Refer to the DME section of the `IBM Watson IoT Platform API <https://docs.internetofthings.ibmcloud.com/swagger/v0002.html>`__ for information about the list of query parameters, the request & response model and http status code.
+
+Get a Device Management Extension(DME)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method getDeviceManagementExtension() can be used to retrieve the information about a specific registered device management extension. FOr example,
+
+.. code:: java
+   
+    apiClient.getDeviceManagementExtension("example-dme-actions-v1");
+
+Create a Device Management Extension package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method addDeviceManagementExtension() can be used to add a specific DME package into the Watson IoT Platform. For example,
+
+..code:: java
+
+	String BUNDLE_TO_BE_ADDED = "{\"bundleId\": \"example-dme-actions-v1\",\"displayName\": "
+			+ "{\"en_US\": \"example-dme Actions v1\"},\"version\": \"1.0\",\"actions\": "
+			+ "{\"updatePublishInterval\": {\"actionDisplayName\": {\"en_US\": \"Update Pubslish Interval\"},"
+			+ "\"parameters\": [{\"name\": \"publishInvertval\",\"value\": 5,"
+			+ "\"required\": \"false\"}]}}}";
+    try {
+	    JsonObject response = this.apiClient.addDeviceManagementExtension(BUNDLE_TO_BE_ADDED);
+		System.out.println(response);
+	} catch(IoTFCReSTException e) {
+		System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+		// Print if there is a partial response
+		System.out.println(e.getResponse());
+	}
+
+	
+Overloaded method allows one to send the String (instead of JsonObject) to create a DME package.
+
+Delete a DME package
+~~~~~~~~~~~~~~~~~~~~
+
+Method deleteDeviceManagementExtension() can be used to deleted an already registered DME package. For example,
+
+..code:: java
+
+	// Pass the bundleId that needs to be removed
+    apiClient.deleteDeviceManagementExtension("example-dme-actions-v1");
+
+Initiate a DME request
+~~~~~~~~~~~~~~~~~~~~~~
+
+Initiating DME request is same as initiating the out of the `Device Management requests <https://github.com/ibm-watson-iot/iot-java/blob/master/docs/java_cli_for_api.rst#initiate-a-device-management-request>`__ like, Firmware update and reboot. Method initiateDeviceManagementRequest() can be used to initiate a custom action, such as install a new plugin. For example,
+
+..code:: java
+
+    String req = "{\"action\": \"example-dme-actions-v1/updatePublishInterval\", \"parameters\": [{\"name\": \"PublishInterval\", \"value\":5}],\"devices\": [{" +
+					"\"typeId\":\"" + deviceType + "\",\"deviceId\":\"" + deviceId + "\"}]}";
+		System.out.println(req);
+		JsonParser parser = new JsonParser();
+		JsonObject jsonReq = (JsonObject) parser.parse(req);
+		
+		try {
+			this.apiClient.initiateDeviceManagementRequest(jsonReq);
+		} catch (IoTFCReSTException e) {
+			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
+		}
+	
+----
+
 Usage management
 ----------------------------------------------------
 
@@ -656,19 +729,6 @@ Method getActiveDevices() can be used to retrieve the number of active devices o
     JsonElement response = this.apiClient.getActiveDevices(start, end, true);
 
 The above snippet returns the devices that are active between 2015-09-01 and 2015-10-01 with a daily breakdown.
-
-Get Historical data usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Method getHistoricalDataUsage() can be used to retrieve the amount of storage being used by historical event data for a specified period of time. For example,
-
-.. code:: java
-    
-    String start = "2015-09-01";
-    String end = "2015-10-01";
-    JsonElement response = this.apiClient.getHistoricalDataUsage(start, end, false);
-
-The above snippet returns the amount of storage being used by historical event data between 2015-09-01 and 2015-10-01 without a daily breakdown.
 
 Get data traffic
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -704,7 +764,6 @@ Examples
 * `SampleDeviceTypeAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleDeviceTypeAPIOperations.java>`__ - Sample that showcases various Device Type API operations like list all, create, delete, view and update device types in Internet of Things Platform.
 * `SampleDeviceAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleDeviceAPIOperations.java>`__ - A sample that showcases various Device operations like list, add, remove, view, update, view location and view management information of a device in Internet of Things Platform.
 * `SampleDeviceDiagnosticsAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleDeviceDiagnosticsAPIOperations.java>`__ - A sample that showcases various Device Diagnostic operations like clear logs, retrieve logs, add log information, delete logs, get specific log, clear error codes, get device error codes and add an error code to Internet of Things Platform.
-* `SampleHistorianAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleHistorianAPIOperations.java>`__ - A sample that showcases how to retrieve historical events from Internet of Things Platform.
 * `SampleDeviceManagementAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleDeviceManagementAPIOperations.java>`__ - A sample that showcases various device management request operations that can be performed on Internet of Things Platform.
 * `SampleUsageManagementAPIOperations <https://github.com/ibm-messaging/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleUsageManagementAPIOperations.java>`__ - A sample that showcases various Usage management operations that can be performed on Internet of Things Platform.
 
