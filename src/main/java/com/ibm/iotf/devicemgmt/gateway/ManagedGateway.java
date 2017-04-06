@@ -1599,7 +1599,9 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	private void terminate() {
 		running = false;
 		try {
-			publishQueue.put(dummy);
+			if(null != publishQueue) {
+				publishQueue.put(dummy);
+			}
 		} catch (InterruptedException e) {
 		}
 	}
