@@ -381,7 +381,49 @@ public class DeviceEventPublishTest extends TestCase{
 		try {
 			code = myClient.api().publishDeviceEventOverHTTP("blink", event);
 		} catch (java.lang.IllegalArgumentException e) {
-			// looks like the proerties file is not edited, just ignore
+			// looks like the properties file is not edited, just ignore
+			return;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		assertEquals("Failed to publish the event......", true, code);
+	}
+
+	/**
+	 * This test expects a properties file containing the device registration details. Failing to
+	 * provide the same, the test will return immediately and show as passed.
+	 */
+	@Test
+	public void testRegisteredPublishHttp_stringnonJSON(){			
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(DeviceEventPublishTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+			
+		DeviceClient myClient = null;
+		try {
+			//Instantiate the class by passing the properties file
+			myClient = new DeviceClient(props);
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			// Looks like the properties file is not udpated, just ignore;
+			return;
+		}
+			
+		//Publish nonJSON string
+		String simpleString = "Hello World";
+		boolean code = false;
+		try {
+			code = myClient.api().publishDeviceEventOverHTTP("blink", simpleString);
+		} catch (java.lang.IllegalArgumentException e) {
+			// looks like the properties file is not edited, just ignore
 			return;
 		} catch (Exception e) {
 			e.printStackTrace();
