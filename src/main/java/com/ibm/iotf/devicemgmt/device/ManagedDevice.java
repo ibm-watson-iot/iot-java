@@ -1025,7 +1025,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	private void terminate() {
 		running = false;
 		try {
-			publishQueue.put(dummy);
+			if(publishQueue != null) {
+				publishQueue.put(dummy);
+			}
 		} catch (InterruptedException e) {
 		}
 	}
