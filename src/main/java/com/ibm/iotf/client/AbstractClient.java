@@ -7,6 +7,7 @@
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Sathiskumar Palaniappan - Extended from DeviceClient
+ 			 - Added support for Client Side Certificate Authentication
  *****************************************************************************
  *
  */
@@ -124,6 +125,7 @@ public abstract class AbstractClient {
 	protected MemoryPersistence persistence = null;
 	
 	protected static final boolean newFormat;
+	protected String serverCert, clientCert, clientCertKey, certPassword;
 	
 	static {
 		newFormat = Boolean.parseBoolean(System.getProperty("com.ibm.iotf.enableCustomFormat", "true"));
@@ -203,7 +205,7 @@ public abstract class AbstractClient {
 		if (getOrgId() == QUICK_START) {
 			configureMqtt();
 		}else if ((getOrgId() != QUICK_START) && userCertificate.equalsIgnoreCase("True")){
-				System.out.println("Initiating Certificate based authentication");
+				LoggerUtility.info(CLASS_NAME, METHOD, "Initiating Certificate based authentication");
 				connectUsingCertificate();
 				if (isAutomaticReconnect()) {
 					DisconnectedBufferOptions disconnectedOpts = new DisconnectedBufferOptions();
@@ -212,7 +214,7 @@ public abstract class AbstractClient {
 					mqttAsyncClient.setBufferOpts(disconnectedOpts);
 				}
 		} else {
-				System.out.println("Initiating Token based authentication");
+				LoggerUtility.info(CLASS_NAME, METHOD, "Initiating Token based authentication");
 				connectUsingToken();
 			if (isAutomaticReconnect()) {
 				DisconnectedBufferOptions disconnectedOpts = new DisconnectedBufferOptions();
@@ -465,18 +467,19 @@ public abstract class AbstractClient {
 
 			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
 			sslContext.init(null, null, null);
-			String serverCert, clientCert, clientCertKey, certPassword;
+			//String serverCert, clientCert, clientCertKey, certPassword;
 			
 			//Validate the availability of Server Certificate
+			
 			if (trimedValue(options.getProperty("Server-Certificate")) != null){
 				if (trimedValue(options.getProperty("Server-Certificate")).contains(".pem")){
 					serverCert = trimedValue(options.getProperty("Server-Certificate"));
 					}else{
-						System.out.println("Only .pem certificate format is supported at this point of time");
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only .pem certificate format is supported at this point of time");
 						return;
 					}
 				}else{
-						System.out.println("Value for Server Certificate is missing");
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Server Certificate is missing");
 						return;
 				}
 			
@@ -485,11 +488,11 @@ public abstract class AbstractClient {
 				if (trimedValue(options.getProperty("Client-Certificate")).contains(".pem")){
 					clientCert = trimedValue(options.getProperty("Client-Certificate"));
 					}else{
-						System.out.println("Only .pem certificate format is supported at this point of time");
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only .pem certificate format is supported at this point of time");
 						return;
 					}
 				}else{
-						System.out.println("Value for Client Certificate is missing");
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Certificate is missing");
 						return;
 				}
 
@@ -498,20 +501,26 @@ public abstract class AbstractClient {
 				if (trimedValue(options.getProperty("Client-Key")).contains(".key")){
 					clientCertKey = trimedValue(options.getProperty("Client-Key"));
 					}else{
-						System.out.println("Only Certificate key in .key format is supported at this point of time");
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only Certificate key in .key format is supported at this point of time");
 						return;
 					}
 				}else{
-						System.out.println("Value for Client Key is missing");
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Key is missing");
 						return;
 				}
 			
 			//Validate the availability of Certificate Password
+			try{
 			if (trimedValue(options.getProperty("Certificate-Password")) != null){
 				certPassword = trimedValue(options.getProperty("Certificate-Password"));
-				}else{
-						System.out.println("Value for Certificate Password is missing");
-						return;
+				//return certPassword;
+				} else {
+					certPassword = "";
+				}
+			} catch (Exception e){
+					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Certificate Password is missing", e);
+					e.printStackTrace();
+					throw e;
 				}
 			
 			mqttClientOptions.setSocketFactory(getSocketFactory(serverCert, clientCert, clientCertKey, certPassword));
