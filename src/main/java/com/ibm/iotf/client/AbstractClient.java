@@ -204,7 +204,7 @@ public abstract class AbstractClient {
 		
 		if (getOrgId() == QUICK_START) {
 			configureMqtt();
-		}else if ((getOrgId() != QUICK_START) && userCertificate.equalsIgnoreCase("True")){
+		}else if ((getOrgId() != QUICK_START) && (userCertificate != null && userCertificate.equalsIgnoreCase("True"))){
 				LoggerUtility.info(CLASS_NAME, METHOD, "Initiating Certificate based authentication");
 				connectUsingCertificate();
 				if (isAutomaticReconnect()) {
