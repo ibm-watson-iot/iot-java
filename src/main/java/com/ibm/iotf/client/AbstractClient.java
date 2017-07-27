@@ -7,27 +7,36 @@
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Sathiskumar Palaniappan - Extended from DeviceClient
+ 			 - Added support for Client Side Certificate Authentication
  *****************************************************************************
  *
  */
 package com.ibm.iotf.client;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.Security;
+import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.net.util.Base64;
 import org.apache.http.Header;
@@ -36,6 +45,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMReader;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -46,8 +57,8 @@ import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+//import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -114,6 +125,7 @@ public abstract class AbstractClient {
 	protected MemoryPersistence persistence = null;
 	
 	protected static final boolean newFormat;
+	protected String serverCert, clientCert, clientCertKey, certPassword;
 	
 	static {
 		newFormat = Boolean.parseBoolean(System.getProperty("com.ibm.iotf.enableCustomFormat", "true"));
@@ -188,11 +200,22 @@ public abstract class AbstractClient {
 		int connectAttempts = 0;
 		// clear the disconnect state when the user connects the client to Watson IoT Platform
 		disconnectRequested = false;  
+		String userCertificate = trimedValue(options.getProperty("Use-Secure-Certificate"));
 		
 		if (getOrgId() == QUICK_START) {
 			configureMqtt();
+		}else if ((getOrgId() != QUICK_START) && (userCertificate != null && userCertificate.equalsIgnoreCase("True"))){
+				LoggerUtility.info(CLASS_NAME, METHOD, "Initiating Certificate based authentication");
+				connectUsingCertificate();
+				if (isAutomaticReconnect()) {
+					DisconnectedBufferOptions disconnectedOpts = new DisconnectedBufferOptions();
+					disconnectedOpts.setBufferEnabled(true);
+					disconnectedOpts.setBufferSize(getDisconnectedBufferSize());
+					mqttAsyncClient.setBufferOpts(disconnectedOpts);
+				}
 		} else {
-			configureConnOptions();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Initiating Token based authentication");
+				connectUsingToken();
 			if (isAutomaticReconnect()) {
 				DisconnectedBufferOptions disconnectedOpts = new DisconnectedBufferOptions();
 				disconnectedOpts.setBufferEnabled(true);
@@ -262,6 +285,11 @@ public abstract class AbstractClient {
 		}
 	}
 	
+	/**
+	 * configureMqtt() is called when the User does not provide an Organization value and intends
+	 * to connect to Watson IoT Platform using the QUICKSTART mode. This type of connection is 
+	 * In-secure in nature and is usually done over the 1883 Port Number.
+	 */
 	private void configureMqtt() {
 		String protocol = null;
 		int port = getPortNumber();
@@ -301,6 +329,7 @@ public abstract class AbstractClient {
 		}
 	}
 	
+	
 	/**
 	 * 
 	 * @return the port number specified by the user
@@ -311,8 +340,75 @@ public abstract class AbstractClient {
 		return Integer.parseInt(port);
 	}
 	
-	private void configureConnOptions() {
-		final String METHOD = "configureConnOptions";
+	/**
+	 * Call to the configureConnOptionsWithToken() method is made, when the User chooses to connect to the
+	 * Watson IoT Platform using Device Token as the preferred Authentication mechanism. The Device Properties
+	 * file allows you enable either Token based or Certificate based or both mechanisms to authenticate.
+	 * However, setting the value to either 'True' or 'False' against the parameter 'Use-Secure-Certificate',
+	 * facilitates usage of Certificates for authentication or not, respectively.
+	 * Setting the value of parameter 'Use-Secure-Certificate' to 'False' in the Device.Properties file will
+	 * make a call to the following method. 
+	 */
+	
+	private void connectUsingToken() {
+		String protocol = null;
+		int port = getPortNumber();
+		if (isWebSocket()) {
+			protocol = "wss://";
+			// If there is no port specified use default
+			if(port == -1) {
+				port = WSS_PORT;
+			}
+		} else {
+			protocol = "ssl://";
+			// If there is no port specified use default
+			if(port == -1) {
+				port = MQTTS_PORT;
+			}
+		} 
+
+		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
+		try {
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, DATA_STORE);
+			mqttAsyncClient.setCallback(mqttCallback);
+			mqttClientOptions = new MqttConnectOptions();
+			if (clientUsername != null) {
+				mqttClientOptions.setUserName(clientUsername);
+			}
+			if (clientPassword != null) {
+				mqttClientOptions.setPassword(clientPassword.toCharArray());
+			}
+			mqttClientOptions.setCleanSession(this.isCleanSession());
+			if(this.keepAliveInterval != -1) {
+				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
+			}
+			
+			mqttClientOptions.setMaxInflight(getMaxInflight());
+			mqttClientOptions.setAutomaticReconnect(isAutomaticReconnect());
+			
+			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+
+			sslContext.init(null, null, null);
+			
+			mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Call to the connectUsingCertificate() method is made, when the User chooses to connect to the Watson
+	 * IoT Platform using Client Certificate as the preferred Authentication mechanism. The Device Properties
+	 * file allows you enable either Token based or Certificate based or both mechanisms to authenticate.
+	 * However, setting the value to either 'True' or 'False' against the parameter 'Use-Secure-Certificate',
+	 * facilitates usage of Certificates for authentication or not, respectively.
+	 * Setting the value of parameter 'Use-Secure-Certificate' to 'True' in the Device.Properties file will
+	 * make a call to the following method. 
+	 */
+	
+	private void connectUsingCertificate() {
+		final String METHOD = "connectUsingCertificate";
 		String protocol = null;
 		int port = getPortNumber();
 		if (isWebSocket()) {
@@ -370,10 +466,66 @@ public abstract class AbstractClient {
 			 */
 
 			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-			//LoggerUtility.info(CLASS_NAME, METHOD, "Provider: " + sslContext.getProvider().getName());
 			sslContext.init(null, null, null);
-			mqttClientOptions.setSocketFactory(sslContext.getSocketFactory());
-		} catch (MqttException | GeneralSecurityException e) {
+			//String serverCert, clientCert, clientCertKey, certPassword;
+			
+			//Validate the availability of Server Certificate
+			
+			if (trimedValue(options.getProperty("Server-Certificate")) != null){
+				if (trimedValue(options.getProperty("Server-Certificate")).contains(".pem")){
+					serverCert = trimedValue(options.getProperty("Server-Certificate"));
+					}else{
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only .pem certificate format is supported at this point of time");
+						return;
+					}
+				}else{
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Server Certificate is missing");
+						return;
+				}
+			
+			//Validate the availability of Client Certificate
+			if (trimedValue(options.getProperty("Client-Certificate")) != null){
+				if (trimedValue(options.getProperty("Client-Certificate")).contains(".pem")){
+					clientCert = trimedValue(options.getProperty("Client-Certificate"));
+					}else{
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only .pem certificate format is supported at this point of time");
+						return;
+					}
+				}else{
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Certificate is missing");
+						return;
+				}
+
+			//Validate the availability of Client Certificate Key
+			if (trimedValue(options.getProperty("Client-Key")) != null){
+				if (trimedValue(options.getProperty("Client-Key")).contains(".key")){
+					clientCertKey = trimedValue(options.getProperty("Client-Key"));
+					}else{
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only Certificate key in .key format is supported at this point of time");
+						return;
+					}
+				}else{
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Key is missing");
+						return;
+				}
+			
+			//Validate the availability of Certificate Password
+			try{
+			if (trimedValue(options.getProperty("Certificate-Password")) != null){
+				certPassword = trimedValue(options.getProperty("Certificate-Password"));
+				//return certPassword;
+				} else {
+					certPassword = "";
+				}
+			} catch (Exception e){
+					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Certificate Password is missing", e);
+					e.printStackTrace();
+					throw e;
+				}
+			
+			mqttClientOptions.setSocketFactory(getSocketFactory(serverCert, clientCert, clientCertKey, certPassword));
+
+		} catch (Exception e) {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to configure TLSv1.2 connection: " + e.getMessage());
 			e.printStackTrace();
 		}
@@ -589,6 +741,20 @@ public abstract class AbstractClient {
 		return trimedValue(org);
 	}
 	
+	/**
+	 * 
+	 * @return the Client Certificate
+	 */
+	public String getClientCert() {
+		String clientCert;
+		clientCert = options.getProperty("clientCert");
+		
+		if(clientCert == null) {
+			clientCert = options.getProperty("Client-Certificate");
+		}
+		return trimedValue(clientCert);
+	}
+	
 	/*
 	 * old style - id
 	 * new style - Device-ID
@@ -724,8 +890,8 @@ public abstract class AbstractClient {
 			
 			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
 			sslContext.init(null, null, null);
-
-			HttpClient client = HttpClientBuilder.create().setSslcontext(sslContext).build();
+			
+			HttpClient client = HttpClientBuilder.create().setSSLContext(sslContext).build();
 			
 			HttpResponse response = client.execute(post);
 			
@@ -737,6 +903,7 @@ public abstract class AbstractClient {
 			/**
 			 * Looks like some error so log the header and response
 			 */
+			System.out.println("Looks like some error, so log the header and response");
 			StringBuilder log = new StringBuilder("HTTP Code: "+httpCode);
 			log.append("\nURL: ")
 				.append(sb.toString())
@@ -764,5 +931,56 @@ public abstract class AbstractClient {
 		}
 	}
 
+	static SSLSocketFactory getSocketFactory (final String caCrtFile, final String crtFile, final String keyFile, final String password) throws Exception
+	{ 
+		Security.addProvider(new BouncyCastleProvider());
+	    X509Certificate caCert = null;
+	    	    
+	    if(caCrtFile != null) {
+		    // load CA certificate
+		    PEMReader reader = new PEMReader(new InputStreamReader(new ByteArrayInputStream(Files.readAllBytes(Paths.get(caCrtFile)))));
+		    caCert = (X509Certificate)reader.readObject();
+		    reader.close();
+	    }
+	    
+	    PEMReader reader = new PEMReader(new InputStreamReader(new ByteArrayInputStream(Files.readAllBytes(Paths.get(crtFile)))));
+	    X509Certificate cert = (X509Certificate)reader.readObject();
+	    reader.close();
+	    
+	    // load client private key
+	    reader = new PEMReader(
+	            new InputStreamReader(new ByteArrayInputStream(Files.readAllBytes(Paths.get(keyFile))))
+	    );
+	    KeyPair key = (KeyPair)reader.readObject();
+	    reader.close();
+	    	    
+	    TrustManagerFactory tmf = null;
+	    if(caCert != null) {
+		    // CA certificate is used to authenticate server
+		    KeyStore caKs = KeyStore.getInstance("JKS");
+		    //caKs.load(null, null);
+		    caKs.load(null, null);
+		    caKs.setCertificateEntry("ca-certificate", caCert);
+		    tmf = TrustManagerFactory.getInstance("PKIX");
+		    tmf.init(caKs);
+	    }
+	    // client key and certificates are sent to server so it can authenticate us
+	    KeyStore ks = KeyStore.getInstance("JKS");
+	    ks.load(null, null);
+	    ks.setCertificateEntry("certificate", cert);
+	    ks.setKeyEntry("private-key", key.getPrivate(), password.toCharArray(), new java.security.cert.Certificate[]{cert});
+	    KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
+	    kmf.init(ks, password.toCharArray());
+
+	    // finally, create SSL socket factory
+	    SSLContext context = SSLContext.getInstance("TLSv1.2");
+	    if(tmf != null) {
+	    	context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+	    } else {
+	    	context.init(kmf.getKeyManagers(), null, null);
+	    }
+
+	    return context.getSocketFactory();
+	}
 	
 }

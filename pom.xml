@@ -55,6 +55,12 @@
     		<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
   		</repository>
 	</distributionManagement>
+	<repositories>
+	    <repository>
+		<id>Eclipse Paho Repo</id>
+		<url>https://repo.eclipse.org/content/repositories/paho-snapshots/</url>
+	    </repository>
+	</repositories>
 
     <properties>
         <!-- General properties -->
@@ -92,7 +98,7 @@
         <dependency>
             <groupId>org.eclipse.paho</groupId>
             <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-            <version>1.1.1</version>
+            <version>1.1.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>
