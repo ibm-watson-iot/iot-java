@@ -3257,6 +3257,88 @@ public class APIClient {
 			throw new Exception(property + "cannot be NULL or Empty!");
 	}
 
+	private boolean publishMessageOverHTTP(String eventId, Object payload,
+			boolean isApplication, boolean isCommand) throws Exception {
+
+		final String METHOD = "publishMessageOverHTTP";
+		StringBuilder sb = new StringBuilder();
+		String port;
+		validateNull("Organization ID", orgId);
+		validateNull("Device Type", mdeviceType);
+		validateNull("Device ID", mdeviceId);
+		validateNull("Event Name", eventId);
+				
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+
+		if (isSecured) {
+			sb.append("https://");
+			port = "8883";
+		} else {
+			sb.append("http://");
+			port = "1883";
+		}
+
+		String TYPE = "/device";
+		if (isApplication)
+			TYPE = "/application";
+
+		String MESSAGE = "/events/";
+		if(isCommand)
+			MESSAGE = "/commands/";
+			
+		sb.append(orgId).append(".messaging.").append(domain).append(":")
+				.append(port).append(BASIC_API_V0002_URL).append(TYPE)
+				.append("/types/").append(mdeviceType).append("/devices/")
+				.append(mdeviceId).append(MESSAGE).append(eventId);
+
+		
+		int code = 0;
+		boolean ret = false;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+				
+		try {
+			response = connect("post", sb.toString(), payload.toString(), null);			
+			code = response.getStatusLine().getStatusCode();			
+			if (code == 200) {
+				// success
+				ret = true;
+			}
+
+		} catch (Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException(
+					"Failure in adding the device Type " + "::"
+							+ e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+
+		if (code == 400) {
+			throw new IoTFCReSTException(400,
+					"Invalid request (No body, invalid JSON, "
+							+ "unexpected key, bad value)", jsonResponse);
+		} else if (code == 401) {
+			throw new IoTFCReSTException(401,
+					"The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(403,
+					"The authentication method is invalid or "
+							+ "the API key used does not exist");
+		} else if (code == 409) {
+			throw new IoTFCReSTException(409, "The device type already exists",
+					jsonResponse);
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		} else if (ret == false) {
+			throwException(response, METHOD);
+		}
+
+		return ret;
+	}
+
+	//This method has been kept only for backward compatibility and would soon be deprecated
 	private boolean publishMessageOverHTTP(String eventId, JsonObject payload,
 			boolean isApplication, boolean isCommand) throws Exception {
 
@@ -3342,7 +3424,28 @@ public class APIClient {
 	 * Publishes events over HTTP for a device and application
 	 * 
 	 * @param eventId String representing the eventId to be added. 
-	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * @param payload Object representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+ 
+	public boolean publishDeviceEventOverHTTP(String eventId, Object payload) throws Exception {
+		boolean ret = false;		
+		ret = publishMessageOverHTTP(eventId, payload, false, false);
+		return ret;
+	}
+	
+	//This method has been kept only for backward compatibility and would soon be deprecated
+	/**
+	 * Publishes events over HTTP for a device and application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JsonObject representing the payload to be added. Refer to  
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
 	 * for more information about the schema to be used
@@ -3362,7 +3465,7 @@ public class APIClient {
 	 * Publishes events over HTTP for a device and application
 	 * 
 	 * @param eventId String representing the eventId to be added. 
-	 * @param payload JSON object representing the payload to be added. Refer to  
+	 * @param payload Object representing the payload to be added. Refer to  
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
 	 * for more information about the schema to be used
@@ -3373,6 +3476,30 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure publishing event.	 * 
 	 */
  
+	public boolean ç(String eventId, Object payload, ContentType contenttype) throws Exception {
+		boolean ret = false;
+		contentType = contenttype;
+		ret = publishDeviceEventOverHTTP(eventId, payload);
+		return ret;
+	}
+
+	
+	//This method has been kept only for backward compatibility and would soon be deprecated 
+	/**
+	 * Publishes events over HTTP for a device and application
+	 * 
+	 * @param eventId String representing the eventId to be added. 
+	 * @param payload JsonObject representing the payload to be added. Refer to  
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_device_types_deviceType_devices_deviceId_events_eventName">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Connectivity/post_application_types_deviceType_devices_deviceId_events_eventName">link</a> 
+	 * for more information about the schema to be used
+	 * @param contenttype Content type
+	 * 
+	 * @return boolean indicates status of publishing event.
+	 *  
+	 * @throws IoTFCReSTException Failure publishing event.	 * 
+	 */
+
 	public boolean publishDeviceEventOverHTTP(String eventId, JsonObject payload, ContentType contenttype) throws Exception {
 		boolean ret = false;
 		contentType = contenttype;
