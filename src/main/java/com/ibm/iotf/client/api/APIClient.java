@@ -4105,7 +4105,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving draft logical interface request status
 	 */
-	public JsonObject getDraftLogicalInterfaces(String logicalInterfaceId, List<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getDraftLogicalInterfaces(List<NameValuePair> parameters) throws IoTFCReSTException {
 		
 		final String METHOD = "getDraftLogicalInterfaces";
 		/**
@@ -4158,7 +4158,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving active logical interface request status
 	 */
-	public JsonObject getActiveLogicalInterfaces(String logicalInterfaceId, List<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getActiveLogicalInterfaces(List<NameValuePair> parameters) throws IoTFCReSTException {
 		
 		final String METHOD = "getActiveLogicalInterfaces";
 		/**
