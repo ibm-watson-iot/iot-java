@@ -47,7 +47,11 @@ public class IoTFCReSTException extends Exception {
 	public static final String HTTP_INITIATE_DM_REQUEST_ERR_401 = HTTP_ADD_DEVICE_ERR_401;
 	public static final String HTTP_INITIATE_DM_REQUEST_ERR_403 = "One or more of the devices does not support the requested action";
 	public static final String HTTP_INITIATE_DM_REQUEST_ERR_404 = "One or more of the devices does not exist";
-	 	
+	
+	public static final String HTTP_ADD_LOGICAL_INTERFACE_ERR_400 = HTTP_ADD_DEVICE_ERR_400;
+	public static final String HTTP_ADD_LOGICAL_INTERFACE_ERR_401 = HTTP_ADD_DEVICE_ERR_401;
+	public static final String HTTP_ADD_LOGICAL_INTERFACE_ERR_403 = "The authentication method is invalid or the API key used does not exist";
+	public static final String HTTP_ADD_LOGICAL_INTERFACE_ERR_500 = HTTP_ERR_500;
 	
 	private String method = null;
 	private String url = null;

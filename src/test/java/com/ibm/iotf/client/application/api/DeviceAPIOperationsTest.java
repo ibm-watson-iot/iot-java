@@ -410,25 +410,60 @@ public class DeviceAPIOperationsTest extends TestCase {
 			fail("Doesn't throw invild Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
 			apiClientWithWrongKey.getDeviceLocation(DEVICE_TYPE, DEVICE_ID);
 			fail("Doesn't throw invild API Key exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Org
+		// Wrong Org
 		try {
 			apiClientWithWrongOrg.getDeviceLocation(DEVICE_TYPE, DEVICE_ID);
 			fail("Doesn't throw invild ORG exception");
 		} catch(IoTFCReSTException e) {}	
 	}
 	
+	/**
+	 * This sample showcases how to get a device location weather using the Java Client Library.
+	 * @throws IoTFCReSTException
+	 */
+	public void test05getDeviceLocationWeather() throws IoTFCReSTException {
+		try {
+			System.out.println("get device location weather of device --> "+DEVICE_ID);
+			JsonObject response = this.apiClient.getDeviceLocationWeather(DEVICE_TYPE, DEVICE_ID);
+			System.out.println(response);
+		} catch(IoTFCReSTException e) {
+			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
+		}
+		
+		// negative test, it should fail
+		try {
+			apiClientWithWrongToken.getDeviceLocationWeather(DEVICE_TYPE, DEVICE_ID);
+			fail("Doesn't throw invild Auth token exception");
+		} catch(IoTFCReSTException e) {}
+		
+		// Wrong Method
+		try {
+			apiClientWithWrongKey.getDeviceLocationWeather(DEVICE_TYPE, DEVICE_ID);
+			fail("Doesn't throw invild API Key exception");
+		} catch(IoTFCReSTException e) {}
+		
+		// Wrong Org
+		try {
+			apiClientWithWrongOrg.getDeviceLocationWeather(DEVICE_TYPE, DEVICE_ID);
+			fail("Doesn't throw invild ORG exception");
+		} catch(IoTFCReSTException e) {}	
+	}
+	
+	
 	
 	/**
 	 * This sample showcases how to get a management information of a device using the Java Client Library.
 	 * @throws Exception 
 	 */
-	public void test05getDeviceManagementInformation() throws Exception {
+	public void test06getDeviceManagementInformation() throws Exception {
 		
 		/**
 		  * Load device properties
@@ -489,7 +524,7 @@ public class DeviceAPIOperationsTest extends TestCase {
 	 * This sample showcases how to update a device using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
-	public void test06updateDevice() throws IoTFCReSTException {
+	public void test07updateDevice() throws IoTFCReSTException {
 		
 		JsonObject updatedMetadata = new JsonObject();
 		
@@ -530,7 +565,7 @@ public class DeviceAPIOperationsTest extends TestCase {
 	 * This sample showcases how to retrieve all the devices in an organization using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
-	public void test07getAllDevices() throws IoTFCReSTException {
+	public void test08getAllDevices() throws IoTFCReSTException {
 		System.out.println("Get all devices of device type--> "+DEVICE_TYPE);
 		// Get all the devices of type TestDT
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -628,4 +663,5 @@ public class DeviceAPIOperationsTest extends TestCase {
 		} catch(IoTFCReSTException e) {}	
 		
 	}
+	
 }

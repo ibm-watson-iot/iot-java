@@ -36,6 +36,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
@@ -346,6 +347,26 @@ public class APIClient {
 
 	}
 	
+	private HttpResponse casePatchFromConnect(List<NameValuePair> queryParameters, String url, String method, StringEntity input, String encodedString) throws URISyntaxException, IOException {
+		URIBuilder putBuilder = new URIBuilder(url);
+		if(queryParameters != null) {
+			putBuilder.setParameters(queryParameters);
+		}
+		HttpPatch patch = new HttpPatch(putBuilder.build());
+		patch.setEntity(input);
+		patch.addHeader("Content-Type", "application/json");
+		patch.addHeader("Accept", "application/json");
+		patch.addHeader("Authorization", "Basic " + encodedString);
+		try {
+			HttpClient client = HttpClientBuilder.create().useSystemProperties().setSslcontext(sslContext).build();
+			return client.execute(patch);
+		} catch (IOException e) {
+			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
+			throw e;
+		} 
+
+	}	
+	
 	private String readContent(HttpResponse response, String method) 
 			throws IllegalStateException, IOException {
 		
@@ -594,6 +615,66 @@ public class APIClient {
 		throwException(response, METHOD);
 		return null;
 	}
+	
+	/**
+	 * Gets Weather location information for a device.
+	 * 
+	 * <p> Refer to the
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/get_device_types_typeId_devices_deviceId_location">link</a>
+	 * for more information about the response.</p>
+	 * 
+	 * @param deviceType String which contains device type
+	 * @param deviceId String which contains device id
+	 * 
+	 * @return JsonObject containing the device location weather
+	 * @throws IoTFCReSTException Failure in getting the device location weather
+	 */
+	public JsonObject getDeviceLocationWeather(String deviceType, String deviceId) throws IoTFCReSTException {
+		final String METHOD = "getDeviceLocationWeather";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/device/types/").
+		   append(deviceType).
+		   append("/devices/").
+		   append(deviceId).
+		   append("/exts/twc/ops/geocode");
+		
+		int code = 0;
+		HttpResponse response = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200) {
+				String result = this.readContent(response, METHOD);
+				JsonElement jsonResponse = new JsonParser().parse(result);
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieveing the Device Location Weather "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Bad request. Most likely caused by your device lacking location information.");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "Not authorized. Most likely caused by an invalid API key being provided.");
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "Device location information Weather not found");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error");
+		} else if(code == 503) {
+			throw new IoTFCReSTException(code, "Service Unavailable");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
 	
 	/**
 	 * Gets device management information for a device.
@@ -3592,4 +3673,532 @@ public class APIClient {
 		ret = publishCommandOverHTTP(eventId, payload);
 		return ret;
 	}
+
+	
+	/**
+	 * Create a draft logical interface.
+	 * 
+	 * @param request JSON string containing the draft logical interface.
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * @throws IoTFCReSTException if failed.
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject addDraftLogicalInterface(String request) throws IoTFCReSTException {
+		final String METHOD = "addDraftLogicalInterface";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		String method = "post";
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/draft/logicalinterfaces");
+			response = connect(method, sb.toString(), request, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 201) {
+					//Success
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = IoTFCReSTException.HTTP_ADD_LOGICAL_INTERFACE_ERR_400;
+						break;
+					case 401:
+						reason = IoTFCReSTException.HTTP_ADD_LOGICAL_INTERFACE_ERR_401;
+						break;
+					case 403:
+						reason = IoTFCReSTException.HTTP_ADD_LOGICAL_INTERFACE_ERR_403;
+						break;
+					case 500:
+						reason = IoTFCReSTException.HTTP_ADD_LOGICAL_INTERFACE_ERR_500;
+						break;
+					}
+					throw new IoTFCReSTException(method, sb.toString(), request, code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (IoTFCReSTException e) {
+			throw e;
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding the Draft Logical Interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+	
+	
+	/**
+	 * Deletes a draft logical interface.
+	 * 
+	 * @param logicalInterfaceId String to be deleted from IBM Watson IoT Platform
+	 *   
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Logical_Interface/delete_logical_interface_Id">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return JSON object containing the response of draft logical interface.
+	 *  
+	 * @throws IoTFCReSTException Failure in deleting the draft logical interface
+	 */
+
+	public boolean deleteDraftLogicalInterface(String logicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "deleteDraftLogicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/logicalinterfaces/").
+		   append(logicalInterfaceId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		String method = "delete";
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 204) {
+				return true;
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the Logical Interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist");
+		} else if(code == 409) {
+			throw new IoTFCReSTException(code, "The logical interface with the specified id is currently being referenced by another object");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return false;
+	}
+	
+	/**
+	 * Retrieve the draft logical interface
+	 *
+	 * @param logicalInterfaceId String to be retrieved from IBM Watson IoT Platform
+	 * 
+	 * @return JSON response containing the draft logical interface
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the draft logical interface
+	 */
+	public JsonObject getDraftLogicalInterface(String logicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "getDraftLogicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/logicalinterfaces/").
+		   append(logicalInterfaceId);
+		
+		int code = 0;
+		String method = "get";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the draft logical interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if (code == 304) {
+			throw new IoTFCReSTException(code, "The state of the logical interface has not been modified (response to a conditional GET)");
+		} else if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if (code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throw new IoTFCReSTException(code, "", jsonResponse);
+	}
+	
+	/**
+	 * Retrieve the active logical interface
+	 *
+	 * @param logicalInterfaceId String to be retrieved from IBM Watson IoT Platform
+	 * 
+	 * @return JSON response containing the active logical interface
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the active logical interface
+	 */
+	public JsonObject getActiveLogicalInterface(String logicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "getActiveLogicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/logicalinterfaces/").
+		   append(logicalInterfaceId);
+		
+		int code = 0;
+		String method = "get";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the active logical interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if (code == 304) {
+			throw new IoTFCReSTException(code, "The state of the logical interface has not been modified (response to a conditional GET)");
+		} else if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if (code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throw new IoTFCReSTException(code, "", jsonResponse);
+	}
+
+	
+	/**
+	 * Updates the location information for a device. If no date is supplied, the entry is added with the current date and time.
+	 *  
+	 * @param logicalInterfaceId String which contains draft logical interface id to be retrieved
+     *
+	 * <p> Refer to the
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/put_device_types_typeId_devices_deviceId_location">link</a>
+	 * for more information about the JSON format</p>.
+	 *   
+	 * @return A JSON response containing the status of the update operation.
+	 * 
+	 * @throws IoTFCReSTException Failure in updting the device location
+	 */
+	public JsonObject updateDraftLogicalInterface(String logicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "updateDraftLogicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/logicalinterfaces/").
+		   append(logicalInterfaceId);
+		
+		int code = 0;
+		JsonElement jsonResponse = null;
+		HttpResponse response = null;
+		String method = "put";
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200 || code == 409) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if(code == 200) {
+					return jsonResponse.getAsJsonObject();
+				}
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in updating the draft logical interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist");
+		} else if(code == 412) {
+			throw new IoTFCReSTException(code, "The state of the logical interface has been modified since the "
+					+ "client retrieved its representation (response to a conditional PUT)");
+		} else if (code == 500) {		
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+	
+	/**
+	 * Perform operation against Draft Logical Interface
+	 *  
+	 * @param logicalInterfaceId String which contains the logical interface id
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/patch_logicalinterfaces_logicalInterfaceId">link</a>
+	 * for more information about the JSON format</p>.
+	 *   
+	 * @return A JSON response containing the status of the patch operation.
+	 * 
+	 * @throws IoTFCReSTException Failure in updating the device location
+	 */
+	public JsonObject performOperationAgainstDraftLogicalInterface(String logicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "performOperationAgainstDraftLogicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/logicalinterfaces/").
+		   append(logicalInterfaceId);
+		
+		int code = 0;
+		JsonElement jsonResponse = null;
+		HttpResponse response = null;
+		String method = "patch";
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200 || code == 202) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if(code == 200) {
+					return jsonResponse.getAsJsonObject();
+				}
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in performing an operation against a draft logical interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "A logical interface does not exist");
+		} else if(code == 409) {
+			throw new IoTFCReSTException(code, "The activate-configuration operation failed because the Information Management metadata associated with the logical interface is invalid");
+		} else if (code == 500) {		
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+	
+	/**
+	 * Perform operation against Logical Interface
+	 *  
+	 * @param logicalInterfaceId String which contains the logical interface id
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/patch_logicalinterfaces_logicalInterfaceId">link</a>
+	 * for more information about the JSON format</p>.
+	 *   
+	 * @return A JSON response containing the status of the patch operation.
+	 * 
+	 * @throws IoTFCReSTException Failure in updating the device location
+	 */
+	public JsonObject performOperationAgainstLogicalInterface(String logicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "performOperationAgainstLogicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/logicalinterfaces/").
+		   append(logicalInterfaceId);
+		
+		int code = 0;
+		JsonElement jsonResponse = null;
+		HttpResponse response = null;
+		String method = "patch";
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200 || code == 202) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if(code == 200) {
+					return jsonResponse.getAsJsonObject();
+				}
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in performing an operation against a logical interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "A logical interface does not exist");
+		} else if(code == 409) {
+			throw new IoTFCReSTException(code, "The deactivate operation failed because there is no active configuration associated with the logical interface");
+		} else if (code == 500) {		
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+
+	/**
+	 * Get list of all draft logical interfaces
+	 * 
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing list of draft logical interfaces
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving draft logical interface request status
+	 */
+	public JsonObject getDraftLogicalInterfaces(String logicalInterfaceId, List<NameValuePair> parameters) throws IoTFCReSTException {
+		
+		final String METHOD = "getDraftLogicalInterfaces";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/logicalinterfaces/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, parameters);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of draft logical interfaces "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+	
+	/**
+	 * Get list of all active logical interfaces
+	 * 
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing list of active logical interfaces
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving active logical interface request status
+	 */
+	public JsonObject getActiveLogicalInterfaces(String logicalInterfaceId, List<NameValuePair> parameters) throws IoTFCReSTException {
+		
+		final String METHOD = "getActiveLogicalInterfaces";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/logicalinterfaces/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, parameters);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of active logical interfaces "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
 }
