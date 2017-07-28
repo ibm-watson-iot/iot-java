@@ -3678,12 +3678,13 @@ public class APIClient {
 	/**
 	 * Create a draft logical interface.
 	 * 
-	 * @param request JSON string containing the draft logical interface.
+	 * @param draftLogicalInterface JSON string containing the draft logical interface.
+	 * 
 	 * @return If successful, JsonObject response from Watson IoT Platform.
 	 * @throws IoTFCReSTException if failed.
 	 * @see IoTFCReSTException
 	 */
-	public JsonObject addDraftLogicalInterface(String request) throws IoTFCReSTException {
+	public JsonObject addDraftLogicalInterface(String draftLogicalInterface) throws IoTFCReSTException {
 		final String METHOD = "addDraftLogicalInterface";
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
@@ -3695,7 +3696,7 @@ public class APIClient {
 			   append('.').
 			   append(this.domain).append(BASIC_API_V0002_URL).
 			   append("/draft/logicalinterfaces");
-			response = connect(method, sb.toString(), request, null);
+			response = connect(method, sb.toString(), draftLogicalInterface, null);
 			code = response.getStatusLine().getStatusCode();
 			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 500) {
 				String result = this.readContent(response, METHOD);
@@ -3719,7 +3720,7 @@ public class APIClient {
 						reason = IoTFCReSTException.HTTP_ADD_LOGICAL_INTERFACE_ERR_500;
 						break;
 					}
-					throw new IoTFCReSTException(method, sb.toString(), request, code, reason, jsonResponse);
+					throw new IoTFCReSTException(method, sb.toString(), draftLogicalInterface, code, reason, jsonResponse);
 				}
 			} else {
 				throw new IoTFCReSTException(code, "Unexpected error");
@@ -3911,6 +3912,8 @@ public class APIClient {
 	 * Updates the location information for a device. If no date is supplied, the entry is added with the current date and time.
 	 *  
 	 * @param logicalInterfaceId String which contains draft logical interface id to be retrieved
+	 * 
+	 * @param draftLogicalInterface String which contains the LogicalInterface in JSON format
      *
 	 * <p> Refer to the
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/put_device_types_typeId_devices_deviceId_location">link</a>
@@ -3920,7 +3923,7 @@ public class APIClient {
 	 * 
 	 * @throws IoTFCReSTException Failure in updting the device location
 	 */
-	public JsonObject updateDraftLogicalInterface(String logicalInterfaceId) throws IoTFCReSTException {
+	public JsonObject updateDraftLogicalInterface(String logicalInterfaceId, String draftLogicalInterface) throws IoTFCReSTException {
 		final String METHOD = "updateDraftLogicalInterface";
 		/**
 		 * Form the url based on this swagger documentation
@@ -3937,7 +3940,7 @@ public class APIClient {
 		HttpResponse response = null;
 		String method = "put";
 		try {
-			response = connect(method, sb.toString(), null, null);
+			response = connect(method, sb.toString(), draftLogicalInterface, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200 || code == 409) {
 				String result = this.readContent(response, METHOD);
@@ -3976,6 +3979,7 @@ public class APIClient {
 	 * Perform operation against Draft Logical Interface
 	 *  
 	 * @param logicalInterfaceId String which contains the logical interface id
+	 * @param operation String contains the operation details in JSON format
 	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/patch_logicalinterfaces_logicalInterfaceId">link</a>
 	 * for more information about the JSON format</p>.
 	 *   
@@ -3983,7 +3987,7 @@ public class APIClient {
 	 * 
 	 * @throws IoTFCReSTException Failure in updating the device location
 	 */
-	public JsonObject performOperationAgainstDraftLogicalInterface(String logicalInterfaceId) throws IoTFCReSTException {
+	public JsonObject performOperationAgainstDraftLogicalInterface(String logicalInterfaceId, String operation) throws IoTFCReSTException {
 		final String METHOD = "performOperationAgainstDraftLogicalInterface";
 		/**
 		 * Form the url based on this swagger documentation
@@ -4000,7 +4004,7 @@ public class APIClient {
 		HttpResponse response = null;
 		String method = "patch";
 		try {
-			response = connect(method, sb.toString(), null, null);
+			response = connect(method, sb.toString(), operation, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200 || code == 202) {
 				String result = this.readContent(response, METHOD);
@@ -4038,6 +4042,9 @@ public class APIClient {
 	 * Perform operation against Logical Interface
 	 *  
 	 * @param logicalInterfaceId String which contains the logical interface id
+	 * 
+	 * @param operation String contains the operation in JSON format
+	 * 
 	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/patch_logicalinterfaces_logicalInterfaceId">link</a>
 	 * for more information about the JSON format</p>.
 	 *   
@@ -4045,7 +4052,7 @@ public class APIClient {
 	 * 
 	 * @throws IoTFCReSTException Failure in updating the device location
 	 */
-	public JsonObject performOperationAgainstLogicalInterface(String logicalInterfaceId) throws IoTFCReSTException {
+	public JsonObject performOperationAgainstLogicalInterface(String logicalInterfaceId, String operation) throws IoTFCReSTException {
 		final String METHOD = "performOperationAgainstLogicalInterface";
 		/**
 		 * Form the url based on this swagger documentation
@@ -4062,7 +4069,7 @@ public class APIClient {
 		HttpResponse response = null;
 		String method = "patch";
 		try {
-			response = connect(method, sb.toString(), null, null);
+			response = connect(method, sb.toString(), operation, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200 || code == 202) {
 				String result = this.readContent(response, METHOD);
@@ -4201,4 +4208,651 @@ public class APIClient {
 		return null;
 	}
 
+	/**
+	 * Get list of all draft physical interfaces
+	 * 
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing list of draft physical interfaces
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving draft physical interface request status
+	 */
+	public JsonObject getDraftPhysicalInterfaces(List<NameValuePair> parameters) throws IoTFCReSTException {
+		
+		final String METHOD = "getDraftPhysicalInterfaces";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/physicalinterfaces/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, parameters);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of draft physical interfaces "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+	
+	/**
+	 * Create a draft physical interface.
+	 * 
+	 * @param draftPhysicalInterface JSON string containing the draft logical interface.
+	 * 
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * @throws IoTFCReSTException if failed.
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject addDraftPhysicalInterface(String draftPhysicalInterface) throws IoTFCReSTException {
+		final String METHOD = "addDraftPhysicalInterface";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		String method = "post";
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/draft/physicalinterfaces");
+			response = connect(method, sb.toString(), draftPhysicalInterface, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 201) {
+					//Success
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = IoTFCReSTException.HTTP_ADD_PHYSICAL_INTERFACE_ERR_400;
+						break;
+					case 401:
+						reason = IoTFCReSTException.HTTP_ADD_PHYSICAL_INTERFACE_ERR_401;
+						break;
+					case 403:
+						reason = IoTFCReSTException.HTTP_ADD_PHYSICAL_INTERFACE_ERR_403;
+						break;
+					case 500:
+						reason = IoTFCReSTException.HTTP_ADD_PHYSICAL_INTERFACE_ERR_500;
+						break;
+					}
+					throw new IoTFCReSTException(method, sb.toString(), draftPhysicalInterface, code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (IoTFCReSTException e) {
+			throw e;
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding the Draft Physical Interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+	
+	
+	/**
+	 * Deletes a draft physical interface.
+	 * 
+	 * @param physicalInterfaceId String to be deleted from IBM Watson IoT Platform
+	 *   
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Physical_Interface/delete_physical_interface_Id">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean object containing the response of deletion operation.
+	 *  
+	 * @throws IoTFCReSTException Failure in deleting the draft physical interface
+	 */
+
+	public boolean deleteDraftPhysicalInterface(String physicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "deleteDraftPhysicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/physicalinterfaces/").
+		   append(physicalInterfaceId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		String method = "delete";
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 204) {
+				return true;
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the Physical Interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+		} else if(code == 409) {
+			throw new IoTFCReSTException(code, "The physical interface with the specified id is currently being referenced by another object");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return false;
+	}
+	
+	
+	/**
+	 * Retrieve the draft physical interface
+	 *
+	 * @param physicalInterfaceId String to be retrieved from IBM Watson IoT Platform
+	 * 
+	 * @return JSON response containing the draft physical interface
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the draft physical interface
+	 */
+	public JsonObject getDraftPhysicalInterface(String physicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "getDraftPhysicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/physicalinterfaces/").
+		   append(physicalInterfaceId);
+		
+		int code = 0;
+		String method = "get";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the draft physical interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if (code == 304) {
+			throw new IoTFCReSTException(code, "The state of the physical interface has not been modified (response to a conditional GET)");
+		} else if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if (code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throw new IoTFCReSTException(code, "", jsonResponse);
+	}
+	
+	/**
+	 * Updates the physical interface	 *  
+	 * @param physicalInterfaceId String which contains draft logical interface id to be retrieved
+	 * 
+	 * @param draftPhysicalInterface String which contains the LogicalInterface in JSON format
+     *
+	 * <p> Refer to the
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/put_device_types_typeId_devices_deviceId_location">link</a>
+	 * for more information about the JSON format</p>.
+	 *   
+	 * @return A JSON response containing the status of the update operation.
+	 * 
+	 * @throws IoTFCReSTException Failure in updting the device location
+	 */
+	public JsonObject updateDraftPhysicalInterface(String physicalInterfaceId, String draftPhysicalInterface) throws IoTFCReSTException {
+		final String METHOD = "updateDraftPhysicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/physicalinterfaces/").
+		   append(physicalInterfaceId);
+		
+		int code = 0;
+		JsonElement jsonResponse = null;
+		HttpResponse response = null;
+		String method = "put";
+		try {
+			response = connect(method, sb.toString(), draftPhysicalInterface, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200 || code == 409) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if(code == 200) {
+					return jsonResponse.getAsJsonObject();
+				}
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in updating the draft physical interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+		} else if(code == 412) {
+			throw new IoTFCReSTException(code, "The state of the physical interface has been modified since the "
+					+ "client retrieved its representation (response to a conditional PUT)");
+		} else if (code == 500) {		
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+	
+	/**
+	 * Adds event to physical interface.
+	 * 
+	 * @param draftPhysicalInterfaceId String containing the draft logical interface.
+	 * 
+	 * @param event String in the form of JSON containing the event.
+	 * 
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * 
+	 * @throws IoTFCReSTException if failed.
+	 * 
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject addEventToPhysicalInterface(String draftPhysicalInterfaceId, String event) throws IoTFCReSTException {
+		final String METHOD = "addDraftPhysicalInterface";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		String method = "post";
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/draft/physicalinterfaces/").
+			   append(draftPhysicalInterfaceId).append("/events/");
+			response = connect(method, sb.toString(), event, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 201) {
+					//Success
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = IoTFCReSTException.HTTP_ADD_PHYSICAL_INTERFACE_ERR_400;
+						break;
+					case 401:
+						reason = IoTFCReSTException.HTTP_ADD_PHYSICAL_INTERFACE_ERR_401;
+						break;
+					case 403:
+						reason = IoTFCReSTException.HTTP_ADD_PHYSICAL_INTERFACE_ERR_403;
+						break;
+					case 500:
+						reason = IoTFCReSTException.HTTP_ADD_PHYSICAL_INTERFACE_ERR_500;
+						break;
+					}
+					throw new IoTFCReSTException(method, sb.toString(), draftPhysicalInterfaceId, code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (IoTFCReSTException e) {
+			throw e;
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding event to the Draft Physical Interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+
+
+	/**
+	 * Get list of all events mapped to draft physical interface
+	 * 
+	 * @param draftPhysicalInterfaceId String containing the Draft Physical Interface Id.
+	 * 
+	 * @return JSON response containing list of events
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving events mapped to a Draft Physical Interface
+	 */
+	public JsonObject getEventsMappedToDraftPhysicalInterface(String draftPhysicalInterfaceId) throws IoTFCReSTException {
+		
+		final String METHOD = "getEventsMappedToDraftPhysicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/physicalinterfaces/").
+		   append(draftPhysicalInterfaceId).
+		   append("/events/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of events associated with draft physical interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+	
+	/**
+	 * Removes an event mapped to draft physical interface.
+	 * 
+	 * @param draftPhysicalInterfaceId String Draft Physical Interface from where an event needs to be deleted
+	 * 
+	 * @param eventId String to be deleted from IBM Watson IoT Platform
+	 *   
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Physical_Interface/delete_physical_interface_Id">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean object containing the response of the deletion operation.
+	 *  
+	 * @throws IoTFCReSTException Failure in deleting the draft physical interface
+	 */
+
+	public boolean deleteEventMappingFromPhysicalInterface(String draftPhysicalInterfaceId, String eventId) throws IoTFCReSTException {
+		final String METHOD = "deleteDraftPhysicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/physicalinterfaces/").
+		   append(draftPhysicalInterfaceId).
+		   append("/events/").
+		   append(eventId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		String method = "delete";
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 204) {
+				return true;
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in removing the event from the draft Physical Interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return false;
+	}
+	
+	
+	/**
+	 * Get list of all active physical interfaces
+	 * 
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing list of active physical interfaces
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving active physical interface request status
+	 */
+	public JsonObject getActivePhysicalInterfaces(List<NameValuePair> parameters) throws IoTFCReSTException {
+		
+		final String METHOD = "getActivePhysicalInterfaces";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/physicalinterfaces/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, parameters);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of active physical interfaces "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Retrieve the active physical interface
+	 *
+	 * @param physicalInterfaceId String to be retrieved from IBM Watson IoT Platform
+	 * 
+	 * @return JSON response containing the active physical interface
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the active physical interface
+	 */
+	public JsonObject getActivePhysicalInterface(String physicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "getActivePhysicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/physicalinterfaces/").
+		   append(physicalInterfaceId);
+		
+		int code = 0;
+		String method = "get";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the active logical interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if (code == 304) {
+			throw new IoTFCReSTException(code, "The state of the physical interface has not been modified (response to a conditional GET)");
+		} else if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if (code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throw new IoTFCReSTException(code, "", jsonResponse);
+	}
+
+
+	/**
+	 * Get list of all events mapped to active physical interface
+	 * 
+	 * @param physicalInterfaceId String containing the Active Physical Interface Id.
+	 * 
+	 * @return JSON response containing list of events
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving events mapped to an Active Physical Interface
+	 */
+	public JsonObject getEventsMappedToPhysicalInterface(String physicalInterfaceId) throws IoTFCReSTException {
+		
+		final String METHOD = "getEventsMappedToPhysicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/physicalinterfaces/").
+		   append(physicalInterfaceId).
+		   append("/events/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of events associated with active physical interface "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
 }
