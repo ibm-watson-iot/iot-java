@@ -119,6 +119,7 @@ Dependencies
 -  [Apache HttpClient](https://hc.apache.org/downloads.cgi) - A HTTP Client library.
 -  [Apache HttpCore](https://hc.apache.org/downloads.cgi)  - A HTTP Core library.
 -  [Joda-Time](http://www.joda.org/joda-time/download.html) - The date and time library for Java.
+-  [Bouncy Castle's PEMReader](https://www.bouncycastle.org/latest_releases.html) - Provides methods to read Client side Certificates
 
 ----
 
