@@ -1441,8 +1441,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		LoggerUtility.info(CLASS_NAME, METHOD, "Completed the wait time before disconnecting");
 		myClient.disconnect();
 		assertFalse("Timed out waiting for a response from the server (32000)",status);
-//		proxy.stopProxyServer();
-		tearDown();
+		proxy.stopProxyServer();
+//		tearDown();
 //		tearDownAfterClass();
 	}
 	
@@ -1498,8 +1498,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		
 		myClient.disconnect();
 		assertFalse("Timed out waiting for a response from the server (32000)",status);
-//		proxy.stopProxyServer();
-		tearDown();
+		proxy.stopProxyServer();
+//		tearDown();
 //		tearDownAfterClass();
 	}
 
