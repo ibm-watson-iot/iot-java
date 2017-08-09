@@ -90,9 +90,17 @@ public class CommunicationProxyServer implements Runnable {
 			if(serverSocket != null){
 				serverSocket.close();
 			}
+		} catch (IOException ex){
+			// Do nothing as we want to close;
+		}
+		try {
 			if(client != null){
 				client.close();
 			}
+		} catch (IOException ex){
+			// Do nothing as we want to close;
+		}
+		try {
 			if(server != null){	
 				server.close();
 			}

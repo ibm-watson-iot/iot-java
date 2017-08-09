@@ -1379,8 +1379,15 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		    }	
 	}
 	
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+//	@AfterClass
+//	public static void tearDownAfterClass() throws Exception {
+//		log.info("Test(s) finished, stopping proxy");
+//		proxy.stopProxyServer();
+//		Thread.sleep(1000 * 10);
+//	}
+	
+
+	public void tearDown() throws Exception {
 		log.info("Test(s) finished, stopping proxy");
 		proxy.stopProxyServer();
 		Thread.sleep(1000 * 10);
@@ -1434,7 +1441,9 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		LoggerUtility.info(CLASS_NAME, METHOD, "Completed the wait time before disconnecting");
 		myClient.disconnect();
 		assertFalse("Timed out waiting for a response from the server (32000)",status);
-		tearDownAfterClass();
+//		proxy.stopProxyServer();
+		tearDown();
+//		tearDownAfterClass();
 	}
 	
 	/**
@@ -1489,7 +1498,9 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		
 		myClient.disconnect();
 		assertFalse("Timed out waiting for a response from the server (32000)",status);
-		tearDownAfterClass();
+//		proxy.stopProxyServer();
+		tearDown();
+//		tearDownAfterClass();
 	}
 
 }
