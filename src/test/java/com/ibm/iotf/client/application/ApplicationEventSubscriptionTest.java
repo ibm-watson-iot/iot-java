@@ -14,10 +14,18 @@ package com.ibm.iotf.client.application;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+//import com.ibm.iotf.client.application.AutoReconnect;
+import com.ibm.iotf.client.application.CommunicationProxyServer;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
+import com.ibm.iotf.client.AbstractClient;
 import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.client.app.ApplicationStatus;
 import com.ibm.iotf.client.app.Command;
@@ -26,8 +34,10 @@ import com.ibm.iotf.client.app.Event;
 import com.ibm.iotf.client.app.EventCallback;
 import com.ibm.iotf.client.app.StatusCallback;
 import com.ibm.iotf.client.device.DeviceClient;
+import com.ibm.iotf.util.LoggerUtility;
 
 import junit.framework.TestCase;
+
 
 /**
  * This test verifies that the event & device connectivity status are successfully received by the
@@ -39,6 +49,23 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	private final static String DEVICE_PROPERTIES_FILE = "/device.properties";
 	private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";
 	
+	static CommunicationProxyServer proxy;
+	static final Class<?> cclass = ConnectionLossTest.class;
+	private static final String className = cclass.getName();
+	private static final Logger log = Logger.getLogger(className);
+	
+	private static final String CLASS_NAME = AbstractClient.class.getName();
+	final String METHOD = "connect";
+	
+	private static String domainAddr;
+	private static int portAddr;
+	
+//	private String  message  = "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+//	private MqttConnectOptions options;
+//
+//	private static final MqttDefaultFilePersistence DATA_STORE = new MqttDefaultFilePersistence("C:\temp");
+//	
+
 	/**
 	 * This method publishes a device event such that the application will receive the same
 	 * and verifies that the event is same.
@@ -107,7 +134,6 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		try {
 			myClient.publishEvent("blink", s, "string", 2);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		myClient.disconnect();
@@ -144,7 +170,6 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		try {
 			myClient.publishEvent("blink", payload, "binary", 2);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		myClient.disconnect();
@@ -1322,6 +1347,149 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 			return value.trim();
 		}
 		return value;
+	}
+	
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception{
+		try {
+			
+			/**
+			 * Load device properties
+			 */
+			Properties props = new Properties();
+			try {
+				props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+			} catch (IOException e1) {
+				System.err.println("Not able to read the properties file, exiting..");
+				return;
+			} 
+			
+			String orgId = trimedValue(props.getProperty("Organization-ID"));
+			domainAddr = orgId + ".messaging.internetofthings.ibmcloud.com";
+			
+			proxy = new CommunicationProxyServer(domainAddr, 8883, 0);
+			proxy.startProxyServer();
+			while(!proxy.isPortSet()){
+				Thread.sleep(0);
+			}
+			log.log(Level.INFO, "Proxy Started, port set to: " + proxy.getlocalDevicePort());			
+		} catch (Exception exception) {
+		      log.log(Level.SEVERE, "caught exception:", exception);
+		      throw exception;
+		    }	
+	}
+	
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
+		log.info("Test(s) finished, stopping proxy");
+		proxy.stopProxyServer();
+		Thread.sleep(1000 * 10);
+	}
+	
+	/**
+	 * Test to ascertain network failure while the Client is connected to the Server, 
+	 * has published a Blink event and is awaiting an acknowledgement from the Server.
+	 * @throws Exception
+	 */
+	@Test
+	public void testConnectionLossServerToClient()
+		throws Exception
+	{
+		setUpBeforeClass();
+		final int keepAlive = 15;
+		
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+		
+		props.put("port", this.proxy.getlocalDevicePort()+"");
+		props.put("mqtt-server", "localhost");
+
+		DeviceClient myClient = null;
+		try {
+			myClient = new DeviceClient(props);
+			myClient.setKeepAliveInterval(1000);
+			myClient.connect();
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			return;
+		}
+		
+		//Generate a JSON object of the event to be published
+		JsonObject event = new JsonObject();
+		event.addProperty("name", "foo");
+		event.addProperty("cpu",  90);
+		event.addProperty("mem",  70);
+		
+		proxy.addDelayInServerResponse(61 * 1000);		
+		boolean status = myClient.publishEvent("blink", event, 1);
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Completed the wait time before disconnecting");
+		myClient.disconnect();
+		assertFalse("Timed out waiting for a response from the server (32000)",status);
+		tearDownAfterClass();
+	}
+	
+	/**
+	 * Test to ascertain network loss, while Client is connected to the Server and is trying to Publish a Blink event.
+	 * @throws Exception
+	 */
+	@Test
+	public void testConnectionLossClientToServer()
+		throws Exception
+	{
+		setUpBeforeClass();
+		final int keepAlive = 15;
+		
+		/**
+		 * Load device properties
+		 */
+		Properties props = new Properties();
+		try {
+			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
+		} catch (IOException e1) {
+			System.err.println("Not able to read the properties file, exiting..");
+			return;
+		} 
+		
+		props.put("port", this.proxy.getlocalDevicePort()+"");
+		props.put("mqtt-server", "localhost"); 
+
+		DeviceClient myClient = null;
+		try {
+			myClient = new DeviceClient(props);
+			myClient.setKeepAliveInterval(1000);
+			myClient.connect();
+		} catch (Exception e) {
+			System.out.println(""+e.getMessage());
+			return;
+		}
+		
+		//Generate a JSON object of the event to be published
+		JsonObject event = new JsonObject();
+		event.addProperty("name", "foo");
+		event.addProperty("cpu",  90);
+		event.addProperty("mem",  70);
+					
+		proxy.addDelayInClientPublish(61 * 1000);
+		
+		boolean status = myClient.publishEvent("blink", event, 1);
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Completed the wait time before disconnecting");
+		if(status == true){
+			LoggerUtility.info(CLASS_NAME, METHOD, "Successfully published Blink from Client to the server. ");	
+		}
+		
+		myClient.disconnect();
+		assertFalse("Timed out waiting for a response from the server (32000)",status);
+		tearDownAfterClass();
 	}
 
 }
