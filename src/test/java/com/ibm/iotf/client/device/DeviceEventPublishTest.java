@@ -165,13 +165,17 @@ public class DeviceEventPublishTest extends TestCase{
 			System.err.println("Not able to read the properties file, exiting..");
 			return;
 		} 
-			
+		
+		String orgId = trimedValue(props.getProperty("Organization-ID"));
+		props.put("mqtt-server", orgId+".messaging.internetofthings.ibmcloud.com");
+		
 		DeviceClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
 			myClient = new DeviceClient(props);
 			myClient.connect(true);
 			myClient.disconnect();
+			Thread.sleep(1000 * 10);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
 			// Looks like the properties file is not udpated, just ignore;
