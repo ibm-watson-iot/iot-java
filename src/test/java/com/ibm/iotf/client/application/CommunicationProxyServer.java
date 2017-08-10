@@ -41,10 +41,10 @@ public class CommunicationProxyServer implements Runnable {
 	
 
 	public CommunicationProxyServer(String host, int remoteServerPort, int localDevicePort) {
-		this.localDevicePort = this.remoteServerPort = remoteServerPort;
+		this.localDevicePort = localDevicePort;
+		this.remoteServerPort = remoteServerPort;
 		this.host = host;
 		proxyThread = new Thread(this);
-
 	}
 	
 	public void startProxyServer(){
