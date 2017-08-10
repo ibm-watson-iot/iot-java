@@ -7,7 +7,7 @@
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Sathiskumar Palaniappan - Extended from DeviceClient
- 			 - Added support for Client Side Certificate Authentication
+ 						 - Added Client side Certificate Authentication
  *****************************************************************************
  *
  */
@@ -26,6 +26,8 @@ import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.Security;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -111,6 +113,7 @@ public abstract class AbstractClient {
 	protected String clientId;
 	protected String clientUsername;
 	protected String clientPassword;
+	protected String serverURI;
 	
 	protected int messageCount = 0;
 	
@@ -306,8 +309,14 @@ public abstract class AbstractClient {
 				port = MQTT_PORT;
 			}
 		}
-		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
-
+		
+		String mqttServer = getMQTTServer();
+		if(mqttServer != null){
+			serverURI = protocol + mqttServer + ":" + port;
+		} else {
+			serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
+		}
+		
 		try {
 			persistence = new MemoryPersistence();
 			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, persistence);
@@ -335,9 +344,21 @@ public abstract class AbstractClient {
 	 * @return the port number specified by the user
 	 */
 	private int getPortNumber() {
-		String port = options.getProperty("Port", "-1");
+		String port = options.getProperty("port", "-1");
 		port = trimedValue(port);
 		return Integer.parseInt(port);
+	}
+	
+	/**
+	 * @return the MQTT Server specified by the user
+	 */
+	public String getMQTTServer() {
+		String mqttServer;
+		mqttServer = options.getProperty("mqtt-server");
+		if(mqttServer == null) {
+			return null;
+		}
+		return trimedValue(mqttServer);
 	}
 	
 	/**
@@ -367,7 +388,12 @@ public abstract class AbstractClient {
 			}
 		} 
 
-		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
+		String mqttServer = getMQTTServer();
+		if(mqttServer != null){
+			serverURI = protocol + mqttServer + ":" + port;
+		} else {
+			serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
+		}
 		try {
 			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, DATA_STORE);
 			mqttAsyncClient.setCallback(mqttCallback);
@@ -382,7 +408,6 @@ public abstract class AbstractClient {
 			if(this.keepAliveInterval != -1) {
 				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
 			}
-			
 			mqttClientOptions.setMaxInflight(getMaxInflight());
 			mqttClientOptions.setAutomaticReconnect(isAutomaticReconnect());
 			
@@ -425,7 +450,14 @@ public abstract class AbstractClient {
 			}
 		} 
 
-		String serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
+		String mqttServer = getMQTTServer();
+		
+		if(mqttServer != null){
+			serverURI = protocol + mqttServer + ":" + port;
+		} else {
+			serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
+		}
+		
 		try {
 			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, DATA_STORE);
 			mqttAsyncClient.setCallback(mqttCallback);
@@ -467,15 +499,14 @@ public abstract class AbstractClient {
 
 			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
 			sslContext.init(null, null, null);
-			//String serverCert, clientCert, clientCertKey, certPassword;
 			
 			//Validate the availability of Server Certificate
 			
 			if (trimedValue(options.getProperty("Server-Certificate")) != null){
-				if (trimedValue(options.getProperty("Server-Certificate")).contains(".pem")){
+				if (trimedValue(options.getProperty("Server-Certificate")).contains(".pem")||trimedValue(options.getProperty("Server-Certificate")).contains(".der")||trimedValue(options.getProperty("Server-Certificate")).contains(".cer")){
 					serverCert = trimedValue(options.getProperty("Server-Certificate"));
 					}else{
-						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only .pem certificate format is supported at this point of time");
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only PEM, DER & CER certificate formats are supported at this point of time");
 						return;
 					}
 				}else{
@@ -485,10 +516,10 @@ public abstract class AbstractClient {
 			
 			//Validate the availability of Client Certificate
 			if (trimedValue(options.getProperty("Client-Certificate")) != null){
-				if (trimedValue(options.getProperty("Client-Certificate")).contains(".pem")){
+				if (trimedValue(options.getProperty("Server-Certificate")).contains(".pem")||trimedValue(options.getProperty("Server-Certificate")).contains(".der")||trimedValue(options.getProperty("Server-Certificate")).contains(".cer")){
 					clientCert = trimedValue(options.getProperty("Client-Certificate"));
 					}else{
-						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only .pem certificate format is supported at this point of time");
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only PEM, DER & CER certificate formats are supported at this point of time");
 						return;
 					}
 				}else{
@@ -513,7 +544,6 @@ public abstract class AbstractClient {
 			try{
 			if (trimedValue(options.getProperty("Certificate-Password")) != null){
 				certPassword = trimedValue(options.getProperty("Certificate-Password"));
-				//return certPassword;
 				} else {
 					certPassword = "";
 				}
@@ -647,7 +677,7 @@ public abstract class AbstractClient {
 			this.disconnectRequested = true;
 			mqttAsyncClient.disconnect();
 			LoggerUtility.info(CLASS_NAME, METHOD, "Successfully disconnected "
-					+ "from from the IBM Watson IoT Platform");
+					+ "from the IBM Watson IoT Platform");
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
@@ -739,20 +769,6 @@ public abstract class AbstractClient {
 			org = options.getProperty("Organization-ID");
 		}
 		return trimedValue(org);
-	}
-	
-	/**
-	 * 
-	 * @return the Client Certificate
-	 */
-	public String getClientCert() {
-		String clientCert;
-		clientCert = options.getProperty("clientCert");
-		
-		if(clientCert == null) {
-			clientCert = options.getProperty("Client-Certificate");
-		}
-		return trimedValue(clientCert);
 	}
 	
 	/*
