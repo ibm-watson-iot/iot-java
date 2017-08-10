@@ -516,7 +516,7 @@ public abstract class AbstractClient {
 			
 			//Validate the availability of Client Certificate
 			if (trimedValue(options.getProperty("Client-Certificate")) != null){
-				if (trimedValue(options.getProperty("Server-Certificate")).contains(".pem")||trimedValue(options.getProperty("Server-Certificate")).contains(".der")||trimedValue(options.getProperty("Server-Certificate")).contains(".cer")){
+				if (trimedValue(options.getProperty("Client-Certificate")).contains(".pem")||trimedValue(options.getProperty("Client-Certificate")).contains(".der")||trimedValue(options.getProperty("Client-Certificate")).contains(".cer")){
 					clientCert = trimedValue(options.getProperty("Client-Certificate"));
 					}else{
 						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only PEM, DER & CER certificate formats are supported at this point of time");
