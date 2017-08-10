@@ -1435,7 +1435,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		event.addProperty("cpu",  90);
 		event.addProperty("mem",  70);
 		
-		proxy.addDelayInServerResponse(61 * 1000);		
+		proxy.addDelayInServerResponse(100 * 1000);	
+		
 		boolean status = myClient.publishEvent("blink", event, 1);
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Completed the wait time before disconnecting");
@@ -1487,7 +1488,7 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		event.addProperty("cpu",  90);
 		event.addProperty("mem",  70);
 					
-		proxy.addDelayInClientPublish(61 * 1000);
+		proxy.addDelayInClientPublish(100 * 1000);
 		
 		boolean status = myClient.publishEvent("blink", event, 1);
 		
