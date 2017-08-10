@@ -1387,11 +1387,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 //	}
 	
 
-	public void tearDown() throws Exception {
-		log.info("Test(s) finished, stopping proxy");
-		proxy.stopProxyServer();
-		Thread.sleep(1000 * 10);
-	}
+//	public void tearDown() throws Exception {
+//		log.info("Test(s) finished, stopping proxy");
+//		proxy.stopProxyServer();
+//		Thread.sleep(1000 * 10);
+//	}
 	
 	/**
 	 * Test to ascertain network failure while the Client is connected to the Server, 
