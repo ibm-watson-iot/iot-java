@@ -1366,7 +1366,7 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 			
 			String orgId = trimedValue(props.getProperty("Organization-ID"));
 			domainAddr = orgId + ".messaging.internetofthings.ibmcloud.com";
-			
+						
 			proxy = new CommunicationProxyServer(domainAddr, 8883, 0);
 			proxy.startProxyServer();
 			while(!proxy.isPortSet()){
@@ -1418,6 +1418,7 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		
 		props.put("port", this.proxy.getlocalDevicePort()+"");
 		props.put("mqtt-server", "localhost");
+		props.put("Automatic-Reconnect", "false");
 
 		DeviceClient myClient = null;
 		try {
