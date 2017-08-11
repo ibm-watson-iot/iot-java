@@ -154,7 +154,6 @@ public class DeviceEventPublishTest extends TestCase{
 	/**
 	 * NegativeTest - try to publish after disconnect, it should return immediately 
 	 */
-	@Ignore
 	@Test
 	public void testPublishAfterDisconnect(){			
 		/**
@@ -177,9 +176,7 @@ public class DeviceEventPublishTest extends TestCase{
 			//Instantiate the class by passing the properties file
 			myClient = new DeviceClient(props);
 			myClient.connect(true);
-			Thread.sleep(1000 * 10);
 			myClient.disconnect();
-			Thread.sleep(1000 * 10);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
 			// Looks like the properties file is not udpated, just ignore;
