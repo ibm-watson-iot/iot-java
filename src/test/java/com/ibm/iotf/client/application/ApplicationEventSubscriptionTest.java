@@ -1472,6 +1472,7 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		
 		props.put("port", this.proxy.getlocalDevicePort()+"");
 		props.put("mqtt-server", "localhost"); 
+		props.put("Automatic-Reconnect", "false");
 
 		DeviceClient myClient = null;
 		try {
