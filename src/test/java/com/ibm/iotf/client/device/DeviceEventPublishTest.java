@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
@@ -153,6 +154,7 @@ public class DeviceEventPublishTest extends TestCase{
 	/**
 	 * NegativeTest - try to publish after disconnect, it should return immediately 
 	 */
+	@Ignore
 	@Test
 	public void testPublishAfterDisconnect(){			
 		/**
