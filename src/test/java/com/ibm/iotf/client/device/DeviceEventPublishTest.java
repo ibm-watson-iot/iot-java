@@ -170,12 +170,14 @@ public class DeviceEventPublishTest extends TestCase{
 		
 		String orgId = trimedValue(props.getProperty("Organization-ID"));
 		props.put("mqtt-server", orgId+".messaging.internetofthings.ibmcloud.com");
+		props.put("Automatic-Reconnect", "false");
 		
 		DeviceClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
 			myClient = new DeviceClient(props);
 			myClient.connect(true);
+			Thread.sleep(1000 * 10);
 			myClient.disconnect();
 			Thread.sleep(1000 * 10);
 		} catch (Exception e) {
