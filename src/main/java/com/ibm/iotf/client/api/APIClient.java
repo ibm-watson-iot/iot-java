@@ -4855,4 +4855,818 @@ public class APIClient {
 		return null;
 	}
 	
+
+	/**
+	 * Get the state for the device with the specified id
+	 * 
+	 * @param typeId String containing the Device Type Id.
+	 * 
+	 * @param deviceId String containing the Device Id.
+	 * 
+	 * @param logicalInterfaceId String containing the Logical Interface Id.
+	 * 
+	 * @return JSON response containing current state of the device with the specified id
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving current state of the device with the specified id
+	 */
+	public JsonObject getDeviceState(String typeId, String deviceId, String logicalInterfaceId) throws IoTFCReSTException {
+		
+		final String METHOD = "getDeviceState";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/device/types/").
+		   append(typeId).
+		   append("/devices/").
+		   append(deviceId).
+		   append("/state/").
+		   append(logicalInterfaceId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving current state of the device with the specified id "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "An active device type, device or logical interface with the specified ids do not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Get list of all draft event types
+	 * 
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing list of all draft event types
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving draft event types
+	 */
+	public JsonObject getDraftEventTypes(List<NameValuePair> parameters) throws IoTFCReSTException {
+		
+		final String METHOD = "getDraftEventTypes";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/event/types/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, parameters);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of draft event types "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Adds draft event type for an organization in Watson IoT Platform.
+	 * 
+	 * @param draftEventType String in the form of JSON containing the event.
+	 * 
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * 
+	 * @throws IoTFCReSTException if failed.
+	 * 
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject addEventToPhysicalInterface(String draftEventType) throws IoTFCReSTException {
+		final String METHOD = "addEventToPhysicalInterface";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		String method = "post";
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/draft/event/types");
+			response = connect(method, sb.toString(), draftEventType, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 201) {
+					//Success
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_EVENT_TYPE_ERR_400;
+						break;
+					case 401:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_EVENT_TYPE_ERR_401;
+						break;
+					case 403:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_EVENT_TYPE_ERR_403;
+						break;
+					case 500:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_EVENT_TYPE_ERR_500;
+						break;
+					}
+					throw new IoTFCReSTException(method, sb.toString(), draftEventType, code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (IoTFCReSTException e) {
+			throw e;
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding draft event type to an organization in Watson IoT Platform "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+	
+	
+	/**
+	 * Removes a draft event type created in an organization in Watson IoT Platform.
+	 * 
+	 * @param eventTypeId String to be deleted from IBM Watson IoT Platform
+	 *   
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Physical_Interface/delete_physical_interface_Id">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean object containing the response of the deletion operation.
+	 *  
+	 * @throws IoTFCReSTException Failure in deleting the draft event type
+	 */
+
+	public boolean deleteDraftEventType(String eventTypeId) throws IoTFCReSTException {
+		final String METHOD = "deleteDraftEventType";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/event/types/").
+		   append(eventTypeId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		String method = "delete";
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 204) {
+				return true;
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in removing the event from an organization in atson IoT Platform "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return false;
+	}
+	
+	
+	/**
+	 * Get draft event Type
+	 * 
+	 * @param eventTypeId String containing the Event Type Id.
+	 * 
+	 * @return JSON response containing the draft event type with the specified id
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the draft event type with the specified id
+	 */
+	public JsonObject getDraftEventType(String eventTypeId) throws IoTFCReSTException {
+		
+		final String METHOD = "getDraftEventType";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/event/types/").
+		   append(eventTypeId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the draft event type with the specified id "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 304) {
+			throw new IoTFCReSTException(code, "The state of the event type has not been modified (response to a conditional GET)");
+		} if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "An event type with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Updates draft event type	 
+	 *   
+	 * @param eventTypeId String which contains draft event type id to be retrieved
+	 * 
+	 * @param draftEventType String which contains the Event Type in JSON format
+     *
+	 * <p> Refer to the
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/put_device_types_typeId_devices_deviceId_location">link</a>
+	 * for more information about the JSON format</p>.
+	 *   
+	 * @return A JSON response containing the status of the update operation.
+	 * 
+	 * @throws IoTFCReSTException Failure in updating the device location
+	 */
+	public JsonObject updateDraftEventType(String eventTypeId, String draftEventType) throws IoTFCReSTException {
+		final String METHOD = "updateDraftEventType";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/event/types/").
+		   append(eventTypeId);
+		
+		int code = 0;
+		JsonElement jsonResponse = null;
+		HttpResponse response = null;
+		String method = "put";
+		try {
+			response = connect(method, sb.toString(), draftEventType, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200 || code == 409) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if(code == 200) {
+					return jsonResponse.getAsJsonObject();
+				}
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in updating the draft event type "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "An Event Type with the specified id does not exist");
+		} else if(code == 412) {
+			throw new IoTFCReSTException(code, "The state of the event type has been modified since the client retrieved "
+					+ "its representation (response to a conditional PUT)");
+		} else if (code == 500) {		
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+		
+	/**
+	 * Get list of all active event types
+	 * 
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing list of all active event types
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving active event types
+	 */
+	public JsonObject getActiveEventTypes(List<NameValuePair> parameters) throws IoTFCReSTException {
+		
+		final String METHOD = "getActiveEventTypes";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/event/types/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, parameters);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of active event types "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+
+	/**
+	 * Get active event Type
+	 * 
+	 * @param eventTypeId String containing the active Event Type Id.
+	 * 
+	 * @return JSON response containing the active event type with the specified id
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the active event type with the specified id
+	 */
+	public JsonObject getActiveEventType(String eventTypeId) throws IoTFCReSTException {
+		
+		final String METHOD = "getActiveEventType";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/event/types/").
+		   append(eventTypeId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the active event type with the specified id "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 304) {
+			throw new IoTFCReSTException(code, "The state of the event type has not been modified (response to a conditional GET)");
+		} if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "An event type with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+		
+	/**
+	 * Get list of all device types
+	 * 
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing list of all device types
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving list of all device types
+	 */
+	public JsonObject getDeviceTypes(List<NameValuePair> parameters) throws IoTFCReSTException {
+		
+		final String METHOD = "getDeviceTypes";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/device/types/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, parameters);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of all device types "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Perform operation against Device Type
+	 *  
+	 * @param typeId String which contains the device type id
+	 * 
+	 * @param deviceTypeOperation String contains the operation in JSON format
+	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/patch_logicalinterfaces_logicalInterfaceId">link</a>
+	 * for more information about the JSON format</p>.
+	 *   
+	 * @return A JSON response containing the status of the patch operation.
+	 * 
+	 * @throws IoTFCReSTException Failure in updating the device type operation
+	 */
+	public JsonObject performOperationAgainstDeviceType(String typeId, String deviceTypeOperation) throws IoTFCReSTException {
+		final String METHOD = "performOperationAgainstDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/device/types/").
+		   append(typeId);
+		
+		int code = 0;
+		JsonElement jsonResponse = null;
+		HttpResponse response = null;
+		String method = "patch";
+		try {
+			response = connect(method, sb.toString(), deviceTypeOperation, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200 || code == 202) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if(code == 200) {
+					return jsonResponse.getAsJsonObject();
+				}
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in updating the device type operation "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "The device type does not exist");
+		} else if(code == 409) {
+			throw new IoTFCReSTException(code, "The deactivate operation failed because there is no active configuration associated with the device type ");
+		} else if (code == 500) {		
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+
+	/**
+	 * Get active logical interfaces associated with a device type
+	 * 
+	 * @param typeId String containing the device Type Id.
+	 * 
+	 * @return JSON response containing the list of active logical interfaces with the specified device type id
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the list of active logical interfaces with the specified device type id
+	 */
+	public JsonObject getActiveLogicalInterfacesForDeviceType(String typeId) throws IoTFCReSTException {
+		
+		final String METHOD = "getActiveLogicalInterfacesForDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/device/types/").
+		   append(typeId).
+		   append("/logicalinterfaces");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of active logical interfaces with the specified device type id "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+
+	/**
+	 * Get the list of active property mappings for a device type
+	 * 
+	 * @param typeId String containing the device Type Id.
+	 * 
+	 * @return JSON response containing the list of active property mappings for a device type
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the list of active property mappings for a device type
+	 */
+	public JsonObject getActivePropertyMappingsForDeviceType(String typeId) throws IoTFCReSTException {
+		
+		final String METHOD = "getActivePropertyMappingsForDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/device/types/").
+		   append(typeId).
+		   append("/mappings");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of active property mappings for a device type "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+
+	/**
+	 * Get the list of active property mappings for a logical interface of a given device type
+	 * 
+	 * @param typeId String containing the device Type Id.
+	 * 
+	 * @param logicalInterfaceId String containing the logical interface Id
+	 * 
+	 * @return JSON response containing the list of active property mappings for a logical interface of a given device type
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the list of active property mappings for a logical interface of a given device type
+	 */
+	public JsonObject getActivePropertyMappingsForLogicalInterfaceOfDeviceType(String typeId, String logicalInterfaceId) throws IoTFCReSTException {
+		
+		final String METHOD = "getActivePropertyMappingsForLogicalInterfaceOfDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/device/types/").
+		   append(typeId).
+		   append("/mappings/").
+		   append(logicalInterfaceId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of active property mappings for a logical interface of a given device type "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or a property mapping for the specified logical interface id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Get active physical interface for a given device type
+	 * 
+	 * @param typeId String containing the device Type Id.
+	 * 
+	 * @return JSON response containing active physical interface for a given device type
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the active physical interface for a given device type
+	 */
+	public JsonObject getActivePhysicalInterfaceForDeviceType(String typeId) throws IoTFCReSTException {
+		
+		final String METHOD = "getActivePhysicalInterfaceForDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/device/types/").
+		   append(typeId).
+		   append("/physicalinterface");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the active physical interface for a given device type "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or has no active physical interface associated with it");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
 }
