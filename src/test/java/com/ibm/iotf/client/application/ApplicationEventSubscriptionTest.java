@@ -7,6 +7,7 @@
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Sathiskumar Palaniappan - Initial Contribution
+ Prasanna A Mathada - Initial Contribution
  *****************************************************************************
  *
  */
@@ -1378,21 +1379,7 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		      throw exception;
 		    }	
 	}
-	
-//	@AfterClass
-//	public static void tearDownAfterClass() throws Exception {
-//		log.info("Test(s) finished, stopping proxy");
-//		proxy.stopProxyServer();
-//		Thread.sleep(1000 * 10);
-//	}
-	
-
-//	public void tearDown() throws Exception {
-//		log.info("Test(s) finished, stopping proxy");
-//		proxy.stopProxyServer();
-//		Thread.sleep(1000 * 10);
-//	}
-	
+		
 	/**
 	 * Test to ascertain network failure while the Client is connected to the Server, 
 	 * has published a Blink event and is awaiting an acknowledgement from the Server.
@@ -1444,8 +1431,6 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		myClient.disconnect();
 		assertFalse("Timed out waiting for a response from the server (32000)",status);
 		proxy.stopProxyServer();
-//		tearDown();
-//		tearDownAfterClass();
 	}
 	
 	/**
@@ -1502,8 +1487,6 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		myClient.disconnect();
 		assertFalse("Timed out waiting for a response from the server (32000)",status);
 		proxy.stopProxyServer();
-//		tearDown();
-//		tearDownAfterClass();
 	}
 
 }
