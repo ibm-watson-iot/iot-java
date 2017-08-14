@@ -130,6 +130,11 @@
             <artifactId>joda-time</artifactId>
             <version>2.9.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk16</artifactId>
+            <version>1.45</version>
+        </dependency>
 
     </dependencies>
 
