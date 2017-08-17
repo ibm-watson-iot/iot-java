@@ -7,7 +7,7 @@
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Sathiskumar Palaniappan - Extended from DeviceClient
- 						 - Added Client side Certificate Authentication
+                         - Added Client side Certificate Authentication
  *****************************************************************************
  *
  */
