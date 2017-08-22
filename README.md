@@ -82,6 +82,7 @@ Key additions to v0.2.5
 -------------------------------------------------------------------------------
 
 Version 0.2.5 of the Watson IoT Java Client Library extends the authentication mechanism by adding support for Client side Certificate based authentication. The enhanced security policies enable organizations to determine how they want devices to connect to and be authenticated to the platform. The extended security options that are available to an organization depend on the plan type. Lite, Standard or Advanced Security Plan (ASP) types are available.
+
 Network failure tests that help ascertain network disconnectivity between the Client and the Server while data events are in transit, have been added to the test suite. Leverage the existing setup to build on top of it, various network failure simulations, that suit the needs of your environment. [Further documentation on how one can simulate the conditions are mentioned here](https://github.com/amprasanna/iot-java/blob/master/docs/Steps_to_simulate_Network_Failure_Conditions.md).
 
 ----
