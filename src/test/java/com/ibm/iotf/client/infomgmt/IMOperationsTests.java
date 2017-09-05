@@ -14,8 +14,13 @@
 
 package com.ibm.iotf.client.infomgmt;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -195,6 +200,18 @@ public class IMOperationsTests extends TestCase {
 		}
 
 		//Create Schema Resource
+		
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(new File(EVENT_SCHEMA1)));
+			String sCurrentLine;
+
+			while ((sCurrentLine = br.readLine()) != null) {
+				System.out.println(sCurrentLine);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		JsonObject draftSchemaResponse = apiClient.addDraftSchemaDefinition(new File(EVENT_SCHEMA1), SCHEMA_NAME1, SCHEMA_DESCRIPTION1, SCHEMA_TYPE1);
 		physicalSchemaId = draftSchemaResponse.get("id").getAsString();
 		System.out.println("Schema created with id = " + physicalSchemaId);
