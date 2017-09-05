@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
@@ -165,7 +166,11 @@ public class DeviceEventPublishTest extends TestCase{
 			System.err.println("Not able to read the properties file, exiting..");
 			return;
 		} 
-			
+		
+		String orgId = trimedValue(props.getProperty("Organization-ID"));
+		props.put("mqtt-server", orgId+".messaging.internetofthings.ibmcloud.com");
+		props.put("Automatic-Reconnect", "false");
+		
 		DeviceClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
