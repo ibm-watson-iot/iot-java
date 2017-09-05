@@ -13,6 +13,8 @@
 package com.ibm.iotf.client.api;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
@@ -31,6 +33,7 @@ import java.security.cert.X509Certificate;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.net.util.Base64;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -52,6 +55,8 @@ import com.ibm.iotf.client.AbstractClient;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.util.LoggerUtility;
 
+
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 /**
  * Class to register, delete and retrieve information about devices <br>
  * This class can also be used to retrieve historian information
@@ -90,6 +95,23 @@ public class APIClient {
 
 	}//ending enum
 	
+	public enum SchemaOperation {
+
+		VALIDATE("validate-configuration"), 
+		ACTIVATE("activate-configuration"),
+		DEACTIVATE("deactivate-configuration");
+		
+		SchemaOperation(String operation) {
+			stateOperation = operation;
+		}
+		
+		public String getOperation() {
+			return stateOperation;
+		}
+		
+		private String stateOperation;
+	}
+		
 	private ContentType contentType = ContentType.json;
 	private boolean isSecured = true;
 	public APIClient(Properties opt) throws NoSuchAlgorithmException, KeyManagementException {
@@ -257,6 +279,9 @@ public class APIClient {
 				return caseGetFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "delete":
 				return caseDeleteFromConnect(queryParameters, url, METHOD,input, encodedString);
+			case "patch":
+				return casePatchFromConnect(queryParameters, url, METHOD,input, encodedString);
+
 		}
 		return null;
 			
@@ -372,8 +397,11 @@ public class APIClient {
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8));
 		String line = null;
+		StringBuffer responseLine = new StringBuffer();
 		try {
-			line = br.readLine();
+			while((line = br.readLine()) != null) {
+				responseLine.append(line);
+			}
 		} catch (IOException e) {
 			LoggerUtility.warn(CLASS_NAME, method, e.getMessage());
 			throw e;
@@ -386,7 +414,7 @@ public class APIClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return line;
+		return responseLine.toString();
 	}
 	
 	/**
@@ -4004,14 +4032,13 @@ public class APIClient {
 		HttpResponse response = null;
 		String method = "patch";
 		try {
+			System.out.println("URL = " + sb.toString() + " operation = " + operation);
 			response = connect(method, sb.toString(), operation, null);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200 || code == 202) {
 				String result = this.readContent(response, METHOD);
 				jsonResponse = new JsonParser().parse(result);
-				if(code == 200) {
-					return jsonResponse.getAsJsonObject();
-				}
+				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in performing an operation against a draft logical interface "
@@ -4032,8 +4059,10 @@ public class APIClient {
 			throw new IoTFCReSTException(code, "The activate-configuration operation failed because the Information Management metadata associated with the logical interface is invalid");
 		} else if (code == 500) {		
 			throw new IoTFCReSTException(500, "Unexpected error");
+		} else {
+			System.out.println("code = " + code);
+			throwException(response, METHOD);
 		}
-		throwException(response, METHOD);
 		return null;
 	}
 	
@@ -4073,10 +4102,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200 || code == 202) {
 				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
-				if(code == 200) {
-					return jsonResponse.getAsJsonObject();
-				}
+				return new JsonParser().parse(result).getAsJsonObject();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in performing an operation against a logical interface "
@@ -4309,6 +4335,7 @@ public class APIClient {
 					throw new IoTFCReSTException(method, sb.toString(), draftPhysicalInterface, code, reason, jsonResponse);
 				}
 			} else {
+				System.out.println("Code = " + code);
 				throw new IoTFCReSTException(code, "Unexpected error");
 			}
 		} catch (IoTFCReSTException e) {
@@ -4470,7 +4497,7 @@ public class APIClient {
 		try {
 			response = connect(method, sb.toString(), draftPhysicalInterface, null);
 			code = response.getStatusLine().getStatusCode();
-			if(code == 200 || code == 409) {
+			if(code == 200) {
 				String result = this.readContent(response, METHOD);
 				jsonResponse = new JsonParser().parse(result);
 				if(code == 200) {
@@ -4579,7 +4606,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving events mapped to a Draft Physical Interface
 	 */
-	public JsonObject getEventsMappedToDraftPhysicalInterface(String draftPhysicalInterfaceId) throws IoTFCReSTException {
+	public JsonArray getEventsMappedToDraftPhysicalInterface(String draftPhysicalInterfaceId) throws IoTFCReSTException {
 		
 		final String METHOD = "getEventsMappedToDraftPhysicalInterface";
 		/**
@@ -4603,7 +4630,7 @@ public class APIClient {
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				return jsonResponse.getAsJsonObject();
+				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of events associated with draft physical interface "
@@ -4984,8 +5011,8 @@ public class APIClient {
 	 * 
 	 * @see IoTFCReSTException
 	 */
-	public JsonObject addEventToPhysicalInterface(String draftEventType) throws IoTFCReSTException {
-		final String METHOD = "addEventToPhysicalInterface";
+	public JsonObject addDraftEventType(String draftEventType) throws IoTFCReSTException {
+		final String METHOD = "addDraftEventType";
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		int code = 0;
@@ -5418,7 +5445,7 @@ public class APIClient {
 			if(code == 200 || code == 202) {
 				String result = this.readContent(response, METHOD);
 				jsonResponse = new JsonParser().parse(result);
-				if(code == 200) {
+				if(code == 200 || code == 202) {
 					return jsonResponse.getAsJsonObject();
 				}
 			}
@@ -5669,4 +5696,1371 @@ public class APIClient {
 		return null;
 	}
 
+	
+	/**
+	 * Get list of all device types associated with a logical of phsical interface
+	 * 
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing list of all device types
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving list of all device types
+	 */
+	public JsonObject getDeviceTypesAssociatedWithLogicalOrPhysicalInterface(List<NameValuePair> parameters) throws IoTFCReSTException {
+		
+		final String METHOD = "getDeviceTypesAssociatedWithLogicalOrPhysicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/device/types/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, parameters);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of all device types "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Perform operation against Draft Device Type
+	 *  
+	 * @param typeId String which contains the draft device type id
+	 * 
+	 * @param deviceTypeOperation String contains the operation in JSON format
+	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/patch_logicalinterfaces_logicalInterfaceId">link</a>
+	 * for more information about the JSON format</p>.
+	 *   
+	 * @return A JSON response containing the status of the patch operation.
+	 * 
+	 * @throws IoTFCReSTException Failure in updating the draft device type operation
+	 */
+	public JsonObject performOperationAgainstDraftDeviceType(String typeId, String deviceTypeOperation) throws IoTFCReSTException {
+		final String METHOD = "performOperationAgainstDraftDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/device/types/").
+		   append(typeId);
+		
+		int code = 0;
+		JsonElement jsonResponse = null;
+		HttpResponse response = null;
+		String method = "patch";
+		try {
+			response = connect(method, sb.toString(), deviceTypeOperation, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200 || code == 202) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if(code == 200 || code == 202) {
+					return jsonResponse.getAsJsonObject();
+				}
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in updating the draft device type operation "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "The device type does not exist");
+		} else if(code == 409) {
+			throw new IoTFCReSTException(code, "The activate-configuration operation failed because the Information Management metadata associated with the device type is invalid ");
+		} else if (code == 500) {		
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+
+	/**
+	 * Get draft logical interfaces associated with a device type
+	 * 
+	 * @param typeId String containing the device Type Id.
+	 * 
+	 * @return JSON response containing the list of draft logical interfaces associated with the specified device type id
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the list of draft logical interfaces associated with the specified device type id
+	 */
+	public JsonObject getDraftLogicalInterfacesForDeviceType(String typeId) throws IoTFCReSTException {
+		
+		final String METHOD = "getDraftLogicalInterfacesForDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/device/types/").
+		   append(typeId).
+		   append("/logicalinterfaces");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of draft logical interfaces associated with the specified device type id "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+	
+	/**
+	 * Adds draft logical interface to a device type
+	 * 
+	 * @param typeId String containing the device type Id
+	 * 
+	 * @param draftLogicalInterface String in the form of JSON containing the event.
+	 * 
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * 
+	 * @throws IoTFCReSTException if failed.
+	 * 
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject addDraftLogicalInterfaceToDeviceType(String typeId, String draftLogicalInterface) throws IoTFCReSTException {
+		final String METHOD = "addDraftLogicalInterfaceToDeviceType";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		String method = "post";
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/draft/device/types/").
+			   append(typeId).
+			   append("/logicalinterfaces");
+			response = connect(method, sb.toString(), draftLogicalInterface, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 404 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 201) {
+					//Success
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_LOGICAL_INTERFACE_ERR_400;
+						break;
+					case 401:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_LOGICAL_INTERFACE_ERR_401;
+						break;
+					case 403:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_LOGICAL_INTERFACE_ERR_403;
+						break;
+					case 404:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_LOGICAL_INTERFACE_ERR_404;
+						break;
+					case 500:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_LOGICAL_INTERFACE_ERR_500;
+						break;
+					}
+					throw new IoTFCReSTException(method, sb.toString(), draftLogicalInterface, code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (IoTFCReSTException e) {
+			throw e;
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding draft logical interface to a device type in Watson IoT Platform "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+	
+	
+	/**
+	 * Removes a draft logical interface from a device type in Watson IoT Platform.
+	 * 
+	 * @param typeId String device type from which draft logical interface needs to be deleted from
+	 * 
+	 * @param draftLogicalInterfaceId String draft logical interface
+	 *   
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Physical_Interface/delete_physical_interface_Id">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean object containing the response of the deletion operation.
+	 *  
+	 * @throws IoTFCReSTException Failure in deleting the draft logical interface from device type
+	 */
+
+	public boolean deleteDraftLogicalInterface(String typeId, String draftLogicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "deleteDraftLogicalInterface";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/device/types/").
+		   append(typeId).
+		   append("/logicalinterfaces/").
+		   append(draftLogicalInterfaceId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		String method = "delete";
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 204) {
+				return true;
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in removing draft logical interface from a device type "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or the draft logical interface with specified id is not associated with the device type");
+		} else if (code == 409) {
+			throw new IoTFCReSTException(code, "The draft logical interface with the specified id is currently being referenced by the property mappings on the device type");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return false;
+	}
+	
+
+	/**
+	 * Get list of draft property mappings for a device type
+	 * 
+	 * @param typeId String containing the device Type Id.
+	 * 
+	 * @return JSON response containing the list of draft property mappings associated with the specified device type id
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the list of draft property mappings associated with the specified device type id
+	 */
+	public JsonObject getDraftPropertyMappingsForDeviceType(String typeId) throws IoTFCReSTException {
+		
+		final String METHOD = "getDraftPropertyMappingsForDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/device/types/").
+		   append(typeId).
+		   append("/mappings");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of draft property mappings associated with the specified device type id "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+	
+	/**
+	 * Adds draft property mappings to a device type
+	 * 
+	 * @param typeId String containing the device type Id
+	 * 
+	 * @param draftDeviceTypePropertyMappings String in the form of JSON containing the event.
+	 * 
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * 
+	 * @throws IoTFCReSTException if failed.
+	 * 
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject addDraftPropertyMappingsToDeviceType(String typeId, String draftDeviceTypePropertyMappings) throws IoTFCReSTException {
+		final String METHOD = "addDraftPropertyMappingsToDeviceType";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		String method = "post";
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/draft/device/types/").
+			   append(typeId).
+			   append("/mappings");
+			response = connect(method, sb.toString(), draftDeviceTypePropertyMappings, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 404 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 201) {
+					//Success
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_PROPERTY_MAPPINGS_ERR_400;
+						break;
+					case 401:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_PROPERTY_MAPPINGS_ERR_401;
+						break;
+					case 403:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_PROPERTY_MAPPINGS_ERR_403;
+						break;
+					case 404:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_PROPERTY_MAPPINGS_ERR_404;
+						break;
+					case 500:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_PROPERTY_MAPPINGS_ERR_500;
+						break;
+					}
+					throw new IoTFCReSTException(method, sb.toString(), draftDeviceTypePropertyMappings, code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (IoTFCReSTException e) {
+			throw e;
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding draft property mappings to a device type in Watson IoT Platform "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+	
+	
+	/**
+	 * Removes a draft property mappings for specific logical interface for a device type in Watson IoT Platform.
+	 * 
+	 * @param typeId String device type from which draft property mappings needs to be deleted from
+	 * 
+	 * @param draftLogicalInterfaceId String draft logical interface
+	 *   
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Physical_Interface/delete_physical_interface_Id">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean object containing the response of the deletion operation.
+	 *  
+	 * @throws IoTFCReSTException Failure in deleting the draft property mappings for a specific logical interface for a device type
+	 */
+
+	public boolean deleteDraftPropertyMappings(String typeId, String draftLogicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "deleteDraftPropertyMappings";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/device/types/").
+		   append(typeId).
+		   append("/mappings/").
+		   append(draftLogicalInterfaceId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		String method = "delete";
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 204) {
+				return true;
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure deleting the draft property mappings for a specific logical interface for a device type "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or property the draft logical interface with specified id is not associated with the device type");
+		} else if (code == 409) {
+			throw new IoTFCReSTException(code, "The draft logical interface with the specified id is currently being referenced by the property mappings for the specified logical interface does not exist");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return false;
+	}
+
+	
+	/**
+	 * Get list of draft property mappings for a device type
+	 * 
+	 * @param typeId String containing the device Type Id.
+	 * 
+	 * @param logicalInterfaceId String containing the Logical Interface Id
+	 * 
+	 * @return JSON response containing the list of draft property mappings for a specific logical interface id for a device type
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the list of draft property mappings for a specific logical interface id for a device type
+	 */
+	public JsonObject getDraftPropertyMappingsForDeviceType(String typeId, String logicalInterfaceId) throws IoTFCReSTException {
+		
+		final String METHOD = "getDraftPropertyMappingsForDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/device/types/").
+		   append(typeId).
+		   append("/mappings/").
+		   append(logicalInterfaceId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of draft property mappings for a specific logical interface id for a device type "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or a property mapping for the specified logical interface id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Update the draft property mappings for a specific logical interface for the device type	 
+	 *   
+	 * @param typeId String which contains device type id to be retrieved
+	 * 
+	 * @param logicalInterfaceId String which contains the Logical Interface Id
+	 * 
+	 * @param deviceTypePropertyMappings String which contains the device type property mappings in JSON format
+     *
+	 * <p> Refer to the
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/put_device_types_typeId_devices_deviceId_location">link</a>
+	 * for more information about the JSON format</p>.
+	 *   
+	 * @return A JSON response containing the status of the update operation.
+	 * 
+	 * @throws IoTFCReSTException Failure in updating the draft property mappings for a specific logical interface for the device type
+	 */
+	public JsonObject updateDraftPropertyMappingsForSpecificLogicalInterfaceOfDeviceType(String typeId, String logicalInterfaceId, 
+			String deviceTypePropertyMappings) throws IoTFCReSTException {
+		final String METHOD = "updateDraftPropertyMappingsForSpecificLogicalInterfaceOfDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/device/types/").
+		   append(typeId).
+		   append("/mappings/").
+		   append(logicalInterfaceId);
+		
+		int code = 0;
+		JsonElement jsonResponse = null;
+		HttpResponse response = null;
+		String method = "put";
+		try {
+			response = connect(method, sb.toString(), deviceTypePropertyMappings, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200 || code == 409) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if(code == 200) {
+					return jsonResponse.getAsJsonObject();
+				}
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in updating the draft property mappings for a specific logical interface for the device type "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or a property mapping for the specified logical interface id does not exist");
+		} else if (code == 500) {		
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+		
+	
+	/**
+	 * Associates a draft physical interface with the specified device type
+	 * 
+	 * @param typeId String containing the device type Id
+	 * 
+	 * @param draftPhysicalInterface String containing the draft physical interface in JSON format
+	 * 
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * 
+	 * @throws IoTFCReSTException Failure in associating a draft physical interface with the specified device type
+	 * 
+	 * @see IoTFCReSTException
+	 */
+	public JsonObject addDraftPhysicalInterfaceToDeviceType(String typeId, String draftPhysicalInterface) throws IoTFCReSTException {
+		final String METHOD = "addDraftPhysicalInterfaceToDeviceType";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		String method = "post";
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/draft/device/types/").
+			   append(typeId).
+			   append("/physicalinterface");
+			response = connect(method, sb.toString(), draftPhysicalInterface, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 404 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 201) {
+					//Success
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_PHYSICAL_INTERFACE_ERR_400;
+						break;
+					case 401:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_PHYSICAL_INTERFACE_ERR_401;
+						break;
+					case 403:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_PHYSICAL_INTERFACE_ERR_403;
+						break;
+					case 404:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_PHYSICAL_INTERFACE_ERR_404;
+						break;
+					case 500:
+						reason = IoTFCReSTException.HTTP_ADD_DRAFT_PHYSICAL_INTERFACE_ERR_500;
+						break;
+					}
+					throw new IoTFCReSTException(method, sb.toString(), draftPhysicalInterface, code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (IoTFCReSTException e) {
+			throw e;
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in adding draft property mappings to a device type in Watson IoT Platform "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+	
+	
+	/**
+	 * Dissociates a draft physical interface from device type.
+	 * 
+	 * @param typeId String device type from which draft physical interface needs to be dissociated from
+	 * 
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Physical_Interface/delete_physical_interface_Id">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean object containing the response of the deletion operation.
+	 *  
+	 * @throws IoTFCReSTException Failure in dissociating a draft physical interface from a device type
+	 */
+
+	public boolean deleteDraftPhysicalInterfaceFromDeviceType(String typeId) throws IoTFCReSTException {
+		final String METHOD = "deleteDraftPhysicalInterfaceFromDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/device/types/").
+		   append(typeId).
+		   append("/physicalinterface");
+		
+		int code = 0;
+		HttpResponse response = null;
+		String method = "delete";
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 204) {
+				return true;
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in dissociating a draft physical interface from a device type "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or has no draft physical interface associated with it");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return false;
+	}
+
+	
+	/**
+	 * Get draft physical interface associated with device type
+	 * 
+	 * @param typeId String containing the device Type Id.
+	 * 
+	 * @return JSON response containing draft physical interface associated with device type
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the draft physical interface associated with device type
+	 */
+	public JsonObject getDraftPhysicalInterfaceAssociatedWithDeviceType(String typeId) throws IoTFCReSTException {
+		
+		final String METHOD = "getDraftPhysicalInterfaceAssociatedWithDeviceType";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/device/types/").
+		   append(typeId).
+		   append("/physicalinterface");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the draft physical interface associated with device type "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or has no physical interface associated with it");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Query draft schema definitions
+	 * 
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing list of all draft schemas
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving list of all draft schemas
+	 */
+	public JsonObject getDraftSchemas(List<NameValuePair> parameters) throws IoTFCReSTException {
+		
+		final String METHOD = "getDraftSchemas";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/schemas/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, parameters);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of all draft schemas "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+	
+	/**
+	 * Create a draft schema definition
+	 * 
+	 * @param schemaFile File containing the schema file
+	 * 	  
+	 * @param schemaName String containing the schema name
+	 * 	  
+	 * @param schemaDescription String containing the description of schema
+	 * 
+	 * @param schemaType String containing the schema type (like for e.g. json-schema)
+	 * 
+	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * 
+	 * @throws IoTFCReSTException Failure in creating a draft schema definition
+	 */
+	public JsonObject addDraftSchemaDefinition(File schemaFile, String schemaName, String schemaDescription, String schemaType) throws IoTFCReSTException {
+		final String METHOD = "addDraftSchemaDefinition";
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		int code = 0;
+		String method = "post";
+		try {
+			StringBuilder sb = new StringBuilder("https://");
+			sb.append(orgId).
+			   append('.').
+			   append(this.domain).append(BASIC_API_V0002_URL).
+			   append("/draft/schemas/");
+			
+			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+			
+			builder.addBinaryBody(
+				"schemaFile",
+			    new FileInputStream(schemaFile),
+			    org.apache.http.entity.ContentType.APPLICATION_OCTET_STREAM,
+			    schemaFile.getName()
+			);
+			
+			builder.addTextBody("description", schemaDescription);
+			builder.addTextBody("name", schemaName);
+
+			URIBuilder uri = new URIBuilder(sb.toString());
+			
+			HttpPost post = new HttpPost(uri.build());
+
+			byte[] encoding = Base64.encodeBase64(new String(authKey + ":" + authToken).getBytes());
+			String encodedString = new String(encoding);
+			
+			post.setHeader("Authorization", "Basic " + encodedString);
+			
+			HttpClient client = HttpClientBuilder.create().useSystemProperties().setSslcontext(sslContext).build();
+			HttpEntity multipart = builder.build();
+			post.setEntity(multipart);
+			
+			response = client.execute(post);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 404 || code == 500) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if (code == 201) {
+					//Success
+					return jsonResponse.getAsJsonObject();
+				} else {
+					String reason = null;
+					switch (code) {
+					case 400:
+						reason = IoTFCReSTException.HTTP_ADD_SCHEMA_DEFINITION_ERR_400;
+						break;
+					case 401:
+						reason = IoTFCReSTException.HTTP_ADD_SCHEMA_DEFINITION_ERR_401;
+						break;
+					case 403:
+						reason = IoTFCReSTException.HTTP_ADD_SCHEMA_DEFINITION_ERR_403;
+						break;
+					case 500:
+						reason = IoTFCReSTException.HTTP_ADD_SCHEMA_DEFINITION_ERR_500;
+						break;
+					}
+					throw new IoTFCReSTException(method, sb.toString(), null, code, reason, jsonResponse);
+				}
+			} else {
+				throw new IoTFCReSTException(code, "Unexpected error");
+			}
+		} catch (IoTFCReSTException e) {
+			throw e;
+		} catch (Exception e) {
+			// This includes JsonSyntaxException
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in creating a draft schema definition "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+
+	
+	/**
+	 * Deletes a draft schema definition
+	 * 
+	 * @param draftSchemaId String schema Id which needs to be deleted
+	 * 
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Physical_Interface/delete_physical_interface_Id">link</a> 
+	 * for more information about the schema to be used
+	 * 
+	 * @return boolean object containing the response of the deletion operation.
+	 *  
+	 * @throws IoTFCReSTException Failure in deleting a draft schema definition
+	 */
+
+	public boolean deleteDraftSchemaDefinition(String draftSchemaId) throws IoTFCReSTException {
+		final String METHOD = "deleteDraftSchemaDefinition";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/schemas/").
+		   append(draftSchemaId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		String method = "delete";
+		try {
+			response = connect(method, sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 204) {
+				return true;
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting a draft schema definition "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+		} else if (code == 409) {
+			throw new IoTFCReSTException(code, "The schema definition with the specified id is currently being referenced by another object");
+		} else if (code == 500) {
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return false;
+	}
+
+
+	
+	/**
+	 * Get draft schema definition metadata
+	 * 
+	 * @param draftSchemaId String containing the device Type Id.
+	 * 
+	 * @return JSON response containing draft schema Id
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the draft schema definition metadata
+	 */
+	public JsonObject getDraftSchemaDefinitionMetadata(String draftSchemaId) throws IoTFCReSTException {
+		
+		final String METHOD = "getDraftSchemaDefinitionMetadata";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/schemas/").
+		   append(draftSchemaId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the draft schema definition metadata "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 304) {
+			throw new IoTFCReSTException(code, "The state of the schema definition has not been modified (response to a conditional GET).");
+		} else if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Update draft schema definition metadata	 
+	 *   
+	 * @param schemaId String which contains draft schema definition metadata which needs to be modified
+	 * 
+	 * @param schemaDefinition String which contains the draft schema definition metadata to be added
+     *
+	 * <p> Refer to the
+	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/put_device_types_typeId_devices_deviceId_location">link</a>
+	 * for more information about the JSON format</p>.
+	 *   
+	 * @return A JSON response containing the status of the update operation.
+	 * 
+	 * @throws IoTFCReSTException Failure in updating the draft schema definition metadata
+	 */
+	public JsonObject updateDraftSchemaDefinitionMetadata(String schemaId, String schemaDefinition) throws IoTFCReSTException {
+		final String METHOD = "updateDraftSchemaDefinitionMetadata";
+		/**
+		 * Form the url based on this swagger documentation
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/schemas/").
+		   append(schemaId);
+		
+		int code = 0;
+		JsonElement jsonResponse = null;
+		HttpResponse response = null;
+		String method = "put";
+		try {
+			response = connect(method, sb.toString(), schemaDefinition, null);
+			code = response.getStatusLine().getStatusCode();
+			if(code == 200 || code == 409) {
+				String result = this.readContent(response, METHOD);
+				jsonResponse = new JsonParser().parse(result);
+				if(code == 200) {
+					return jsonResponse.getAsJsonObject();
+				}
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in updating the draft schema definition metadata "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		
+		if(code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if(code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 404) {
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+		} else if(code == 412) {
+			throw new IoTFCReSTException(code, "The state of the schema definition has been modified since the client retrieved its representation (response to a conditional PUT)");
+		} else if (code == 500) {		
+			throw new IoTFCReSTException(500, "Unexpected error");
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Get the contents of the draft schema definition file
+	 * 
+	 * @param draftSchemaId String containing the device Type Id.
+	 * 
+	 * @return JSON response containing contents of schema definition file
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the contents of the draft schema definition file
+	 */
+	public JsonObject getDraftSchemaDefinitionContents(String draftSchemaId) throws IoTFCReSTException {
+		
+		final String METHOD = "getDraftSchemaDefinitionContents";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/draft/schemas/").
+		   append(draftSchemaId).
+		   append("/content/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			System.out.println("Code = " + code);
+			String result = this.readContent(response, METHOD);
+			System.out.println("result obtained " + result);
+			jsonResponse = new JsonParser().parse(result);
+			System.out.println("Parsing successful.....");
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the contents of the draft schema definition file "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Query active schema definitions
+	 * 
+	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * @return JSON response containing list of all active schemas
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving list of all active schemas
+	 */
+	public JsonObject getActiveSchemas(List<NameValuePair> parameters) throws IoTFCReSTException {
+		
+		final String METHOD = "getActiveSchemas";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/schemas/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, parameters);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving list of all active schemas "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Get active schema definition metadata
+	 * 
+	 * @param activeSchemaId String containing the device Type Id.
+	 * 
+	 * @return JSON response containing active schema Id
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the active schema definition metadata
+	 */
+	public JsonObject getActiveSchemaDefinitionMetadata(String activeSchemaId) throws IoTFCReSTException {
+		
+		final String METHOD = "getActiveSchemaDefinitionMetadata";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/schemas/").
+		   append(activeSchemaId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the active schema definition metadata "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if(code == 304) {
+			throw new IoTFCReSTException(code, "The state of the schema definition has not been modified (response to a conditional GET).");
+		} else if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
+	/**
+	 * Get the contents of the active schema definition file
+	 * 
+	 * @param activeSchemaId String containing the device Type Id.
+	 * 
+	 * @return JSON response containing contents of schema definition file
+	 *  
+	 * @throws IoTFCReSTException Failure in retrieving the contents of the active schema definition file
+	 */
+	public JsonObject getActiveSchemaDefinitionContents(String activeSchemaId) throws IoTFCReSTException {
+		
+		final String METHOD = "getActiveSchemaDefinitionContents";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/schemas/").
+		   append(activeSchemaId).
+		   append("/content/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+			if(code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the contents of the active schema definition file "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+
+	
 }
