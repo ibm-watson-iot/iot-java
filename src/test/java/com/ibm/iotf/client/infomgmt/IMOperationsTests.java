@@ -47,68 +47,22 @@ public class IMOperationsTests extends TestCase {
 	private final static String PROPERTIES_FILE_NAME = "/application.properties";
 	private final static String DEVICE_TYPE = "SampleDT";
 	private final static String DEVICE_ID1 = "Device01";
-	private final static String DEVICE_ID2 = "Device02";
-	
-	private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";
-	
-	private final static String EVENT_SCHEMA1 = "/Users/amitmangalvedkar/Documents/workspace/mars/watsoniot/testlibraries/"
-			+ "iot-sample-java/src/main/resources/tempEventSchema.json";
-	private final static String SCHEMA_NAME1 = "fahrenhietSchema";
-	private final static String SCHEMA_DESCRIPTION1 = "Schema to capture the temperature readings in Fahrenhiet";
-	private final static String SCHEMA_TYPE1 = "json-schema";
-	
-	private final static String EVENT_SCHEMA2 = "/Users/amitmangalvedkar/Documents/workspace/mars/watsoniot/testlibraries/"
-			+ "iot-sample-java/src/main/resources/envSensor.json";
-	private final static String SCHEMA_NAME2 = "celciusSchema";
-	private final static String SCHEMA_DESCRIPTION2 = "Schema to capture the temperature readings in Celcius";
-	private final static String SCHEMA_TYPE2 = "json-schema";
-	
-	private final String EVENT_DESCRIPTION1 = "Native event definition for the MyBulbCo light bulb on event";
-	
-	// Example Json format to add a device
-	/*
-	 * {
-		    "typeId": "SampleDT",
-		    "deviceId": "RasPi100",
-		    "authToken": "password",
-		    "deviceInfo": {
-		        "serialNumber": "10087",
-		        "manufacturer": "IBM",
-		        "model": "7865",
-		        "deviceClass": "A",
-		        "description": "My RasPi01 Device",
-		        "fwVersion": "1.0.0",
-		        "hwVersion": "1.0",
-		        "descriptiveLocation": "EGL C"
-		    },
-		    "location": {
-		        "measuredDateTime": "2015-23-07T11:23:23+00:00"
-		    },
-		    "metadata": {}
-		}
-	 */
-	private final static String deviceToBeAdded1 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
-			+ "\"" + DEVICE_ID1 + "\",\"authToken\": \"password\",\"deviceInfo\": {\"serialNumber\": "
-			+ "\"10087\",\"manufacturer\": \"IBM\",\"model\": \"7865\",\"deviceClass\": "
-			+ "\"A\",\"description\": \"My RasPi01 Device\",\"fwVersion\": \"1.0.0\","
-			+ "\"hwVersion\": \"1.0\",\"descriptiveLocation\": \"EGL C\"    },    "
-			+ "\"location\": {\"measuredDateTime\": \"2015-23-07T11:23:23+00:00\"    "
-			+ "},    \"metadata\": {}}";
-	
-	private final static String deviceToBeAdded2 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
-			+ "\"" + DEVICE_ID2 + "\",\"authToken\": \"password\",\"deviceInfo\": {\"serialNumber\": "
-			+ "\"10087\",\"manufacturer\": \"IBM\",\"model\": \"7865\",\"deviceClass\": "
-			+ "\"A\",\"description\": \"My RasPi01 Device\",\"fwVersion\": \"1.0.0\","
-			+ "\"hwVersion\": \"1.0\",\"descriptiveLocation\": \"EGL C\"    },    "
-			+ "\"location\": {\"measuredDateTime\": \"2015-23-07T11:23:23+00:00\"    "
-			+ "},    \"metadata\": {}}";
 
-
-	private final static String deviceToBeDeleted1 = "{\"typeId\": \""+ DEVICE_TYPE + "\", \"deviceId\": \"" + DEVICE_ID1 + "\"}";
-	private final static String deviceToBeDeleted2 = "{\"typeId\": \"" + DEVICE_TYPE + "\", \"deviceId\": \"" + DEVICE_ID2 + "\"}";
 	private static boolean setUpIsDone = false;
 	
-	private static String EVT_TOPIC = "tempEvent";
+	private static String EVENT_SCHEMA1 = null;
+	private static String SCHEMA_NAME1 = null;
+	private static String SCHEMA_DESCRIPTION1 = null;
+	private static String SCHEMA_TYPE1 = null;
+	
+	private static String EVENT_SCHEMA2 = null;
+	private static String SCHEMA_NAME2 = null;
+	private static String SCHEMA_DESCRIPTION2 = null;
+	private static String SCHEMA_TYPE2 = null;
+	
+	private static String EVENT_DESCRIPTION1 = null;
+
+	private static String EVT_TOPIC = null;
 	
 	
 	private static APIClient apiClient = null;
@@ -119,7 +73,6 @@ public class IMOperationsTests extends TestCase {
 	private static String logicalInterfaceId = null;
 	
 	private static String eventId = null;
-	
 	private static String API_KEY = null;
 	
 	/**
@@ -195,9 +148,35 @@ public class IMOperationsTests extends TestCase {
 			addDeviceType(DEVICE_TYPE);
 			addDevice(DEVICE_TYPE, DEVICE_ID1);
 			
-			API_KEY = (String)props.get("API-Key");
-			System.out.println("API KEY = " + API_KEY);
-		} catch (Exception e) {
+			API_KEY = props.getProperty("API-Key");
+			EVENT_SCHEMA1 = props.getProperty("EVENT_SCHEMA1");
+			EVENT_SCHEMA2 = props.getProperty("EVENT_SCHEMA2");
+			
+			SCHEMA_NAME1 = props.getProperty("SCHEMA_NAME1");
+			SCHEMA_DESCRIPTION1 = props.getProperty("SCHEMA_DESCRIPTION1");
+			SCHEMA_TYPE1 = props.getProperty("SCHEMA_TYPE1");
+			
+			SCHEMA_NAME2 = props.getProperty("SCHEMA_NAME2");
+			SCHEMA_DESCRIPTION2 = props.getProperty("SCHEMA_DESCRIPTION2");
+			SCHEMA_TYPE2 = props.getProperty("SCHEMA_TYPE2");
+			
+			EVENT_DESCRIPTION1 = props.getProperty("EVENT_DESCRIPTION1");
+			EVT_TOPIC = props.getProperty("EVT_TOPIC");
+			
+			System.out.println("API KEY = " + API_KEY + 
+					"\nEVENT_SCHEMA1 = " + EVENT_SCHEMA1 + 
+					"\nEVENT_SCHEMA2 = " + EVENT_SCHEMA2 +
+					
+					"\nSCHEMA_NAME1 = " + SCHEMA_NAME1 + 
+					"\nSCHEMA_DESCRIPTION1 = " + SCHEMA_DESCRIPTION1 +
+					"\nSCHEMA_TYPE1 = " + SCHEMA_TYPE1 +
+					
+					"\nSCHEMA_NAME2 = " + SCHEMA_NAME2 + 
+					"\nSCHEMA_DESCRIPTION2 = " + SCHEMA_DESCRIPTION2 +
+					"\nSCHEMA_TYPE2 = " + SCHEMA_TYPE2 +
+					"\nEVENT_DESCRIPTION1 = " + EVENT_DESCRIPTION1 +
+					"\nEVT_TOPIC = " + EVT_TOPIC);
+		} catch (Exception e) { 
 			e.printStackTrace();
 			// looks like the application.properties file is not updated properly
 			apiClient = null;
