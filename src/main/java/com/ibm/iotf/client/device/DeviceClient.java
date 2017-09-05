@@ -76,6 +76,7 @@ public class DeviceClient extends AbstractClient {
 		super(options);
 		LoggerUtility.fine(CLASS_NAME, "DeviceClient", "options   = " + options);
 		this.clientId = "d" + CLIENT_ID_DELIMITER + getOrgId() + CLIENT_ID_DELIMITER + getDeviceType() + CLIENT_ID_DELIMITER + getDeviceId();
+		//this.clientId = "d:f71n0g:devicetype:device1";
 		
 		if (getAuthMethod() == null) {
 			this.clientUsername = null;
@@ -272,15 +273,15 @@ public class DeviceClient extends AbstractClient {
 		
 		try {
 			if (isConnected() && !isAutomaticReconnect()) {
-				mqttAsyncClient.publish(topic, msg).waitForCompletion();
+				mqttAsyncClient.publish(topic, msg).waitForCompletion(60 * 1000);
 			} else {
 				mqttAsyncClient.publish(topic, msg);
 			}
 		} catch (MqttPersistenceException e) {
-			e.printStackTrace();
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.getMessage(), e);
 			return false;
 		} catch (MqttException e) {
-			e.printStackTrace();
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.getMessage(), e);
 			return false;
 		}
 		return true;
@@ -435,6 +436,5 @@ public class DeviceClient extends AbstractClient {
 		String authKey = "use-token-auth";
 		return publishEventsThroughHttps(this.getOrgId(), this.getDomain(), this.getDeviceType(), this.getDeviceId(), 
 				eventName, true, authKey, this.getAuthToken(), payload);
-	}
-	
+	}	
 }
