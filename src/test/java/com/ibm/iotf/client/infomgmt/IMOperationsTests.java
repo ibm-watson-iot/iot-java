@@ -270,7 +270,7 @@ public class IMOperationsTests extends TestCase {
 			return;
 		}
 
-		List <NameValuePair> parameters = new ArrayList();
+		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
 		NameValuePair nvp = new BasicNameValuePair("_page", "25");
 		parameters.add(nvp);
 		JsonObject draftSchemaResponse = apiClient.getDraftSchemas(parameters);
@@ -292,7 +292,7 @@ public class IMOperationsTests extends TestCase {
 			return;
 		}
 		//Retrieve Schema Content
-		List <NameValuePair> parameters = new ArrayList();
+		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
 		NameValuePair nvp = new BasicNameValuePair("_page", "25");
 		parameters.add(nvp);
 		JsonObject schemaResponse = apiClient.getActiveSchemas(parameters);
@@ -341,7 +341,7 @@ public class IMOperationsTests extends TestCase {
 		if(apiClient == null) {
 			return;
 		}
-		List <NameValuePair> parameters = new ArrayList();
+		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
 		NameValuePair nvp = new BasicNameValuePair("_page", "25");
 		parameters.add(nvp);
 		JsonObject draftEventResponse = apiClient.getDraftEventTypes(parameters);
@@ -415,7 +415,7 @@ public class IMOperationsTests extends TestCase {
 		}
 		//Retrieve Physical Interfaces
 		//Retrieve Schema Content
-		List <NameValuePair> parameters = new ArrayList();
+		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
 		NameValuePair nvp = new BasicNameValuePair("_page", "25");
 		parameters.add(nvp);
 		JsonObject draftPIResponse = apiClient.getDraftPhysicalInterfaces(parameters);
@@ -474,7 +474,7 @@ public class IMOperationsTests extends TestCase {
 			return;
 		}
 		
-		List <NameValuePair> parameters = new ArrayList();
+		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
 		NameValuePair nvp = new BasicNameValuePair("_page", "25");
 		parameters.add(nvp);
 		JsonArray draftEventMappingsResponse = apiClient.getEventsMappedToDraftPhysicalInterface(physicalInterfaceId);
@@ -534,7 +534,7 @@ public class IMOperationsTests extends TestCase {
 		}
 		//Retrieve Logical Interfaces
 		//Retrieve Schema Content
-		List <NameValuePair> parameters = new ArrayList();
+		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
 		NameValuePair nvp = new BasicNameValuePair("_page", "25");
 		parameters.add(nvp);
 		JsonObject draftLIResponse = apiClient.getDraftLogicalInterfaces(parameters);
