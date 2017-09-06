@@ -33,7 +33,7 @@
     <developers>
         <developer>
             <name>Amit M Mangalvedkar</name>
-            <email>amitmangalvedkar@gmail.com</email>
+            <email>amitmangalvedkar@in.ibm.com</email>
             <organization>IBM</organization>
             <organizationUrl>http://www.ibm.com</organizationUrl>
         </developer>
@@ -55,12 +55,11 @@
     		<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
   		</repository>
 	</distributionManagement>
-
 	<repositories>
-    <repository>
-        <id>Eclipse Paho Repo</id>
-        <url>https://repo.eclipse.org/content/repositories/paho-snapshots/</url>
-    </repository>
+	    <repository>
+		<id>Eclipse Paho Repo</id>
+		<url>https://repo.eclipse.org/content/repositories/paho-snapshots/</url>
+	    </repository>
 	</repositories>
 
     <properties>
@@ -131,11 +130,18 @@
             <artifactId>joda-time</artifactId>
             <version>2.9.2</version>
         </dependency>
+
         <dependency>
-    		<groupId>org.bouncycastle</groupId>
-    		<artifactId>bcprov-jdk16</artifactId>
-    		<version>1.45</version>
-		</dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk16</artifactId>
+            <version>1.45</version>
+        </dependency>
+
+	<dependency>
+    	    <groupId>org.apache.httpcomponents</groupId>
+    	    <artifactId>httpmime</artifactId>
+    	    <version>4.3.1</version>
+	</dependency>
     </dependencies>
 
     <build>
@@ -234,7 +240,7 @@
                     <goals>deploy</goals>
                 </configuration>
             </plugin>
-	    <plugin>
+            <plugin>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>2.4</version>
                 <executions>
@@ -253,3 +259,4 @@
         </plugins>
     </build>
 </project>
+
