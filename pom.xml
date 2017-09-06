@@ -152,6 +152,10 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <compilerArgs>
+                    	<args>-Xlint:unchecked</args>
+                    	<args>-Xlint:deprecation</args>                    	
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
