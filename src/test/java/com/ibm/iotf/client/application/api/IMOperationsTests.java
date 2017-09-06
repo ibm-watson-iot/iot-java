@@ -12,7 +12,7 @@
  *****************************************************************************
  */
 
-package com.ibm.iotf.client.infomgmt;
+package com.ibm.iotf.client.application.api;
 
 import java.io.BufferedReader;
 import java.io.File;
