@@ -276,6 +276,7 @@ public class APIClient {
 			case "put":
 				return casePutFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "get":
+				System.out.println("Query = " + queryParameters + " url = " + url + " input = " + input + " encodedString = " + encodedString);
 				return caseGetFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "delete":
 				return caseDeleteFromConnect(queryParameters, url, METHOD,input, encodedString);
@@ -5717,7 +5718,7 @@ public class APIClient {
 		sb.append(orgId).
 		   append('.').
 		   append(this.domain).append(BASIC_API_V0002_URL).
-		   append("/draft/device/types/");
+		   append("/draft/device/types");
 		
 		int code = 0;
 		HttpResponse response = null;
@@ -6009,11 +6010,11 @@ public class APIClient {
 	 * 
 	 * @param typeId String containing the device Type Id.
 	 * 
-	 * @return JSON response containing the list of draft property mappings associated with the specified device type id
+	 * @return JSONArray response containing the list of draft property mappings associated with the specified device type id
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of draft property mappings associated with the specified device type id
 	 */
-	public JsonObject getDraftPropertyMappingsForDeviceType(String typeId) throws IoTFCReSTException {
+	public JsonArray getDraftPropertyMappingsForDeviceType(String typeId) throws IoTFCReSTException {
 		
 		final String METHOD = "getDraftPropertyMappingsForDeviceType";
 		/**
@@ -6037,7 +6038,8 @@ public class APIClient {
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				return jsonResponse.getAsJsonObject();
+				System.out.println("Content = " + jsonResponse);
+				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of draft property mappings associated with the specified device type id "

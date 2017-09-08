@@ -41,6 +41,7 @@ import org.junit.runners.MethodSorters;
 
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
+import com.ibm.iotf.client.api.APIClient.SchemaOperation;
 
 /**
  * This test verifies various IM ReST operations that can be performed on Watson IoT Platform.
@@ -149,7 +150,7 @@ public class IMOperationsTests extends TestCase {
 		
 		try {
 			//Instantiate the class by passing the properties file
-			this.apiClient = new APIClient(props);
+			apiClient = new APIClient(props);
 			addDeviceType(DEVICE_TYPE);
 			addDevice(DEVICE_TYPE, DEVICE_ID1);
 			
@@ -195,14 +196,15 @@ public class IMOperationsTests extends TestCase {
 	 * @throws Exception 
 	 */
 	public void test01AddEventSchema() throws IoTFCReSTException {
+		System.out.println("\nInside test method test01AddEventSchema()");
 		if(apiClient == null) {
 			return;
 		}
 
 		//Create Schema Resource
-		
+		BufferedReader br = null;
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(new File(EVENT_SCHEMA1)));
+			br = new BufferedReader(new FileReader(new File(EVENT_SCHEMA1)));
 			String sCurrentLine;
 
 			while ((sCurrentLine = br.readLine()) != null) {
@@ -222,11 +224,19 @@ public class IMOperationsTests extends TestCase {
 		} catch(InterruptedException iex) {
 			
 		}
+		try {
+			if(br != null) {
+				br.close();
+			}
+		} catch(IOException ioe) {
+			br = null;
+		}
 		assertTrue("Schema "+ physicalSchemaId + " got created in the Platform", (physicalSchemaId != null));
 	}
 	
 	
 	public void test02RetrieveSchemaDefinitionContent() throws IoTFCReSTException {
+		System.out.println("\nInside test method test02RetrieveSchemaDefinitionContent()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -238,6 +248,7 @@ public class IMOperationsTests extends TestCase {
 	}
 	
 	public void test03ModifySchemaDefinitionMetadata() throws IoTFCReSTException {
+		System.out.println("\nInside test method test03ModifySchemaDefinitionMetadata()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -255,6 +266,7 @@ public class IMOperationsTests extends TestCase {
 
 
 	public void test05RetrieveSchemaDefinitionMetadata() throws IoTFCReSTException {
+		System.out.println("\nInside test method test05RetrieveSchemaDefinitionMetadata()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -266,6 +278,7 @@ public class IMOperationsTests extends TestCase {
 
 	
 	public void test07RetrieveAllDraftSchemas() throws IoTFCReSTException {
+		System.out.println("\nInside test method test07RetrieveAllDraftSchemas()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -288,6 +301,7 @@ public class IMOperationsTests extends TestCase {
 
 	
 	public void test06RetrieveAllActiveSchemas() throws IoTFCReSTException {
+		System.out.println("\nInside test method test06RetrieveAllActiveSchemas()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -311,6 +325,7 @@ public class IMOperationsTests extends TestCase {
 
 	
 	public void test11CreateEventType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test11CreateEventType()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -328,6 +343,7 @@ public class IMOperationsTests extends TestCase {
 
 	
 	public void test12RetrieveSingleEventType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test12RetrieveSingleEventType()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -338,6 +354,7 @@ public class IMOperationsTests extends TestCase {
 	}
 
 	public void test13RetrieveAllEventTypes() throws IoTFCReSTException {
+		System.out.println("\nInside test method test14UpdateEventType()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -360,6 +377,7 @@ public class IMOperationsTests extends TestCase {
 	
 	
 	public void test14UpdateEventType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test14UpdateEventType()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -379,6 +397,7 @@ public class IMOperationsTests extends TestCase {
 	
 	
 	public void test21CreatePhysicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test21CreatePhysicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -399,6 +418,7 @@ public class IMOperationsTests extends TestCase {
 
 	
 	public void test22RetrieveSingleDraftPhysicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test22RetrieveSingleDraftPhysicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -410,6 +430,7 @@ public class IMOperationsTests extends TestCase {
 
 	
 	public void test23RetrieveAllDraftPhysicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test23RetrieveAllDraftPhysicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -435,6 +456,7 @@ public class IMOperationsTests extends TestCase {
 	
 
 	public void test24UpdateDraftPhysicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test24UpdateDraftPhysicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -450,6 +472,7 @@ public class IMOperationsTests extends TestCase {
 	}
 
 	public void test25MapEventToPhysicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test25MapEventToPhysicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -470,6 +493,7 @@ public class IMOperationsTests extends TestCase {
 	
 
 	public void test26RetrieveAllMappedEvents() throws IoTFCReSTException {
+		System.out.println("\nInside test method test26RetrieveAllMappedEvents()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -491,6 +515,7 @@ public class IMOperationsTests extends TestCase {
 	}
 	
 	public void test31CreateLogicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test31CreateLogicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -518,6 +543,7 @@ public class IMOperationsTests extends TestCase {
 	}
 
 	public void test32RetrieveSingleDraftLogicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test32RetrieveSingleDraftLogicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -529,6 +555,7 @@ public class IMOperationsTests extends TestCase {
 
 	
 	public void test33RetrieveAllDraftLogicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test33RetrieveAllDraftLogicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -550,9 +577,10 @@ public class IMOperationsTests extends TestCase {
 		}
 		
 	}
-
-
+	
+/*
 	public void test34UpdateDraftLogicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test34UpdateDraftLogicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -567,9 +595,10 @@ public class IMOperationsTests extends TestCase {
 		assertTrue("Schema Metadata of Id = "+ logicalSchemaId + " got retrieved from the Platform", true);
 	
 	}
+*/	
 	
-	
-	public void test41AssociateDraftLogicalInterfaceToDeviceType() throws IoTFCReSTException {
+	public void test35AssociateDraftPhysicalInterfaceToDeviceType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test35AssociateDraftPhysicalInterfaceToDeviceType()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -588,9 +617,194 @@ public class IMOperationsTests extends TestCase {
 		updateDraftDTToPIRequest.addProperty("id", physicalInterfaceId);
 		JsonObject updateDraftDTToPIResponse = apiClient.addDraftPhysicalInterfaceToDeviceType(DEVICE_TYPE, updateDraftDTToPIRequest.toString());
 		
+		String version = updateDraftDTToPIResponse.get("version").getAsString();
+		System.out.println("Response = " + version);
+		assertTrue("Response obtained after mapping deviceType and Physical Interface ", version.equals("draft")) ;
+	}
+
+	
+	public void test36AddDraftLogicalInterfaceToDeviceType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test36AddDraftLogicalInterfaceToDeviceType()");		
+		if(apiClient == null) {
+			return;
+		}
+
+		//Add Draft Logical Interface to Device Type
+		JsonObject draftLIToDTRequest = new JsonObject();
+		JsonObject refs = new JsonObject();
+		refs.addProperty("schema", "/api/v0002/draft/schemas/" + logicalSchemaId);
+
+		Gson gson = new Gson();
+		JsonElement element = gson.fromJson(refs.toString(), JsonElement.class);
+
+		draftLIToDTRequest.add("refs", element);
+		draftLIToDTRequest.addProperty("version", "draft");
+		draftLIToDTRequest.addProperty("name", "environment sensor interface");
+		draftLIToDTRequest.addProperty("createdBy", API_KEY);
+		draftLIToDTRequest.addProperty("updatedBy", API_KEY);
+		draftLIToDTRequest.addProperty("schemaId", logicalSchemaId);
+		draftLIToDTRequest.addProperty("id", logicalInterfaceId);
+		JsonObject draftLIToDTResponse = apiClient.addDraftLogicalInterfaceToDeviceType(DEVICE_TYPE, draftLIToDTRequest.toString());
+		System.out.println("Draft Logical Interface added to device Type with id = " + draftLIToDTResponse.get("id").getAsString());
+		System.out.println("Draft Logical Interface to Device Type Object = " + draftLIToDTResponse.toString());
+		assertTrue("Mapping of Logical Interface to ", true);
+		
+	}
+
+	
+	public void test37AddDraftLogicalInterfaceToDeviceType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test36AddDraftLogicalInterfaceToDeviceType()");		
+		if(apiClient == null) {
+			return;
+		}
+
+		JsonObject mappings = new JsonObject();
+		mappings.addProperty("logicalInterfaceId", logicalInterfaceId);
+		mappings.addProperty("notificationStrategy", "on-state-change");
+		JsonObject propertyMapping = new JsonObject();
+		propertyMapping.addProperty("temperature", "($event.temp - 32) / 1.8");
+		JsonObject tempMapping = new JsonObject();
+		Gson gson = new Gson();
+		tempMapping.add(EVT_TOPIC, gson.fromJson(propertyMapping.toString(), JsonElement.class));
+		JsonElement element = gson.fromJson(tempMapping.toString(), JsonElement.class);
+		mappings.add("propertyMappings", tempMapping);
+		JsonObject deviceToLImappings = apiClient.addDraftPropertyMappingsToDeviceType(DEVICE_TYPE, mappings.toString());
+		System.out.println("\n9. Mapping created between device type and Logical Interface with Id = " + deviceToLImappings.
+				get("logicalInterfaceId").getAsString());
+		System.out.println("Mapping between device type and logical interface = " + deviceToLImappings.toString());
+		
+		assertTrue("Mapping created", true);
+		
 	}
 	
-	public void test90DeleteMapping() throws IoTFCReSTException {
+	
+	public void test38TestOperationAgainstDraftLogicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test37TestOperationAgainstDraftLogicalInterface()");		
+		if(apiClient == null) {
+			return;
+		}
+		JsonObject validateOperation = new JsonObject();
+		validateOperation.addProperty("operation", SchemaOperation.VALIDATE.getOperation());
+		System.out.println("id" + logicalInterfaceId + "validateOperation.toString()" + validateOperation.toString() );
+		JsonObject validated = apiClient.performOperationAgainstDraftLogicalInterface(logicalInterfaceId, validateOperation.toString());
+		System.out.println("Validate operation = " + validated.toString());
+
+		try {
+			Thread.sleep(20000);			
+		} catch (InterruptedException iex) {
+			iex.printStackTrace();
+		}
+
+		//Activating configuration
+		if(validated.get("failures").getAsJsonArray().size() == 0) {
+			System.out.println("No validation failures");
+			JsonObject activateOperation = new JsonObject();
+			activateOperation.addProperty("operation", SchemaOperation.ACTIVATE.getOperation());
+			System.out.println("id" + logicalInterfaceId + " activateOperation.toString()" + activateOperation.toString() );
+
+			JsonObject activated = apiClient.performOperationAgainstDraftLogicalInterface(logicalInterfaceId, activateOperation.toString());
+			System.out.println("Activate operation = " + activated.toString());
+		}
+		try {
+			Thread.sleep(20000);			
+		} catch (InterruptedException iex) {
+			iex.printStackTrace();
+		}
+		assertTrue("Validation and Activation Operation completed", true);
+	}
+	
+	
+	public void test42RetrieveDeviceTypesWithLogicalOrPhysical() throws IoTFCReSTException {
+		System.out.println("\nInside test method test42RetrieveDeviceTypesWithLogicalOrPhysical()");		
+		if(apiClient == null) {
+			return;
+		}
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException ie) {
+			
+		}
+		try {
+			List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+			//NameValuePair nvp1 = new BasicNameValuePair("_limit", "25");
+			NameValuePair nvp2 = new BasicNameValuePair("physicalInterfaceId", physicalInterfaceId);
+			
+			//parameters.add(nvp1);
+			parameters.add(nvp2);
+			
+			JsonObject draftDeviceTypesResponse = apiClient.getDeviceTypesAssociatedWithLogicalOrPhysicalInterface(parameters);
+			if(draftDeviceTypesResponse != null) {
+				System.out.println("THIS RESPONSE = " + draftDeviceTypesResponse);
+				
+				int size = draftDeviceTypesResponse.getAsJsonObject("meta").getAsJsonPrimitive("total_rows").getAsInt();
+				System.out.println("Size retrieved = " + size);
+				assertTrue("Property Mappings list has size = " + size, size != 0);
+			} else {
+				assertFalse("Unable to get response", true);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			assertFalse("No size obtained ", true);
+		}
+	}
+	
+
+	public void test43RetrieveDraftProperyMappings() throws IoTFCReSTException {
+		System.out.println("\nInside test method test43RetrieveDraftProperyMappings()");		
+		if(apiClient == null) {
+			return;
+		}
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException ie) {
+			
+		}
+		try {
+			JsonArray propertyMappingsArray = apiClient.getDraftPropertyMappingsForDeviceType(DEVICE_TYPE);
+			
+			int size = propertyMappingsArray.size();
+			System.out.println("Size retrieved = " + size);
+			assertTrue("Property Mappings list has size = " + size, size != 0);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			assertFalse("No size obtained ", true);
+		}
+	}
+	
+	
+	public void test81DeleteDraftPhysicalInterfaceFromDeviceType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test81DeleteDraftPhysicalInterfaceFromDeviceType()");		
+		if(apiClient == null) {
+			return;
+		}
+		boolean draftPIFromDeviceType = apiClient.deleteDraftPhysicalInterfaceFromDeviceType(DEVICE_TYPE);
+		assertTrue("Draft Physical Interface deleted from "+ DEVICE_TYPE, draftPIFromDeviceType);		
+	}
+
+
+	public void test83DeleteDraftPropertyMappings() throws IoTFCReSTException {
+		System.out.println("\nInside test method test94DeleteDraftPropertyMappings()");		
+		if(apiClient == null) {
+			return;
+		}
+		boolean draftLIFromDeviceType = apiClient.deleteDraftPropertyMappings(DEVICE_TYPE, logicalInterfaceId);
+		assertTrue("Draft Property Mappings for Logical Interface deleted from "+ DEVICE_TYPE, draftLIFromDeviceType);		
+	}
+
+	
+	public void test85DeleteDraftLogicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test85DeleteDraftLogicalInterface()");		
+		if(apiClient == null) {
+			return;
+		}
+		boolean draftLIFromDeviceType = apiClient.deleteDraftLogicalInterface(DEVICE_TYPE, logicalInterfaceId);
+		
+		assertTrue("Draft Physical Interface deleted from "+ DEVICE_TYPE, draftLIFromDeviceType);		
+	}
+
+	
+	public void test87DeleteMapping() throws IoTFCReSTException {
+		System.out.println("\nInside test method test87DeleteMapping()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -600,36 +814,25 @@ public class IMOperationsTests extends TestCase {
 	}
 
 	
-	public void test91DeleteEventType() throws IoTFCReSTException {
+	public void test89TestDeactivateOperation() throws IoTFCReSTException {
+		System.out.println("\nInside test method test89TestDeactivateOperation()");		
 		if(apiClient == null) {
 			return;
 		}
 
-		boolean eventDeletion = apiClient.deleteDraftEventType(eventId);
-		assertTrue("Event Type deletion = ", eventDeletion);
-	}
-	
-	
-	public void test94DeleteDraftPhysicalInterfaceFromDeviceType() throws IoTFCReSTException {
-		if(apiClient == null) {
-			return;
-		}
-		boolean draftPIFromDeviceType = apiClient.deleteDraftPhysicalInterfaceFromDeviceType(DEVICE_TYPE);
-		assertTrue("Draft Physical Interface deleted from "+ DEVICE_TYPE, draftPIFromDeviceType);		
-	}
+		JsonObject deactivateOperation = new JsonObject();
+		deactivateOperation.addProperty("operation", SchemaOperation.DEACTIVATE.getOperation());
+		System.out.println("id" + logicalInterfaceId + " deactivateOperation.toString()" + deactivateOperation.toString() );
 
-
-	public void test95DeleteLogicalInterface() throws IoTFCReSTException {
-		if(apiClient == null) {
-			return;
-		}
-		//Delete Logical Interfaces
-		boolean liDeletion = apiClient.deleteDraftLogicalInterface(logicalInterfaceId);
-		assertTrue("Logical Interface "+ logicalInterfaceId + " got deleted from the Platform", liDeletion);		
-	}
-
+		JsonObject deactivated = apiClient.performOperationAgainstLogicalInterface(logicalInterfaceId, deactivateOperation.toString());
+		System.out.println("\n16. Dectivate operation = " + deactivated.toString());
 		
-	public void test96DeletePhysicalInterface() throws IoTFCReSTException {
+		assertTrue("Event Type deletion = ", true);
+	}
+
+	
+	public void test90DeletePhysicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test90DeletePhysicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -639,7 +842,30 @@ public class IMOperationsTests extends TestCase {
 	}
 	
 	
+	public void test91DeleteEventType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test91DeleteEventType()");		
+		if(apiClient == null) {
+			return;
+		}
+
+		boolean eventDeletion = apiClient.deleteDraftEventType(eventId);
+		assertTrue("Event Type deletion = ", eventDeletion);
+	}
+	
+
+	public void test96DeleteLogicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test96DeleteLogicalInterface()");		
+		if(apiClient == null) {
+			return;
+		}
+		//Delete Logical Interfaces
+		boolean liDeletion = apiClient.deleteDraftLogicalInterface(logicalInterfaceId);
+		assertTrue("Logical Interface "+ logicalInterfaceId + " got deleted from the Platform", liDeletion);		
+	}
+
+	
 	public void test99DeleteSchemaDefinitionContent() throws IoTFCReSTException {
+		System.out.println("\nInside test method test99DeleteSchemaDefinitionContent()");		
 		if(apiClient == null) {
 			return;
 		}
