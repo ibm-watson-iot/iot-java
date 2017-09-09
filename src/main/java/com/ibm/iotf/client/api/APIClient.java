@@ -5594,7 +5594,7 @@ public class APIClient {
 	 * 
 	 * @param logicalInterfaceId String containing the logical interface Id
 	 * 
-	 * @return JSON response containing the list of active property mappings for a logical interface of a given device type
+	 * @return JSONObject response containing the list of active property mappings for a logical interface of a given device type
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of active property mappings for a logical interface of a given device type
 	 */

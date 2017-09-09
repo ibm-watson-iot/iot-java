@@ -67,7 +67,6 @@ public class IMOperationsTests extends TestCase {
 	private static String SCHEMA_TYPE2 = null;
 	
 	private static String EVENT_DESCRIPTION1 = null;
-
 	private static String EVT_TOPIC = null;
 	
 	
@@ -806,6 +805,109 @@ public class IMOperationsTests extends TestCase {
 			ex.printStackTrace();
 			assertFalse("No size obtained ", true);
 		}
+	}
+	
+
+	public void test46RetrieveActivePropertyMappingsForSpecificLogicalInterfaceDeviceType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test46RetrieveActivePropertyMappingsForSpecificLogicalInterfaceDeviceType()");		
+		if(apiClient == null) {
+			return;
+		}
+		try {
+			JsonObject activePropertyMappings = (apiClient.getActivePropertyMappingsForLogicalInterfaceOfDeviceType(DEVICE_TYPE, logicalInterfaceId)).getAsJsonObject("propertyMappings");
+			
+			System.out.println("Active Property Mappings retrieved = " + activePropertyMappings);
+			assertTrue("Active Property Mappings = " + activePropertyMappings, activePropertyMappings != null);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			assertFalse("No size obtained ", true);
+		}
+	}
+	
+
+	public void test47RetrieveActivePhysicalInterfaceAssociatedWithDeviceType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test47RetrieveActivePhysicalInterfaceAssociatedWithDeviceType()");		
+		if(apiClient == null) {
+			return;
+		}
+		//Retrieve Logical Interfaces
+		JsonObject activePIReturned = apiClient.getActivePhysicalInterfaceForDeviceType(DEVICE_TYPE);
+		String activePIIdReturned = activePIReturned.get("id").getAsString();
+		assertTrue("Active Physical Interface Id "+ activePIIdReturned + " got retrieved from the Platform", true);
+	}
+
+	
+	public void test48RetrieveActiveEventType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test48RetrieveActiveEventType()");		
+		if(apiClient == null) {
+			return;
+		}
+		//Retrieve Logical Interfaces
+		JsonObject activeEventTypeReturned = apiClient.getActiveEventType(eventId);
+		String activeEventTypeIdReturned = activeEventTypeReturned.get("id").getAsString();
+		assertTrue("Active Event Type Returned Id "+ activeEventTypeIdReturned + " got retrieved from the Platform", true);
+	}
+
+	
+	public void test49RetrieveAllActiveEventTypes() throws IoTFCReSTException {
+		System.out.println("\nInside test method test49RetrieveAllActiveEventTypes()");		
+		if(apiClient == null) {
+			return;
+		}
+
+		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+		NameValuePair nvp = new BasicNameValuePair("_page", "25");
+		parameters.add(nvp);
+		JsonObject activeEventTypesResponse = apiClient.getActiveEventTypes(parameters);
+		System.out.println("Response = " + activeEventTypesResponse.toString());
+		try {
+			String noOfRows = activeEventTypesResponse.getAsJsonObject("meta").get("total_rows").toString();
+			System.out.println("Retrieved " + noOfRows);
+			assertTrue("Number of Active Event Types retrieved from the Platform", noOfRows != null);
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			assertFalse("No Active Event Types from the Platform", true);
+			
+		}
+		
+	}
+	
+
+	public void test50RetrieveActiveLogicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test50RetrieveActiveLogicalInterface()");		
+		if(apiClient == null) {
+			return;
+		}
+		//Retrieve Logical Interfaces
+		JsonObject activeLogicalInterfaceReturned = apiClient.getActiveLogicalInterface(logicalInterfaceId);
+		String activeLogicalInterfaceIdReturned = activeLogicalInterfaceReturned.get("id").getAsString();
+		assertTrue("Active Logical Interface Returned Id "+ activeLogicalInterfaceIdReturned + " got retrieved from the Platform", true);
+	}
+
+	
+	public void test51RetrieveAllActivelogicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test51RetrieveAllActivelogicalInterface()");		
+		if(apiClient == null) {
+			return;
+		}
+
+		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+		NameValuePair nvp = new BasicNameValuePair("_page", "25");
+		parameters.add(nvp);
+		JsonObject activeLogicalInterfaceResponse = apiClient.getActiveLogicalInterfaces(parameters);
+		System.out.println("Response = " + activeLogicalInterfaceResponse.toString());
+		try {
+			String noOfRows = activeLogicalInterfaceResponse.getAsJsonObject("meta").get("total_rows").toString();
+			System.out.println("Retrieved " + noOfRows);
+			assertTrue("Number of Active Logical Interface retrieved from the Platform", noOfRows != null);
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			assertFalse("No Active Logical Interfaces from the Platform", true);
+			
+		}
+		
 	}
 	
 
