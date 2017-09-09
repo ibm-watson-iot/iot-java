@@ -281,6 +281,7 @@ public class APIClient {
 			case "delete":
 				return caseDeleteFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "patch":
+				System.out.println("Query = " + queryParameters + " url = " + url + " input = " + input + " encodedString = " + encodedString);
 				return casePatchFromConnect(queryParameters, url, METHOD,input, encodedString);
 
 		}
@@ -5442,6 +5443,7 @@ public class APIClient {
 		String method = "patch";
 		try {
 			response = connect(method, sb.toString(), deviceTypeOperation, null);
+			System.out.println("method = " + method + " URL = " + sb.toString() + " payload = " + deviceTypeOperation);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200 || code == 202) {
 				String result = this.readContent(response, METHOD);
@@ -5484,7 +5486,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of active logical interfaces with the specified device type id
 	 */
-	public JsonObject getActiveLogicalInterfacesForDeviceType(String typeId) throws IoTFCReSTException {
+	public JsonArray getActiveLogicalInterfacesForDeviceType(String typeId) throws IoTFCReSTException {
 		
 		final String METHOD = "getActiveLogicalInterfacesForDeviceType";
 		/**
@@ -5508,7 +5510,7 @@ public class APIClient {
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				return jsonResponse.getAsJsonObject();
+				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of active logical interfaces with the specified device type id "
@@ -5539,7 +5541,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of active property mappings for a device type
 	 */
-	public JsonObject getActivePropertyMappingsForDeviceType(String typeId) throws IoTFCReSTException {
+	public JsonArray getActivePropertyMappingsForDeviceType(String typeId) throws IoTFCReSTException {
 		
 		final String METHOD = "getActivePropertyMappingsForDeviceType";
 		/**
@@ -5563,7 +5565,7 @@ public class APIClient {
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				return jsonResponse.getAsJsonObject();
+				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of active property mappings for a device type "

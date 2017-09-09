@@ -578,7 +578,7 @@ public class IMOperationsTests extends TestCase {
 		
 	}
 	
-/*
+
 	public void test34UpdateDraftLogicalInterface() throws IoTFCReSTException {
 		System.out.println("\nInside test method test34UpdateDraftLogicalInterface()");		
 		if(apiClient == null) {
@@ -595,7 +595,7 @@ public class IMOperationsTests extends TestCase {
 		assertTrue("Schema Metadata of Id = "+ logicalSchemaId + " got retrieved from the Platform", true);
 	
 	}
-*/	
+	
 	
 	public void test35AssociateDraftPhysicalInterfaceToDeviceType() throws IoTFCReSTException {
 		System.out.println("\nInside test method test35AssociateDraftPhysicalInterfaceToDeviceType()");		
@@ -678,15 +678,14 @@ public class IMOperationsTests extends TestCase {
 	}
 	
 	
-	public void test38TestOperationAgainstDraftLogicalInterface() throws IoTFCReSTException {
-		System.out.println("\nInside test method test37TestOperationAgainstDraftLogicalInterface()");		
+	public void test38TestOperationAgainstDeviceType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test38TestOperationAgainstDeviceType()");		
 		if(apiClient == null) {
 			return;
 		}
 		JsonObject validateOperation = new JsonObject();
 		validateOperation.addProperty("operation", SchemaOperation.VALIDATE.getOperation());
-		System.out.println("id" + logicalInterfaceId + "validateOperation.toString()" + validateOperation.toString() );
-		JsonObject validated = apiClient.performOperationAgainstDraftLogicalInterface(logicalInterfaceId, validateOperation.toString());
+		JsonObject validated = apiClient.performOperationAgainstDeviceType(DEVICE_TYPE, validateOperation.toString());
 		System.out.println("Validate operation = " + validated.toString());
 
 		try {
@@ -694,23 +693,25 @@ public class IMOperationsTests extends TestCase {
 		} catch (InterruptedException iex) {
 			iex.printStackTrace();
 		}
-
+		assertTrue("Validation Operation completed", true);
+	}
+	
+	public void test39TestOperationAgainstDraftLogicalInterface() throws IoTFCReSTException {
 		//Activating configuration
-		if(validated.get("failures").getAsJsonArray().size() == 0) {
-			System.out.println("No validation failures");
-			JsonObject activateOperation = new JsonObject();
-			activateOperation.addProperty("operation", SchemaOperation.ACTIVATE.getOperation());
-			System.out.println("id" + logicalInterfaceId + " activateOperation.toString()" + activateOperation.toString() );
+		System.out.println("\nInside test method test39TestOperationAgainstDraftLogicalInterface()");		
+		JsonObject activateOperation = new JsonObject();
+		activateOperation.addProperty("operation", SchemaOperation.ACTIVATE.getOperation());
+		System.out.println("id" + logicalInterfaceId + " activateOperation.toString()" + activateOperation.toString() );
 
-			JsonObject activated = apiClient.performOperationAgainstDraftLogicalInterface(logicalInterfaceId, activateOperation.toString());
-			System.out.println("Activate operation = " + activated.toString());
-		}
+		JsonObject activated = apiClient.performOperationAgainstDraftLogicalInterface(logicalInterfaceId, activateOperation.toString());
+		System.out.println("Activate operation = " + activated.toString());
+
 		try {
 			Thread.sleep(20000);			
 		} catch (InterruptedException iex) {
 			iex.printStackTrace();
 		}
-		assertTrue("Validation and Activation Operation completed", true);
+		assertTrue("Activation Operation completed", true);
 	}
 	
 	
@@ -772,6 +773,42 @@ public class IMOperationsTests extends TestCase {
 	}
 	
 	
+	public void test44RetrieveActiveLogicalInterfacesAssociatedWithDeviceType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test44RetrieveActiveLogicalInterfacesAssociatedWithDeviceType()");		
+		if(apiClient == null) {
+			return;
+		}
+		try {
+			JsonArray activeLogicalInterfacesArray = apiClient.getActiveLogicalInterfacesForDeviceType(DEVICE_TYPE);
+			
+			int size = activeLogicalInterfacesArray.size();
+			System.out.println("Size retrieved = " + size);
+			assertTrue("Active Logical Interface list has size = " + size, size != 0);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			assertFalse("No size obtained ", true);
+		}
+	}
+	
+
+	public void test45RetrieveActivePropertyMappingsForDeviceType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test45RetrieveActivePropertyMappingsForDeviceType()");		
+		if(apiClient == null) {
+			return;
+		}
+		try {
+			JsonArray activePropertyMappings = apiClient.getActivePropertyMappingsForDeviceType(DEVICE_TYPE);
+			
+			int size = activePropertyMappings.size();
+			System.out.println("Size retrieved = " + size);
+			assertTrue("Active Property Mappings list has size = " + size, size != 0);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			assertFalse("No size obtained ", true);
+		}
+	}
+	
+
 	public void test81DeleteDraftPhysicalInterfaceFromDeviceType() throws IoTFCReSTException {
 		System.out.println("\nInside test method test81DeleteDraftPhysicalInterfaceFromDeviceType()");		
 		if(apiClient == null) {
