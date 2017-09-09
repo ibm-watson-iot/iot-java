@@ -886,8 +886,8 @@ public class IMOperationsTests extends TestCase {
 	}
 
 	
-	public void test51RetrieveAllActivelogicalInterface() throws IoTFCReSTException {
-		System.out.println("\nInside test method test51RetrieveAllActivelogicalInterface()");		
+	public void test51RetrieveAllActiveLogicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test51RetrieveAllActiveLogicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -910,6 +910,92 @@ public class IMOperationsTests extends TestCase {
 		
 	}
 	
+
+	public void test52RetrieveActivePhysicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test50RetrieveActivePhysicalInterface()");		
+		if(apiClient == null) {
+			return;
+		}
+		//Retrieve Physical Interfaces
+		JsonObject activePhyicalInterfaceReturned = apiClient.getActivePhysicalInterface(physicalInterfaceId);
+		String activePhysicalInterfaceIdReturned = activePhyicalInterfaceReturned.get("id").getAsString();
+		assertTrue("Active Physical Interface Returned Id "+ activePhysicalInterfaceIdReturned + " got retrieved from the Platform", true);
+	}
+
+	
+	public void test53RetrieveAllActivePhysicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test51RetrieveAllActivelogicalInterface()");		
+		if(apiClient == null) {
+			return;
+		}
+
+		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+		NameValuePair nvp = new BasicNameValuePair("_page", "25");
+		parameters.add(nvp);
+		JsonObject activePhysicalInterfaceResponse = apiClient.getActivePhysicalInterfaces(parameters);
+		System.out.println("Response = " + activePhysicalInterfaceResponse.toString());
+		try {
+			String noOfRows = activePhysicalInterfaceResponse.getAsJsonObject("meta").get("total_rows").toString();
+			System.out.println("Retrieved " + noOfRows);
+			assertTrue("Number of Active Physical Interface retrieved from the Platform", noOfRows != null);
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			assertFalse("No Active Physical Interfaces from the Platform", true);
+			
+		}
+		
+	}
+	
+
+	public void test54RetrieveActiveSchemaDefinitionMetadata() throws IoTFCReSTException {
+		System.out.println("\nInside test method test54RetrieveActiveSchemaDefinitionMetadata()");		
+		if(apiClient == null) {
+			return;
+		}
+		//Retrieve Schema Definition Metadata
+		JsonObject activeSchemaDefinitionMetadataReturned = apiClient.getActiveSchemaDefinitionMetadata(physicalSchemaId);
+		String activeSchemaDefinitionMetadataIdReturned = activeSchemaDefinitionMetadataReturned.get("id").getAsString();
+		assertTrue("Active Schema Definition Id Returned "+ activeSchemaDefinitionMetadataIdReturned + " got retrieved from the Platform", true);
+	}
+
+	
+	public void test55RetrieveAllActiveSchemas() throws IoTFCReSTException {
+		System.out.println("\nInside test method test55RetrieveAllActiveSchemas()");		
+		if(apiClient == null) {
+			return;
+		}
+
+		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+		NameValuePair nvp = new BasicNameValuePair("_page", "25");
+		parameters.add(nvp);
+		JsonObject activeSchemasResponse = apiClient.getActiveSchemas(parameters);
+		System.out.println("Response = " + activeSchemasResponse.toString());
+		try {
+			String noOfRows = activeSchemasResponse.getAsJsonObject("meta").get("total_rows").toString();
+			System.out.println("Retrieved " + noOfRows);
+			assertTrue("Number of Active Schema retrieved from the Platform", noOfRows != null);
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			assertFalse("No Active Schemas from the Platform", true);
+			
+		}
+		
+	}
+	
+
+	public void test56RetrieveActiveSchemaDefinitionFile() throws IoTFCReSTException {
+		System.out.println("\nInside test method test56RetrieveActiveSchemaDefinitionFile()");		
+		if(apiClient == null) {
+			return;
+		}
+		//Retrieve Schema Definition File
+		JsonObject activeSchemaDefinitionContentReturned = apiClient.getActiveSchemaDefinitionContents(physicalSchemaId);
+		System.out.println("Schema Definition Content = " + activeSchemaDefinitionContentReturned);
+		assertTrue("Active Schema Definition Content ", true);
+	}
+
 
 	public void test81DeleteDraftPhysicalInterfaceFromDeviceType() throws IoTFCReSTException {
 		System.out.println("\nInside test method test81DeleteDraftPhysicalInterfaceFromDeviceType()");		
