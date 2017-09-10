@@ -5418,7 +5418,7 @@ public class APIClient {
 	 * 
 	 * @param deviceTypeOperation String contains the operation in JSON format
 	 * 
-	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/patch_logicalinterfaces_logicalInterfaceId">link</a>
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/patch_device_types_typeId">link</a>
 	 * for more information about the JSON format</p>.
 	 *   
 	 * @return A JSON response containing the status of the patch operation.
@@ -5482,6 +5482,9 @@ public class APIClient {
 	 * 
 	 * @param typeId String containing the device Type Id.
 	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_device_types_typeId_logicalinterfaces">link</a>
+	 * for more information about the JSON format</p>.
+	 *   
 	 * @return JSON response containing the list of active logical interfaces with the specified device type id
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of active logical interfaces with the specified device type id
@@ -5537,7 +5540,10 @@ public class APIClient {
 	 * 
 	 * @param typeId String containing the device Type Id.
 	 * 
-	 * @return JSON response containing the list of active property mappings for a device type
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_device_types_typeId_mappings">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JSONArray response containing the list of active property mappings for a device type
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of active property mappings for a device type
 	 */
@@ -5593,6 +5599,9 @@ public class APIClient {
 	 * @param typeId String containing the device Type Id.
 	 * 
 	 * @param logicalInterfaceId String containing the logical interface Id
+	 *  
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_device_types_typeId_mappings_logicalInterfaceId">link</a>
+	 * for more information about the JSON format</p>.
 	 * 
 	 * @return JSONObject response containing the list of active property mappings for a logical interface of a given device type
 	 *  
@@ -5650,7 +5659,10 @@ public class APIClient {
 	 * 
 	 * @param typeId String containing the device Type Id.
 	 * 
-	 * @return JSON response containing active physical interface for a given device type
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_device_types_typeId_physicalinterface">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JSONObject response containing active physical interface for a given device type
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the active physical interface for a given device type
 	 */
@@ -5701,11 +5713,14 @@ public class APIClient {
 
 	
 	/**
-	 * Get list of all device types associated with a logical of phsical interface
+	 * Get list of all device types associated with a logical of physical interface
 	 * 
 	 * @param parameters list of query parameters that controls the output.
 	 * 
-	 * @return JSON response containing list of all device types
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_draft_device_types">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JSONObject response containing list of all device types
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving list of all device types
 	 */
@@ -5760,10 +5775,10 @@ public class APIClient {
 	 * 
 	 * @param deviceTypeOperation String contains the operation in JSON format
 	 * 
-	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/patch_logicalinterfaces_logicalInterfaceId">link</a>
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/patch_draft_device_types_typeId">link</a>
 	 * for more information about the JSON format</p>.
 	 *   
-	 * @return A JSON response containing the status of the patch operation.
+	 * @return A JSONObject response containing the status of the patch operation.
 	 * 
 	 * @throws IoTFCReSTException Failure in updating the draft device type operation
 	 */
@@ -5823,13 +5838,15 @@ public class APIClient {
 	 * 
 	 * @param typeId String containing the device Type Id.
 	 * 
-	 * @return JSON response containing the list of draft logical interfaces associated with the specified device type id
+	 * * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_draft_device_types_typeId_logicalinterfaces">link</a>
+	 * 
+	 * @return JsonArray response containing the list of draft logical interfaces associated with the specified device type id
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of draft logical interfaces associated with the specified device type id
 	 */
-	public JsonObject getDraftLogicalInterfacesForDeviceType(String typeId) throws IoTFCReSTException {
+	public JsonArray getDraftLogicalInterfacesAssociatedWithDeviceType(String typeId) throws IoTFCReSTException {
 		
-		final String METHOD = "getDraftLogicalInterfacesForDeviceType";
+		final String METHOD = "getDraftLogicalInterfacesAssociatedWithDeviceType";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
@@ -5851,7 +5868,7 @@ public class APIClient {
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				return jsonResponse.getAsJsonObject();
+				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of draft logical interfaces associated with the specified device type id "
