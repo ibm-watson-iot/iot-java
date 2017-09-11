@@ -323,8 +323,8 @@ public class IMOperationsTests extends TestCase {
 	}
 
 	
-	public void test11CreateEventType() throws IoTFCReSTException {
-		System.out.println("\nInside test method test11CreateEventType()");		
+	public void test11AddDraftEventType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test11AddDraftEventType()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -341,19 +341,18 @@ public class IMOperationsTests extends TestCase {
 	}
 
 	
-	public void test12RetrieveSingleEventType() throws IoTFCReSTException {
-		System.out.println("\nInside test method test12RetrieveSingleEventType()");		
+	public void test12GetDraftEventType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test12GetDraftEventType()");		
 		if(apiClient == null) {
 			return;
 		}
 		JsonObject draftSchemaResponse = apiClient.getDraftEventType(eventId);
-		System.out.println("Retrieved " );
 		assertTrue("Event Type Id = "+ eventId + " got retrieved from the Platform", (! draftSchemaResponse.isJsonNull()));
-		
 	}
 
-	public void test13RetrieveAllEventTypes() throws IoTFCReSTException {
-		System.out.println("\nInside test method test14UpdateEventType()");		
+	
+	public void test14GetDraftEventTypes() throws IoTFCReSTException {
+		System.out.println("\nInside test method test14GetDraftEventTypes");		
 		if(apiClient == null) {
 			return;
 		}
@@ -361,22 +360,21 @@ public class IMOperationsTests extends TestCase {
 		NameValuePair nvp = new BasicNameValuePair("_page", "25");
 		parameters.add(nvp);
 		JsonObject draftEventResponse = apiClient.getDraftEventTypes(parameters);
-		
-		// check if the devices are actually deleted from the platform1
+
 		try {
 			System.out.println("draftEventResponse = " + draftEventResponse.toString());
 			String noOfRows = draftEventResponse.getAsJsonObject("meta").get("total_rows").toString();
-			assertTrue("Event Types retrieved from the Platform = ", noOfRows != null);
+			assertTrue("Draft Event Types retrieved from the Platform = ", noOfRows != null);
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			assertFalse("No event types retrieved from the Platform", true);			
+			assertFalse("No draft event types retrieved from the Platform", true);			
 		}
 	}
 	
 	
-	public void test14UpdateEventType() throws IoTFCReSTException {
-		System.out.println("\nInside test method test14UpdateEventType()");		
+	public void test14UpdateDraftEventType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test14UpdateDraftEventType()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -825,14 +823,13 @@ public class IMOperationsTests extends TestCase {
 			
 		}
 		try {
-			JsonArray propertyMappingsArray = apiClient.getDraftPropertyMappingsForSpecificLogicalInterfaceDeviceType(DEVICE_TYPE, logicalInterfaceId);
+			JsonObject propertyMapping = apiClient.getDraftPropertyMappingsForSpecificLogicalInterfaceDeviceType(DEVICE_TYPE, logicalInterfaceId);
 			
-			int size = propertyMappingsArray.size();
-			System.out.println("Size retrieved = " + size);
-			assertTrue("Property Mappings list has size = " + size, size != 0);
+			String logicalInterfaceIdReturned = propertyMapping.get("logicalInterfaceId").getAsString();
+			assertTrue("Property Mappings retrieved with logicalInterfaceId = " + logicalInterfaceIdReturned, logicalInterfaceIdReturned.equals(logicalInterfaceId) );
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			assertFalse("No size obtained ", true);
+			assertFalse("No property Mapping retrieved ", true);
 		}
 	}
 	
@@ -901,8 +898,8 @@ public class IMOperationsTests extends TestCase {
 	}
 
 	
-	public void test48RetrieveActiveEventType() throws IoTFCReSTException {
-		System.out.println("\nInside test method test48RetrieveActiveEventType()");		
+	public void test48GetActiveEventType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test48GetActiveEventType()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -913,8 +910,8 @@ public class IMOperationsTests extends TestCase {
 	}
 
 	
-	public void test49RetrieveAllActiveEventTypes() throws IoTFCReSTException {
-		System.out.println("\nInside test method test49RetrieveAllActiveEventTypes()");		
+	public void test49GetAllActiveEventTypes() throws IoTFCReSTException {
+		System.out.println("\nInside test method test49GetAllActiveEventTypes()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -922,7 +919,7 @@ public class IMOperationsTests extends TestCase {
 		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
 		NameValuePair nvp = new BasicNameValuePair("_page", "25");
 		parameters.add(nvp);
-		JsonObject activeEventTypesResponse = apiClient.getActiveEventTypes(parameters);
+		JsonObject activeEventTypesResponse = apiClient.getAllActiveEventTypes(parameters);
 		System.out.println("Response = " + activeEventTypesResponse.toString());
 		try {
 			String noOfRows = activeEventTypesResponse.getAsJsonObject("meta").get("total_rows").toString();
@@ -1153,8 +1150,8 @@ public class IMOperationsTests extends TestCase {
 	}
 	
 	
-	public void test91DeleteEventType() throws IoTFCReSTException {
-		System.out.println("\nInside test method test91DeleteEventType()");		
+	public void test91DeleteDraftEventType() throws IoTFCReSTException {
+		System.out.println("\nInside test method test91DeleteDraftEventType()");		
 		if(apiClient == null) {
 			return;
 		}
