@@ -276,12 +276,10 @@ public class APIClient {
 			case "put":
 				return casePutFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "get":
-				System.out.println("Query = " + queryParameters + " url = " + url + " input = " + input + " encodedString = " + encodedString);
 				return caseGetFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "delete":
 				return caseDeleteFromConnect(queryParameters, url, METHOD,input, encodedString);
 			case "patch":
-				System.out.println("Query = " + queryParameters + " url = " + url + " input = " + input + " encodedString = " + encodedString);
 				return casePatchFromConnect(queryParameters, url, METHOD,input, encodedString);
 
 		}
@@ -5323,6 +5321,9 @@ public class APIClient {
 	 * Get active event Type
 	 * 
 	 * @param eventTypeId String containing the active Event Type Id.
+	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Event_Types/get_event_types_eventTypeId">link</a>
+	 * for more information about the JSON format</p>.
 	 * 
 	 * @return JSON response containing the active event type with the specified id
 	 *  
