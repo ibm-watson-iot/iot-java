@@ -11,6 +11,7 @@ The following documentation is provided to help you to get started:
 - The [Gateway Management section](https://console.ng.bluemix.net/docs/services/IoT/gateways/libraries/java_cli_managed_gw.html) contains information on how to connect the gateway as Managed Gateway to IBM Watson IoT Platform and manage the attached devices.
 - The [Application section](https://console.ng.bluemix.net/docs/services/IoT/applications/libraries/java.html) details how applications can use the Java ibmiotf Client Library to interact with devices.
 - The [API section](docs/java_cli_for_api.rst)  contains information on how applications can use the Java ibmiotf Client Library to interact with the organization in the Watson IoT Platform through REST APIs
+- The [Data management section]()contains information on how applications can use the Java ibmiotf Client Library to interact with the organization in the Watson IoT Platform Data management APIs
 
 The Java Client Library requires either of the following versions of Java:
 
@@ -37,6 +38,7 @@ Supported Features
 | Websocket | &#10004; | Enables device/gateway/application to connect to Watson IoT Platform using WebSockets. To enable this feature, set [WebSocket](https://console.ng.bluemix.net/docs/services/IoT/devices/libraries/java.html#constructor) option to true. |
 | [Event/Command publish using MQTT](https://console.ng.bluemix.net/docs/services/IoT/reference/mqtt/index.html)| &#10004; | Enables device/gateway/application to publish messages using MQTT. Refer to [Device](https://console.ng.bluemix.net/docs/services/IoT/devices/libraries/java.html#publishing_events), [Gateway](https://console.ng.bluemix.net/docs/services/IoT/gateways/libraries/java_cli_gw.html#publishing_events) and [Application](https://console.ng.bluemix.net/docs/services/IoT/applications/libraries/java.html#publishing_events_devices) section for more information. |
 | [Event/Command publish using HTTP](https://console.ng.bluemix.net/docs/services/IoT/devices/api.html)| &#10004; |Enables device/gateway/application to publish messages using HTTP. Refer to [Device](https://console.ng.bluemix.net/docs/services/IoT/devices/libraries/java.html#publishing_events), [Gateway](https://console.ng.bluemix.net/docs/services/IoT/gateways/libraries/java_cli_gw.html#publishing_events) and [Application](https://console.ng.bluemix.net/docs/services/IoT/applications/libraries/java.html#publishing_events_devices) section for more information. |
+| [Data management](https://console.bluemix.net/docs/services/IoT/information_management/im_index.html)| &#10004; |help you to simplify your applications by decoupling them from the complexities of how specific devices are connected. Refer to [Data management](https://console.bluemix.net/docs/services/IoT/information_management/im_index.html) section for more information. |
 
 Migration from release 0.1.5 to 0.2.1
 ---------------------------------------
@@ -64,7 +66,7 @@ The library artifact is pushed to the maven. Use the following maven dependency 
     <dependency>
         <groupId>com.ibm.messaging</groupId>
         <artifactId>watson-iot</artifactId>
-        <version>0.2.5</version>
+        <version>0.2.6</version>
     </dependency>
 
 
@@ -87,10 +89,17 @@ Network failure tests that help ascertain network disconnectivity between the Cl
 
 ----
 
+Key additions to v0.2.6
+-------------------------------------------------------------------------------
+
+Version 0.2.6 of the Watson IoT Java Client Library adds on Data management capabilities. Imagine you have many different types, makes, or models of device that you want to connect, and these devices publish data in differing formats.  As a developer you would probably prefer to work with these devices using a simple, common RESTful interface.  Well now you can! You can use the powerful mapping features of Data management to normalize incoming data into a consistent form ready for use in application, dashboards and analytics.
+
+----
+
 Download
 -------------------------------------------------------------------------------
 
-Refer to the maven secion for how to use this library in your project. Also, you can download the library manually from the [maven repository](https://repo1.maven.org/maven2/com/ibm/messaging/watson-iot/0.2.5/watson-iot-0.2.5.jar).
+Refer to the maven secion for how to use this library in your project. Also, you can download the library manually from the [maven repository](https://repo1.maven.org/maven2/com/ibm/messaging/watson-iot/0.2.6/watson-iot-0.2.6.jar).
 
 When you use maven, the dependencies are downloaded automatically.
 
@@ -106,7 +115,7 @@ You can find samples in each of the corresponding repositories as follows:
 * [Watson IoT Platform API V002 samples](https://github.com/ibm-messaging/iot-platform-apiv2-samples) - Repository contains samples that interacts with IBM Watson IoT Platform using the platform API Version 2.
 * [Scalable Application samples](https://github.com/ibm-messaging/iot-scalable-application-samples) - Repository contains sample(s) for building scalable applications, using shared subscription support in IBM Watson IoT Platform.
 * [Backup-restore sample](https://github.com/ibm-messaging/iot-backup-restore-sample) - The sample in the repository shows how to backup the device configuration in Cloudant NoSQL DB and restore the same later.
-
+* [Data management sample](https://github.com/ibm-messaging/iot-backup-restore-sample) - The sample in the repository creates all the artifacts needed for getting a working Data Management sample that converts values from Fahrenhiet to Celcius.
 
 Dependencies
 ------------------------------------------------------------------------------
@@ -118,8 +127,9 @@ Dependencies
 -  [Apache Commons Lang](https://commons.apache.org/proper/commons-lang/download_lang.cgi) - Provides methods for manipulating core Java classes.
 -  [Apache Commons Net](https://commons.apache.org/proper/commons-net/download_net.cgi) - Provides methods for client side Internet protocols.
 -  [Apache Ant](http://ant.apache.org/) - A build tool for automated builds.
--  [Apache HttpClient](https://hc.apache.org/downloads.cgi) - A HTTP Client library.
--  [Apache HttpCore](https://hc.apache.org/downloads.cgi)  - A HTTP Core library.
+-  [Apache HttpClient](https://hc.apache.org/downloads.cgi) - HTTP Client library.
+-  [Apache HttpCore](https://hc.apache.org/downloads.cgi)  - HTTP Core library.
+-  [Apache HttpMime](https://hc.apache.org/httpcomponents-client-ga/httpmime/dependency-info.html)  - HTTP Mime library.
 -  [Joda-Time](http://www.joda.org/joda-time/download.html) - The date and time library for Java.
 -  [Bouncy Castle's PEMReader](https://www.bouncycastle.org/latest_releases.html) - Provides methods to read Client side Certificates
 

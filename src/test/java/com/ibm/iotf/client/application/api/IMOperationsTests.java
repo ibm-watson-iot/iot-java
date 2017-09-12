@@ -1065,7 +1065,7 @@ public class IMOperationsTests extends TestCase {
 		}
 		JsonObject validateOperation = new JsonObject();
 		try {
-			validateOperation.addProperty("operation", SchemaOperation.VALIDATE.getOperation());
+			validateOperation.addProperty("operation", SchemaOperation.DEACTIVATE.getOperation());
 			JsonObject validated = apiClient.performOperationAgainstDeviceType(DEVICE_TYPE, validateOperation.toString());
 			try {
 				Thread.sleep(20000);			
@@ -1121,7 +1121,9 @@ public class IMOperationsTests extends TestCase {
 		assertTrue("Event Type deletion = ", mappingDeletion);
 	}
 
-	
+/*	
+ * To run this tescase, testcase test57PerformOperationAgainstDeviceType needs to be commented
+ * 
 	public void test89TestDeactivateOperation() throws IoTFCReSTException {
 		System.out.println("\nInside test method test89TestDeactivateOperation()");		
 		if(apiClient == null) {
@@ -1133,11 +1135,9 @@ public class IMOperationsTests extends TestCase {
 		System.out.println("id" + logicalInterfaceId + " deactivateOperation.toString()" + deactivateOperation.toString() );
 
 		JsonObject deactivated = apiClient.performOperationAgainstLogicalInterface(logicalInterfaceId, deactivateOperation.toString());
-		System.out.println("\n16. Dectivate operation = " + deactivated.toString());
-		
 		assertTrue("Event Type deletion = ", true);
 	}
-
+*/
 	
 	public void test90DeletePhysicalInterface() throws IoTFCReSTException {
 		System.out.println("\nInside test method test90DeletePhysicalInterface()");		
