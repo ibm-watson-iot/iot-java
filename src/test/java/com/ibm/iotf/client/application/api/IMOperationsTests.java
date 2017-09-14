@@ -539,8 +539,8 @@ public class IMOperationsTests extends TestCase {
 		
 	}
 
-	public void test32RetrieveSingleDraftLogicalInterface() throws IoTFCReSTException {
-		System.out.println("\nInside test method test32RetrieveSingleDraftLogicalInterface()");		
+	public void test32GetDraftLogicalInterface() throws IoTFCReSTException {
+		System.out.println("\nInside test method test32GetDraftLogicalInterface()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -551,8 +551,8 @@ public class IMOperationsTests extends TestCase {
 	}
 
 	
-	public void test33RetrieveAllDraftLogicalInterface() throws IoTFCReSTException {
-		System.out.println("\nInside test method test33RetrieveAllDraftLogicalInterface()");		
+	public void test33GetAllDraftLogicalInterfaces() throws IoTFCReSTException {
+		System.out.println("\nInside test method test33GetAllDraftLogicalInterfaces()");		
 		if(apiClient == null) {
 			return;
 		}
@@ -561,7 +561,7 @@ public class IMOperationsTests extends TestCase {
 		List <NameValuePair> parameters = new ArrayList<NameValuePair>();
 		NameValuePair nvp = new BasicNameValuePair("_page", "25");
 		parameters.add(nvp);
-		JsonObject draftLIResponse = apiClient.getDraftLogicalInterfaces(parameters);
+		JsonObject draftLIResponse = apiClient.getAllDraftLogicalInterfaces(parameters);
 		try {
 			String noOfRows = draftLIResponse.getAsJsonObject("meta").get("total_rows").toString();
 			System.out.println("Retrieved " + noOfRows);

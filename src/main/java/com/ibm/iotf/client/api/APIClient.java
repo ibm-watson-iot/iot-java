@@ -3826,6 +3826,9 @@ public class APIClient {
 	 *
 	 * @param logicalInterfaceId String to be retrieved from IBM Watson IoT Platform
 	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/get_draft_logicalinterfaces_logicalInterfaceId">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
 	 * @return JSON response containing the draft logical interface
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the draft logical interface
@@ -3882,6 +3885,9 @@ public class APIClient {
 	 * Retrieve the active logical interface
 	 *
 	 * @param logicalInterfaceId String to be retrieved from IBM Watson IoT Platform
+	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/get_logicalinterfaces">link</a>
+	 * for more information about the JSON format</p>.
 	 * 
 	 * @return JSON response containing the active logical interface
 	 *  
@@ -4134,13 +4140,16 @@ public class APIClient {
 	 * 
 	 * @param parameters list of query parameters that controls the output.
 	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/get_draft_logicalinterfaces">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
 	 * @return JSON response containing list of draft logical interfaces
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving draft logical interface request status
 	 */
-	public JsonObject getDraftLogicalInterfaces(List<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDraftLogicalInterfaces(List<NameValuePair> parameters) throws IoTFCReSTException {
 		
-		final String METHOD = "getDraftLogicalInterfaces";
+		final String METHOD = "getAllDraftLogicalInterfaces";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
