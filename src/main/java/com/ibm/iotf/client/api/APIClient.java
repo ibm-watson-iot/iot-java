@@ -3826,6 +3826,9 @@ public class APIClient {
 	 *
 	 * @param logicalInterfaceId String to be retrieved from IBM Watson IoT Platform
 	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/get_draft_logicalinterfaces_logicalInterfaceId">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
 	 * @return JSON response containing the draft logical interface
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the draft logical interface
@@ -3882,6 +3885,9 @@ public class APIClient {
 	 * Retrieve the active logical interface
 	 *
 	 * @param logicalInterfaceId String to be retrieved from IBM Watson IoT Platform
+	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/get_logicalinterfaces">link</a>
+	 * for more information about the JSON format</p>.
 	 * 
 	 * @return JSON response containing the active logical interface
 	 *  
@@ -4134,13 +4140,16 @@ public class APIClient {
 	 * 
 	 * @param parameters list of query parameters that controls the output.
 	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/get_draft_logicalinterfaces">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
 	 * @return JSON response containing list of draft logical interfaces
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving draft logical interface request status
 	 */
-	public JsonObject getDraftLogicalInterfaces(List<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllDraftLogicalInterfaces(List<NameValuePair> parameters) throws IoTFCReSTException {
 		
-		final String METHOD = "getDraftLogicalInterfaces";
+		final String METHOD = "getAllDraftLogicalInterfaces";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
@@ -4186,6 +4195,9 @@ public class APIClient {
 	 * Get list of all active logical interfaces
 	 * 
 	 * @param parameters list of query parameters that controls the output.
+	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_device_types_typeId_logicalinterfaces">link</a>
+	 * for more information about the JSON format</p>. 
 	 * 
 	 * @return JSON response containing list of active logical interfaces
 	 *  
@@ -4892,7 +4904,10 @@ public class APIClient {
 	 * 
 	 * @param logicalInterfaceId String containing the Logical Interface Id.
 	 * 
-	 * @return JSON response containing current state of the device with the specified id
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Devices/get_device_types_typeId_devices_deviceId_state_logicalInterfaceId">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JSONObject response containing current state of the device with the specified id
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving current state of the device with the specified id
 	 */
@@ -4952,7 +4967,10 @@ public class APIClient {
 	 * 
 	 * @param parameters list of query parameters that controls the output.
 	 * 
-	 * @return JSON response containing list of all draft event types
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Event_Types/get_draft_event_types">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JSONObject response containing list of all draft event types
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving draft event types
 	 */
@@ -4967,7 +4985,7 @@ public class APIClient {
 		sb.append(orgId).
 		   append('.').
 		   append(this.domain).append(BASIC_API_V0002_URL).
-		   append("/draft/event/types/");
+		   append("/draft/event/types");
 		
 		int code = 0;
 		HttpResponse response = null;
@@ -5005,7 +5023,10 @@ public class APIClient {
 	 * 
 	 * @param draftEventType String in the form of JSON containing the event.
 	 * 
-	 * @return If successful, JsonObject response from Watson IoT Platform.
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Event_Types/post_draft_event_types">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JSONObject If successful JsonObject response from Watson IoT Platform.
 	 * 
 	 * @throws IoTFCReSTException if failed.
 	 * 
@@ -5069,7 +5090,7 @@ public class APIClient {
 	 * 
 	 * @param eventTypeId String to be deleted from IBM Watson IoT Platform
 	 *   
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Physical_Interface/delete_physical_interface_Id">link</a> 
+	 * <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Event_Types/delete_draft_event_types_eventTypeId">link</a> 
 	 * for more information about the schema to be used
 	 * 
 	 * @return boolean object containing the response of the deletion operation.
@@ -5125,6 +5146,9 @@ public class APIClient {
 	 * Get draft event Type
 	 * 
 	 * @param eventTypeId String containing the Event Type Id.
+	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Event_Types/get_draft_event_types_eventTypeId">link</a>
+	 * for more information about the JSON format</p>.
 	 * 
 	 * @return JSON response containing the draft event type with the specified id
 	 *  
@@ -5187,7 +5211,7 @@ public class APIClient {
 	 * @param draftEventType String which contains the Event Type in JSON format
      *
 	 * <p> Refer to the
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/put_device_types_typeId_devices_deviceId_location">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Event_Types/put_draft_event_types_eventTypeId">link</a>
 	 * for more information about the JSON format</p>.
 	 *   
 	 * @return A JSON response containing the status of the update operation.
@@ -5251,13 +5275,16 @@ public class APIClient {
 	 * 
 	 * @param parameters list of query parameters that controls the output.
 	 * 
-	 * @return JSON response containing list of all active event types
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_device_types_typeId_physicalinterface">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JSONObject response containing list of all active event types
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving active event types
 	 */
-	public JsonObject getActiveEventTypes(List<NameValuePair> parameters) throws IoTFCReSTException {
+	public JsonObject getAllActiveEventTypes(List<NameValuePair> parameters) throws IoTFCReSTException {
 		
-		final String METHOD = "getActiveEventTypes";
+		final String METHOD = "getAllActiveEventTypes";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
@@ -5303,6 +5330,9 @@ public class APIClient {
 	 * Get active event Type
 	 * 
 	 * @param eventTypeId String containing the active Event Type Id.
+	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Event_Types/get_event_types_eventTypeId">link</a>
+	 * for more information about the JSON format</p>.
 	 * 
 	 * @return JSON response containing the active event type with the specified id
 	 *  
@@ -5416,7 +5446,7 @@ public class APIClient {
 	 * 
 	 * @param deviceTypeOperation String contains the operation in JSON format
 	 * 
-	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/patch_logicalinterfaces_logicalInterfaceId">link</a>
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/patch_device_types_typeId">link</a>
 	 * for more information about the JSON format</p>.
 	 *   
 	 * @return A JSON response containing the status of the patch operation.
@@ -5441,6 +5471,7 @@ public class APIClient {
 		String method = "patch";
 		try {
 			response = connect(method, sb.toString(), deviceTypeOperation, null);
+			System.out.println("method = " + method + " URL = " + sb.toString() + " payload = " + deviceTypeOperation);
 			code = response.getStatusLine().getStatusCode();
 			if(code == 200 || code == 202) {
 				String result = this.readContent(response, METHOD);
@@ -5479,11 +5510,14 @@ public class APIClient {
 	 * 
 	 * @param typeId String containing the device Type Id.
 	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_device_types_typeId_logicalinterfaces">link</a>
+	 * for more information about the JSON format</p>.
+	 *   
 	 * @return JSON response containing the list of active logical interfaces with the specified device type id
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of active logical interfaces with the specified device type id
 	 */
-	public JsonObject getActiveLogicalInterfacesForDeviceType(String typeId) throws IoTFCReSTException {
+	public JsonArray getActiveLogicalInterfacesForDeviceType(String typeId) throws IoTFCReSTException {
 		
 		final String METHOD = "getActiveLogicalInterfacesForDeviceType";
 		/**
@@ -5507,7 +5541,7 @@ public class APIClient {
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				return jsonResponse.getAsJsonObject();
+				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of active logical interfaces with the specified device type id "
@@ -5534,11 +5568,14 @@ public class APIClient {
 	 * 
 	 * @param typeId String containing the device Type Id.
 	 * 
-	 * @return JSON response containing the list of active property mappings for a device type
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_device_types_typeId_mappings">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JSONArray response containing the list of active property mappings for a device type
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of active property mappings for a device type
 	 */
-	public JsonObject getActivePropertyMappingsForDeviceType(String typeId) throws IoTFCReSTException {
+	public JsonArray getActivePropertyMappingsForDeviceType(String typeId) throws IoTFCReSTException {
 		
 		final String METHOD = "getActivePropertyMappingsForDeviceType";
 		/**
@@ -5562,7 +5599,7 @@ public class APIClient {
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				return jsonResponse.getAsJsonObject();
+				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of active property mappings for a device type "
@@ -5590,8 +5627,11 @@ public class APIClient {
 	 * @param typeId String containing the device Type Id.
 	 * 
 	 * @param logicalInterfaceId String containing the logical interface Id
+	 *  
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_device_types_typeId_mappings_logicalInterfaceId">link</a>
+	 * for more information about the JSON format</p>.
 	 * 
-	 * @return JSON response containing the list of active property mappings for a logical interface of a given device type
+	 * @return JSONObject response containing the list of active property mappings for a logical interface of a given device type
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of active property mappings for a logical interface of a given device type
 	 */
@@ -5647,7 +5687,10 @@ public class APIClient {
 	 * 
 	 * @param typeId String containing the device Type Id.
 	 * 
-	 * @return JSON response containing active physical interface for a given device type
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_device_types_typeId_physicalinterface">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JSONObject response containing active physical interface for a given device type
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the active physical interface for a given device type
 	 */
@@ -5698,11 +5741,14 @@ public class APIClient {
 
 	
 	/**
-	 * Get list of all device types associated with a logical of phsical interface
+	 * Get list of all device types associated with a logical of physical interface
 	 * 
 	 * @param parameters list of query parameters that controls the output.
 	 * 
-	 * @return JSON response containing list of all device types
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_draft_device_types">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JSONObject response containing list of all device types
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving list of all device types
 	 */
@@ -5717,7 +5763,7 @@ public class APIClient {
 		sb.append(orgId).
 		   append('.').
 		   append(this.domain).append(BASIC_API_V0002_URL).
-		   append("/draft/device/types/");
+		   append("/draft/device/types");
 		
 		int code = 0;
 		HttpResponse response = null;
@@ -5757,10 +5803,10 @@ public class APIClient {
 	 * 
 	 * @param deviceTypeOperation String contains the operation in JSON format
 	 * 
-	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Logical_Interfaces/patch_logicalinterfaces_logicalInterfaceId">link</a>
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/patch_draft_device_types_typeId">link</a>
 	 * for more information about the JSON format</p>.
 	 *   
-	 * @return A JSON response containing the status of the patch operation.
+	 * @return A JSONObject response containing the status of the patch operation.
 	 * 
 	 * @throws IoTFCReSTException Failure in updating the draft device type operation
 	 */
@@ -5820,13 +5866,16 @@ public class APIClient {
 	 * 
 	 * @param typeId String containing the device Type Id.
 	 * 
-	 * @return JSON response containing the list of draft logical interfaces associated with the specified device type id
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_draft_device_types_typeId_logicalinterfaces">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JsonArray response containing the list of draft logical interfaces associated with the specified device type id
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of draft logical interfaces associated with the specified device type id
 	 */
-	public JsonObject getDraftLogicalInterfacesForDeviceType(String typeId) throws IoTFCReSTException {
+	public JsonArray getDraftLogicalInterfacesAssociatedWithDeviceType(String typeId) throws IoTFCReSTException {
 		
-		final String METHOD = "getDraftLogicalInterfacesForDeviceType";
+		final String METHOD = "getDraftLogicalInterfacesAssociatedWithDeviceType";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
@@ -5848,7 +5897,7 @@ public class APIClient {
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				return jsonResponse.getAsJsonObject();
+				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of draft logical interfaces associated with the specified device type id "
@@ -5876,15 +5925,18 @@ public class APIClient {
 	 * @param typeId String containing the device type Id
 	 * 
 	 * @param draftLogicalInterface String in the form of JSON containing the event.
-	 * 
-	 * @return If successful, JsonObject response from Watson IoT Platform.
+     *
+     * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/post_draft_device_types_typeId_logicalinterfaces">link</a>
+     * for more information about the JSON format</p>.
+     *  
+	 * @return JsonObject response from Watson IoT Platform.
 	 * 
 	 * @throws IoTFCReSTException if failed.
 	 * 
 	 * @see IoTFCReSTException
 	 */
-	public JsonObject addDraftLogicalInterfaceToDeviceType(String typeId, String draftLogicalInterface) throws IoTFCReSTException {
-		final String METHOD = "addDraftLogicalInterfaceToDeviceType";
+	public JsonObject associateDraftLogicalInterfaceToDeviceType(String typeId, String draftLogicalInterface) throws IoTFCReSTException {
+		final String METHOD = "associateDraftLogicalInterfaceToDeviceType";
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		int code = 0;
@@ -5948,7 +6000,7 @@ public class APIClient {
 	 * 
 	 * @param draftLogicalInterfaceId String draft logical interface
 	 *   
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Physical_Interface/delete_physical_interface_Id">link</a> 
+	 * <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/delete_draft_device_types_typeId_logicalinterfaces_logicalInterfaceId">link</a> 
 	 * for more information about the schema to be used
 	 * 
 	 * @return boolean object containing the response of the deletion operation.
@@ -5956,8 +6008,8 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure in deleting the draft logical interface from device type
 	 */
 
-	public boolean deleteDraftLogicalInterface(String typeId, String draftLogicalInterfaceId) throws IoTFCReSTException {
-		final String METHOD = "deleteDraftLogicalInterface";
+	public boolean dissociateDraftLogicalInterfaceFromDeviceType(String typeId, String draftLogicalInterfaceId) throws IoTFCReSTException {
+		final String METHOD = "dissociateDraftLogicalInterfaceFromDeviceType";
 		/**
 		 * Form the url based on this swagger documentation
 		 */
@@ -6009,11 +6061,14 @@ public class APIClient {
 	 * 
 	 * @param typeId String containing the device Type Id.
 	 * 
-	 * @return JSON response containing the list of draft property mappings associated with the specified device type id
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_draft_device_types_typeId_mappings_logicalInterfaceId">link</a>
+	 * for more information about the JSON format</p>.
+	 *  
+	 * @return JSONArray response containing the list of draft property mappings associated with the specified device type id
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of draft property mappings associated with the specified device type id
 	 */
-	public JsonObject getDraftPropertyMappingsForDeviceType(String typeId) throws IoTFCReSTException {
+	public JsonArray getDraftPropertyMappingsForDeviceType(String typeId) throws IoTFCReSTException {
 		
 		final String METHOD = "getDraftPropertyMappingsForDeviceType";
 		/**
@@ -6037,7 +6092,8 @@ public class APIClient {
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				return jsonResponse.getAsJsonObject();
+				System.out.println("Content = " + jsonResponse);
+				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the list of draft property mappings associated with the specified device type id "
@@ -6066,6 +6122,9 @@ public class APIClient {
 	 * 
 	 * @param draftDeviceTypePropertyMappings String in the form of JSON containing the event.
 	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/post_draft_device_types_typeId_mappings">link</a>
+	 * for more information about the JSON format</p>.
+	 *  
 	 * @return If successful, JsonObject response from Watson IoT Platform.
 	 * 
 	 * @throws IoTFCReSTException if failed.
@@ -6137,7 +6196,7 @@ public class APIClient {
 	 * 
 	 * @param draftLogicalInterfaceId String draft logical interface
 	 *   
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Physical_Interface/delete_physical_interface_Id">link</a> 
+	 * <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/delete_draft_device_types_typeId_mappings_logicalInterfaceId">link</a> 
 	 * for more information about the schema to be used
 	 * 
 	 * @return boolean object containing the response of the deletion operation.
@@ -6194,19 +6253,22 @@ public class APIClient {
 
 	
 	/**
-	 * Get list of draft property mappings for a device type
+	 * Get list of draft property mappings for a specific logical interface of a device type
 	 * 
 	 * @param typeId String containing the device Type Id.
 	 * 
 	 * @param logicalInterfaceId String containing the Logical Interface Id
 	 * 
-	 * @return JSON response containing the list of draft property mappings for a specific logical interface id for a device type
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_draft_device_types_typeId_mappings_logicalInterfaceId">link</a>
+	 * for more information about the JSON format</p>.
+	 * 
+	 * @return JSONObject response containing the list of draft property mappings for a specific logical interface id for a device type
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving the list of draft property mappings for a specific logical interface id for a device type
 	 */
-	public JsonObject getDraftPropertyMappingsForDeviceType(String typeId, String logicalInterfaceId) throws IoTFCReSTException {
+	public JsonObject getDraftPropertyMappingsForSpecificLogicalInterfaceDeviceType(String typeId, String logicalInterfaceId) throws IoTFCReSTException {
 		
-		final String METHOD = "getDraftPropertyMappingsForDeviceType";
+		final String METHOD = "getDraftPropertyMappingsForSpecificLogicalInterfaceDeviceType";
 		/**
 		 * Form the url based on this swagger documentation
 		 * 
@@ -6263,7 +6325,7 @@ public class APIClient {
 	 * @param deviceTypePropertyMappings String which contains the device type property mappings in JSON format
      *
 	 * <p> Refer to the
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/put_device_types_typeId_devices_deviceId_location">link</a>
+	 * <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/put_draft_device_types_typeId_mappings_logicalInterfaceId">link</a>
 	 * for more information about the JSON format</p>.
 	 *   
 	 * @return A JSON response containing the status of the update operation.
@@ -6329,14 +6391,16 @@ public class APIClient {
 	 * 
 	 * @param draftPhysicalInterface String containing the draft physical interface in JSON format
 	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/post_draft_device_types_typeId_physicalinterface">link</a>
+	 * 
 	 * @return If successful, JsonObject response from Watson IoT Platform.
 	 * 
 	 * @throws IoTFCReSTException Failure in associating a draft physical interface with the specified device type
 	 * 
 	 * @see IoTFCReSTException
 	 */
-	public JsonObject addDraftPhysicalInterfaceToDeviceType(String typeId, String draftPhysicalInterface) throws IoTFCReSTException {
-		final String METHOD = "addDraftPhysicalInterfaceToDeviceType";
+	public JsonObject associateDraftPhysicalInterfaceWithDeviceType(String typeId, String draftPhysicalInterface) throws IoTFCReSTException {
+		final String METHOD = "associateDraftPhysicalInterfaceWithDeviceType";
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 		int code = 0;
@@ -6398,7 +6462,7 @@ public class APIClient {
 	 * 
 	 * @param typeId String device type from which draft physical interface needs to be dissociated from
 	 * 
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Physical_Interface/delete_physical_interface_Id">link</a> 
+	 * <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/delete_draft_device_types_typeId_physicalinterface">link</a> 
 	 * for more information about the schema to be used
 	 * 
 	 * @return boolean object containing the response of the deletion operation.
@@ -6406,8 +6470,8 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure in dissociating a draft physical interface from a device type
 	 */
 
-	public boolean deleteDraftPhysicalInterfaceFromDeviceType(String typeId) throws IoTFCReSTException {
-		final String METHOD = "deleteDraftPhysicalInterfaceFromDeviceType";
+	public boolean dissociateDraftPhysicalInterfaceFromDeviceType(String typeId) throws IoTFCReSTException {
+		final String METHOD = "dissociateDraftPhysicalInterfaceFromDeviceType";
 		/**
 		 * Form the url based on this swagger documentation
 		 */
@@ -6453,6 +6517,9 @@ public class APIClient {
 	 * Get draft physical interface associated with device type
 	 * 
 	 * @param typeId String containing the device Type Id.
+	 * 
+	 * <p> Refer to the <a href="https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/state-mgmt.html#!/Device_Types/get_draft_device_types_typeId_physicalinterface">link</a>
+	 * for more information about the JSON format</p>.
 	 * 
 	 * @return JSON response containing draft physical interface associated with device type
 	 *  
