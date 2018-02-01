@@ -1,7 +1,7 @@
 Java Client Library - Introduction
 ============================================
 
-Use the Java Client Library to simplify interactions with [IBM Watson IoT Platform] (https://internetofthings.ibmcloud.com).
+This repository contains the Java Client Library to simplify interactions with [IBM Watson IoT Platform] (https://internetofthings.ibmcloud.com).
 
 The following documentation is provided to help you to get started:
 
@@ -11,17 +11,66 @@ The following documentation is provided to help you to get started:
 - The [Gateway Management section](https://console.ng.bluemix.net/docs/services/IoT/gateways/libraries/java_cli_managed_gw.html) contains information on how to connect the gateway as Managed Gateway to IBM Watson IoT Platform and manage the attached devices.
 - The [Application section](https://console.ng.bluemix.net/docs/services/IoT/applications/libraries/java.html) details how applications can use the Java ibmiotf Client Library to interact with devices.
 - The [API section](docs/java_cli_for_api.rst)  contains information on how applications can use the Java ibmiotf Client Library to interact with the organization in the Watson IoT Platform through REST APIs
-- The [Data management section]()contains information on how applications can use the Java ibmiotf Client Library to interact with the organization in the Watson IoT Platform Data management APIs
+- The [Data management section](https://github.com/ibm-watson-iot/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleDataManagementAPIOperations.java)contains information on how applications can use the Java ibmiotf Client Library to interact with the organization in the Watson IoT Platform Data management APIs
 
+
+
+----
+
+How to use the Watson IoT Client Library for Java
+=================================================
+
+The client library can be used by both Application Developers, as well as, Device Developers.
+
+
+Setup your development environment
+----------------------------------
+This section explains how to set up your development environment to use the Watson IoT Platform Client Library for Java and needs  
+
+*  Java  
 The Java Client Library requires either of the following versions of Java:
 
-*  [Java 7](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html)
-*  [Java 8](https://java.com/en/download/)
+    *  [Java 7](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html)  
+
+    *  [Java 8](https://java.com/en/download/)
+
+* [Maven 3](https://maven.apache.org/download.cgi)
+
+* [Watson IoT Client Library for Java](https://github.com/ibm-watson-iot/iot-java)
+
+* [Samples](https://github.com/amitmangalvedkar/iot-platform-apiv2-samples/tree/master/java/api-samples-v2)
+
+* Optionally [Eclipse IDE](https://www.eclipse.org)
+
+Maven support
+--------------------------------------------------------------------
+
+The library artifact is pushed to the maven. Use the following maven dependency to include this library in your Java application.
+
+    <dependency>
+        <groupId>com.ibm.messaging</groupId>
+        <artifactId>watson-iot</artifactId>
+        <version>0.2.6</version>
+    </dependency>
+
+
+However, if you want to build the library by yourself, use the following maven command:
+
+    mvn clean package -Dmaven.test.skip=true
+
+The above command quickly builds the library by skipping the test and the `target` directory contains the output jar files. However, if you also want to run the tests, modify the property files that are in the directory `src/test/resources`, and then run the following maven command:
+
+    mvn clean package
+
+Development using Eclipse
+-------------------------
+
+
 
 ----
 
 Supported Features
-------------------
+==================
 
 | Feature   |      Supported?      | Description |
 |----------|:-------------:|:-------------|
@@ -55,28 +104,6 @@ If you need to revert back to the previous behavior, run the application with th
 This will publish the message in old format as follows:
 
     {"d":{"temp":56,"hum":70}}
-
-----
-
-Maven support
---------------------------------------------------------------------
-
-The library artifact is pushed to the maven. Use the following maven dependency to include this library in your Java application.
-
-    <dependency>
-        <groupId>com.ibm.messaging</groupId>
-        <artifactId>watson-iot</artifactId>
-        <version>0.2.6</version>
-    </dependency>
-
-
-However, if you want to build the library by yourself, use the following maven command:
-
-    mvn clean package -Dmaven.test.skip=true
-
-The above command quickly builds the library by skipping the test and the `target` directory contains the output jar files. However, if you also want to run the tests, modify the property files that are in the directory `src/test/resources`, and then run the following maven command:
-
-    mvn clean package
 
 ----
 
@@ -115,7 +142,7 @@ You can find samples in each of the corresponding repositories as follows:
 * [Watson IoT Platform API V002 samples](https://github.com/ibm-messaging/iot-platform-apiv2-samples) - Repository contains samples that interacts with IBM Watson IoT Platform using the platform API Version 2.
 * [Scalable Application samples](https://github.com/ibm-messaging/iot-scalable-application-samples) - Repository contains sample(s) for building scalable applications, using shared subscription support in IBM Watson IoT Platform.
 * [Backup-restore sample](https://github.com/ibm-messaging/iot-backup-restore-sample) - The sample in the repository shows how to backup the device configuration in Cloudant NoSQL DB and restore the same later.
-* [Data management sample](https://github.com/amitmangalvedkar/iot-platform-apiv2-samples/tree/master/java/api-samples-v2) - The sample in the repository creates all the artifacts needed for getting a working Data Management sample that converts values from Fahrenhiet to Celcius.
+* [Data management sample](https://github.com/amitmangalvedkar/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleDataManagementAPIOperations.java) - The sample in the repository creates all the artifacts needed for getting a working Data Management sample that converts values from Fahrenhiet to Celcius.
 
 Dependencies
 ------------------------------------------------------------------------------
