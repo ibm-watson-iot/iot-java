@@ -849,6 +849,7 @@ public class APIClient {
 		   append("/");
 		
 		int code = 0;
+		JsonElement jsonResponse = null;
 		HttpResponse response = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
@@ -856,7 +857,7 @@ public class APIClient {
 			if(code == 200) {
 				// success
 				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
+				jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -867,13 +868,13 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the api key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the api key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The organization does not exist");
+			throw new IoTFCReSTException(code, "The organization does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(code, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -2973,6 +2974,7 @@ public class APIClient {
 	}
 	
 	/**
+	 * @deprecated This method has been deprecated as /usage/active-devices is no longer supported
 	 * Retrieve the number of active devices over a period of time
 	 * 
 	 * @param startDate Start date in one of the following formats: YYYY (last day of the year), 
@@ -2987,6 +2989,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving all active device details
 	 */
+	@Deprecated
 	public JsonObject getActiveDevices(String startDate, String endDate, boolean detail) throws IoTFCReSTException {
 		final String METHOD = "getActiveDevices";
 		/**
@@ -3028,6 +3031,8 @@ public class APIClient {
 		
 		if(code == 400) {
 			throw new IoTFCReSTException(code, "Bad Request", jsonResponse);
+		} else if (code == 410) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		} else if (code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -3035,6 +3040,7 @@ public class APIClient {
 	}
 	
 	/**
+	 * @deprecated: This functionality is no longer needed
 	 * Retrieve the amount of storage being used by historical event data
 	 * 
 	 * @param startDate Start date in one of the following formats: YYYY (last day of the year), 
@@ -3049,6 +3055,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving historical data usage
 	 */
+	@Deprecated
 	public JsonObject getHistoricalDataUsage(String startDate, String endDate, boolean detail) throws IoTFCReSTException {
 		final String METHOD = "getHistoricalDataUsage";
 		/**
@@ -3144,8 +3151,8 @@ public class APIClient {
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the data traffic "
-					+ "::"+e.getMessage());
+			IoTFCReSTException ex = new IoTFCReSTException(code, "Failure in retrieving the data traffic "
+					+ "::"+e.getMessage(), jsonResponse);
 			ex.initCause(e);
 			throw ex;
 		}
