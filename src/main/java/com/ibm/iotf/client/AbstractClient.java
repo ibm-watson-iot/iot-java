@@ -23,10 +23,15 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Security;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
@@ -73,6 +78,8 @@ public abstract class AbstractClient {
 	private static final String QUICK_START = "quickstart";
 	private static final int DEFAULT_MAX_INFLIGHT_MESSAGES = 100;
 	private static final int DEFAULT_MESSAGING_QOS = 1;
+	
+	private static final String SERVER_MESSAGING_PEM = "messaging.pem";
 	
 	protected static final String CLIENT_ID_DELIMITER = ":";
 	
@@ -128,7 +135,6 @@ public abstract class AbstractClient {
 	protected MemoryPersistence persistence = null;
 	
 	protected static final boolean newFormat;
-	protected String serverCert, clientCert, clientCertKey, certPassword;
 	
 	static {
 		newFormat = Boolean.parseBoolean(System.getProperty("com.ibm.iotf.enableCustomFormat", "true"));
@@ -500,56 +506,59 @@ public abstract class AbstractClient {
 			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
 			sslContext.init(null, null, null);
 			
+			String serverCert = null;
+			String clientCert = null;
+			String clientCertKey = null;
+			String certPassword = null;
+			
 			//Validate the availability of Server Certificate
 			
 			if (trimedValue(options.getProperty("Server-Certificate")) != null){
 				if (trimedValue(options.getProperty("Server-Certificate")).contains(".pem")||trimedValue(options.getProperty("Server-Certificate")).contains(".der")||trimedValue(options.getProperty("Server-Certificate")).contains(".cer")){
 					serverCert = trimedValue(options.getProperty("Server-Certificate"));
-					}else{
-						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only PEM, DER & CER certificate formats are supported at this point of time");
-						return;
-					}
-				}else{
-						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Server Certificate is missing");
-						return;
+				} else{
+					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only PEM, DER & CER certificate formats are supported at this point of time");
+					throw new RuntimeException("Only PEM, DER & CER certificate formats are supported at this point of time");
 				}
+			} else{
+				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Server Certificate is missing, using default one");
+			}
 			
 			//Validate the availability of Client Certificate
 			if (trimedValue(options.getProperty("Client-Certificate")) != null){
 				if (trimedValue(options.getProperty("Client-Certificate")).contains(".pem")||trimedValue(options.getProperty("Client-Certificate")).contains(".der")||trimedValue(options.getProperty("Client-Certificate")).contains(".cer")){
 					clientCert = trimedValue(options.getProperty("Client-Certificate"));
-					}else{
-						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only PEM, DER & CER certificate formats are supported at this point of time");
-						return;
-					}
-				}else{
-						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Certificate is missing");
-						return;
+				} else {
+					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only PEM, DER & CER certificate formats are supported at this point of time");
+					throw new RuntimeException("Only PEM, DER & CER certificate formats are supported at this point of time");
 				}
+			} else {
+				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Certificate is missing");
+				throw new RuntimeException("Value for Client Certificate is missing");
+			}
 
 			//Validate the availability of Client Certificate Key
 			if (trimedValue(options.getProperty("Client-Key")) != null){
 				if (trimedValue(options.getProperty("Client-Key")).contains(".key")){
 					clientCertKey = trimedValue(options.getProperty("Client-Key"));
-					}else{
-						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only Certificate key in .key format is supported at this point of time");
-						return;
-					}
-				}else{
-						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Key is missing");
-						return;
+				} else {
+					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only Certificate key in .key format is supported at this point of time");
+					return;
 				}
+			} else {
+				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Key is missing");
+				return;
+			}
 			
 			//Validate the availability of Certificate Password
 			try{
-			if (trimedValue(options.getProperty("Certificate-Password")) != null){
-				certPassword = trimedValue(options.getProperty("Certificate-Password"));
+				if (trimedValue(options.getProperty("Certificate-Password")) != null){
+					certPassword = trimedValue(options.getProperty("Certificate-Password"));
 				} else {
 					certPassword = "";
 				}
-			} catch (Exception e){
+			} catch (RuntimeException e){
 					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Certificate Password is missing", e);
-					e.printStackTrace();
 					throw e;
 				}
 			
@@ -558,6 +567,7 @@ public abstract class AbstractClient {
 		} catch (Exception e) {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to configure TLSv1.2 connection: " + e.getMessage());
 			e.printStackTrace();
+			throw new RuntimeException(e.getMessage());
 		}
 	}
 	
@@ -947,8 +957,8 @@ public abstract class AbstractClient {
 		}
 	}
 
-	static SSLSocketFactory getSocketFactory (final String caCrtFile, final String crtFile, final String keyFile, final String password) throws Exception
-	{ 
+	static SSLSocketFactory getSocketFactory (final String caCrtFile, final String crtFile, 
+			final String keyFile, final String password) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException { 
 		Security.addProvider(new BouncyCastleProvider());
 	    X509Certificate caCert = null;
 	    	    
@@ -957,6 +967,11 @@ public abstract class AbstractClient {
 		    PEMReader reader = new PEMReader(new InputStreamReader(new ByteArrayInputStream(Files.readAllBytes(Paths.get(caCrtFile)))));
 		    caCert = (X509Certificate)reader.readObject();
 		    reader.close();
+	    } else {
+	    	 ClassLoader classLoader = AbstractClient.class.getClassLoader();
+	    	 PEMReader reader = new PEMReader(new InputStreamReader(classLoader.getResource(SERVER_MESSAGING_PEM).openStream()));
+			    caCert = (X509Certificate)reader.readObject();
+			    reader.close();
 	    }
 	    
 	    PEMReader reader = new PEMReader(new InputStreamReader(new ByteArrayInputStream(Files.readAllBytes(Paths.get(crtFile)))));
@@ -979,7 +994,7 @@ public abstract class AbstractClient {
 		    caKs.setCertificateEntry("ca-certificate", caCert);
 		    tmf = TrustManagerFactory.getInstance("PKIX");
 		    tmf.init(caKs);
-	    }
+	    } 
 	    // client key and certificates are sent to server so it can authenticate us
 	    KeyStore ks = KeyStore.getInstance("JKS");
 	    ks.load(null, null);

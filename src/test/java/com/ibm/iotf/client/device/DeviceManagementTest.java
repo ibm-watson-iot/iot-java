@@ -134,6 +134,7 @@ public class DeviceManagementTest extends TestCase {
 		private volatile String verifier;
 		
 		private volatile boolean firmwareUpdateCalled = false;
+		private volatile boolean firmwaredownloaded = false;
 		
 		@Override
 		public void downloadFirmware(final DeviceFirmware deviceFirmware) {
@@ -150,7 +151,7 @@ public class DeviceManagementTest extends TestCase {
 					verifier = deviceFirmware.getVerifier();
 					
 					try {
-						Thread.sleep(5000);
+						Thread.sleep(2000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -159,6 +160,7 @@ public class DeviceManagementTest extends TestCase {
 					// Fake completion
 					//deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
 					deviceFirmware.setState(FirmwareState.DOWNLOADED);
+					firmwaredownloaded = true;
 				}
 			}.start();
 		}
@@ -168,11 +170,8 @@ public class DeviceManagementTest extends TestCase {
 			System.out.println("Firmware update request received");
 			new Thread() {
 				public void run() {
-				
-					firmwareUpdateCalled = true;
-					
 					try {
-						Thread.sleep(5000);
+						Thread.sleep(2000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -181,6 +180,7 @@ public class DeviceManagementTest extends TestCase {
 					// Pretend that the update is successful
 					deviceFirmware.setUpdateStatus(FirmwareUpdateStatus.SUCCESS);
 					deviceFirmware.setState(FirmwareState.IDLE);
+					firmwareUpdateCalled = true;
 				}
 			}.start();
 		}
@@ -199,7 +199,7 @@ public class DeviceManagementTest extends TestCase {
 			new Thread() {
 				public void run() {
 					try {
-						Thread.sleep(5000);
+						Thread.sleep(2000);
 						boolean status = dmClient.sendManageRequest(0,  true, true);
 						System.out.println("sent a manage request : " + status);
 					} catch (MqttException e) {
@@ -222,7 +222,7 @@ public class DeviceManagementTest extends TestCase {
 			new Thread() {
 				public void run() {
 					try {
-						Thread.sleep(5000);
+						Thread.sleep(2000);
 						boolean status = dmClient.sendManageRequest(0,  true, true);
 						System.out.println("sent a manage request : " + status);
 					} catch (MqttException e) {
@@ -260,9 +260,8 @@ public class DeviceManagementTest extends TestCase {
 		
 		JsonObject jsonReboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
 		System.out.println(jsonReboot);
-		boolean status = apiClient.initiateDeviceManagementRequest(jsonReboot);
-		
-		System.out.println(status);
+		JsonObject response = apiClient.initiateDMRequest(jsonReboot);
+
 		int counter = 0;
 		// wait for sometime
 		while(counter <= 20) {
@@ -273,12 +272,10 @@ public class DeviceManagementTest extends TestCase {
 			counter++;
 		}
 		
-		JsonObject response = apiClient.getAllDeviceManagementRequests();
-		JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
-		JsonElement request = requests.get(requests.size() - 1);
-		System.out.println("get status of the DM request .. "+request.getAsJsonObject().get("id").getAsString());
-		System.out.println(apiClient.getDeviceManagementRequestStatus(request.getAsJsonObject().get("id").getAsString()));
-		
+		JsonObject status = apiClient.getDeviceManagementRequestStatusByDevice(response.get("reqId").getAsString(), DEVICE_TYPE, DEVICE_ID);
+		System.out.println(status);
+		assertEquals(0, status.get("status").getAsInt());
+		assertTrue(status.get("complete").getAsBoolean());
 		assertTrue("The device reboot request is not received", actionHandler.reboot);
 	}
 
@@ -301,7 +298,7 @@ public class DeviceManagementTest extends TestCase {
 		
 		JsonObject factory = (JsonObject) new JsonParser().parse(factoryRequestToBeInitiated);
 		System.out.println(factory);
-		boolean response = apiClient.initiateDeviceManagementRequest(factory);
+		JsonObject response = apiClient.initiateDMRequest(factory);
 
 		System.out.println(response);
 		int counter = 0;
@@ -314,7 +311,12 @@ public class DeviceManagementTest extends TestCase {
 			Thread.sleep(1000);
 			counter++;
 		}
-		
+
+		Thread.sleep(2000);
+		JsonObject status = apiClient.getDeviceManagementRequestStatusByDevice(response.get("reqId").getAsString(), DEVICE_TYPE, DEVICE_ID);
+		System.out.println(status);
+		assertEquals(0, status.get("status").getAsInt());
+		assertTrue(status.get("complete").getAsBoolean());
 		assertTrue("The device factory reset request is not received", actionHandler.factoryReset);
 	}
 
@@ -335,11 +337,26 @@ public class DeviceManagementTest extends TestCase {
 		
 		JsonObject download = (JsonObject) new JsonParser().parse(downloadRequest);
 		System.out.println(download);
-		boolean response = apiClient.initiateDeviceManagementRequest(download);
+		JsonObject response = apiClient.initiateDMRequest(download);
 
 		System.out.println(response);
+		int counter = 0;
 		// wait for sometime
-		Thread.sleep(1000 * 20);
+		while(counter <= 20) {
+			// For some reason the volatile doesn't work, so using the lock
+			if(firmwareHandler.firmwaredownloaded) {
+				break;
+			}
+			Thread.sleep(1000);
+			counter++;
+		}
+
+		Thread.sleep(2000);
+		
+		JsonObject status = apiClient.getDeviceManagementRequestStatusByDevice(response.get("reqId").getAsString(), DEVICE_TYPE, DEVICE_ID);
+		System.out.println(status);
+		assertEquals(0, status.get("status").getAsInt());
+		assertTrue(status.get("complete").getAsBoolean());
 		
 		assertTrue("The firmware request/parameters not received", "123df".equals(firmwareHandler.verifier));
 		assertTrue("The firmware request/parameters not received", "RasPi01 firmware".equals(firmwareHandler.name));
@@ -366,12 +383,26 @@ public class DeviceManagementTest extends TestCase {
 		
 		JsonObject update = (JsonObject) new JsonParser().parse(updateRequest);
 		System.out.println(update);
-		boolean response = apiClient.initiateDeviceManagementRequest(update);
-
-		System.out.println(response);
-		// wait for sometime
-		Thread.sleep(1000 * 20);
+		JsonObject response = apiClient.initiateDMRequest(update);
 		
+		System.out.println(response);
+		int counter = 0;
+		// wait for sometime
+		while(counter <= 20) {
+			// For some reason the volatile doesn't work, so using the lock
+			if(firmwareHandler.firmwareUpdateCalled) {
+				break;
+			}
+			Thread.sleep(1000);
+			counter++;
+		}
+
+		Thread.sleep(2000);
+		
+		JsonObject status = apiClient.getDeviceManagementRequestStatusByDevice(response.get("reqId").getAsString(), DEVICE_TYPE, DEVICE_ID);
+		System.out.println(status);
+		assertEquals(0, status.get("status").getAsInt());
+		assertTrue(status.get("complete").getAsBoolean());
 		assertTrue("The firmware request/parameters not received", firmwareHandler.firmwareUpdateCalled);
 	}
 
