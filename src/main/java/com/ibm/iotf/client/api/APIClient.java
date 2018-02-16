@@ -446,9 +446,12 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {			
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
 				return true;
 			}
@@ -460,13 +463,13 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
 			return false;
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -501,12 +504,14 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -517,13 +522,13 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The device type does not exist");
+			throw new IoTFCReSTException(code, "The device type does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -559,12 +564,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -575,9 +581,9 @@ public class APIClient {
 		}
 		
 		if(code == 404) {
-			throw new IoTFCReSTException(code, "Device location information not found");
+			throw new IoTFCReSTException(code, "Device location information not found", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -619,9 +625,9 @@ public class APIClient {
 		try {
 			response = connect("put", sb.toString(), location.toString(), null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200 || code == 409) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if(code == 200) {
 					return jsonResponse.getAsJsonObject();
 				}
@@ -634,11 +640,11 @@ public class APIClient {
 		}
 		
 		if(code == 404) {
-			throw new IoTFCReSTException(code, "Device location information not found");
+			throw new IoTFCReSTException(code, "Device location information not found", jsonResponse);
 		} else if(code == 409) {
 			throw new IoTFCReSTException(code, "The update could not be completed due to a conflict", jsonResponse);
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -674,12 +680,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -689,15 +696,15 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Bad request. Most likely caused by your device lacking location information.");
+			throw new IoTFCReSTException(code, "Bad request. Most likely caused by your device lacking location information.", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "Not authorized. Most likely caused by an invalid API key being provided.");
+			throw new IoTFCReSTException(code, "Not authorized. Most likely caused by an invalid API key being provided.", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "Device location information Weather not found");
+			throw new IoTFCReSTException(code, "Device location information Weather not found", jsonResponse);
 		} else if(code == 500) {
-			throw new IoTFCReSTException(code, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		} else if(code == 503) {
-			throw new IoTFCReSTException(code, "Service Unavailable");
+			throw new IoTFCReSTException(code, "Service Unavailable", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -734,12 +741,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -750,9 +758,9 @@ public class APIClient {
 		}
 		
 		if(code == 404) {
-			throw new IoTFCReSTException(code, "Device not found");
+			throw new IoTFCReSTException(code, "Device not found", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -794,9 +802,9 @@ public class APIClient {
 		try {
 			response = connect("put", sb.toString(), propertiesToBeModified.toString(), null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200 || code == 409) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if(code == 200) {
 					return jsonResponse.getAsJsonObject();
 				}
@@ -809,15 +817,15 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The organization, device type or device does not exist");
+			throw new IoTFCReSTException(code, "The organization, device type or device does not exist", jsonResponse);
 		} else if(code == 409) {
 			throw new IoTFCReSTException(code, "The update could not be completed due to a conflict", jsonResponse);
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -849,14 +857,15 @@ public class APIClient {
 		   append("/");
 		
 		int code = 0;
+		JsonElement jsonResponse = null;
 		HttpResponse response = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
 				// success
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -867,13 +876,13 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the api key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the api key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The organization does not exist");
+			throw new IoTFCReSTException(code, "The organization does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(code, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -912,13 +921,14 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
 				// success
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -928,13 +938,13 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the api key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The organization does not exist");
+			throw new IoTFCReSTException(code, "The organization or device type does not exist");
 		} else if (code == 500) {
-			throw new IoTFCReSTException(code, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -994,13 +1004,14 @@ public class APIClient {
 				   
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
 				// success
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -1010,13 +1021,13 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the api key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The organization does not exist");
+			throw new IoTFCReSTException(code, "The device type does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(code, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -1077,13 +1088,14 @@ public class APIClient {
 				   
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
 				// success
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -1094,11 +1106,11 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 403) {
-			throw new IoTFCReSTException(code, "Request is only allowed if the classId of the device type is 'Gateway'");
+			throw new IoTFCReSTException(code, "Request is only allowed if the classId of the device type is 'Gateway'", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "Device type or device not found");
+			throw new IoTFCReSTException(code, "Device type or device not found", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(code, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -1140,14 +1152,15 @@ public class APIClient {
 		   append("/device/types");
 		
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		int code = 0;
 		try {
 			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
 				// success
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -1157,11 +1170,11 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the api key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(code, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -1208,9 +1221,12 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
 				return true;
 			}
@@ -1222,13 +1238,13 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
 			return false;
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -1261,12 +1277,14 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -1277,13 +1295,13 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The device type does not exist");
+			throw new IoTFCReSTException(code, "The device type does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -1319,9 +1337,9 @@ public class APIClient {
 		try {
 			response = connect("put", sb.toString(), updatedValues.toString(), null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200 || code == 409) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if(code == 200) {
 					return jsonResponse.getAsJsonObject();
 				}
@@ -1334,15 +1352,15 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The device type does not exist");
+			throw new IoTFCReSTException(code, "The device type does not exist", jsonResponse);
 		} else if(code == 409) {
 			throw new IoTFCReSTException(code, "The update could not be completed due to a conflict", jsonResponse);
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -1379,10 +1397,10 @@ public class APIClient {
 		try {
 			response = connect("post", sb.toString(), deviceType.toString(), null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 201 || code == 400 || code == 409) {
 				// success
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 			}
 			if(code == 201) {
 				return jsonResponse.getAsJsonObject();
@@ -1398,14 +1416,14 @@ public class APIClient {
 			throw new IoTFCReSTException(400, "Invalid request (No body, invalid JSON, "
 					+ "unexpected key, bad value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(401, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(401, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
 			throw new IoTFCReSTException(403, "The authentication method is invalid or "
 					+ "the API key used does not exist");
 		} else if (code == 409) {
 			throw new IoTFCReSTException(409, "The device type already exists", jsonResponse);  
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -1504,9 +1522,12 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -1518,11 +1539,11 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -1619,10 +1640,10 @@ public class APIClient {
 		try {
 			response = connect(method, sb.toString(), device.toString(), null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 201 || code == 400 || code == 409) {
 				// Get the response
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 			}
 			if(code == 201) {
 				// Success
@@ -1719,9 +1740,12 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -1733,11 +1757,11 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		
 		throwException(response, METHOD);
@@ -1776,9 +1800,12 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -1790,7 +1817,7 @@ public class APIClient {
 		}
 		
 		if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		
 		throwException(response, METHOD);
@@ -1827,12 +1854,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
@@ -1844,7 +1872,7 @@ public class APIClient {
 		if(code == 404) {
 			throw new IoTFCReSTException(code, "Device log not found");
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -1886,9 +1914,12 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("post", sb.toString(), log.toString(), null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 201 ) {
 				return true;
 			}
@@ -1900,7 +1931,7 @@ public class APIClient {
 		}
 		
 		if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -1941,9 +1972,12 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -1955,7 +1989,7 @@ public class APIClient {
 		}
 		
 		if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -1964,18 +1998,18 @@ public class APIClient {
 	private void throwException(HttpResponse response, String method) throws IoTFCReSTException {
 		int code = 0;
 		JsonElement jsonResponse = null;
-	
+
 		if(response != null) {
 			code = response.getStatusLine().getStatusCode();
-		
+
 			try {
 				String result = this.readContent(response, method);
 				jsonResponse = new JsonParser().parse(result);
 			} catch(Exception e) {}
 		}
-		
+
 		throw new IoTFCReSTException(code, "", jsonResponse);
-	}
+	} 
 	
 	/**
 	 * Gets diagnostic log for a device.	 
@@ -2013,12 +2047,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -2029,9 +2064,9 @@ public class APIClient {
 		}
 		
 		if(code == 404) {
-			throw new IoTFCReSTException(code, "Device not found");
+			throw new IoTFCReSTException(code, "Device not found", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -2070,9 +2105,12 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -2084,7 +2122,7 @@ public class APIClient {
 		}
 		
 		if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -2120,12 +2158,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
@@ -2136,9 +2175,9 @@ public class APIClient {
 		}
 		
 		if(code == 404) {
-			throw new IoTFCReSTException(code, "Device not found");
+			throw new IoTFCReSTException(code, "Device not found", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -2178,9 +2217,12 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("post", sb.toString(), errorcode.toString(), null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 201) {
 				return true;
 			}
@@ -2192,7 +2234,7 @@ public class APIClient {
 		}
 		
 		if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -2266,12 +2308,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				String result = this.readContent(response, METHOD);
-				JsonElement jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonArray();
 			}
 		} catch(Exception e) {
@@ -2282,13 +2325,13 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The device type does not exist");
+			throw new IoTFCReSTException(code, "The device type does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -2327,10 +2370,10 @@ public class APIClient {
 		try {
 			response = connect("post", sb.toString(), arryOfDevicesToBeAdded.toString(), null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code != 500) {
 				// success
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 			}
 			if(code == 201) {
 				return jsonResponse.getAsJsonArray();
@@ -2351,7 +2394,7 @@ public class APIClient {
 		} else if(code == 413) {
 			throw new IoTFCReSTException(413, "Request content exceeds 512Kb", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		
 		throw new IoTFCReSTException(code, "",jsonResponse);
@@ -2385,10 +2428,10 @@ public class APIClient {
 		try {
 			response = connect("post", sb.toString(), arryOfDevicesToBeDeleted.toString(), null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code != 500) {
 				// success
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 			}
 			if(code == 201) {
 				return jsonResponse.getAsJsonArray();
@@ -2407,7 +2450,7 @@ public class APIClient {
 		} else if(code == 413) {
 			throw new IoTFCReSTException(413, "Request content exceeds 512Kb", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
@@ -2451,9 +2494,9 @@ public class APIClient {
 		try {
 			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -2464,7 +2507,7 @@ public class APIClient {
 		}
 		
 		if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -2504,9 +2547,9 @@ public class APIClient {
 			   append("/mgmt/custom/bundle");
 			response = connect(method, sb.toString(), request, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 409 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if (code == 201) {
 					//Success
 					return jsonResponse.getAsJsonObject();
@@ -2532,7 +2575,7 @@ public class APIClient {
 					throw new IoTFCReSTException(method, sb.toString(), request, code, reason, jsonResponse);
 				}
 			} else {
-				throw new IoTFCReSTException(code, "Unexpected error");
+				throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 			}
 		} catch (IoTFCReSTException e) {
 			throw e;
@@ -2565,13 +2608,13 @@ public class APIClient {
 			   append("/mgmt/custom/bundle/" + bundleId);
 			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 204) {
 				//Success
 				return;
 			}
 			if (code == 400 || code == 401 || code == 403 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 					String reason = null;
 					switch (code) {
 					case 400:
@@ -2589,7 +2632,7 @@ public class APIClient {
 					}
 					throw new IoTFCReSTException(code, reason, jsonResponse);
 			} else {
-				throw new IoTFCReSTException(code, "Unexpected error");
+				throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 			}
 		} catch (Exception e) {
 			// This includes JsonSyntaxException
@@ -2621,9 +2664,9 @@ public class APIClient {
 			   append("/mgmt/custom/bundle/" + bundleId);
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 200 || code == 400 || code == 401 || code == 403 || code == 404 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if (code == 200) {
 					return jsonResponse.getAsJsonObject();
 				} else {
@@ -2648,7 +2691,7 @@ public class APIClient {
 					throw new IoTFCReSTException(code, reason, jsonResponse);
 				}
 			} else {
-				throw new IoTFCReSTException(code, "Unexpected error");
+				throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 			}
 		} catch (Exception e) {
 			// This includes JsonSyntaxException
@@ -2706,25 +2749,25 @@ public class APIClient {
 		try {
 			response = connect(method, sb.toString(), request.toString(), null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			switch (code) {
 			case 202:
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				break;
 			case 400:
-				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_400, null);
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_400, jsonResponse);
 				break;
 			case 401:
-				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_401, null);
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_401, jsonResponse);
 				break;
 			case 403:
-				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_403, null);
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_403, jsonResponse);
 				break;
 			case 404:
-				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_404, null);
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_404, jsonResponse);
 				break;
 			case 500:
-				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_500, null);
+				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_INITIATE_DM_REQUEST_ERR_500, jsonResponse);
 				break;
 			default:
 				ex = new IoTFCReSTException(method, sb.toString(), request.toString(), code, IoTFCReSTException.HTTP_ERR_UNEXPECTED, null);
@@ -2775,11 +2818,12 @@ public class APIClient {
 		try {
 			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
-			String result = this.readContent(response, METHOD);
-			jsonResponse = new JsonParser().parse(result);
+
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the DM Request for ID ("
 					+ requestId + ")::"+e.getMessage());
@@ -2787,7 +2831,7 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
@@ -2820,16 +2864,16 @@ public class APIClient {
 		try {
 			response = connect(method, sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			switch (code) {
 			case 200:
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				break;
 			case 404:
-				ex = new IoTFCReSTException(method, sb.toString(), null, code, IoTFCReSTException.HTTP_GET_DM_REQUEST_ERR_404, null);
+				ex = new IoTFCReSTException(method, sb.toString(), null, code, IoTFCReSTException.HTTP_GET_DM_REQUEST_ERR_404, jsonResponse);
 				break;
 			case 500:
-				ex = new IoTFCReSTException(method, sb.toString(), null, code, IoTFCReSTException.HTTP_GET_DM_REQUEST_ERR_500, null);
+				ex = new IoTFCReSTException(method, sb.toString(), null, code, IoTFCReSTException.HTTP_GET_DM_REQUEST_ERR_500, jsonResponse);
 				break;
 			default:
 				ex = new IoTFCReSTException(method, sb.toString(), null, code, IoTFCReSTException.HTTP_ERR_UNEXPECTED, null);
@@ -2885,6 +2929,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -2954,6 +2999,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -2973,6 +3019,7 @@ public class APIClient {
 	}
 	
 	/**
+	 * @deprecated This method has been deprecated as /usage/active-devices is no longer supported
 	 * Retrieve the number of active devices over a period of time
 	 * 
 	 * @param startDate Start date in one of the following formats: YYYY (last day of the year), 
@@ -2987,6 +3034,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving all active device details
 	 */
+	@Deprecated
 	public JsonObject getActiveDevices(String startDate, String endDate, boolean detail) throws IoTFCReSTException {
 		final String METHOD = "getActiveDevices";
 		/**
@@ -3016,6 +3064,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -3028,6 +3077,8 @@ public class APIClient {
 		
 		if(code == 400) {
 			throw new IoTFCReSTException(code, "Bad Request", jsonResponse);
+		} else if (code == 410) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		} else if (code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -3035,6 +3086,7 @@ public class APIClient {
 	}
 	
 	/**
+	 * @deprecated: This functionality is no longer needed
 	 * Retrieve the amount of storage being used by historical event data
 	 * 
 	 * @param startDate Start date in one of the following formats: YYYY (last day of the year), 
@@ -3049,6 +3101,7 @@ public class APIClient {
 	 *  
 	 * @throws IoTFCReSTException Failure in retrieving historical data usage
 	 */
+	@Deprecated
 	public JsonObject getHistoricalDataUsage(String startDate, String endDate, boolean detail) throws IoTFCReSTException {
 		final String METHOD = "getHistoricalDataUsage";
 		/**
@@ -3078,6 +3131,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -3091,7 +3145,7 @@ public class APIClient {
 		if(code == 400) {
 			throw new IoTFCReSTException(code, "Bad Request", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
@@ -3140,12 +3194,13 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the data traffic "
-					+ "::"+e.getMessage());
+			IoTFCReSTException ex = new IoTFCReSTException(code, "Failure in retrieving the data traffic "
+					+ "::"+e.getMessage(), jsonResponse);
 			ex.initCause(e);
 			throw ex;
 		}
@@ -3153,7 +3208,7 @@ public class APIClient {
 		if(code == 400) {
 			throw new IoTFCReSTException(code, "Bad Request", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
@@ -3185,6 +3240,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -3196,7 +3252,7 @@ public class APIClient {
 		}
 		
 		if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error", jsonResponse);
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
@@ -3266,12 +3322,14 @@ public class APIClient {
 
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
-			String result = this.readContent(response, METHOD);
-			JsonElement jsonResponse = new JsonParser().parse(result);
+
 
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 400) {
 				throw new IoTFCReSTException(400, "Invalid request",
 						jsonResponse);
@@ -3335,11 +3393,13 @@ public class APIClient {
 
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
-			JsonElement jsonResponse = new JsonParser().parse(result);
+			jsonResponse = new JsonParser().parse(result);
+
 
 			if (code == 400) {
 				throw new IoTFCReSTException(400, "Invalid request",
@@ -3410,7 +3470,9 @@ public class APIClient {
 				
 		try {
 			response = connect("post", sb.toString(), payload.toString(), null);			
-			code = response.getStatusLine().getStatusCode();			
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);			
 			if (code == 200) {
 				// success
 				ret = true;
@@ -3430,16 +3492,16 @@ public class APIClient {
 							+ "unexpected key, bad value)", jsonResponse);
 		} else if (code == 401) {
 			throw new IoTFCReSTException(401,
-					"The authentication token is empty or invalid");
+					"The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
 			throw new IoTFCReSTException(403,
 					"The authentication method is invalid or "
-							+ "the API key used does not exist");
+							+ "the API key used does not exist", jsonResponse);
 		} else if (code == 409) {
 			throw new IoTFCReSTException(409, "The device type already exists",
 					jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		} else if (ret == false) {
 			throwException(response, METHOD);
 		}
@@ -3492,7 +3554,9 @@ public class APIClient {
 				
 		try {
 			response = connect("post", sb.toString(), payload.toString(), null);			
-			code = response.getStatusLine().getStatusCode();			
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);			
 			if (code == 200) {
 				// success
 				ret = true;
@@ -3512,7 +3576,7 @@ public class APIClient {
 							+ "unexpected key, bad value)", jsonResponse);
 		} else if (code == 401) {
 			throw new IoTFCReSTException(401,
-					"The authentication token is empty or invalid");
+					"The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
 			throw new IoTFCReSTException(403,
 					"The authentication method is invalid or "
@@ -3521,7 +3585,7 @@ public class APIClient {
 			throw new IoTFCReSTException(409, "The device type already exists",
 					jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		} else if (ret == false) {
 			throwException(response, METHOD);
 		}
@@ -3726,9 +3790,9 @@ public class APIClient {
 			   append("/draft/logicalinterfaces");
 			response = connect(method, sb.toString(), draftLogicalInterface, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if (code == 201) {
 					//Success
 					return jsonResponse.getAsJsonObject();
@@ -3751,7 +3815,7 @@ public class APIClient {
 					throw new IoTFCReSTException(method, sb.toString(), draftLogicalInterface, code, reason, jsonResponse);
 				}
 			} else {
-				throw new IoTFCReSTException(code, "Unexpected error");
+				throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 			}
 		} catch (IoTFCReSTException e) {
 			throw e;
@@ -3792,10 +3856,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		String method = "delete";
 		try {
 			response = connect(method, sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -3807,15 +3874,15 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist", jsonResponse);
 		} else if(code == 409) {
-			throw new IoTFCReSTException(code, "The logical interface with the specified id is currently being referenced by another object");
+			throw new IoTFCReSTException(code, "The logical interface with the specified id is currently being referenced by another object", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -3855,6 +3922,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -3868,15 +3936,15 @@ public class APIClient {
 		if (code == 304) {
 			throw new IoTFCReSTException(code, "The state of the logical interface has not been modified (response to a conditional GET)");
 		} else if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if (code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
@@ -3928,15 +3996,15 @@ public class APIClient {
 		if (code == 304) {
 			throw new IoTFCReSTException(code, "The state of the logical interface has not been modified (response to a conditional GET)");
 		} else if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if (code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
@@ -3976,9 +4044,9 @@ public class APIClient {
 		try {
 			response = connect(method, sb.toString(), draftLogicalInterface, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200 || code == 409) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if(code == 200) {
 					return jsonResponse.getAsJsonObject();
 				}
@@ -3991,18 +4059,18 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A logical interface with the specified id does not exist", jsonResponse);
 		} else if(code == 412) {
 			throw new IoTFCReSTException(code, "The state of the logical interface has been modified since the "
-					+ "client retrieved its representation (response to a conditional PUT)");
+					+ "client retrieved its representation (response to a conditional PUT)", jsonResponse);
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -4041,9 +4109,9 @@ public class APIClient {
 			System.out.println("URL = " + sb.toString() + " operation = " + operation);
 			response = connect(method, sb.toString(), operation, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200 || code == 202) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				return jsonResponse.getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -4054,17 +4122,17 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "A logical interface does not exist");
+			throw new IoTFCReSTException(code, "A logical interface does not exist", jsonResponse);
 		} else if(code == 409) {
-			throw new IoTFCReSTException(code, "The activate-configuration operation failed because the Information Management metadata associated with the logical interface is invalid");
+			throw new IoTFCReSTException(code, "The activate-configuration operation failed because the Information Management metadata associated with the logical interface is invalid", jsonResponse);
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		} else {
 			System.out.println("code = " + code);
 			throwException(response, METHOD);
@@ -4106,8 +4174,10 @@ public class APIClient {
 		try {
 			response = connect(method, sb.toString(), operation, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200 || code == 202) {
-				String result = this.readContent(response, METHOD);
+				
 				return new JsonParser().parse(result).getAsJsonObject();
 			}
 		} catch(Exception e) {
@@ -4118,17 +4188,17 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "A logical interface does not exist");
+			throw new IoTFCReSTException(code, "A logical interface does not exist", jsonResponse);
 		} else if(code == 409) {
-			throw new IoTFCReSTException(code, "The deactivate operation failed because there is no active configuration associated with the logical interface");
+			throw new IoTFCReSTException(code, "The deactivate operation failed because there is no active configuration associated with the logical interface", jsonResponse);
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -4168,6 +4238,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -4178,11 +4249,11 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -4224,6 +4295,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -4234,11 +4306,11 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -4276,6 +4348,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -4286,11 +4359,11 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -4322,9 +4395,9 @@ public class APIClient {
 			   append("/draft/physicalinterfaces");
 			response = connect(method, sb.toString(), draftPhysicalInterface, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if (code == 201) {
 					//Success
 					return jsonResponse.getAsJsonObject();
@@ -4348,7 +4421,7 @@ public class APIClient {
 				}
 			} else {
 				System.out.println("Code = " + code);
-				throw new IoTFCReSTException(code, "Unexpected error");
+				throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 			}
 		} catch (IoTFCReSTException e) {
 			throw e;
@@ -4389,10 +4462,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		String method = "delete";
 		try {
 			response = connect(method, sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -4404,15 +4480,15 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist", jsonResponse);
 		} else if(code == 409) {
-			throw new IoTFCReSTException(code, "The physical interface with the specified id is currently being referenced by another object");
+			throw new IoTFCReSTException(code, "The physical interface with the specified id is currently being referenced by another object", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -4450,6 +4526,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -4463,15 +4540,15 @@ public class APIClient {
 		if (code == 304) {
 			throw new IoTFCReSTException(code, "The state of the physical interface has not been modified (response to a conditional GET)");
 		} else if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if (code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
@@ -4509,9 +4586,9 @@ public class APIClient {
 		try {
 			response = connect(method, sb.toString(), draftPhysicalInterface, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if(code == 200) {
 					return jsonResponse.getAsJsonObject();
 				}
@@ -4524,18 +4601,18 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist", jsonResponse);
 		} else if(code == 412) {
 			throw new IoTFCReSTException(code, "The state of the physical interface has been modified since the "
-					+ "client retrieved its representation (response to a conditional PUT)");
+					+ "client retrieved its representation (response to a conditional PUT)", jsonResponse);
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -4570,9 +4647,9 @@ public class APIClient {
 			   append(draftPhysicalInterfaceId).append("/events/");
 			response = connect(method, sb.toString(), event, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if (code == 201) {
 					//Success
 					return jsonResponse.getAsJsonObject();
@@ -4595,7 +4672,7 @@ public class APIClient {
 					throw new IoTFCReSTException(method, sb.toString(), draftPhysicalInterfaceId, code, reason, jsonResponse);
 				}
 			} else {
-				throw new IoTFCReSTException(code, "Unexpected error");
+				throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 			}
 		} catch (IoTFCReSTException e) {
 			throw e;
@@ -4641,6 +4718,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonArray();
 			}
@@ -4651,13 +4729,13 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -4697,10 +4775,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		String method = "delete";
 		try {
 			response = connect(method, sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -4712,15 +4793,15 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -4757,6 +4838,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -4767,11 +4849,11 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -4811,6 +4893,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -4824,15 +4907,15 @@ public class APIClient {
 		if (code == 304) {
 			throw new IoTFCReSTException(code, "The state of the physical interface has not been modified (response to a conditional GET)");
 		} else if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if (code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throw new IoTFCReSTException(code, "", jsonResponse);
 	}
@@ -4870,6 +4953,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -4880,13 +4964,13 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -4937,6 +5021,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -4947,13 +5032,13 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "An active device type, device or logical interface with the specified ids do not exist");
+			throw new IoTFCReSTException(code, "An active device type, device or logical interface with the specified ids do not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -4995,6 +5080,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -5005,11 +5091,11 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -5046,9 +5132,9 @@ public class APIClient {
 			   append("/draft/event/types");
 			response = connect(method, sb.toString(), draftEventType, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if (code == 201) {
 					//Success
 					return jsonResponse.getAsJsonObject();
@@ -5071,7 +5157,7 @@ public class APIClient {
 					throw new IoTFCReSTException(method, sb.toString(), draftEventType, code, reason, jsonResponse);
 				}
 			} else {
-				throw new IoTFCReSTException(code, "Unexpected error");
+				throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 			}
 		} catch (IoTFCReSTException e) {
 			throw e;
@@ -5112,10 +5198,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		String method = "delete";
 		try {
 			response = connect(method, sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -5127,15 +5216,15 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A physical interface with the specified id does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -5176,6 +5265,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -5188,13 +5278,13 @@ public class APIClient {
 		if (code == 304) {
 			throw new IoTFCReSTException(code, "The state of the event type has not been modified (response to a conditional GET)");
 		} if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "An event type with the specified id does not exist");
+			throw new IoTFCReSTException(code, "An event type with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -5237,9 +5327,9 @@ public class APIClient {
 		try {
 			response = connect(method, sb.toString(), draftEventType, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200 || code == 409) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if(code == 200) {
 					return jsonResponse.getAsJsonObject();
 				}
@@ -5252,18 +5342,18 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "An Event Type with the specified id does not exist");
+			throw new IoTFCReSTException(code, "An Event Type with the specified id does not exist", jsonResponse);
 		} else if(code == 412) {
 			throw new IoTFCReSTException(code, "The state of the event type has been modified since the client retrieved "
-					+ "its representation (response to a conditional PUT)");
+					+ "its representation (response to a conditional PUT)", jsonResponse);
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -5303,6 +5393,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -5313,11 +5404,11 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -5360,6 +5451,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -5372,13 +5464,13 @@ public class APIClient {
 		if (code == 304) {
 			throw new IoTFCReSTException(code, "The state of the event type has not been modified (response to a conditional GET)");
 		} if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "An event type with the specified id does not exist");
+			throw new IoTFCReSTException(code, "An event type with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -5416,6 +5508,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -5426,11 +5519,11 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -5473,9 +5566,9 @@ public class APIClient {
 			response = connect(method, sb.toString(), deviceTypeOperation, null);
 			System.out.println("method = " + method + " URL = " + sb.toString() + " payload = " + deviceTypeOperation);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200 || code == 202) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if(code == 200 || code == 202) {
 					return jsonResponse.getAsJsonObject();
 				}
@@ -5488,17 +5581,17 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The device type does not exist");
+			throw new IoTFCReSTException(code, "The device type does not exist", jsonResponse);
 		} else if(code == 409) {
-			throw new IoTFCReSTException(code, "The deactivate operation failed because there is no active configuration associated with the device type ");
+			throw new IoTFCReSTException(code, "The deactivate operation failed because there is no active configuration associated with the device type", jsonResponse);
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -5540,6 +5633,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonArray();
 			}
@@ -5550,11 +5644,11 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -5598,6 +5692,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonArray();
 			}
@@ -5608,11 +5703,11 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -5659,6 +5754,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -5669,11 +5765,11 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or a property mapping for the specified logical interface id does not exist");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or a property mapping for the specified logical interface id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -5717,6 +5813,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -5727,11 +5824,11 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or has no active physical interface associated with it");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or has no active physical interface associated with it", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -5773,6 +5870,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -5783,11 +5881,11 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -5829,9 +5927,9 @@ public class APIClient {
 		try {
 			response = connect(method, sb.toString(), deviceTypeOperation, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200 || code == 202) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if(code == 200 || code == 202) {
 					return jsonResponse.getAsJsonObject();
 				}
@@ -5844,17 +5942,17 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The device type does not exist");
+			throw new IoTFCReSTException(code, "The device type does not exist", jsonResponse);
 		} else if(code == 409) {
 			throw new IoTFCReSTException(code, "The activate-configuration operation failed because the Information Management metadata associated with the device type is invalid ");
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -5896,6 +5994,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonArray();
 			}
@@ -5906,11 +6005,11 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -5951,9 +6050,9 @@ public class APIClient {
 			   append("/logicalinterfaces");
 			response = connect(method, sb.toString(), draftLogicalInterface, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 404 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if (code == 201) {
 					//Success
 					return jsonResponse.getAsJsonObject();
@@ -5979,7 +6078,7 @@ public class APIClient {
 					throw new IoTFCReSTException(method, sb.toString(), draftLogicalInterface, code, reason, jsonResponse);
 				}
 			} else {
-				throw new IoTFCReSTException(code, "Unexpected error");
+				throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 			}
 		} catch (IoTFCReSTException e) {
 			throw e;
@@ -6024,10 +6123,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		String method = "delete";
 		try {
 			response = connect(method, sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -6039,17 +6141,17 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or the draft logical interface with specified id is not associated with the device type");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or the draft logical interface with specified id is not associated with the device type", jsonResponse);
 		} else if (code == 409) {
-			throw new IoTFCReSTException(code, "The draft logical interface with the specified id is currently being referenced by the property mappings on the device type");
+			throw new IoTFCReSTException(code, "The draft logical interface with the specified id is currently being referenced by the property mappings on the device type", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -6091,6 +6193,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				System.out.println("Content = " + jsonResponse);
 				return jsonResponse.getAsJsonArray();
@@ -6102,11 +6205,11 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -6147,9 +6250,9 @@ public class APIClient {
 			   append("/mappings");
 			response = connect(method, sb.toString(), draftDeviceTypePropertyMappings, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 404 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if (code == 201) {
 					//Success
 					return jsonResponse.getAsJsonObject();
@@ -6175,7 +6278,7 @@ public class APIClient {
 					throw new IoTFCReSTException(method, sb.toString(), draftDeviceTypePropertyMappings, code, reason, jsonResponse);
 				}
 			} else {
-				throw new IoTFCReSTException(code, "Unexpected error");
+				throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 			}
 		} catch (IoTFCReSTException e) {
 			throw e;
@@ -6220,10 +6323,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		String method = "delete";
 		try {
 			response = connect(method, sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -6235,17 +6341,17 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or property the draft logical interface with specified id is not associated with the device type");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or property the draft logical interface with specified id is not associated with the device type", jsonResponse);
 		} else if (code == 409) {
-			throw new IoTFCReSTException(code, "The draft logical interface with the specified id is currently being referenced by the property mappings for the specified logical interface does not exist");
+			throw new IoTFCReSTException(code, "The draft logical interface with the specified id is currently being referenced by the property mappings for the specified logical interface does not exist", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -6290,6 +6396,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -6300,13 +6407,13 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or a property mapping for the specified logical interface id does not exist");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or a property mapping for the specified logical interface id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -6354,9 +6461,9 @@ public class APIClient {
 		try {
 			response = connect(method, sb.toString(), deviceTypePropertyMappings, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200 || code == 409) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if(code == 200) {
 					return jsonResponse.getAsJsonObject();
 				}
@@ -6369,15 +6476,15 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or a property mapping for the specified logical interface id does not exist");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or a property mapping for the specified logical interface id does not exist", jsonResponse);
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -6415,9 +6522,9 @@ public class APIClient {
 			   append("/physicalinterface");
 			response = connect(method, sb.toString(), draftPhysicalInterface, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 404 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if (code == 201) {
 					//Success
 					return jsonResponse.getAsJsonObject();
@@ -6443,7 +6550,7 @@ public class APIClient {
 					throw new IoTFCReSTException(method, sb.toString(), draftPhysicalInterface, code, reason, jsonResponse);
 				}
 			} else {
-				throw new IoTFCReSTException(code, "Unexpected error");
+				throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 			}
 		} catch (IoTFCReSTException e) {
 			throw e;
@@ -6485,10 +6592,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		String method = "delete";
 		try {
 			response = connect(method, sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -6500,13 +6610,13 @@ public class APIClient {
 		}
 		
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or has no draft physical interface associated with it");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or has no draft physical interface associated with it", jsonResponse);
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -6548,6 +6658,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -6558,11 +6669,11 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or has no physical interface associated with it");
+			throw new IoTFCReSTException(code, "A device type with the specified id does not exist or has no physical interface associated with it", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -6601,6 +6712,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -6611,11 +6723,11 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -6679,9 +6791,9 @@ public class APIClient {
 			
 			response = client.execute(post);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if (code == 201 || code == 400 || code == 401 || code == 403 || code == 404 || code == 500) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if (code == 201) {
 					//Success
 					return jsonResponse.getAsJsonObject();
@@ -6704,7 +6816,7 @@ public class APIClient {
 					throw new IoTFCReSTException(method, sb.toString(), null, code, reason, jsonResponse);
 				}
 			} else {
-				throw new IoTFCReSTException(code, "Unexpected error");
+				throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 			}
 		} catch (IoTFCReSTException e) {
 			throw e;
@@ -6745,10 +6857,13 @@ public class APIClient {
 		
 		int code = 0;
 		HttpResponse response = null;
+		JsonElement jsonResponse = null;
 		String method = "delete";
 		try {
 			response = connect(method, sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 204) {
 				return true;
 			}
@@ -6760,17 +6875,17 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist", jsonResponse);
 		} else if (code == 409) {
 			throw new IoTFCReSTException(code, "The schema definition with the specified id is currently being referenced by another object");
 		} else if (code == 500) {
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return false;
@@ -6809,6 +6924,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -6819,15 +6935,15 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 304) {
-			throw new IoTFCReSTException(code, "The state of the schema definition has not been modified (response to a conditional GET).");
+			throw new IoTFCReSTException(code, "The state of the schema definition has not been modified (response to a conditional GET).", jsonResponse);
 		} else if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -6870,9 +6986,9 @@ public class APIClient {
 		try {
 			response = connect(method, sb.toString(), schemaDefinition, null);
 			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 			if(code == 200 || code == 409) {
-				String result = this.readContent(response, METHOD);
-				jsonResponse = new JsonParser().parse(result);
 				if(code == 200) {
 					return jsonResponse.getAsJsonObject();
 				}
@@ -6885,17 +7001,17 @@ public class APIClient {
 		}
 		
 		if(code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)");
+			throw new IoTFCReSTException(code, "Invalid request (Invalid resource id specified in the path, no body, invalid JSON, unexpected key, bad value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist", jsonResponse);
 		} else if(code == 412) {
 			throw new IoTFCReSTException(code, "The state of the schema definition has been modified since the client retrieved its representation (response to a conditional PUT)");
 		} else if (code == 500) {		
-			throw new IoTFCReSTException(500, "Unexpected error");
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
 		throwException(response, METHOD);
 		return null;
@@ -6932,9 +7048,7 @@ public class APIClient {
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
-			System.out.println("Code = " + code);
 			String result = this.readContent(response, METHOD);
-			System.out.println("result obtained " + result);
 			jsonResponse = new JsonParser().parse(result);
 			System.out.println("Parsing successful.....");
 			if(code == 200) {
@@ -6947,13 +7061,13 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -6992,6 +7106,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -7002,11 +7117,11 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid query parameter, invalid query parameter value)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -7046,6 +7161,7 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -7056,15 +7172,15 @@ public class APIClient {
 			throw ex;
 		}
 		if(code == 304) {
-			throw new IoTFCReSTException(code, "The state of the schema definition has not been modified (response to a conditional GET).");
+			throw new IoTFCReSTException(code, "The state of the schema definition has not been modified (response to a conditional GET).", jsonResponse);
 		} else if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -7100,11 +7216,13 @@ public class APIClient {
 		int code = 0;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
+
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -7115,13 +7233,13 @@ public class APIClient {
 			throw ex;
 		}
 		if (code == 400) {
-			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)");
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
 		} else if(code == 401) {
-			throw new IoTFCReSTException(code, "The authentication token is empty or invalid");
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
-			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist");
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if (code == 404) {
-			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist");
+			throw new IoTFCReSTException(code, "A schema definition with the specified id does not exist", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
