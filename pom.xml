@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ibm.messaging</groupId>
     <artifactId>watson-iot</artifactId>
-    <version>0.2.6</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
     <name>ibm-messaging/iot-java</name>
     <description>IBM Watson IoT client library to simplify device/gateway/application interactions with the IoT Platform</description>
@@ -55,12 +55,6 @@
     		<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
   		</repository>
 	</distributionManagement>
-	<repositories>
-	    <repository>
-		<id>Eclipse Paho Repo</id>
-		<url>https://repo.eclipse.org/content/repositories/paho-snapshots/</url>
-	    </repository>
-	</repositories>
 
     <properties>
         <!-- General properties -->
