@@ -1526,11 +1526,13 @@ public class APIClient {
 		try {
 			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
-			String result = this.readContent(response, METHOD);
-			jsonResponse = new JsonParser().parse(result);
+
 			if(code == 204) {
 				return true;
 			}
+
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the Device Type "
 					+ "::"+e.getMessage());
@@ -1744,9 +1746,9 @@ public class APIClient {
 		try {
 			response = connect("delete", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
-			String result = this.readContent(response, METHOD);
+/*			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
-			if(code == 204) {
+*/			if(code == 204) {
 				return true;
 			}
 		} catch(Exception e) {
@@ -3649,7 +3651,7 @@ public class APIClient {
 	 * @throws IoTFCReSTException Failure publishing event.	 * 
 	 */
  
-	public boolean ç(String eventId, Object payload, ContentType contenttype) throws Exception {
+	public boolean publishDeviceEventOverHTTP(String eventId, Object payload, ContentType contenttype) throws Exception {
 		boolean ret = false;
 		contentType = contenttype;
 		ret = publishDeviceEventOverHTTP(eventId, payload);

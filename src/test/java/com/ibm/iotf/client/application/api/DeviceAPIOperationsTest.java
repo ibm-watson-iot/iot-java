@@ -11,17 +11,19 @@ package com.ibm.iotf.client.application.api;
  *
  * Contributors:
  * Sathiskumar Palaniappan - Initial Contribution
+ * Amit M Mangalvedkar - Added on 02-Mar-2018
  *****************************************************************************
  */
 
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 
+import junit.extensions.TestSetup;
 import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -38,9 +40,9 @@ import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
 import org.junit.runners.MethodSorters;
-import org.junit.FixMethodOrder;
+
 /**
- * This sample showcases various ReST operations that can be performed on Watson IoT Platform to
+ * This test-case tests various ReST operations that can be performed on Watson IoT Platform to
  * add/update/get/delete device(s)
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -51,7 +53,9 @@ public class DeviceAPIOperationsTest extends TestCase {
 	private static final String DEVICE_TYPE = "TestDT";
 	private static final String DEVICE_ID = "RasPi01";
 	private static final String DEVICE_ID2 = "RasPi02";
-	private static final String NON_ASCII_DEVICE_ID = "NONASCII";
+	
+	private static final String GATEWAY_TYPE = "testgw";
+	private static final String GATEWAY_ID = "testgw_01";
 	
 	// Example Json format to add a device
 	/*
@@ -95,8 +99,15 @@ public class DeviceAPIOperationsTest extends TestCase {
 			"\"location\": " + locationToBeAdded + "," 
 			+ "\"deviceInfo\": " + deviceInfoToBeAdded + "," 
 			+ "\"metadata\": {}}";
-	
+/*	
+	private final static JsonElement gatewayTypeToBeAdded = new JsonParser().parse("{\"deviceId\": "
+			+ "\"" + DEVICE_ID + "\",\"authToken\": \"password\"," + 
+			"\"location\": " + locationToBeAdded + "," 
+			+ "\"deviceInfo\": " + deviceInfoToBeAdded + "," 
+			+ "\"metadata\": {}}");
+*/	
 
+	
 	private static boolean setUpIsDone = false;
 	
 	private static APIClient apiClient = null;
@@ -104,14 +115,76 @@ public class DeviceAPIOperationsTest extends TestCase {
 	private static APIClient apiClientWithWrongKey = null;
 	private static APIClient apiClientWithWrongOrg= null;
 	
+	
+    public static TestSetup suite() {
+        TestSetup setup = new TestSetup(new TestSuite(DeviceAPIOperationsTest.class)) {
+            protected void setUp() throws Exception {
+        			
+	        		Properties props = new Properties();
+	        		Properties propsWrongToken = new Properties();
+	        		Properties propsWrongMethod = new Properties();
+	        		Properties propsWrongOrg = new Properties();
+	        		try {
+	        			props.load(DeviceAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
+	        			propsWrongToken.load(DeviceAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
+	        			propsWrongMethod.load(DeviceAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
+	        			propsWrongOrg.load(DeviceAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
+	        		} catch (IOException e1) {
+	        			System.err.println("Not able to read the properties file, exiting..");
+	        			System.exit(-1);
+	        		}		
+	        		
+	        		try {
+	        			//Instantiate the class by passing the properties file
+	        			apiClient = new APIClient(props);
+	        			addDeviceType();
+	        			
+	        			props.setProperty("Authentication-Token", "Wrong");
+	        			apiClientWithWrongKey = new APIClient(props);
+	        			
+	        			props.setProperty("API-Key", "Wrong");
+	        			apiClientWithWrongToken = new APIClient(props);
+	        			
+	        			props.setProperty("Organization-ID", "Wrong");
+	        			apiClientWithWrongOrg = new APIClient(props);
+	        		} catch (Exception e) {
+	        			// looks like the application.properties file is not updated properly
+	        			apiClient = null;
+	        		}
+
+            }
+            protected void tearDown(  ) throws Exception {
+	        		
+	        		try {
+	        			boolean status = apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+	        			
+	        		} catch(IoTFCReSTException e) {
+	        			
+	        		}
+	        		try {
+	        			boolean status = apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
+	        			
+	        		} catch(IoTFCReSTException e) {
+	        			
+	        		}
+	        		try {
+	        			boolean status = apiClient.deleteDeviceType(DEVICE_TYPE);
+	        			
+	        		} catch(IoTFCReSTException e) {
+	        			
+	        		}
+
+            }
+        };
+        return setup;
+    }
+    
+    /*
 	public synchronized void setUp() {
 	    if (setUpIsDone) {
 	        return;
 	    }
 	    
-	    /**
-		  * Load device properties
-		  */
 		Properties props = new Properties();
 		Properties propsWrongToken = new Properties();
 		Properties propsWrongMethod = new Properties();
@@ -147,99 +220,70 @@ public class DeviceAPIOperationsTest extends TestCase {
 		
 	    setUpIsDone = true;
 	}
-	
+	*/
+    
 	/**
-	 * This sample showcases how to Create a device type using the Java Client Library. 
+	 * This helper method creates a device type using the Java Client Library. 
 	 * @throws IoTFCReSTException
 	 */
 	private static void addDeviceType() throws IoTFCReSTException {
 		try {
 			boolean status = apiClient.isDeviceTypeExist(DEVICE_TYPE);
 			if(status == false) {
-				System.out.println("Adding device Type --> "+DEVICE_TYPE);
+				
 				apiClient.addDeviceType(DEVICE_TYPE, DEVICE_TYPE, null, null);
 			}
 			return;
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			
 		}
 	}
 	
 	/**
-	 * This sample showcases how to Delete a device using the Java Client Library.
+	 * This helper method creates a device type using the Java Client Library. 
 	 * @throws IoTFCReSTException
 	 */
-	public void test08deleteDevice() throws IoTFCReSTException {
+	/*
+	private static void addGatewayType() throws IoTFCReSTException {
 		try {
-			System.out.println("Deleting devices --> " +  "  and "+DEVICE_ID);
-			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
-			assertFalse("Device is not deleted successfully", apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID2));
-			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
-			assertFalse("Device is not deleted successfully", apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID));
-			apiClient.deleteDevice(DEVICE_TYPE, NON_ASCII_DEVICE_ID);
-			assertFalse("Device is not deleted successfully", apiClient.isDeviceExist(DEVICE_TYPE, NON_ASCII_DEVICE_ID));
+			boolean status = apiClient.isDeviceTypeExist(GATEWAY_TYPE);
+			if(status == false) {
+				apiClient.addGatewayDeviceType(gatewayTypeToBeAdded);
+			}
+			return;
 		} catch(IoTFCReSTException e) {
-			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			
 		}
-		
-		// negative test, it should fail
-		try {
-			apiClientWithWrongToken.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
-			fail("Doesn't throw invild Auth token exception");
-		} catch(IoTFCReSTException e) {}
-		
-		// Wrrong Method
-		try {
-			apiClientWithWrongKey.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
-			fail("Doesn't throw invild Auth token exception");
-		} catch(IoTFCReSTException e) {}
-		
-		// Wrrong Org
-		try {
-			apiClientWithWrongOrg.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
-			fail("Doesn't throw invild Auth token exception");
-		} catch(IoTFCReSTException e) {}	
-
-		// negative test, it should fail
-		try {
-			apiClientWithWrongToken.isDeviceExist(DEVICE_TYPE, DEVICE_ID2);
-			fail("Doesn't throw invild Auth token exception");
-		} catch(IoTFCReSTException e) {}
-		
-		// Wrrong Method
-		try {
-			apiClientWithWrongKey.isDeviceExist(DEVICE_TYPE, DEVICE_ID2);
-			fail("Doesn't throw invild Auth token exception");
-		} catch(IoTFCReSTException e) {}
-		
-		// Wrrong Org
-		try {
-			apiClientWithWrongOrg.isDeviceExist(DEVICE_TYPE, DEVICE_ID2);
-			fail("Doesn't throw invild Auth token exception");
-		} catch(IoTFCReSTException e) {}
-		
 	}
-
+	*/
+	
 	/**
-	 * This sample showcases how to add a device using the Java Client Library.
+	 * This test-case tests how to add a device using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
 	public void test01addDevice() throws IoTFCReSTException {
-		System.out.println("Adding device --> "+deviceToBeAdded);
+		
 		JsonParser parser = new JsonParser();
 		JsonElement input = parser.parse(deviceToBeAdded);
 		try{
-			JsonObject response = this.apiClient.registerDevice(DEVICE_TYPE, input);
+			if(apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID)) {
+				apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+			}
+			JsonObject response = apiClient.registerDevice(DEVICE_TYPE, input);
 			assertTrue("Device is not registered successfully", apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID));
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
-		}
+			
+		} /* finally {
+			if(apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID)) {
+				apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+			}
+		}*/
 		
 		try{
 			
@@ -248,41 +292,50 @@ public class DeviceAPIOperationsTest extends TestCase {
 			JsonElement deviceInfo = parser.parse(deviceInfoToBeAdded);
 			JsonElement location = parser.parse(locationToBeAdded);
 			
-			System.out.println("Adding device --> "+DEVICE_ID2);
-			JsonObject response = this.apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID2, "Password", 
+			
+			JsonObject response = apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID2, "Password", 
 					deviceInfo, location, null);
 			
 			assertTrue("Device is not registered successfully", apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID2));
-			System.out.println(response);
+			
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			
 		}
 		
 		// negative test, it should fail
 		try {
 			apiClientWithWrongToken.registerDevice(DEVICE_TYPE, input);
-			fail("Doesn't throw invild Auth token exception");
-		} catch(IoTFCReSTException e) {}
+			fail("Doesn't throw invalid Auth token exception");
+		} catch(IoTFCReSTException e) {
+			
+		}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
 			apiClientWithWrongKey.registerDevice(DEVICE_TYPE, input);
-			fail("Doesn't throw invild API Key exception");
-		} catch(IoTFCReSTException e) {}
+			fail("Doesn't throw invalid API Key exception");
+		} catch(IoTFCReSTException e) {
+			
+		}
 		
-		// Wrrong Org
+		// Wrong Org
 		try {
 			apiClientWithWrongOrg.registerDevice(DEVICE_TYPE, input);
-			fail("Doesn't throw invild Org exception");
-		} catch(IoTFCReSTException e) {}		
+			fail("Doesn't throw invalid Org exception");
+		} catch(IoTFCReSTException e) {
+			
+		}	
+		
 	}
 	
 	/**
-	 * This sample showcases how to add a device using the Java Client Library.
+	 * This test-case tests how to add a device using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	//This test case has been commented as non-ASCII are not supported 
+	/*
 	public void test01addDeviceWithNonASCIIContents() throws IoTFCReSTException {
 		
 		String DEVICE_TEMPLATE = "'{'\"deviceId\": " + "\"{0}\",\"authToken\": \"password\","
@@ -294,60 +347,61 @@ public class DeviceAPIOperationsTest extends TestCase {
 		JsonParser parser = new JsonParser();
 		try {
 			JsonElement input = parser.parse(deviceData);
-			JsonObject response = this.apiClient.registerDevice(DEVICE_TYPE, input);
+			JsonObject response = apiClient.registerDevice(DEVICE_TYPE, input);
 			assertTrue("Device is not registered successfully", apiClient.isDeviceExist(DEVICE_TYPE, NON_ASCII_DEVICE_ID));
 		} catch(IoTFCReSTException e) {
+			System.out.println("Message = " + e.getMessage() + "\tHTTP Code = " + e.getHttpCode() + "\tResponse = " + e.getResponse() );
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
 		}
 	}
+	*/
 	
 	/**
-	 * This sample showcases how to get device details using the Java Client Library.
+	 * This test-case tests how to get device details using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
 	public void test02getDevice() throws IoTFCReSTException {
 		try {
-			System.out.println("get device --> "+DEVICE_ID);
-			JsonObject response = this.apiClient.getDevice(DEVICE_TYPE, DEVICE_ID);
-			System.out.println(response);
+			
+			JsonObject response = apiClient.getDevice(DEVICE_TYPE, DEVICE_ID);
+			
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			
 		}
 		
 		// negative test, it should fail
 		try {
 			apiClientWithWrongToken.getDevice(DEVICE_TYPE, DEVICE_ID);
-			fail("Doesn't throw invild Auth token exception");
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
 			apiClientWithWrongKey.getDevice(DEVICE_TYPE, DEVICE_ID);
-			fail("Doesn't throw invild API Key exception");
+			fail("Doesn't throw invalid API Key exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Org
+		// Wrong Org
 		try {
 			apiClientWithWrongOrg.getDevice(DEVICE_TYPE, DEVICE_ID);
-			fail("Doesn't throw invild ORG exception");
+			fail("Doesn't throw invalid ORG exception");
 		} catch(IoTFCReSTException e) {}		
 
 	}
 	
 	/**
-	 * This sample showcases how to get device details using the Java Client Library.
+	 * This test-case tests how to get device details using the Java Client Library.
 	 * 
 	 * Negative test - suppy an invalid device type
 	 * @throws IoTFCReSTException
 	 */
 	public void test021getDevice() throws IoTFCReSTException {
 		try {
-			System.out.println("get device --> "+DEVICE_ID);
-			JsonObject response = this.apiClient.getDevice("Non-Exist", DEVICE_ID);
+			
+			JsonObject response = apiClient.getDevice("Non-Exist", DEVICE_ID);
 			fail("Must thorw an exception");
 		} catch(IoTFCReSTException e) {
 			
@@ -355,112 +409,111 @@ public class DeviceAPIOperationsTest extends TestCase {
 	}
 	
 	/**
-	 * This sample showcases how to update a device location using the Java Client Library.
+	 * This test-case tests how to update a device location using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
 	public void test03updateDeviceLocation() throws IoTFCReSTException {
-		System.out.println("update device location of device --> "+DEVICE_ID);
+		
 		JsonElement newLocation = new JsonParser().parse(newlocationToBeAdded);
 		try {
-			JsonObject response = this.apiClient.updateDeviceLocation(DEVICE_TYPE, DEVICE_ID, newLocation);
-			System.out.println(response);
+			JsonObject response = apiClient.updateDeviceLocation(DEVICE_TYPE, DEVICE_ID, newLocation);
+			
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			
 		}
 		// negative test, it should fail
 		try {
 			apiClientWithWrongToken.updateDeviceLocation(DEVICE_TYPE, DEVICE_ID, newLocation);
-			fail("Doesn't throw invild Auth token exception");
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
 			apiClientWithWrongKey.updateDeviceLocation(DEVICE_TYPE, DEVICE_ID, newLocation);
-			fail("Doesn't throw invild API Key exception");
+			fail("Doesn't throw invalid API Key exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Org
+		// Wrong Org
 		try {
 			apiClientWithWrongOrg.updateDeviceLocation(DEVICE_TYPE, DEVICE_ID, newLocation);
-			fail("Doesn't throw invild ORG exception");
+			fail("Doesn't throw invalid ORG exception");
 		} catch(IoTFCReSTException e) {}				
 		
 	}
 	
 	/**
-	 * This sample showcases how to get a device location using the Java Client Library.
+	 * This test-case tests how to get a device location using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
 	public void test04getDeviceLocation() throws IoTFCReSTException {
 		try {
-			System.out.println("get device location of device --> "+DEVICE_ID);
-			JsonObject response = this.apiClient.getDeviceLocation(DEVICE_TYPE, DEVICE_ID);
-			System.out.println(response);
+			
+			JsonObject response = apiClient.getDeviceLocation(DEVICE_TYPE, DEVICE_ID);
+			
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			
 		}
 		
 		// negative test, it should fail
 		try {
 			apiClientWithWrongToken.getDeviceLocation(DEVICE_TYPE, DEVICE_ID);
-			fail("Doesn't throw invild Auth token exception");
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
 		// Wrong Method
 		try {
 			apiClientWithWrongKey.getDeviceLocation(DEVICE_TYPE, DEVICE_ID);
-			fail("Doesn't throw invild API Key exception");
+			fail("Doesn't throw invalid API Key exception");
 		} catch(IoTFCReSTException e) {}
 		
 		// Wrong Org
 		try {
 			apiClientWithWrongOrg.getDeviceLocation(DEVICE_TYPE, DEVICE_ID);
-			fail("Doesn't throw invild ORG exception");
+			fail("Doesn't throw invalid ORG exception");
 		} catch(IoTFCReSTException e) {}	
 	}
 	
 	/**
-	 * This sample showcases how to get a device location weather using the Java Client Library.
+	 * This test-case tests how to get a device location weather using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
 	public void test05getDeviceLocationWeather() throws IoTFCReSTException {
 		try {
-			System.out.println("get device location weather of device --> "+DEVICE_ID);
-			JsonObject response = this.apiClient.getDeviceLocationWeather(DEVICE_TYPE, DEVICE_ID);
-			System.out.println(response);
+			
+			JsonObject response = apiClient.getDeviceLocationWeather(DEVICE_TYPE, DEVICE_ID);
+			
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			
 		}
 		
 		// negative test, it should fail
 		try {
 			apiClientWithWrongToken.getDeviceLocationWeather(DEVICE_TYPE, DEVICE_ID);
-			fail("Doesn't throw invild Auth token exception");
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
 		// Wrong Method
 		try {
 			apiClientWithWrongKey.getDeviceLocationWeather(DEVICE_TYPE, DEVICE_ID);
-			fail("Doesn't throw invild API Key exception");
+			fail("Doesn't throw invalid API Key exception");
 		} catch(IoTFCReSTException e) {}
 		
 		// Wrong Org
 		try {
 			apiClientWithWrongOrg.getDeviceLocationWeather(DEVICE_TYPE, DEVICE_ID);
-			fail("Doesn't throw invild ORG exception");
+			fail("Doesn't throw invalid ORG exception");
 		} catch(IoTFCReSTException e) {}	
 	}
 	
 	
-	
 	/**
-	 * This sample showcases how to get a management information of a device using the Java Client Library.
+	 * This test-case tests how to get a management information of a device using the Java Client Library.
 	 * @throws Exception 
 	 */
 	public void test06getDeviceManagementInformation() throws Exception {
@@ -489,14 +542,14 @@ public class DeviceAPIOperationsTest extends TestCase {
 			fail(e.getMessage());
 		}
 		
-		System.out.println("get device management information of device --> "+deviceId);
+		
 		try {
-			JsonObject response = this.apiClient.getDeviceManagementInformation(typeId, deviceId);
-			System.out.println(response);
+			JsonObject response = apiClient.getDeviceManagementInformation(typeId, deviceId);
+			
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			
 		} finally {
 			dmClient.disconnect();
 		}
@@ -504,24 +557,24 @@ public class DeviceAPIOperationsTest extends TestCase {
 		// negative test, it should fail
 		try {
 			apiClientWithWrongToken.getDeviceManagementInformation(typeId, deviceId);
-			fail("Doesn't throw invild Auth token exception");
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
 			apiClientWithWrongKey.getDeviceManagementInformation(typeId, deviceId);
-			fail("Doesn't throw invild API Key exception");
+			fail("Doesn't throw invalid API Key exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Org
+		// Wrong Org
 		try {
 			apiClientWithWrongOrg.getDeviceManagementInformation(typeId, deviceId);
-			fail("Doesn't throw invild Org exception");
+			fail("Doesn't throw invalid Org exception");
 		} catch(IoTFCReSTException e) {}	
 	}
 
 	/**
-	 * This sample showcases how to update a device using the Java Client Library.
+	 * This test-case tests how to update a device using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
 	public void test07updateDevice() throws IoTFCReSTException {
@@ -529,44 +582,44 @@ public class DeviceAPIOperationsTest extends TestCase {
 		JsonObject updatedMetadata = new JsonObject();
 		
 		try {
-			System.out.println("update device --> "+DEVICE_ID);
+			
 			JsonObject metadata = new JsonObject();
 			metadata.addProperty("Hi", "Hello, I'm updated metadata");
 		
 			updatedMetadata.add("metadata", metadata);
-			JsonObject response = this.apiClient.updateDevice(DEVICE_TYPE, DEVICE_ID, updatedMetadata);
-			System.out.println(response);
+			JsonObject response = apiClient.updateDevice(DEVICE_TYPE, DEVICE_ID, updatedMetadata);
+			
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			
 		}
 		
 		// negative test, it should fail
 		try {
 			apiClientWithWrongToken.updateDevice(DEVICE_TYPE, DEVICE_ID, updatedMetadata);
-			fail("Doesn't throw invild Auth token exception");
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
 			apiClientWithWrongKey.updateDevice(DEVICE_TYPE, DEVICE_ID, updatedMetadata);
-			fail("Doesn't throw invild API Key exception");
+			fail("Doesn't throw invalid API Key exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Org
+		// Wrong Org
 		try {
 			apiClientWithWrongOrg.updateDevice(DEVICE_TYPE, DEVICE_ID, updatedMetadata);
-			fail("Doesn't throw invild Org exception");
+			fail("Doesn't throw invalid Org exception");
 		} catch(IoTFCReSTException e) {}	
 	}
 
 	/**
-	 * This sample showcases how to retrieve all the devices in an organization using the Java Client Library.
+	 * This test-case tests how to retrieve all the devices in an organization using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
-	public void test08getAllDevices() throws IoTFCReSTException {
-		System.out.println("Get all devices of device type--> "+DEVICE_TYPE);
+	public void test08getAllDevicesOfAType() throws IoTFCReSTException {
+		
 		// Get all the devices of type TestDT
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
 		try {
@@ -577,7 +630,7 @@ public class DeviceAPIOperationsTest extends TestCase {
 			 */
 			parameters.add(new BasicNameValuePair("_sort","deviceId"));
 			
-			JsonObject response = this.apiClient.retrieveDevices(DEVICE_TYPE, parameters);
+			JsonObject response = apiClient.retrieveDevices(DEVICE_TYPE, parameters);
 			
 			// The response will contain more parameters that will be used to issue
 			// the next request. The result element will contain the current list of devices
@@ -585,83 +638,177 @@ public class DeviceAPIOperationsTest extends TestCase {
 			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
 				JsonElement deviceElement = iterator.next();
 				JsonObject responseJson = deviceElement.getAsJsonObject();
-				System.out.println(responseJson);
+				
 			}
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			
 		}
 		
 		// negative test, it should fail
 		try {
 			apiClientWithWrongToken.retrieveDevices(DEVICE_TYPE);
-			fail("Doesn't throw invild Auth token exception");
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
 			apiClientWithWrongKey.retrieveDevices(DEVICE_TYPE, null);
-			fail("Doesn't throw invild API Key exception");
+			fail("Doesn't throw invalid API Key exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Org
+		// Wrong Org
 		try {
 			apiClientWithWrongOrg.retrieveDevices(DEVICE_TYPE, parameters);
-			fail("Doesn't throw invild Org exception");
+			fail("Doesn't throw invalid Org exception");
 		} catch(IoTFCReSTException e) {}	
 	}
-	
+
 	/**
-	 * This sample showcases how to Delete a device using the Java Client Library.
+	 * This test-case tests how to retrieve all the devices in an organization using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
-	public void testLastdeleteDeviceTypeAndDevice() throws IoTFCReSTException {
+	public void test08getAllDevices() throws IoTFCReSTException {
+		
+		// Get all the devices of type TestDT
+		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
 		try {
-			boolean status = this.apiClient.deleteDeviceType(DEVICE_TYPE);
-			assertFalse("Could not delete the device type", apiClient.isDeviceTypeExist(DEVICE_TYPE));
+			
+			JsonObject response = apiClient.getAllDevices();
+			
+			// The response will contain more parameters that will be used to issue
+			// the next request. The result element will contain the current list of devices
+			JsonArray devices = response.get("results").getAsJsonArray(); 
+			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
+				JsonElement deviceElement = iterator.next();
+				JsonObject responseJson = deviceElement.getAsJsonObject();
+				
+			}
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			
 		}
 		
 		// negative test, it should fail
 		try {
-			apiClientWithWrongToken.deleteDeviceType(DEVICE_TYPE);
-			fail("Doesn't throw invild Auth token exception");
+			apiClientWithWrongToken.retrieveDevices(DEVICE_TYPE);
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
-			apiClientWithWrongKey.deleteDeviceType(DEVICE_TYPE);
-			fail("Doesn't throw invild API Key exception");
+			apiClientWithWrongKey.retrieveDevices(DEVICE_TYPE, null);
+			fail("Doesn't throw invalid API Key exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Org
+		// Wrong Org
 		try {
-			apiClientWithWrongOrg.deleteDeviceType(DEVICE_TYPE);
-			fail("Doesn't throw invild Org exception");
+			apiClientWithWrongOrg.retrieveDevices(DEVICE_TYPE, parameters);
+			fail("Doesn't throw invalid Org exception");
 		} catch(IoTFCReSTException e) {}	
+	}
+	
+	/**
+	 * This test-case tests how to Delete a device using the Java Client Library.
+	 * @throws IoTFCReSTException
+	 */
+	public void test08deleteDevice() throws IoTFCReSTException {
+		try {
+			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+			assertFalse("Device is not deleted successfully", apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID));
+		} catch(IoTFCReSTException e) {
+			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+		}
 		
 		// negative test, it should fail
 		try {
-			apiClientWithWrongToken.isDeviceTypeExist(DEVICE_TYPE);
-			fail("Doesn't throw invild Auth token exception");
+			apiClientWithWrongToken.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
-			apiClientWithWrongKey.isDeviceTypeExist(DEVICE_TYPE);
-			fail("Doesn't throw invild API Key exception");
+			apiClientWithWrongKey.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Org
+		// Wrong Org
 		try {
-			apiClientWithWrongOrg.isDeviceTypeExist(DEVICE_TYPE);
-			fail("Doesn't throw invild Org exception");
+			apiClientWithWrongOrg.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}	
+
+		// negative test, it should fail
+		try {
+			apiClientWithWrongToken.isDeviceExist(DEVICE_TYPE, DEVICE_ID2);
+			fail("Doesn't throw invalid Auth token exception");
+		} catch(IoTFCReSTException e) {}
+		
+		// Wrong Method
+		try {
+			apiClientWithWrongKey.isDeviceExist(DEVICE_TYPE, DEVICE_ID2);
+			fail("Doesn't throw invalid Auth token exception");
+		} catch(IoTFCReSTException e) {}
+		
+		// Wrong Org
+		try {
+			apiClientWithWrongOrg.isDeviceExist(DEVICE_TYPE, DEVICE_ID2);
+			fail("Doesn't throw invalid Auth token exception");
+		} catch(IoTFCReSTException e) {}
 		
 	}
 	
+	/**
+	 * This test-case tests how to add a device, registered under a gateway, using the Java Client Library.
+	 * @throws IoTFCReSTException
+	 */
+	public void test09addDeviceUnderGateway() throws IoTFCReSTException {
+		
+		JsonParser parser = new JsonParser();
+		JsonElement input = parser.parse(deviceToBeAdded);
+		try{
+			if(apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID)) {
+				apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+			}
+			JsonObject response = apiClient.registerDeviceUnderGateway(DEVICE_TYPE, DEVICE_ID,
+					"testgw", "testgw_01");
+			assertTrue("Device is not registered successfully", apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID));
+		} catch(IoTFCReSTException e) {
+			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			// Print if there is a partial response
+			
+		}
+		
+		// negative test, it should fail
+		try {
+			apiClientWithWrongOrg.registerDeviceUnderGateway(DEVICE_TYPE, DEVICE_ID,
+					"testgw", "testgw_01");
+			fail("Doesn't throw invalid Auth token exception");
+		} catch(IoTFCReSTException e) {
+			
+		}
+		
+		// Wrong Method
+		try {
+			apiClientWithWrongOrg.registerDeviceUnderGateway(DEVICE_TYPE, DEVICE_ID,
+					"testgw", "testgw_01");
+			fail("Doesn't throw invalid API Key exception");
+		} catch(IoTFCReSTException e) {
+			
+		}
+		
+		// Wrong Org
+		try {
+			apiClientWithWrongOrg.registerDeviceUnderGateway(DEVICE_TYPE, DEVICE_ID,
+					"testgw", "testgw_01");
+			fail("Doesn't throw invalid Org exception");
+		} catch(IoTFCReSTException e) {
+			
+		}	
+		
+	}
+	
+
 }
