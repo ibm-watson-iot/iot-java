@@ -526,7 +526,7 @@ public class APIClient {
 		} else if(code == 403) {
 			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
 		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "The device type does not exist", jsonResponse);
+			throw new IoTFCReSTException(code, "The device type or device does not exist", jsonResponse);
 		} else if (code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
