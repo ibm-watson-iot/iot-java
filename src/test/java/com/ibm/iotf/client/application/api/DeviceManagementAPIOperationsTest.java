@@ -158,7 +158,7 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 	public void test04getAllMgmtRequests() throws IoTFCReSTException {
 		System.out.println("Retrieve all DM requests from the organization..");
 		try {
-			JsonElement response = this.apiClient.getAllDeviceManagementRequests();
+			JsonElement response = apiClient.getAllDeviceManagementRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			for(Iterator<JsonElement> iterator = requests.iterator(); iterator.hasNext(); ) {
 				JsonElement request = iterator.next();
@@ -186,7 +186,7 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 		dmClient.sendManageRequest(0, false, true);
 		try {
 			JsonObject reboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
-			boolean response = this.apiClient.initiateDeviceManagementRequest(reboot);
+			boolean response = apiClient.initiateDeviceManagementRequest(reboot);
 			System.out.println(response);
 			assertTrue("Not able to initiate DM request", response);
 		} catch(IoTFCReSTException e) {
@@ -212,11 +212,11 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 		System.out.println("Delete a DM request from the organization..");
 		// Lets clear the first ID from the list
 		try {
-			JsonElement response = this.apiClient.getAllDeviceManagementRequests();
+			JsonElement response = apiClient.getAllDeviceManagementRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			JsonElement request = requests.get(0);
 			System.out.println("Delete a DM request .. "+request.getAsJsonObject().get("id").getAsString());
-			boolean status = this.apiClient.deleteDeviceManagementRequest(request.getAsJsonObject().get("id").getAsString());
+			boolean status = apiClient.deleteDeviceManagementRequest(request.getAsJsonObject().get("id").getAsString());
 			System.out.println("Delete status: "+status);
 			assertTrue("Fail to delete the DM request", status);
 		} catch(IoTFCReSTException e) {
@@ -236,11 +236,11 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 		System.out.println("Retrieve a DM request from the organization..");
 		// Lets clear the first ID from the list
 		try {
-			JsonElement response = this.apiClient.getAllDeviceManagementRequests();
+			JsonElement response = apiClient.getAllDeviceManagementRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			JsonElement request = requests.get(0);
 			System.out.println("Get a DM request .. "+request.getAsJsonObject().get("id").getAsString());
-			JsonObject details = this.apiClient.getDeviceManagementRequest(request.getAsJsonObject().get("id").getAsString());
+			JsonObject details = apiClient.getDeviceManagementRequest(request.getAsJsonObject().get("id").getAsString());
 			System.out.println(details);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
@@ -259,7 +259,7 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 		// Lets get the DM request status from the list
 		System.out.println("Get DM request device status..");
 		try {
-			JsonElement response = this.apiClient.getAllDeviceManagementRequests();
+			JsonElement response = apiClient.getAllDeviceManagementRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			JsonElement request = requests.get(0);
 			String id = request.getAsJsonObject().get("id").getAsString();
@@ -268,7 +268,7 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 		    parameters.add(new BasicNameValuePair("_bookmark","<bookmark>"));
 		    
 		    
-			JsonObject details = this.apiClient.getDeviceManagementRequestStatus(id);
+			JsonObject details = apiClient.getDeviceManagementRequestStatus(id);
 			
 			// The response will contain more parameters that will be used to issue
 			// the next request. The results element will contain the current list of devices
@@ -295,12 +295,12 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 		// Lets get the DM request status from the list
 		System.out.println("Get DM request device status..");
 		try {
-			JsonElement response = this.apiClient.getAllDeviceManagementRequests();
+			JsonElement response = apiClient.getAllDeviceManagementRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			JsonElement request = requests.get(0);
 			String id = request.getAsJsonObject().get("id").getAsString();
 			
-			JsonObject details = this.apiClient.getDeviceManagementRequestStatusByDevice(id, DEVICE_TYPE, DEVICE_ID);
+			JsonObject details = apiClient.getDeviceManagementRequestStatusByDevice(id, DEVICE_TYPE, DEVICE_ID);
 			System.out.println(details);
 		} catch(IoTFCReSTException e) {
 			e.printStackTrace();
