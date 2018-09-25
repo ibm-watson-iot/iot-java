@@ -127,7 +127,10 @@ public abstract class Status {
 				user = payloadJson.get("User").getAsString();
 			else
 				user = new String();
-			connectTime = payloadJson.get("ConnectTime").getAsString();
+			if (payloadJson.has(ConnectTime))
+				connectTime = payloadJson.get("ConnectTime").getAsString();
+			else
+				connectTime = new String();
 			writeMsg = payloadJson.get("WriteMsg").getAsInt();
 			readMsg = payloadJson.get("ReadMsg").getAsInt();
 			readBytes = payloadJson.get("ReadBytes").getAsInt();
