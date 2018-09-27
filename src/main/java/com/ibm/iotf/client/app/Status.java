@@ -38,7 +38,7 @@ public abstract class Status {
 	private String user;
 	private String action;
 	private String connectTime;
-	private int port;
+	private int port = 0;
 	private DateTime time;
 	
 	// Additional "Disconnect" status properties
@@ -114,13 +114,28 @@ public abstract class Status {
 		JsonObject payloadJson = JSON_PARSER.parse(payload).getAsJsonObject();
 		
 		// Common attributes
-		clientAddr = payloadJson.get("ClientAddr").getAsString();
-		protocol = payloadJson.get("Protocol").getAsString();
-		clientId = payloadJson.get("ClientID").getAsString();
-		time = DT_PARSER.parseDateTime(payloadJson.get("Time").getAsString());
-		action = payloadJson.get("Action").getAsString();
-		
-		port = payloadJson.get("Port").getAsInt();
+		if (payloadJson.has("ClientAddr"))
+			clientAddr = payloadJson.get("ClientAddr").getAsString();
+		else
+			clientAddr = new String();
+		if (payloadJson.has("Protocol"))
+			protocol = payloadJson.get("Protocol").getAsString();
+		else
+			protocol = new String();
+		if (payloadJson.has("ClientID"))
+			clientId = payloadJson.get("ClientID").getAsString();
+		else
+			clientId = new String();
+		if (payloadJson.has("Time"))
+			time = DT_PARSER.parseDateTime(payloadJson.get("Time").getAsString());
+		else
+			time = new DateTime();
+		if (payloadJson.has("Action"))
+			action = payloadJson.get("Action").getAsString();
+		else
+			action = new String();
+		if (payloadJson.has("Port"))
+			port = payloadJson.get("Port").getAsInt();
 		
 		if (action.equals("Disconnect")) {
 			if (payloadJson.has("User"))
@@ -131,10 +146,14 @@ public abstract class Status {
 				connectTime = payloadJson.get("ConnectTime").getAsString();
 			else
 				connectTime = new String();
-			writeMsg = payloadJson.get("WriteMsg").getAsInt();
-			readMsg = payloadJson.get("ReadMsg").getAsInt();
-			readBytes = payloadJson.get("ReadBytes").getAsInt();
-			writeBytes = payloadJson.get("WriteBytes").getAsInt();
+			if (payloadJson.has("WriteMsg"))
+				writeMsg = payloadJson.get("WriteMsg").getAsInt();
+			if (payloadJson.has("ReadMsg"))
+				readMsg = payloadJson.get("ReadMsg").getAsInt();
+			if (payloadJson.has("ReadBytes"))
+				readBytes = payloadJson.get("ReadBytes").getAsInt();
+			if (payloadJson.has("WriteBytes"))
+				writeBytes = payloadJson.get("WriteBytes").getAsInt();
 			if (payloadJson.has("Reason"))
 				reason = payloadJson.get("Reason").getAsString();
 			else
