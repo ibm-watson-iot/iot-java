@@ -3,10 +3,10 @@ Device Samples
 
 Following stand-alone samples(present in this project) demonstrate the device connectivity to IBM Watson IoT Platform.
 
-* [Quickstart sample](https://github.com/ibm-messaging/iot-device-samples/blob/master/java/device-samples/src/main/java/com/ibm/iotf/sample/client/device/QuickstartDeviceEventPublish.java) that connects to Watson IoT Quickstart service and publishes an event.
-* [MQTT Device sample](https://github.com/ibm-messaging/iot-device-samples/blob/master/java/device-samples/src/main/java/com/ibm/iotf/sample/client/device/DeviceEventPublishWithCounter.java) that publishes an event, every second to IBM Watson IoT Platform using MQTT.
-* [HTTP Device sample](https://github.com/ibm-messaging/iot-device-samples/blob/master/java/device-samples/src/main/java/com/ibm/iotf/sample/client/device/HttpDeviceEventPublish.java) that publishes an event, every second to IBM Watson IoT Platform using HTTP.
-* [Command subscription sample](https://github.com/ibm-messaging/iot-scalable-application-samples/blob/master/java/ibmiot-shared-subscription-sample/src/main/java/com/ibm/iotf/sample/client/device/DeviceEventPublishWithCounter.java) that subscribes to commands while publishing device events to IBM Watson IoT Platform.
+* [Quickstart sample](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/device-samples/src/main/java/com/ibm/iotf/sample/client/device/QuickstartDeviceEventPublish.java) that connects to Watson IoT Quickstart service and publishes an event.
+* [MQTT Device sample](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/device-samples/src/main/java/com/ibm/iotf/sample/client/device/DeviceEventPublishWithCounter.java) that publishes an event, every second to IBM Watson IoT Platform using MQTT.
+* [HTTP Device sample](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/device-samples/src/main/java/com/ibm/iotf/sample/client/device/HttpDeviceEventPublish.java) that publishes an event, every second to IBM Watson IoT Platform using HTTP.
+* [Command subscription sample](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/device-samples/src/main/java/com/ibm/iotf/sample/client/device/RegisteredDeviceCommandSubscribe.java) that subscribes to commands while publishing device events to IBM Watson IoT Platform.
 
 The samples are written using the [Java Client Library](https://github.com/ibm-messaging/iot-java) for IBM Watson IoT Platform that simplifies the interactions with the IBM Watson IoT Platform.
 
