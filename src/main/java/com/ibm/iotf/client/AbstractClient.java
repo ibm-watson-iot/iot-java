@@ -76,6 +76,7 @@ public abstract class AbstractClient {
 	
 	private static final String CLASS_NAME = AbstractClient.class.getName();
 	private static final String QUICK_START = "quickstart";
+	private static final long DEFAULT_ACTION_TIMEOUT = 30 * 1000L;
 	private static final int DEFAULT_MAX_INFLIGHT_MESSAGES = 100;
 	private static final int DEFAULT_MESSAGING_QOS = 1;
 	
@@ -240,7 +241,7 @@ public abstract class AbstractClient {
 					" (attempt #" + connectAttempts + ")...");
 			
 			try {
-				mqttAsyncClient.connect(mqttClientOptions).waitForCompletion(1000 * 60);
+				mqttAsyncClient.connect(mqttClientOptions).waitForCompletion(getActionTimeout());
 			} catch (MqttSecurityException e) {
 				System.err.println("Looks like one or more connection parameters are wrong !!!");
 				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Connecting to Watson IoT Platform failed - " +
@@ -619,6 +620,16 @@ public abstract class AbstractClient {
 		}
 		return size;
 	}
+	
+	public long getActionTimeout() {
+		long timeout = DEFAULT_ACTION_TIMEOUT;
+		String value = options.getProperty("ActionTimeout");
+		if (value != null) {
+			timeout = Integer.parseInt(trimedValue(value));
+		}
+		return timeout;
+	}
+	
 	public int getMaxInflight() {
 		int maxInflight = DEFAULT_MAX_INFLIGHT_MESSAGES;
 		String value = options.getProperty("MaxInflightMessages");
@@ -685,7 +696,7 @@ public abstract class AbstractClient {
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Disconnecting from the IBM Watson IoT Platform ...");
 		try {
 			this.disconnectRequested = true;
-			mqttAsyncClient.disconnect();
+			mqttAsyncClient.disconnect().waitForCompletion(getActionTimeout());
 			LoggerUtility.info(CLASS_NAME, METHOD, "Successfully disconnected "
 					+ "from the IBM Watson IoT Platform");
 		} catch (MqttException e) {

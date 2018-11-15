@@ -197,7 +197,7 @@ public class DeviceClient extends AbstractClient {
 	
 	private void subscribeToCommands() {
 		try {
-			mqttAsyncClient.subscribe("iot-2/cmd/+/fmt/+", 2);
+			mqttAsyncClient.subscribe("iot-2/cmd/+/fmt/+", 2).waitForCompletion(getActionTimeout());
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
@@ -226,7 +226,24 @@ public class DeviceClient extends AbstractClient {
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishEvent(String event, Object data) {
-		return publishEvent(event, data, 0);
+		return publishEvent(event, data, 0, getActionTimeout());
+	}
+	
+	/**
+	 * Publish data to the IBM Watson IoT Platform.<br>
+	 * 
+	 * This method allows QoS to be passed as an argument
+	 * 
+	 * @param event
+	 *            Name of the dataset under which to publish the data
+	 * @param data
+	 *            Object to be added to the payload as the dataset
+	 * @param qos
+	 *            Quality of Service - should be 0, 1 or 2
+	 * @return Whether the send was successful.
+	 */		
+	public boolean publishEvent(String event, Object data, int qos) {
+		return publishEvent(event, data, qos, getActionTimeout());
 	}
 
 	/**
@@ -240,9 +257,11 @@ public class DeviceClient extends AbstractClient {
 	 *            Object to be added to the payload as the dataset
 	 * @param qos
 	 *            Quality of Service - should be 0, 1 or 2
+	 * @param timeout
+	 * 		The maximum amount of time to wait for the action, in milliseconds, to complete
 	 * @return Whether the send was successful.
 	 */	
-	public boolean publishEvent(String event, Object data, int qos) {
+	public boolean publishEvent(String event, Object data, int qos, long timeout) {
 		if (!isConnected() && !isAutomaticReconnect()) {
 			return false;
 		}
@@ -272,10 +291,11 @@ public class DeviceClient extends AbstractClient {
 		msg.setRetained(false);
 		
 		try {
-			if (isConnected() && !isAutomaticReconnect()) {
-				mqttAsyncClient.publish(topic, msg).waitForCompletion(60 * 1000);
-			} else {
+			if (!isConnected() && isAutomaticReconnect()) {
+				// Buffer the message
 				mqttAsyncClient.publish(topic, msg);
+			} else {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion(timeout);
 			}
 		} catch (MqttPersistenceException e) {
 			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.getMessage(), e);
@@ -286,7 +306,7 @@ public class DeviceClient extends AbstractClient {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Publish data to the IBM Watson IoT Platform.<br>
 	 * 
@@ -300,9 +320,29 @@ public class DeviceClient extends AbstractClient {
 	 *            Quality of Service, in int - can have values 0,1,2
 	 * @return Whether the send was successful.
 	 * @throws Exception when the publish operation fails
-	 */
+	 */	
 	public boolean publishEvent(String event, Object data, String format, int qos) throws Exception {
-		if (!isConnected()) {
+		return publishEvent(event, data, format, qos, getActionTimeout());
+	}
+	
+	/**
+	 * Publish data to the IBM Watson IoT Platform.<br>
+	 * 
+	 * @param event
+	 *            object of String which denotes event
+	 * @param data
+	 *            Payload data
+	 * @param format
+	 * 			The message format
+	 * @param qos
+	 *            Quality of Service, in int - can have values 0,1,2
+	 * @param timeout
+	 * 			The maximum amount of time to wait for the action, in milliseconds, to complete
+	 * @return Whether the send was successful.
+	 * @throws Exception when the publish operation fails
+	 */
+	public boolean publishEvent(String event, Object data, String format, int qos, long timeout) throws Exception {
+		if (!isConnected() && !isAutomaticReconnect()) {
 			return false;
 		}
 		final String METHOD = "publishEvent(4)";
@@ -331,10 +371,11 @@ public class DeviceClient extends AbstractClient {
 		msg.setRetained(false);
 		
 		try {
-			if (isConnected() && !isAutomaticReconnect()) {
-				mqttAsyncClient.publish(topic, msg).waitForCompletion();
-			} else {
+			if (!isConnected() && isAutomaticReconnect()) {
+				// Buffer the message
 				mqttAsyncClient.publish(topic, msg);
+			} else {
+				mqttAsyncClient.publish(topic, msg).waitForCompletion(timeout);
 			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();

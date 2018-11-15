@@ -643,7 +643,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic(" + topic + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
-				mqttAsyncClient.subscribe(topic, qos, listener).waitForCompletion();
+				mqttAsyncClient.subscribe(topic, qos, listener).waitForCompletion(getActionTimeout());
 			} else if(mqttClient != null) {
 				mqttClient.subscribe(topic, qos, listener);
 			}
@@ -693,7 +693,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic(" + topic + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
-				mqttAsyncClient.unsubscribe(topic);
+				mqttAsyncClient.unsubscribe(topic).waitForCompletion(getActionTimeout());
 			} else if (mqttClient != null) {
 				mqttClient.unsubscribe(topic);
 			}
@@ -717,7 +717,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topics(" + topics + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
-				mqttAsyncClient.unsubscribe(topics);
+				mqttAsyncClient.unsubscribe(topics).waitForCompletion(getActionTimeout());
 			} else if (mqttClient != null) {
 				mqttClient.unsubscribe(topics);
 			}
