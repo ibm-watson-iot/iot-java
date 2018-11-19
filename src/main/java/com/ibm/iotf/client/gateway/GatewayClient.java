@@ -795,20 +795,21 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 		try {
 			if (isAutomaticReconnect() == false) {
 				connect();
-				if (this.isCleanSession() == true && isConnected()) {
-				    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
-				    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
-				    while (iterator.hasNext()) {
-				        //Map.Entry pairs = (Map.Entry)iterator.next();
-				        Entry<String, Integer> pairs = iterator.next();
-				        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
-				        try {
-				        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString())).waitForCompletion(getActionTimeout());
-						} catch (NumberFormatException | MqttException e1) {
-							e1.printStackTrace();
-						}
-		//		        iterator.remove(); // avoids a ConcurrentModificationException
-				    }
+				if (isCleanSession() && isConnected()) {
+					if (this.isCleanSession() == true) {
+					    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
+					    while (iterator.hasNext()) {
+					        Entry<String, Integer> pairs = iterator.next();
+					        String topic = pairs.getKey();
+					        Integer qos = pairs.getValue();
+					        LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing topic(" +topic + ") QoS:" + qos);
+					        try {
+					        	mqttAsyncClient.subscribe(topic, qos.intValue());
+							} catch (NumberFormatException | MqttException e1) {
+								e1.printStackTrace();
+							}
+					    }
+					}
 				}				
 			}
 		} catch (MqttException e2) {
@@ -897,17 +898,16 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 			LoggerUtility.info(CLASS_NAME, METHOD, "Reconnected to " + serverURI );
 			if (this.isCleanSession() == true) {
 			    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
-			    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
 			    while (iterator.hasNext()) {
-			        //Map.Entry pairs = (Map.Entry)iterator.next();
 			        Entry<String, Integer> pairs = iterator.next();
-			        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
+			        String topic = pairs.getKey();
+			        Integer qos = pairs.getValue();
+			        LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing topic(" +topic + ") QoS:" + qos);
 			        try {
-			        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString())).waitForCompletion(getActionTimeout());
+			        	mqttAsyncClient.subscribe(topic, qos.intValue());
 					} catch (NumberFormatException | MqttException e1) {
 						e1.printStackTrace();
 					}
-	//		        iterator.remove(); // avoids a ConcurrentModificationException
 			    }
 			}
 			
