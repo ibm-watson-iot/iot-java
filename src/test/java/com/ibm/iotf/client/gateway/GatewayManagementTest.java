@@ -9,6 +9,8 @@ import java.util.logging.Level;
 import junit.framework.TestCase;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
@@ -132,7 +134,7 @@ public class GatewayManagementTest extends TestCase {
 				apiClient.addDeviceType(deviceType, deviceType, null, null);
 			}
 		} catch(IoTFCReSTException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException", e);
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException HTTP code(" + e.getHttpCode() + ") Response(" + e.getResponse() + ")");
 			//System.err.println("ERROR: unable to add manually device type " + e.getMessage());
 			e.printStackTrace();
 		}
@@ -159,12 +161,13 @@ public class GatewayManagementTest extends TestCase {
 						gwClient.getGWDeviceId());
 			}
 		} catch (IoTFCReSTException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException", e);
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException HTTP code(" + e.getHttpCode() + ") Response(" + e.getResponse() + ")");
 			//System.out.println("ERROR: unable to add manually device " + deviceId);
 		}
 	}
 
-	public void setUp() {
+	@BeforeClass
+	public void oneTimeSetup() {
 		final String METHOD = "setUp";
 		
 		if (setupDone == true && gwClient.isConnected() == true) {
@@ -195,7 +198,8 @@ public class GatewayManagementTest extends TestCase {
 		
 	}
 	
-	public void tearDown() throws IoTFCReSTException {
+	@AfterClass
+	public void oneTimeTearDown() throws IoTFCReSTException {
 		final String METHOD = "tearDown";
 		if (gwClient != null && gwClient.isConnected()) {
 			try {

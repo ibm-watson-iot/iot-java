@@ -106,7 +106,7 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 				apiClient.addDeviceType(deviceType, deviceType, null, null);
 			}
 		} catch(IoTFCReSTException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException", e);
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException HTTP code(" + e.getHttpCode() + ") Response(" + e.getResponse() + ")");
 			//System.err.println("ERROR: unable to add manually device type " + e.getMessage());
 			e.printStackTrace();
 		}
@@ -133,7 +133,7 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 						gwClient.getGWDeviceId());
 			}
 		} catch (IoTFCReSTException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException", e);
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException HTTP code(" + e.getHttpCode() + ") Response(" + e.getResponse() + ")");
 			//System.out.println("ERROR: unable to add manually device " + deviceId);
 		}
 	}
