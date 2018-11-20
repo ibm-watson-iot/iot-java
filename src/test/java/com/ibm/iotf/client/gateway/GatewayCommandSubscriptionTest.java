@@ -19,6 +19,8 @@ import java.util.logging.Level;
 import junit.framework.TestCase;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
@@ -46,8 +48,9 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 	private static GatewayClient gwClient = null;
 	private static APIClient apiClient = null;
 	
-	public void setUp() {
-		final String METHOD = "setUp";
+	@BeforeClass
+	public void oneTimeSetup() {
+		final String METHOD = "oneTimeSetup";
 	    // do the setup
 		createGatewayClient(GATEWAY_PROPERTIES_FILE);
 		try {
@@ -64,8 +67,9 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 		}
 	}
 	
-	public void tearDown() throws IoTFCReSTException {
-		final String METHOD = "tearDown";
+	@AfterClass
+	public void oneTimeTearDown() throws IoTFCReSTException {
+		final String METHOD = "oneTimeTearDown";
 		
 		if (gwClient != null && gwClient.isConnected()) {
 			try {

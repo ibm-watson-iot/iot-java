@@ -168,7 +168,7 @@ public class GatewayManagementTest extends TestCase {
 
 	@BeforeClass
 	public void oneTimeSetup() {
-		final String METHOD = "setUp";
+		final String METHOD = "oneTimeSetup";
 		
 		if (setupDone == true && gwClient.isConnected() == true) {
 			return;
@@ -200,7 +200,7 @@ public class GatewayManagementTest extends TestCase {
 	
 	@AfterClass
 	public void oneTimeTearDown() throws IoTFCReSTException {
-		final String METHOD = "tearDown";
+		final String METHOD = "oneTimeTearDown";
 		if (gwClient != null && gwClient.isConnected()) {
 			try {
 				gwClient.disconnect();
