@@ -32,6 +32,9 @@ import com.ibm.iotf.util.LoggerUtility;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GatewayManagementTest extends TestCase {
 	private static final String CLASS_NAME = GatewayManagementTest.class.getName();
+	
+	private final static long DEFAULT_ACTION_TIMEOUT = 5000;
+	
 	private static Random random = new Random();
 	private static ManagedGateway gwClient;
 	private static APIClient apiClient = null;
@@ -727,6 +730,7 @@ public class GatewayManagementTest extends TestCase {
 	 * @throws Exception
 	 */
 	private void createManagedClient(String propertiesFile) throws Exception {
+		final String METHOD = "createManagedClient";
 		/**
 		 * Load device properties
 		 */
@@ -762,6 +766,10 @@ public class GatewayManagementTest extends TestCase {
 		gwClient = new ManagedGateway(deviceProps, deviceData);
 		gwClient.setGatewayCallback(new GatewayCallbackTest(deviceProps));
 		gwClient.connect();
+		LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "connected (" + gwClient.isConnected() + ")");
+		if (gwClient.isConnected()) {
+			gwClient.subscribeToGatewayNotification(DEFAULT_ACTION_TIMEOUT);
+		}
 	}
 	
 	/**
