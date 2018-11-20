@@ -171,7 +171,7 @@ public class GatewayManagementTest extends TestCase {
 		}
 		
 		try {
-	    	if(apiClient != null) {
+	    	if (apiClient != null) {
 	    		addDeviceType(ATTACHED_DEVICE_TYPE);
 	    		addDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
 	    	}
@@ -799,9 +799,9 @@ public class GatewayManagementTest extends TestCase {
 		/**
 		 * Load device properties
 		 */
-		Properties deviceProps = new Properties();
+		Properties props = new Properties();
 		try {
-			deviceProps.load(GatewayManagementTest.class.getResourceAsStream(propertiesFile));
+			props.load(GatewayManagementTest.class.getResourceAsStream(propertiesFile));
 		} catch (IOException e1) {
 			System.err.println("Not able to read the properties file, exiting..");
 			System.exit(-1);
@@ -828,13 +828,27 @@ public class GatewayManagementTest extends TestCase {
 						 //metadata(metadata).
 						 build();
 		
-		gwClient = new ManagedGateway(deviceProps, deviceData);
-		gwClient.setGatewayCallback(new GatewayCallbackTest(deviceProps));
+		gwClient = new ManagedGateway(props, deviceData);
+		gwClient.setGatewayCallback(new GatewayCallbackTest(props));
 		gwClient.connect();
 		LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "connected (" + gwClient.isConnected() + ")");
 		if (gwClient.isConnected()) {
 			gwClient.subscribeToGatewayNotification(DEFAULT_ACTION_TIMEOUT);
 		}
+		
+		
+		/**
+		 * We need APIClient to register the devicetype in Watson IoT Platform 
+		 */
+		Properties options = new Properties();
+		options.put("Organization-ID", props.getProperty("Organization-ID"));
+		options.put("id", "app" + CLASS_NAME);	
+		options.put("Authentication-Method","apikey");
+		options.put("API-Key", props.getProperty("API-Key"));		
+		options.put("Authentication-Token", props.getProperty("API-Token"));
+		
+		apiClient = new APIClient(options);
+		
 	}
 	
 	/**
