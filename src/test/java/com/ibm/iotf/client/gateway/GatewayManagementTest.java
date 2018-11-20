@@ -631,24 +631,34 @@ public class GatewayManagementTest extends TestCase {
 	}
 	
 	public void test03LocationUpdate() throws MqttException {
+		
+		final String METHOD = "test03LocationUpdate";
+		
+		LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayManageRequest(0, false, true)");
 		gwClient.sendGatewayManageRequest(0, false, true);
 			
 		double latitude = random.nextDouble() + 30;
 		double longitude = random.nextDouble() - 98;
 		double elevation = (double)random.nextInt(100);
 		
+		LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing updateGatewayLocation");
 		int rc = gwClient.updateGatewayLocation(latitude, longitude, elevation);
 		assertTrue("Gateway Location update is unsuccessfull", rc==200);
 		
 		// user overloaded method
+		LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing updateGatewayLocation datetime");
 		rc = gwClient.updateGatewayLocation(latitude, longitude, elevation, new Date());
 		assertTrue("Gateway location update is unsuccessfull", rc==200);
 		
 		// Test device's
+		LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendDeviceManageRequest(" + ATTACHED_DEVICE_TYPE + "," + ATTACHED_DEVICE_ID + ",0,true,true)");
 		gwClient.sendDeviceManageRequest(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, 0, true, true);
+		
+		LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing updateDeviceLocation");
 		rc = gwClient.updateDeviceLocation(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, latitude, longitude, elevation);
 		assertTrue("device location update is unsuccessfull", rc==200);
 		
+		LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing updateDeviceLocation datetime");
 		rc = gwClient.updateDeviceLocation(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, latitude, longitude, elevation, new Date());
 		assertTrue("device location update is unsuccessfull", rc==200);
 	}
@@ -750,6 +760,7 @@ public class GatewayManagementTest extends TestCase {
 						 build();
 		
 		gwClient = new ManagedGateway(deviceProps, deviceData);
+		gwClient.setGatewayCallback(new GatewayCallbackTest(deviceProps));
 		gwClient.connect();
 	}
 	
