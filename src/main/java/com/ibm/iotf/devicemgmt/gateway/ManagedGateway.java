@@ -191,7 +191,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	public void connect() throws MqttException {
 		final String METHOD = "connect";
 		if (this.isConnected()) {
-			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Gateway device is already connected");
+			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Gateway device client (" + this.clientId + ") is already connected");
 			return;
 		}
 		super.connect();
@@ -641,6 +641,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		String topic = mc.getDMAgentTopic().getManageTopic();
 		
 		if (!this.isConnected()) {
+			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Gateway device client (" + this.clientId + ") is not connected.");
 			this.connect();
 		}
 		
