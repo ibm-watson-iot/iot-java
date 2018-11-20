@@ -292,7 +292,7 @@ public abstract class AbstractClient {
 		if(autoRetry == false) {
 			connect(0);
 		} else {
-			connect(DEFAULT_MAX_CONNECT_ATTEMPTS);
+			connect(getMaxConnectAttempts());
 		}
 	}
 	
@@ -629,6 +629,15 @@ public abstract class AbstractClient {
 			timeout = Integer.parseInt(trimedValue(value));
 		}
 		return timeout;
+	}
+	
+	public int getMaxConnectAttempts() {
+		int attempts = DEFAULT_MAX_CONNECT_ATTEMPTS;
+		String value = options.getProperty("MaxConnectAttempts");
+		if (value != null) {
+			attempts = Integer.parseInt(trimedValue(value));
+		}
+		return attempts;
 	}
 	
 	public int getMaxInflight() {

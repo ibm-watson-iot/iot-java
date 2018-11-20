@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
@@ -40,7 +40,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * 
  * This is a derived class from AbstractClient and can be used by end-applications to handle connections with IBM Watson IoT Platform.
  */
-public class ApplicationClient extends AbstractClient implements MqttCallback{
+public class ApplicationClient extends AbstractClient implements MqttCallbackExtended {
 	
 	private static final String CLASS_NAME = ApplicationClient.class.getName();
 	
@@ -1135,29 +1135,58 @@ public class ApplicationClient extends AbstractClient implements MqttCallback{
 	 */
 	public void connectionLost(Throwable e) {
 		final String METHOD = "connectionLost";
-		LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.getMessage(), e);
+		LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Lost connection client (" + clientId + ") : " + e.getMessage());
 		try {
-			connect();
-			Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
-		    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
-		    while (iterator.hasNext() && this.isConnected()) {
-		        //Map.Entry pairs = (Map.Entry)iterator.next();
-		        Entry<String, Integer> pairs = iterator.next();
-		        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
-		        try {
-		        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString())).waitForCompletion(getActionTimeout());
-				} catch (NumberFormatException | MqttException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+			if (isAutomaticReconnect() == false) {
+				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Reconnecting client (" + clientId + ") ");
+				connect();
+				if (isCleanSession() && isConnected()) {
+					if (this.isCleanSession() == true) {
+						Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
+					    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
+					    while (iterator.hasNext() && this.isConnected()) {
+					        Entry<String, Integer> pairs = iterator.next();
+					        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
+					        try {
+					        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString())).waitForCompletion(getActionTimeout());
+							} catch (NumberFormatException | MqttException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+					    }						
+					}
 				}
-//		        iterator.remove(); // avoids a ConcurrentModificationException
-		    }
+			}
 		} catch (MqttException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
 	    
 	}
+	
+	@Override
+	public void connectComplete(boolean reconnect, String serverURI) {
+		final String METHOD = "connectComplete";
+		if (reconnect) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Reconnected to " + serverURI );
+			if (this.isCleanSession() == true) {
+			    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
+			    while (iterator.hasNext()) {
+			        Entry<String, Integer> pairs = iterator.next();
+			        String topic = pairs.getKey();
+			        Integer qos = pairs.getValue();
+			        LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing topic(" +topic + ") QoS:" + qos);
+			        try {
+			        	mqttAsyncClient.subscribe(topic, qos.intValue());
+					} catch (NumberFormatException | MqttException e1) {
+						e1.printStackTrace();
+					}
+			    }
+			}
+			
+		}
+	}
+	
 	
 	/**
 	 * A completed deliver does not guarantee that the message is recieved by the service
