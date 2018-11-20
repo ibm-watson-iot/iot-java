@@ -76,6 +76,7 @@ public abstract class AbstractClient {
 	
 	private static final String CLASS_NAME = AbstractClient.class.getName();
 	private static final String QUICK_START = "quickstart";
+	private static final int DEFAULT_MAX_CONNECT_ATTEMPTS = 10;
 	private static final long DEFAULT_ACTION_TIMEOUT = 30 * 1000L;
 	private static final int DEFAULT_MAX_INFLIGHT_MESSAGES = 100;
 	private static final int DEFAULT_MESSAGING_QOS = 1;
@@ -291,7 +292,7 @@ public abstract class AbstractClient {
 		if(autoRetry == false) {
 			connect(0);
 		} else {
-			connect(Integer.MAX_VALUE);
+			connect(DEFAULT_MAX_CONNECT_ATTEMPTS);
 		}
 	}
 	
