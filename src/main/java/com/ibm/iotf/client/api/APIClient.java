@@ -130,10 +130,12 @@ public class APIClient {
 		
 			authKey = trimedValue(authKeyPassed);
 		}
-		
-		String token = opt.getProperty("auth-token");
-		if(token == null) {
-			token = opt.getProperty("Authentication-Token");
+		String token = opt.getProperty("API-Token");
+		if (token == null) {
+			token = opt.getProperty("auth-token");
+			if (token == null) {
+				token = opt.getProperty("Authentication-Token");
+			}
 		}
 		authToken = trimedValue(token);
 
