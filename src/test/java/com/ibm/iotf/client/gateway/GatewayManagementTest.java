@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
+import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
@@ -26,9 +27,11 @@ import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
+import com.ibm.iotf.util.LoggerUtility;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GatewayManagementTest extends TestCase {
+	private static final String CLASS_NAME = GatewayManagementTest.class.getName();
 	private static Random random = new Random();
 	private static ManagedGateway gwClient;
 	private static APIClient apiClient = null;
@@ -558,12 +561,15 @@ public class GatewayManagementTest extends TestCase {
 
 
 	public void test01ManageRequest() {
+		final String METHOD = "test01ManageRequest";
 		boolean status = false;
 		try {
 			// Gateway manage request
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayManageRequest(0, false, true)");
 			status = gwClient.sendGatewayManageRequest(0, false, true);
 			assertTrue("Gateway Manage request is unsuccessfull", status);
 			
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendDeviceManageRequest(" + ATTACHED_DEVICE_TYPE + "," + ATTACHED_DEVICE_ID + ",0,true,true)");
 			status = gwClient.sendDeviceManageRequest(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, 0, true, true);
 			assertTrue("Device Manage request is unsuccessfull", status);
 			
@@ -581,6 +587,7 @@ public class GatewayManagementTest extends TestCase {
 							 //metadata(metadata).
 							 build();
 			
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendDeviceManageRequest(" + ATTACHED_DEVICE_TYPE + "," + ATTACHED_DEVICE_ID + "," + deviceData + ",0,true,true)");
 			status = gwClient.sendDeviceManageRequest(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, deviceData, 0, true, true);
 			assertTrue("Device Manage request is unsuccessfull", status);
 			
@@ -601,13 +608,19 @@ public class GatewayManagementTest extends TestCase {
 	
 	public void test02UnManageRequest() {
 		
+		final String METHOD = "test02UnManageRequest";
+		
 		boolean status = false;
 		try {
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayManageRequest(0, false, true)");
 			status = gwClient.sendGatewayManageRequest(0, false, true);
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayUnmanageRequet()");
 			status = gwClient.sendGatewayUnmanageRequet();
 			assertTrue("Gateway UnManage request is unsuccessfull", status);
 			
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendDeviceManageRequest(" + ATTACHED_DEVICE_TYPE + "," + ATTACHED_DEVICE_ID + ",0,true,true)");
 			status = gwClient.sendDeviceManageRequest(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, 0, true, true);
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendDeviceUnmanageRequet(" + ATTACHED_DEVICE_TYPE + "," + ATTACHED_DEVICE_ID + ")");
 			status = gwClient.sendDeviceUnmanageRequet(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
 			assertTrue("Device UnManage request is unsuccessfull", status);
 			
