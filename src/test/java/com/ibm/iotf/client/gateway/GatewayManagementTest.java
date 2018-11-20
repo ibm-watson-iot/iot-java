@@ -302,7 +302,7 @@ public class GatewayManagementTest extends TestCase {
 		
 		actionHandler.clear();
 		try {
-			gwClient.connect();
+			//gwClient.connect();
 			gwClient.sendGatewayManageRequest(0, true, true);
 		} catch (MqttException e) {
 			fail(e.getMessage());
@@ -338,7 +338,7 @@ public class GatewayManagementTest extends TestCase {
 		actionHandler.isGateway = true;
 		
 		try {
-			gwClient.connect();
+			//gwClient.connect();
 			gwClient.sendGatewayManageRequest(0, false, true);
 		} catch (MqttException e) {
 			fail(e.getMessage());
@@ -373,7 +373,7 @@ public class GatewayManagementTest extends TestCase {
 		actionHandler.clear();
 		actionHandler.isGateway = false;
 		try {
-			gwClient.connect();
+			//gwClient.connect();
 			gwClient.sendDeviceManageRequest(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, 0, true, true);
 		} catch (MqttException e) {
 			fail(e.getMessage());
@@ -409,7 +409,7 @@ public class GatewayManagementTest extends TestCase {
 		actionHandler.isGateway = false;
 		
 		try {
-			gwClient.connect();
+			//gwClient.connect();
 			gwClient.sendDeviceManageRequest(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, 0, true, true);
 		} catch (MqttException e) {
 			fail(e.getMessage());
@@ -443,7 +443,7 @@ public class GatewayManagementTest extends TestCase {
 	public void test06FirmwareDownload() throws Exception {
 		
 		try {
-			gwClient.connect();
+			//gwClient.connect();
 			gwClient.sendGatewayManageRequest(0, true, true);
 		} catch (MqttException e) {
 			fail(e.getMessage());
@@ -476,7 +476,7 @@ public class GatewayManagementTest extends TestCase {
 		firmwareHandler.clear();
 		
 		try {
-			gwClient.connect();
+			//gwClient.connect();
 			gwClient.sendGatewayManageRequest(0, true, true);
 		} catch (MqttException e) {
 			fail(e.getMessage());
@@ -503,7 +503,7 @@ public class GatewayManagementTest extends TestCase {
 		
 		firmwareHandler.clear();
 		try {
-			gwClient.connect();
+			//gwClient.connect();
 			gwClient.sendGatewayManageRequest(0, true, true);
 		} catch (MqttException e) {
 			fail(e.getMessage());
@@ -536,7 +536,7 @@ public class GatewayManagementTest extends TestCase {
 		firmwareHandler.clear();
 		
 		try {
-			gwClient.connect();
+			//gwClient.connect();
 			gwClient.sendGatewayManageRequest(0, true, true);
 		} catch (MqttException e) {
 			fail(e.getMessage());
