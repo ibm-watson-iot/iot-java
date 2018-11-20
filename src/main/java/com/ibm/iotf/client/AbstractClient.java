@@ -703,14 +703,31 @@ public abstract class AbstractClient {
 	 */
 	public void disconnect() {
 		final String METHOD = "disconnect";
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Disconnecting from the IBM Watson IoT Platform ...");
+		LoggerUtility.info(CLASS_NAME, METHOD, "Disconnecting from the IBM Watson IoT Platform ...");
 		try {
 			this.disconnectRequested = true;
-			mqttAsyncClient.disconnect().waitForCompletion(getActionTimeout());
-			LoggerUtility.info(CLASS_NAME, METHOD, "Successfully disconnected "
+			if (mqttAsyncClient != null) {
+				mqttAsyncClient.disconnect().waitForCompletion(getActionTimeout());
+				LoggerUtility.info(CLASS_NAME, METHOD, "Successfully disconnected "
 					+ "from the IBM Watson IoT Platform");
+			}
 		} catch (MqttException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Close and free all MQTT client resources
+	 * 
+	 * @throws Exception
+	 */
+	public void close() throws Exception {
+		final String METHOD = "close";
+		LoggerUtility.info(CLASS_NAME, METHOD, "Closing MQTT client (" + clientId + ")");
+		if (mqttAsyncClient != null) {
+			mqttAsyncClient.close(true);
+			mqttAsyncClient = null;
+			LoggerUtility.info(CLASS_NAME, METHOD, "Closed MQTT client (" + clientId + ")");
 		}
 	}
 	

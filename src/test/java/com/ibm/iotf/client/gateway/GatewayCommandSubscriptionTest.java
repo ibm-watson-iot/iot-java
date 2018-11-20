@@ -14,6 +14,7 @@ package com.ibm.iotf.client.gateway;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
@@ -24,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.app.ApplicationClient;
+import com.ibm.iotf.util.LoggerUtility;
 
 /**
  * This test verifies that the device receives the command published by the application
@@ -31,6 +33,8 @@ import com.ibm.iotf.client.app.ApplicationClient;
  *
  */
 public class GatewayCommandSubscriptionTest extends TestCase{
+	
+	private static final String CLASS_NAME = GatewayCommandSubscriptionTest.class.getName();
 	
 	private final static String GATEWAY_PROPERTIES_FILE = "/gateway.properties";
 	private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";
@@ -43,6 +47,7 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 	private static APIClient apiClient = null;
 	
 	public void setUp() {
+		final String METHOD = "setUp";
 	    // do the setup
 		createGatewayClient(GATEWAY_PROPERTIES_FILE);
 		try {
@@ -51,17 +56,34 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 	    		addDevice(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
 	    	}
 		} catch (IoTFCReSTException e) {
-			// TODO Auto-generated catch block
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException", e);
+			e.printStackTrace();
+		} catch (Exception e) {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Exception", e);
 			e.printStackTrace();
 		}
 	}
 	
 	public void tearDown() throws IoTFCReSTException {
-		gwClient.disconnect();
-		if(apiClient != null) {
+		final String METHOD = "tearDown";
+		
+		if (gwClient != null && gwClient.isConnected()) {
+			try {
+				gwClient.disconnect();
+				gwClient.close();
+				gwClient = null;
+			} catch (Exception e) {
+				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Exception", e);
+				e.printStackTrace();
+			}
+		}
+
+		
+		if (apiClient != null) {
 			apiClient.deleteDevice(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
     		apiClient.deleteDeviceType(DEVICE_TYPE);
     	}
+		
 	}
 	
 	/**
@@ -91,13 +113,12 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 		try {
 			System.out.println("<-- Checking if device " + deviceId +" with deviceType " +
 					deviceType +" exists in Watson IoT Platform");
-			boolean exist = this.gwClient.api().isDeviceExist(deviceType, deviceId);
-			if(!exist) {
-				System.out.println("<-- Creating device " + deviceId +" with deviceType " +
-						deviceType +" now..");
+			boolean exist = gwClient.api().isDeviceExist(deviceType, deviceId);
+			if (!exist) {
+				
 				gwClient.api().registerDeviceUnderGateway(deviceType, deviceId,
-						this.gwClient.getGWDeviceType(), 
-						this.gwClient.getGWDeviceId());
+						gwClient.getGWDeviceType(), 
+						gwClient.getGWDeviceId());
 			}
 		} catch (IoTFCReSTException ex) {
 			
@@ -141,7 +162,7 @@ public class GatewayCommandSubscriptionTest extends TestCase{
 			 */
 			Properties options = new Properties();
 			options.put("Organization-ID", props.getProperty("Organization-ID"));
-			options.put("id", "app" + (Math.random() * 10000));		
+			options.put("id", "app" + CLASS_NAME);	
 			options.put("Authentication-Method","apikey");
 			options.put("API-Key", props.getProperty("API-Key"));		
 			options.put("Authentication-Token", props.getProperty("API-Token"));

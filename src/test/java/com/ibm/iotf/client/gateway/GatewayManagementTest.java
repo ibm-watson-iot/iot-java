@@ -25,7 +25,6 @@ import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.iotf.devicemgmt.DeviceAction.Status;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
-import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -113,30 +112,96 @@ public class GatewayManagementTest extends TestCase {
 												ATTACHED_DEVICE_TYPE + "\",\"deviceId\": \"" + ATTACHED_DEVICE_ID + "\"}]}";
 	}
 	
+	/**
+	 * This sample adds a device type using the Java Client Library. 
+	 * @throws IoTFCReSTException
+	 */
+	private void addDeviceType(String deviceType) throws IoTFCReSTException {
+		try {
+			System.out.println("<-- Checking if device type "+deviceType +" already created in Watson IoT Platform");
+			boolean exist = apiClient.isDeviceTypeExist(deviceType);
+			if (!exist) {
+				System.out.println("<-- Adding device type "+deviceType + " now..");
+				// device type to be created in WIoTP
+				apiClient.addDeviceType(deviceType, deviceType, null, null);
+			}
+		} catch(IoTFCReSTException e) {
+			System.err.println("ERROR: unable to add manually device type " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Add a device under the given gateway using the Java Client Library.
+	 * @throws IoTFCReSTException
+	 */
+	private void addDevice(String deviceType, String deviceId) throws IoTFCReSTException {
+		try {
+			System.out.println("<-- Checking if device " + deviceId +" with deviceType " +
+					deviceType +" exists in Watson IoT Platform");
+			boolean exist = gwClient.api().isDeviceExist(deviceType, deviceId);
+			if(!exist) {
+				System.out.println("<-- Creating device " + deviceId +" with deviceType " +
+						deviceType +" now..");
+				gwClient.api().registerDeviceUnderGateway(deviceType, deviceId,
+						gwClient.getGWDeviceType(), 
+						gwClient.getGWDeviceId());
+			}
+		} catch (IoTFCReSTException ex) {
+			
+			System.out.println("ERROR: unable to add manually device " + deviceId);
+		}
+	}
+	
 
 	public void setUp() {
-		if(setupDone == true && gwClient.isConnected() == true) {
+		final String METHOD = "setUp";
+		
+		if (setupDone == true && gwClient.isConnected() == true) {
 			return;
 		}
+		
 	    // do the setup
 		try {
 			createManagedClient(GATEWAY_PROPERTIES_FILE);
 			setupDone = true;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Exception", e);
 			e.printStackTrace();
 		}
+		
+		try {
+	    	if(apiClient != null) {
+	    		addDeviceType(ATTACHED_DEVICE_TYPE);
+	    		addDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
+	    	}
+		} catch (IoTFCReSTException e) {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException", e);
+			e.printStackTrace();
+		} catch (Exception e) {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Exception", e);
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public void tearDown() throws IoTFCReSTException {
-		count++;
-		if(count == 13) {
-			gwClient.disconnect();
-			if(apiClient != null) {
-				apiClient.deleteDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
-	    		apiClient.deleteDeviceType(ATTACHED_DEVICE_TYPE);
-	    	}
+		final String METHOD = "tearDown";
+		if (gwClient != null && gwClient.isConnected()) {
+			try {
+				gwClient.disconnect();
+				gwClient.close();
+				gwClient = null;
+			} catch (Exception e) {
+				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Exception", e);
+				e.printStackTrace();
+			}
 		}
+		
+		if (apiClient != null) {
+			apiClient.deleteDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
+    		apiClient.deleteDeviceType(ATTACHED_DEVICE_TYPE);
+    	}
 	}
 	
 	private static void createAPIClient() {
