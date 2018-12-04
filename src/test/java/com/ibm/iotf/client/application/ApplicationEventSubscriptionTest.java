@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.AbstractClient;
+import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.client.app.ApplicationStatus;
@@ -64,6 +65,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	//final String METHOD = "connect";
 	
 	private static String domainAddr;
+	
+	private static APIClient apiClient = null;
 	
 	
 //	private String  message  = "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
@@ -1132,7 +1135,7 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 			
 			appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
 			
-			APIClient apiClient = new APIClient(appProps);
+			apiClient = new APIClient(appProps);
 			
 			//Create a test device type
 			apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
@@ -1146,16 +1149,21 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	}
 	
 	@AfterClass
-	public static void oneTimeCleanup() throws Exception {
+	public static void oneTimeCleanup() {
 		final String METHOD = "oneTimeCleanup";
-		Lo
+		LoggerUtility.info(CLASS_NAME, METHOD, "Cleanup...");
 		try {
-			APIClient apiClient = new APIClient(appProps);
 			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Device " + DEVICE_ID + " deleted.");
+		} catch (IoTFCReSTException e) {
+			log.log(Level.SEVERE, METHOD + "deleteDevice caught exception:", e);
+		}
+		
+		try {
 			apiClient.deleteDeviceType(DEVICE_TYPE);
-		} catch (Exception ex) {
-			log.log(Level.SEVERE, METHOD + " caught exception:", ex);
-			throw ex;
+			LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " deleted.");
+		} catch (Exception e) {
+			log.log(Level.SEVERE, METHOD + "deleteDeviceType caught exception:", e);
 		}
 	}
 	
