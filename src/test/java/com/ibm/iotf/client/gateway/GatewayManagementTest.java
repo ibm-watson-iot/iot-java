@@ -28,11 +28,13 @@ import com.ibm.iotf.devicemgmt.DeviceAction.Status;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
 import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
+import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.util.LoggerUtility;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GatewayManagementTest extends TestCase {
 	private static final String CLASS_NAME = GatewayManagementTest.class.getName();
+	private static final String APP_ID = "GWMgmtApp1";
 	
 	private final static long DEFAULT_ACTION_TIMEOUT = 5000;
 	
@@ -40,17 +42,14 @@ public class GatewayManagementTest extends TestCase {
 	private static ManagedGateway gwClient;
 	private static APIClient apiClient = null;
 
-	private static boolean setupDone = false;
 	private static int count = 0;
-	private final static String GATEWAY_PROPERTIES_FILE = "/gateway.properties";
-	private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";
 
 	// Attached device 
 	private final static String ATTACHED_DEVICE_TYPE = "iotsampleType";
 	private final static String ATTACHED_DEVICE_ID = "Arduino02";
 
-	private static final String DEVICE_TYPE;
-	private static final String DEVICE_ID;
+	private static final String GW_DEVICE_TYPE = "GwMgmtType1";
+	private static final String GW_DEVICE_ID = "GwMgmtDev1";
 	private static final String GATEWAY_REBOOT_REQUEST;
 	private static final String GATEWAY_FACTORYRESET_REQUEST;
 	private static final String GATEWAY_FIRMWARE_DOWNLOAD_REQUEST;
@@ -67,34 +66,21 @@ public class GatewayManagementTest extends TestCase {
 	
 	static {
 		
-		/**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(GatewayManagementTest.class.getResourceAsStream(GATEWAY_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}	
-		
-		DEVICE_TYPE = props.getProperty("Gateway-Type");
-		DEVICE_ID = props.getProperty("Gateway-ID");
 		GATEWAY_REBOOT_REQUEST = "{\"action\": \"device/reboot\","
-				+ "\"devices\": [ {\"typeId\": \"" + DEVICE_TYPE +"\","
-				+ "\"deviceId\": \"" + DEVICE_ID + "\"}]}";
+				+ "\"devices\": [ {\"typeId\": \"" + GW_DEVICE_TYPE +"\","
+				+ "\"deviceId\": \"" + GW_DEVICE_ID + "\"}]}";
 		
 		GATEWAY_FACTORYRESET_REQUEST = "{\"action\": \"device/factoryReset\","
-				+ "\"devices\": [ {\"typeId\": \"" + DEVICE_TYPE +"\","
-				+ "\"deviceId\": \"" + DEVICE_ID + "\"}]}";
+				+ "\"devices\": [ {\"typeId\": \"" + GW_DEVICE_TYPE +"\","
+				+ "\"deviceId\": \"" + GW_DEVICE_ID + "\"}]}";
 		
 		
 		GATEWAY_FIRMWARE_DOWNLOAD_REQUEST = "{\"action\": \"firmware/download\", \"parameters\": [{\"name\": \"version\", \"value\": \"0.1.10\" }," +
 				"{\"name\": \"name\", \"value\": \"RasPi01 firmware\"}, {\"name\": \"verifier\", \"value\": \"123df\"}," +
 				"{\"name\": \"uri\",\"value\": \"https://github.com/ibm-messaging/iot-raspberrypi/releases/download/1.0.2.1/iot_1.0-2_armhf.deb\"}" +
-				"],\"devices\": [{\"typeId\": \"" + DEVICE_TYPE + "\",\"deviceId\": \"" + DEVICE_ID + "\"}]}";
+				"],\"devices\": [{\"typeId\": \"" + GW_DEVICE_TYPE + "\",\"deviceId\": \"" + GW_DEVICE_ID + "\"}]}";
 		
-		GATEWAY_FIRMWARE_UPDATE_REQUEST = "{\"action\": \"firmware/update\", \"devices\": [{\"typeId\": \"" + DEVICE_TYPE + "\",\"deviceId\": \"" + DEVICE_ID + "\"}]}";
+		GATEWAY_FIRMWARE_UPDATE_REQUEST = "{\"action\": \"firmware/update\", \"devices\": [{\"typeId\": \"" + GW_DEVICE_TYPE + "\",\"deviceId\": \"" + GW_DEVICE_ID + "\"}]}";
 		
 		ATTACHED_DEVICE_REBOOT_REQUEST = "{\"action\": \"device/reboot\","
 				+ "\"devices\": [ {\"typeId\": \"" + ATTACHED_DEVICE_TYPE +"\","
@@ -169,38 +155,107 @@ public class GatewayManagementTest extends TestCase {
 	@BeforeClass
 	public void oneTimeSetup() {
 		final String METHOD = "oneTimeSetup";
+		LoggerUtility.info(CLASS_NAME, METHOD, "Using org " + TestEnv.getOrgId());
+		Properties appProps = TestEnv.getAppProperties(APP_ID, false, null, null);
 		
-		if (setupDone == true && gwClient.isConnected() == true) {
+		try {
+			apiClient = new APIClient(appProps);
+		} catch (Exception e) {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Exception ", e);
+			e.printStackTrace();
 			return;
 		}
 		
-	    // do the setup
+		// Add gateway type and register gateway device
+		JsonObject jsonGWType = new JsonObject();
+		jsonGWType.addProperty("id", GW_DEVICE_TYPE);
+		jsonGWType.addProperty("classId", "Gateway");
 		try {
-			createManagedClient(GATEWAY_PROPERTIES_FILE);
-			setupDone = true;
-		} catch (Exception e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Exception", e);
-			e.printStackTrace();
-		}
-		
-		try {
-	    	if (apiClient != null) {
-	    		addDeviceType(ATTACHED_DEVICE_TYPE);
-	    		addDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
-	    	}
+			apiClient.addGatewayDeviceType(jsonGWType);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Gateway type " + GW_DEVICE_TYPE + " created.");
 		} catch (IoTFCReSTException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException", e);
-			e.printStackTrace();
-		} catch (Exception e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Exception", e);
-			e.printStackTrace();
+			String failMsg = "addGatewayDeviceType HTTP code " + e.getHttpCode() + " response " + e.getResponse();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
 		}
 		
+		try {
+			apiClient.registerDevice(GW_DEVICE_TYPE, GW_DEVICE_ID, TestEnv.getGatewayToken(), null, null, null);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device " + GW_DEVICE_ID + " created.");
+		} catch (IoTFCReSTException e) {
+			String failMsg = "registerDevice HTTP code " + e.getHttpCode() + " response " + e.getResponse();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+		}
+		
+		// Register attached device type and attached device
+		JsonObject jsonType = new JsonObject();
+		jsonType.addProperty("id", ATTACHED_DEVICE_TYPE);
+		try {
+			apiClient.addDeviceType(jsonType);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Type " + ATTACHED_DEVICE_TYPE + " created.");
+		} catch (IoTFCReSTException e) {
+			String failMsg = "addDeviceType HTTP code " + e.getHttpCode() + " response " + e.getResponse();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+		}
+		
+		try {
+			apiClient.registerDeviceUnderGateway(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, GW_DEVICE_TYPE, GW_DEVICE_ID);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Device " + ATTACHED_DEVICE_ID + " created.");
+		} catch (IoTFCReSTException e) {
+			String failMsg = "registerDeviceUnderGateway HTTP code " + e.getHttpCode() + " response " + e.getResponse();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);			
+		}
+		
+		// Create managed gateway client
+		DeviceFirmware firmware = new DeviceFirmware.Builder().
+				version("1.0.1").
+				name("iot-arm.deb").
+				url("").
+				verifier("12345").
+				state(FirmwareState.IDLE).				
+				build();
+		
+		/**
+		 * Create a DeviceMetadata object
+		 */
+		JsonObject data = new JsonObject();
+		data.addProperty("customField", "customValue");
+		//DeviceMetadata metadata = new DeviceMetadata(data);
+		
+		DeviceData deviceData = new DeviceData.Builder().
+						 //deviceInfo(deviceInfo).
+						 deviceFirmware(firmware).
+						 //metadata(metadata).
+						 build();
+		
+		Properties gwProps = TestEnv.getDeviceProperties(ATTACHED_DEVICE_TYPE, GW_DEVICE_ID);
+		gwProps.setProperty("Gateway-Type", GW_DEVICE_TYPE);
+		gwProps.setProperty("Gateway-ID", GW_DEVICE_ID);
+		gwProps.setProperty("Authentication-Token", TestEnv.getGatewayToken());
+		try {
+			gwClient = new ManagedGateway(gwProps, deviceData);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Created managed gateway client");
+		} catch (Exception e) {
+			String failMsg = "ManagedGateway Exception: " + e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+		}
+		gwClient.setGatewayCallback(new GatewayCallbackTest(gwProps));
+		try {
+			gwClient.connect();
+			LoggerUtility.info(CLASS_NAME, METHOD, "connected (" + gwClient.isConnected() + ")");
+		} catch (MqttException e) {
+			String failMsg = "Connect failed, Exception: " + e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+		}
+		
+		if (gwClient.isConnected()) {
+			gwClient.subscribeToGatewayNotification(DEFAULT_ACTION_TIMEOUT);
+		}
 	}
 	
 	@AfterClass
-	public void oneTimeTearDown() throws IoTFCReSTException {
+	public void oneTimeTearDown() {
 		final String METHOD = "oneTimeTearDown";
+		LoggerUtility.info(CLASS_NAME, METHOD, "Cleaning up...");
 		if (gwClient != null && gwClient.isConnected()) {
 			try {
 				gwClient.disconnect();
@@ -213,8 +268,30 @@ public class GatewayManagementTest extends TestCase {
 		}
 		
 		if (apiClient != null) {
-			apiClient.deleteDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
-    		apiClient.deleteDeviceType(ATTACHED_DEVICE_TYPE);
+			try {
+				apiClient.deleteDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		try {
+				apiClient.deleteDeviceType(ATTACHED_DEVICE_TYPE);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		try {
+				apiClient.deleteDevice(GW_DEVICE_TYPE, GW_DEVICE_ID);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		try {
+				apiClient.deleteDeviceType(GW_DEVICE_TYPE);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
     	}
 	}
 	
