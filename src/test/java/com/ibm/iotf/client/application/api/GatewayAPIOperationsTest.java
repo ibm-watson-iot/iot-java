@@ -13,30 +13,20 @@
  */
 package com.ibm.iotf.client.application.api;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Properties;
 
-import junit.framework.TestCase;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import org.eclipse.paho.client.mqttv3.MqttException;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.device.DeviceManagementTest;
-import com.ibm.iotf.devicemgmt.DeviceData;
-import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.util.LoggerUtility;
 
-import org.junit.runners.MethodSorters;
-import org.junit.FixMethodOrder;
+import junit.framework.TestCase;
 /**
  * This sample showcases various ReST operations that can be performed on Watson IoT Platform to
  * add/update/get/Gateway device(s)
@@ -44,128 +34,109 @@ import org.junit.FixMethodOrder;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GatewayAPIOperationsTest extends TestCase {
 	
-	private final static String PROPERTIES_FILE_NAME = "/application.properties";
-	
-	private static final String DEVICE_TYPE = "GatewayDT";
-	private static final String DEVICE_ID = "Gateway01";
+	private final static String CLASS_NAME = GatewayAPIOperationsTest.class.getName();
+	private static final String APP_ID = "GWApiApp1";
+	private static final String GW_DEVICE_TYPE = "GWApiOpType1";
+	private static final String GW_DEVICE_ID = "GWApiDev1";
 	
 	// Attached device 
-	private final static String ATTACHED_DEVICE_TYPE = "AttachedDT";
-	private final static String ATTACHED_DEVICE_ID = "Dev01";
-	private final static String ATTACHED_DEVICE_ID2 = "Dev02";
-	
-	private final static String ATTACHED_DEVICE_TO_BE_ADDED = "{\"deviceId\": "
-			+ "\"" + ATTACHED_DEVICE_ID2 + "\",\"authToken\": \"password\","  + "\"metadata\": {}}";
-
-	private static boolean setUpIsDone = false;
+	private final static String ATTACHED_DEVICE_TYPE = "GWApiOpAttType1";
+	private final static String ATTACHED_DEVICE_ID = "GWApiOpAttDev1";
+	private final static String ATTACHED_DEVICE_ID2 = "GWApiOpAttDev2";
 	
 	private static APIClient apiClient = null;
+	@BeforeClass
+	public static void oneTimeSetUp() throws Exception {
+		
+		Properties appProps = TestEnv.getAppProperties(APP_ID, false, GW_DEVICE_TYPE, null);
+		apiClient = new APIClient(appProps);
+
+		// Delete device if it was left from the last test run
+		if (apiClient.isDeviceExist(GW_DEVICE_TYPE, GW_DEVICE_ID)) {
+			apiClient.deleteDevice(GW_DEVICE_TYPE, GW_DEVICE_ID);
+		}
+		
+		// If the device type does not exist, create it
+		if (apiClient.isDeviceTypeExist(GW_DEVICE_TYPE) == false) {
+			JsonObject jsonGWType = new JsonObject();
+			jsonGWType.addProperty("classId", "Gateway");
+			jsonGWType.addProperty("id", GW_DEVICE_TYPE);
+			apiClient.addGatewayDeviceType(jsonGWType);
+		}
+		
+		// Register the test device DEVICE_ID
+		apiClient.registerDevice(GW_DEVICE_TYPE, GW_DEVICE_ID, TestEnv.getGatewayToken(), null, null, null);
+
+	}
 	
-	public synchronized void setUp() {
-	    if (setUpIsDone) {
-	        return;
-	    }
-	    
-	    /**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(GatewayAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}	
+	@AfterClass
+	public static void oneTimeCleanup() throws Exception {
+		
+		if (apiClient.isDeviceExist(GW_DEVICE_TYPE, GW_DEVICE_ID)) {
+			apiClient.deleteDevice(GW_DEVICE_TYPE, GW_DEVICE_ID);
+		}
+		
+		if (apiClient.isDeviceTypeExist(GW_DEVICE_TYPE)) {
+			apiClient.deleteDeviceType(GW_DEVICE_TYPE);
+		}
+	}	
+	
+	public void test01RegisterDevicesUnderGateway() {
+		final String METHOD = "test01RegisterDevicesUnderGateway";
+		LoggerUtility.info(CLASS_NAME, METHOD, "Registering devices under the gateway --> " + GW_DEVICE_ID);
 		
 		try {
-			//Instantiate the class by passing the properties file
-			apiClient = new APIClient(props);
-			
-		} catch (Exception e) {
-			// looks like the application.properties file is not updated properly
-			apiClient = null;
+			// Let us add the device type first
+			apiClient.addDeviceType(ATTACHED_DEVICE_TYPE, METHOD, null, null);
+		} catch (Exception e) { 
+			String failMsg = "Unexpected exception creating device type (" 
+					+  ATTACHED_DEVICE_TYPE + ") : " + e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
 			return;
 		}
 		
 		try {
-			String deviceTypeToBeAdded = "{\"id\": \"" + "GatewayDT" + "\",\"description\": "
-				+ "\"TestDT\",\"deviceInfo\": {\"fwVersion\": \"1.0.0\",\"hwVersion\": \"1.0\"},\"metadata\": {}}";
-		
-			JsonElement type = new JsonParser().parse(deviceTypeToBeAdded);
-			try{
-				apiClient.addGatewayDeviceType(type);
-			} catch(Exception e) {}
-			apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, "password", null,null,null);
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		
-	    setUpIsDone = true;
-	}
-	
-	public void test01RegisterDevicesUnderGateway() throws IoTFCReSTException {
-		System.out.println("Registering devices under the gateway --> " + DEVICE_ID);
-		
-		try {
-			// Let us add the device type first
-			apiClient.addDeviceType(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_TYPE, null, null);
-		} catch(Exception e) { 
-			e.printStackTrace();
+			JsonObject response = apiClient.registerDeviceUnderGateway(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, GW_DEVICE_TYPE, GW_DEVICE_ID);
+			assertFalse("Response must not be null", response.isJsonNull());
+		} catch (IoTFCReSTException e) {
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
 		}
 		
 		try {
-			// then add the device
-			apiClient.registerDeviceUnderGateway(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, DEVICE_TYPE, DEVICE_ID);
-		} catch(Exception e) { 
-			e.printStackTrace();
+			boolean created = apiClient.isDeviceExist(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
+			assertTrue("Device (" + ATTACHED_DEVICE_ID + ") was not created.", created);
+		} catch (IoTFCReSTException e) {
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
 		}
-		
-		// check if the device exists
-		assertTrue("Not able to register attached devices", apiClient.isDeviceExist(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID));
 		
 		// Use the other constructor to register other device
-		JsonElement device = new JsonParser().parse(ATTACHED_DEVICE_TO_BE_ADDED);
+		JsonObject jsonDevice = new JsonObject();
+		jsonDevice.addProperty("deviceId", ATTACHED_DEVICE_ID2);
+		jsonDevice.addProperty("authToken", TestEnv.getDeviceToken());
 		
-		apiClient.registerDeviceUnderGateway(ATTACHED_DEVICE_TYPE, DEVICE_ID, DEVICE_TYPE, device);
-		
-		// check if the device exists
-		assertTrue("Not able to register attached devices", apiClient.isDeviceExist(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID2));
-				
-	}
-	
-	
-	/**
-	 * This sample showcases how to Delete a device using the Java Client Library.
-	 * @throws IoTFCReSTException
-	 */
-	public void test03deleteDevices() throws IoTFCReSTException {
 		try {
-			System.out.println("Deleting device --> "+ATTACHED_DEVICE_ID);
-			boolean status = apiClient.deleteDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
-			assertFalse("Device is not deleted successfully", apiClient.isDeviceExist(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID));
-			
-			System.out.println("Deleting devices --> "+ATTACHED_DEVICE_ID2);
-			status = apiClient.deleteDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID2);
-			assertFalse("Device is not deleted successfully", apiClient.isDeviceExist(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID2));
-			
-			System.out.println("Deleting Gateway --> "+DEVICE_ID);
-			status = apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
-			assertFalse("Device is not deleted successfully", apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID));
-			
-			//Detete device types
-			apiClient.deleteDeviceType(ATTACHED_DEVICE_TYPE);
-			assertFalse("Device is not deleted successfully", apiClient.isDeviceTypeExist(ATTACHED_DEVICE_TYPE));
-			
-			//Detete device types
-			apiClient.deleteDeviceType(DEVICE_TYPE);
-			assertFalse("Device is not deleted successfully", apiClient.isDeviceTypeExist(DEVICE_TYPE));
-			
-		} catch(IoTFCReSTException e) {
-			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			JsonObject response = apiClient.registerDeviceUnderGateway(ATTACHED_DEVICE_TYPE, GW_DEVICE_ID, GW_DEVICE_TYPE, jsonDevice);
+			assertFalse("Response must not be null", response.isJsonNull());
+		} catch (IoTFCReSTException e) {
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
 		}
 		
+		try {
+			boolean created = apiClient.isDeviceExist(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID2);
+			assertTrue("Device (" + ATTACHED_DEVICE_ID + ") was not created.", created);
+		} catch (IoTFCReSTException e) {
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+		}
+				
 	}
 
 	/**
@@ -173,16 +144,88 @@ public class GatewayAPIOperationsTest extends TestCase {
 	 * @throws IoTFCReSTException
 	 */
 	public void test02getDevicesConnectedThroughGateway() throws IoTFCReSTException {
+		final String METHOD = "test02getDevicesConnectedThroughGateway";
+		LoggerUtility.info(CLASS_NAME, METHOD, "get Devices Connected Through Gateway --> "+ GW_DEVICE_ID);
 		try {
-			System.out.println("get Devices Connected Through Gateway --> "+DEVICE_ID);
-			JsonObject response = this.apiClient.getDevicesConnectedThroughGateway(DEVICE_TYPE, DEVICE_ID);
-			System.out.println(response);
+			JsonObject response = apiClient.getDevicesConnectedThroughGateway(GW_DEVICE_TYPE, GW_DEVICE_ID);
+			assertFalse("Response must not be null", response.isJsonNull());
 		} catch(IoTFCReSTException e) {
-			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
 		}
 	}
 	
+	
+	
+	/**
+	 * This sample showcases how to Delete a device using the Java Client Library.
+	 * @throws IoTFCReSTException
+	 */
+	public void test03deleteDevices() {
+		final String METHOD = "test03deleteDevices";
+		
+			LoggerUtility.info(CLASS_NAME, METHOD, "Deleting device " + ATTACHED_DEVICE_ID);
+			
+			try {
+				boolean delete = apiClient.deleteDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
+				assertTrue("Delete attached device " + ATTACHED_DEVICE_ID + " failed.", delete);
+			} catch (IoTFCReSTException e) {
+				String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+				fail(failMsg);
+			}
+			
+			try {
+				boolean exist = apiClient.isDeviceExist(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID);
+				assertFalse("Device " + ATTACHED_DEVICE_ID + " was not deleted successfully", exist);
+			} catch (IoTFCReSTException e) {
+				String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+				fail(failMsg);
+			}
+			
+
+			LoggerUtility.info(CLASS_NAME, METHOD, "Deleting device " + ATTACHED_DEVICE_ID2);
+			try {
+				boolean delete = apiClient.deleteDevice(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID2);
+				assertTrue("Delete attached device " + ATTACHED_DEVICE_ID2 + " failed.", delete);
+			} catch (IoTFCReSTException e) {
+				String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+				fail(failMsg);
+			}
+			
+			try {
+				boolean exist = apiClient.isDeviceExist(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID2);
+				assertFalse("Device " + ATTACHED_DEVICE_ID2 + " was not deleted successfully", exist);
+			} catch (IoTFCReSTException e) {
+				String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+				fail(failMsg);
+			}
+			
+			
+			// Delete attached device type
+			try {
+				boolean delete = apiClient.deleteDeviceType(ATTACHED_DEVICE_TYPE);
+				assertTrue("Delete attached device type " + ATTACHED_DEVICE_TYPE + " failed.", delete);
+			} catch (IoTFCReSTException e) {
+				String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+				fail(failMsg);
+			}
+			
+			try {
+				boolean exist = apiClient.isDeviceTypeExist(ATTACHED_DEVICE_TYPE);
+				assertFalse("Device type " + ATTACHED_DEVICE_TYPE + " was not deleted successfully", exist);
+			} catch (IoTFCReSTException e) {
+				String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+				fail(failMsg);
+			}
+		
+	}
+
 	
 }

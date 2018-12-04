@@ -1505,7 +1505,7 @@ public class APIClient {
 	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Device_Types/delete_device_types_typeId">link</a> 
 	 * for more information about the schema to be used
 	 * 
-	 * @return JSON object containing the response of device type.
+	 * @return true for success, false otherwise
 	 *  
 	 * @throws IoTFCReSTException Failure in deleting the device type
 	 */

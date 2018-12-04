@@ -13,13 +13,9 @@
  */
 package com.ibm.iotf.client.application;
 
-import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-//import com.ibm.iotf.client.application.AutoReconnect;
-import com.ibm.iotf.client.application.CommunicationProxyServer;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -27,6 +23,7 @@ import org.junit.Test;
 
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.AbstractClient;
+import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.client.app.ApplicationStatus;
 import com.ibm.iotf.client.app.Command;
@@ -35,6 +32,7 @@ import com.ibm.iotf.client.app.Event;
 import com.ibm.iotf.client.app.EventCallback;
 import com.ibm.iotf.client.app.StatusCallback;
 import com.ibm.iotf.client.device.DeviceClient;
+import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.util.LoggerUtility;
 
 import junit.framework.TestCase;
@@ -47,19 +45,26 @@ import junit.framework.TestCase;
  */
 public class ApplicationEventSubscriptionTest extends TestCase{
 	
-	private final static String DEVICE_PROPERTIES_FILE = "/device.properties";
-	private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";
+	//private final static String DEVICE_PROPERTIES_FILE = "/device.properties";
+	//private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";
 	
+	static Properties deviceProps;
+	static Properties appProps;
+	
+	private final static String DEVICE_TYPE = "AppEvtSubTestDevType";
+	private final static String DEVICE_ID = "AppEvtSubTestDevId1";
+	private final static String APP_ID = "AppEvtSubTest1";
+
 	static CommunicationProxyServer proxy;
 	static final Class<?> cclass = ConnectionLossTest.class;
 	private static final String className = cclass.getName();
 	private static final Logger log = Logger.getLogger(className);
 	
-	private static final String CLASS_NAME = AbstractClient.class.getName();
-	final String METHOD = "connect";
+	private static final String CLASS_NAME = ApplicationEventSubscriptionTest.class.getName();
+	//final String METHOD = "connect";
 	
 	private static String domainAddr;
-	private static int portAddr;
+	
 	
 //	private String  message  = "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 //	private MqttConnectOptions options;
@@ -72,21 +77,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	 * and verifies that the event is same.
 	 */
 	private void deviceEventPublish() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		DeviceClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new DeviceClient(props);
+			myClient = new DeviceClient(deviceProps);
 			myClient.connect();
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -109,21 +104,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	 * and verifies that the event is same.
 	 */
 	private void stringEventPublish() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		DeviceClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new DeviceClient(props);
+			myClient = new DeviceClient(deviceProps);
 			myClient.connect();
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -145,21 +130,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	 * and verifies that the event is same.
 	 */
 	private void binaryEventPublish() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
 			
 		DeviceClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new DeviceClient(props);
+			myClient = new DeviceClient(deviceProps);
 			myClient.connect();
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -178,21 +153,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	
 	@Test
 	public void test01EventSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
 			
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -203,8 +168,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -235,21 +200,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	
 	@Test
 	public void test10CustomEventSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
 			
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -260,8 +215,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -285,21 +240,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 
 	@Test
 	public void test11CustomEventSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -310,8 +255,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -335,21 +280,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 
 	@Test
 	public void test11CommandSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
 			
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -360,8 +295,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -385,21 +320,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 
 	@Test
 	public void test12CommandSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
 			
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -410,8 +335,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -434,21 +359,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 
 	@Test
 	public void test13CommandSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
 			
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -459,8 +374,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -483,21 +398,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	
 	@Test
 	public void test14CommandSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -508,8 +413,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -532,21 +437,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	
 	@Test
 	public void test15CommandSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -557,8 +452,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -582,21 +477,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	
 	@Test
 	public void test16CommandSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -607,8 +492,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -631,21 +516,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	
 	@Test
 	public void test17CommandSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -656,8 +531,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -681,21 +556,10 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	
 	@Test
 	public void test18CommandSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -706,8 +570,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -730,21 +594,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	
 	@Test
 	public void test19CommandSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(5);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -755,8 +609,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -780,21 +634,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	
 	@Test
 	public void test02Subscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
 			
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(true);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -805,8 +649,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -833,21 +677,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	 */
 	@Test
 	public void test05Subscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
 			
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(true);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -880,21 +714,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	 */
 	@Test
 	public void test06Subscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(true);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -905,7 +729,7 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
+		String deviceType = DEVICE_TYPE;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -932,21 +756,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	 */
 	@Test
 	public void test07Subscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(true);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -957,8 +771,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		
 		// Add event callback
@@ -985,21 +799,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	 */
 	@Test
 	public void test08SubscribewithQos() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
 			
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(true);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -1010,8 +814,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		
 		// Add event callback
@@ -1044,21 +848,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	 */
 	@Test
 	public void test03Subscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
 			
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(true);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -1069,8 +863,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -1103,21 +897,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	 */
 	@Test
 	public void test08UnSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
 			
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(true);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -1128,8 +912,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -1162,21 +946,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	 */
 	@Test
 	public void test09UnSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(true);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -1187,8 +961,8 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		// Add event callback
 		MyEventCallback eventbk = new MyEventCallback();
@@ -1221,21 +995,11 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	 */
 	@Test
 	public void test10UnSubscribe() {
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-			
+
 		ApplicationClient myClient = null;
 		try {
 			//Instantiate the class by passing the properties file
-			myClient = new ApplicationClient(props);
+			myClient = new ApplicationClient(appProps);
 			myClient.connect(true);
 		} catch (Exception e) {
 			System.out.println(""+e.getMessage());
@@ -1246,16 +1010,31 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		/**
 		 * Get the Device Type and Device Id on behalf the application will publish the event
 		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
+		String deviceType = DEVICE_TYPE;
+		String deviceId = DEVICE_ID;
 		
 		//Add status callback
 		MyStatusCallback statusbk = new MyStatusCallback();
 		myClient.setStatusCallback(statusbk);
 		
 		// Subscribe to some different event
-		//myClient.subscribeToDeviceStatus(deviceType, deviceId);
-		//myClient.unSubscribeFromDeviceStatus(deviceType, deviceId);
+		myClient.subscribeToDeviceStatus(deviceType, deviceId);
+		
+		// Wait 10 seconds, then unsubscribe
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		
+		myClient.unSubscribeFromDeviceStatus(deviceType, deviceId);
+
+		// Wait 10 seconds, then publish
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
 		
 		this.deviceEventPublish();
 		
@@ -1269,7 +1048,7 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		
 		myClient.disconnect();
 		// ToDo uncomment when the bug is fixed
-		//assertFalse("Device status is not supposed to be received by application", statusbk.statusReceived);
+		assertFalse("Device status is not supposed to be received by application", statusbk.statusReceived);
 	}
 	
 	public void test04QuickstartEventPublish() {
@@ -1343,41 +1122,60 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		}
 	}
 
-	private static String trimedValue(String value) {
-		if(value != null) {
-			return value.trim();
-		}
-		return value;
-	}
 	
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception{
+	public static void oneTimeSetUp() throws Exception{
+		final String METHOD = "oneTimeSetUp";
 		try {
+			deviceProps = TestEnv.getDeviceProperties(DEVICE_TYPE, DEVICE_ID);
 			
-			/**
-			 * Load device properties
-			 */
-			Properties props = new Properties();
+			appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
+			
+			APIClient apiClient = new APIClient(appProps);
+			
+			//Create a test device type
+			apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+			apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken(), null, null, null);
+			
+		
+		} catch (Exception ex) {
+		      log.log(Level.SEVERE, METHOD + ": caught exception:", ex);
+		      throw ex;
+		}
+	}
+	
+	@AfterClass
+	public static void oneTimeCleanup() throws Exception {
+		final String METHOD = "oneTimeCleanup";
+		try {
+			APIClient apiClient = new APIClient(appProps);
+			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+			apiClient.deleteDeviceType(DEVICE_TYPE);
+		} catch (Exception ex) {
+			log.log(Level.SEVERE, METHOD + " caught exception:", ex);
+			throw ex;
+		}
+	}
+	
+	private void proxyServerStart() {
+		final String METHOD = "proxyServerStart";
+		String orgId = TestEnv.getOrgId();
+		
+		domainAddr = orgId + ".messaging.internetofthings.ibmcloud.com";
+					
+		proxy = new CommunicationProxyServer(domainAddr, 8883, 0);
+		proxy.startProxyServer();
+		
+		while (!proxy.isPortSet()) {
 			try {
-				props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
-			} catch (IOException e1) {
-				System.err.println("Not able to read the properties file, exiting..");
-				return;
-			} 
-			
-			String orgId = trimedValue(props.getProperty("Organization-ID"));
-			domainAddr = orgId + ".messaging.internetofthings.ibmcloud.com";
-						
-			proxy = new CommunicationProxyServer(domainAddr, 8883, 0);
-			proxy.startProxyServer();
-			while(!proxy.isPortSet()){
-				Thread.sleep(0);
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-			log.log(Level.INFO, "Proxy Started, port set to: " + proxy.getlocalDevicePort());			
-		} catch (Exception exception) {
-		      log.log(Level.SEVERE, "caught exception:", exception);
-		      throw exception;
-		    }	
+		}
+		
+		log.log(Level.INFO, METHOD + ": Proxy Started, port set to: " + proxy.getlocalDevicePort());			
+		
 	}
 		
 	/**
@@ -1389,21 +1187,16 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	public void testConnectionLossServerToClient()
 		throws Exception
 	{
-		setUpBeforeClass();
-		final int keepAlive = 15;
+		final String METHOD = "testConnectionLossServerToClient";
+		
+		proxyServerStart();
 		
 		/**
 		 * Load device properties
 		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
+		Properties props = new Properties(deviceProps);
 		
-		props.put("port", this.proxy.getlocalDevicePort()+"");
+		props.put("port", proxy.getlocalDevicePort()+"");
 		props.put("mqtt-server", "localhost");
 		props.put("Automatic-Reconnect", "false");
 
@@ -1441,21 +1234,12 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	public void testConnectionLossClientToServer()
 		throws Exception
 	{
-		setUpBeforeClass();
-		final int keepAlive = 15;
+		final String METHOD = "testConnectionLossClientToServer";
+		proxyServerStart();
+
+		Properties props = new Properties(deviceProps);
 		
-		/**
-		 * Load device properties
-		 */
-		Properties props = new Properties();
-		try {
-			props.load(ApplicationEventSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			return;
-		} 
-		
-		props.put("port", this.proxy.getlocalDevicePort()+"");
+		props.put("port", proxy.getlocalDevicePort()+"");
 		props.put("mqtt-server", "localhost"); 
 		props.put("Automatic-Reconnect", "false");
 
@@ -1486,6 +1270,7 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 		
 		myClient.disconnect();
 		assertFalse("Timed out waiting for a response from the server (32000)",status);
+		
 		proxy.stopProxyServer();
 	}
 
