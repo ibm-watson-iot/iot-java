@@ -1126,6 +1126,7 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	@BeforeClass
 	public static void oneTimeSetUp() throws Exception{
 		final String METHOD = "oneTimeSetUp";
+		LoggerUtility.info(CLASS_NAME, METHOD, "Setting up...");
 		try {
 			deviceProps = TestEnv.getDeviceProperties(DEVICE_TYPE, DEVICE_ID);
 			
@@ -1147,6 +1148,7 @@ public class ApplicationEventSubscriptionTest extends TestCase{
 	@AfterClass
 	public static void oneTimeCleanup() throws Exception {
 		final String METHOD = "oneTimeCleanup";
+		Lo
 		try {
 			APIClient apiClient = new APIClient(appProps);
 			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);

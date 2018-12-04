@@ -153,7 +153,7 @@ public class GatewayManagementTest extends TestCase {
 	}
 
 	@BeforeClass
-	public void oneTimeSetup() {
+	public static void oneTimeSetup() {
 		final String METHOD = "oneTimeSetup";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Using org " + TestEnv.getOrgId());
 		Properties appProps = TestEnv.getAppProperties(APP_ID, false, null, null);
@@ -253,7 +253,7 @@ public class GatewayManagementTest extends TestCase {
 	}
 	
 	@AfterClass
-	public void oneTimeTearDown() {
+	public static void oneTimeTearDown() {
 		final String METHOD = "oneTimeTearDown";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Cleaning up...");
 		if (gwClient != null && gwClient.isConnected()) {
