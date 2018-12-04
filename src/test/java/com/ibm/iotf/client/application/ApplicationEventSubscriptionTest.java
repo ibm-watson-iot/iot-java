@@ -16,6 +16,8 @@ package com.ibm.iotf.client.application;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1131,24 +1133,40 @@ public class ApplicationEventSubscriptionTest {
 
 	
 	@BeforeClass
-	public static void oneTimeSetUp() throws Exception{
+	public static void oneTimeSetUp() {
 		final String METHOD = "oneTimeSetUp";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Setting up...");
-		try {
-			deviceProps = TestEnv.getDeviceProperties(DEVICE_TYPE, DEVICE_ID);
-			
-			appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
-			
-			apiClient = new APIClient(appProps);
-			
-			//Create a test device type
-			apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
-			apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken(), null, null, null);
-			
+		deviceProps = TestEnv.getDeviceProperties(DEVICE_TYPE, DEVICE_ID);
 		
-		} catch (Exception ex) {
-		      log.log(Level.SEVERE, METHOD + ": caught exception:", ex);
-		      throw ex;
+		appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
+		
+		try {
+			apiClient = new APIClient(appProps);
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		//Create a test device type
+		try {
+			if (apiClient.isDeviceTypeExist(DEVICE_TYPE) == false) {
+				apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+				LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " created");
+			}
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			if (apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID) == false) {
+				apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken(), null, null, null);
+				LoggerUtility.info(CLASS_NAME, METHOD, "Device " + DEVICE_ID + " created");
+			}
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
 		}
 	}
 	
