@@ -13,6 +13,10 @@
  */
 package com.ibm.iotf.client.application.api;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.Properties;
 
 import org.junit.AfterClass;
@@ -32,7 +36,7 @@ import junit.framework.TestCase;
  * add/update/get/Gateway device(s)
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class GatewayAPIOperationsTest extends TestCase {
+public class GatewayAPIOperationsTest {
 	
 	private final static String CLASS_NAME = GatewayAPIOperationsTest.class.getName();
 	private static final String APP_ID = "GWApiApp1";

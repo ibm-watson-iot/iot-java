@@ -13,6 +13,9 @@
  */
 package com.ibm.iotf.client.application.api;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
@@ -40,7 +43,7 @@ import junit.framework.TestCase;
  * add/update/get/delete device diagnostics.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceDiagnosticsAPIOperationsTest extends TestCase {
+public class DeviceDiagnosticsAPIOperationsTest {
 	
 	//private final static String PROPERTIES_FILE_NAME = "/application.properties";
 	

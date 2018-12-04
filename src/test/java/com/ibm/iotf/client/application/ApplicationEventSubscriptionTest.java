@@ -13,12 +13,16 @@
  */
 package com.ibm.iotf.client.application;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
@@ -44,7 +48,7 @@ import junit.framework.TestCase;
  * application.
  *
  */
-public class ApplicationEventSubscriptionTest extends TestCase{
+public class ApplicationEventSubscriptionTest {
 	
 	//private final static String DEVICE_PROPERTIES_FILE = "/device.properties";
 	//private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";

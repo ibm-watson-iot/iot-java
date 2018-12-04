@@ -14,6 +14,10 @@
 
 package com.ibm.iotf.client.application.api;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
@@ -41,7 +45,7 @@ import junit.framework.TestCase;
  * add/update/get/delete device type(s)
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceTypeAPIOperationsTest extends TestCase {
+public class DeviceTypeAPIOperationsTest {
 
 	private static final String CLASS_NAME = DeviceTypeAPIOperationsTest.class.getName();
 	private static final String APP_ID = "DTypeApiOpApp1";

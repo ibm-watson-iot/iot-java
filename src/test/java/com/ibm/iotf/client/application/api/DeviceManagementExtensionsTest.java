@@ -13,6 +13,8 @@
  */
 package com.ibm.iotf.client.application.api;
 
+import static org.junit.Assert.fail;
+
 import java.util.Properties;
 
 import org.junit.AfterClass;
@@ -34,7 +36,7 @@ import junit.framework.TestCase;
  * add/update/get/Gateway device(s)
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceManagementExtensionsTest extends TestCase {
+public class DeviceManagementExtensionsTest {
 	
 	private static final String CLASS_NAME = DeviceManagementExtensionsTest.class.getName();
 	

@@ -14,6 +14,9 @@
 
 package com.ibm.iotf.client.application.api;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,7 +57,7 @@ import com.ibm.iotf.util.LoggerUtility;
  *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class IMOperationsTests extends TestCase {
+public class IMOperationsTests {
 	
 	private final static String CLASS_NAME = IMOperationsTests.class.getName();
 	private final static String APP_ID = "IMOpApp1";

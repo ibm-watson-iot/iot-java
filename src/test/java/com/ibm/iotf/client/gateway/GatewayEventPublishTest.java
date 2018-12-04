@@ -14,6 +14,10 @@
 
 package com.ibm.iotf.client.gateway;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.util.Properties;
 
@@ -30,7 +34,7 @@ import junit.framework.TestCase;
  * 
  */
 
-public class GatewayEventPublishTest extends TestCase{
+public class GatewayEventPublishTest {
 	
 	// Properties file containing the Registration details of the gateway, to connect to Watson IoT Platform
 	// Present in the maven resource directory

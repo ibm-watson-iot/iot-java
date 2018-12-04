@@ -13,6 +13,9 @@
  */
 package com.ibm.iotf.client.application.api;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
@@ -44,7 +47,7 @@ import junit.framework.TestCase;
  * initiate/get/delete one or more device management operations.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceManagementAPIOperationsTest extends TestCase {
+public class DeviceManagementAPIOperationsTest {
 	
 	private static final String CLASS_NAME = DeviceManagementAPIOperationsTest.class.getName();
 

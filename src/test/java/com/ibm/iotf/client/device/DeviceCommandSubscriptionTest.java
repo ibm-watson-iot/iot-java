@@ -12,6 +12,8 @@
  */
 package com.ibm.iotf.client.device;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.util.Properties;
 
@@ -31,7 +33,7 @@ import com.ibm.iotf.client.device.DeviceClient;
  * successfully.
  *
  */
-public class DeviceCommandSubscriptionTest extends TestCase{
+public class DeviceCommandSubscriptionTest {
 	
 	private final static String DEVICE_PROPERTIES_FILE = "/device.properties";
 	private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";

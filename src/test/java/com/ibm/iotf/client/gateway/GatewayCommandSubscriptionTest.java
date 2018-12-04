@@ -12,6 +12,9 @@
  */
 package com.ibm.iotf.client.gateway;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -34,7 +37,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * successfully.
  *
  */
-public class GatewayCommandSubscriptionTest extends TestCase{
+public class GatewayCommandSubscriptionTest {
 	
 	private static final String CLASS_NAME = GatewayCommandSubscriptionTest.class.getName();
 	

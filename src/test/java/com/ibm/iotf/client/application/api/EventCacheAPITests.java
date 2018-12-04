@@ -1,5 +1,8 @@
 package com.ibm.iotf.client.application.api;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -35,7 +38,7 @@ import junit.framework.TestCase;
  * This test verifies various Event Cache API operations that can be performed on Watson IoT Platform.
  *
  */
-public class EventCacheAPITests extends TestCase{
+public class EventCacheAPITests {
 	
 	private static final String CLASS_NAME = EventCacheAPITests.class.getName();
 	private static final String APP_ID = "LECApp1";

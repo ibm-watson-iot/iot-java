@@ -1,5 +1,8 @@
 package com.ibm.iotf.client.gateway;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +30,7 @@ import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class GatewayDMETest extends TestCase {
+public class GatewayDMETest {
 	private static APIClient apiClient = null;
 	private static boolean setupDone = false;
 	private static int count = 0;

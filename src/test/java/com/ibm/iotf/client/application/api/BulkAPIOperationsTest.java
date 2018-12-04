@@ -14,6 +14,10 @@
 
 package com.ibm.iotf.client.application.api;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
@@ -40,7 +44,7 @@ import com.ibm.iotf.test.common.TestEnv;
  *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class BulkAPIOperationsTest extends TestCase {
+public class BulkAPIOperationsTest {
 	
 	private final static String APP_ID = "BulkApp1";
 	private final static String DEVICE_TYPE = "SampleDT";

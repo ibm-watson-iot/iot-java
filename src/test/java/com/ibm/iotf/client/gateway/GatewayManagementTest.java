@@ -1,12 +1,13 @@
 package com.ibm.iotf.client.gateway;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Level;
-
-import junit.framework.TestCase;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
@@ -19,20 +20,20 @@ import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceAction;
+import com.ibm.iotf.devicemgmt.DeviceAction.Status;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
-import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
-import com.ibm.iotf.devicemgmt.LogSeverity;
-import com.ibm.iotf.devicemgmt.DeviceAction.Status;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
+import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
+import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.util.LoggerUtility;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class GatewayManagementTest extends TestCase {
+public class GatewayManagementTest {
 	private static final String CLASS_NAME = GatewayManagementTest.class.getName();
 	private static final String APP_ID = "GWMgmtApp1";
 	

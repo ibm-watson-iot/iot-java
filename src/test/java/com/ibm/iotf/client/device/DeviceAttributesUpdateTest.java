@@ -12,14 +12,13 @@ package com.ibm.iotf.client.device;
  *
  */
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.Properties;
-
-import junit.framework.TestCase;
-
-import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -28,10 +27,10 @@ import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
+import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceInfo;
 import com.ibm.iotf.devicemgmt.DeviceLocation;
 import com.ibm.iotf.devicemgmt.DeviceMetadata;
-import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
 /**
@@ -61,85 +60,29 @@ import com.ibm.iotf.devicemgmt.device.ManagedDevice;
  * informations are present. There is a default properties file in the sample folder, this
  * class takes the default properties file if one not specified by user.
  */
-public class DeviceAttributesUpdateTest extends TestCase implements PropertyChangeListener {
-	private final static String DEVICE_PROPERTIES_FILE = "/device.properties";
-	private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";
+public class DeviceAttributesUpdateTest implements PropertyChangeListener {
 
-	private ManagedDevice dmClient;
+	private static ManagedDevice dmClient = null;
 	private static APIClient apiClient = null;
-	private static final String DEVICE_TYPE;
-	private static final String DEVICE_ID;
-	private static int count = 0;
-	private static final String DOWNLOAD_REQUEST;
+	private static final String DEVICE_TYPE = "DevAttUpdType1";
+	private static final String DEVICE_ID = "DevAttUpdDev1";
 
 	private final static String newlocationToBeAdded = "{\"longitude\": 10, \"latitude\": 20, \"elevation\": 0}";
 	
-	
-	private final static String deviceInfoToBeAdded = "{\"serialNumber\": "
-			+ "\"10087\",\"manufacturer\": \"IBM\",\"model\": \"7865\",\"deviceClass\": "
+	private final static String deviceInfoToBeAdded = "{\"serialNumber\": \"10087\",\"manufacturer\": \"IBM\",\"model\": \"7865\",\"deviceClass\": "
 			+ "\"A\",\"description\": \"My DEVICE_ID2 Device\",\"fwVersion\": \"1.0.0\","
 			+ "\"hwVersion\": \"1.0\",\"descriptiveLocation\": \"EGL C\"}";
 	
+	private static final String DOWNLOAD_REQUEST = "{\"action\": \"firmware/download\", \"parameters\": [{\"name\": \"version\", \"value\": \"0.1.10\" }," +
+			"{\"name\": \"name\", \"value\": \"RasPi01 firmware\"}, {\"name\": \"verifier\", \"value\": \"123df\"}," +
+			"{\"name\": \"uri\",\"value\": \"https://github.com/ibm-messaging/iot-raspberrypi/releases/download/1.0.2.1/iot_1.0-2_armhf.deb\"}" +
+			"],\"devices\": [{\"typeId\": \"" + DEVICE_TYPE + "\",\"deviceId\": \"" + DEVICE_ID + "\"}]}";
 	
-	private static void createAPIClient() {
-		/**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(DeviceAttributesUpdateTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}	
-		
-		try {
-			//Instantiate the class by passing the properties file
-			apiClient = new APIClient(props);
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
-	}
-	
-	static {
-		createAPIClient();
-		/**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(DeviceAttributesUpdateTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}	
-		
-		DEVICE_TYPE = props.getProperty("Device-Type");
-		DEVICE_ID = props.getProperty("Device-ID");
-		
-		DOWNLOAD_REQUEST = "{\"action\": \"firmware/download\", \"parameters\": [{\"name\": \"version\", \"value\": \"0.1.10\" }," +
-				"{\"name\": \"name\", \"value\": \"RasPi01 firmware\"}, {\"name\": \"verifier\", \"value\": \"123df\"}," +
-				"{\"name\": \"uri\",\"value\": \"https://github.com/ibm-messaging/iot-raspberrypi/releases/download/1.0.2.1/iot_1.0-2_armhf.deb\"}" +
-				"],\"devices\": [{\"typeId\": \"" + DEVICE_TYPE + "\",\"deviceId\": \"" + DEVICE_ID + "\"}]}";
-		
-		
-	}
-
 	private boolean metaDataUpdated;
 	private boolean locationUpdated;
 	private boolean deviceInfoUpdated;
 	private boolean firmwareUpdated;
 	
-	public void setUp() {
-	    // do the setup
-		try {
-			createManagedClient(DEVICE_PROPERTIES_FILE);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 	
 	/**
 	 * This sample showcases how to update a device location using the Java Client Library.
@@ -150,7 +93,7 @@ public class DeviceAttributesUpdateTest extends TestCase implements PropertyChan
 		System.out.println("update device location of device --> "+DEVICE_ID);
 		JsonElement newLocation = new JsonParser().parse(newlocationToBeAdded);
 		try {
-			JsonObject response = this.apiClient.updateDeviceLocation(DEVICE_TYPE, DEVICE_ID, newLocation);
+			JsonObject response = apiClient.updateDeviceLocation(DEVICE_TYPE, DEVICE_ID, newLocation);
 			int count = 0;
 			while(count++ < 20) {
 				if(this.locationUpdated) {
@@ -167,7 +110,6 @@ public class DeviceAttributesUpdateTest extends TestCase implements PropertyChan
 		}
 	}
 	
-	@Override
 	public void tearDown() {
 		this.dmClient.disconnect();
 	}
@@ -183,7 +125,7 @@ public class DeviceAttributesUpdateTest extends TestCase implements PropertyChan
 		JsonObject deviceInfo = new JsonObject();
 		deviceInfo.add("deviceInfo", info);
 		try {
-			JsonObject response = this.apiClient.updateDevice(DEVICE_TYPE, DEVICE_ID, deviceInfo);
+			JsonObject response = apiClient.updateDevice(DEVICE_TYPE, DEVICE_ID, deviceInfo);
 			System.out.println(response);
 			int count = 0;
 			while(count++ < 20) {
@@ -212,7 +154,7 @@ public class DeviceAttributesUpdateTest extends TestCase implements PropertyChan
 		JsonObject metadata = new JsonObject();
 		metadata.add("metadata", data);
 		try {
-			JsonObject response = this.apiClient.updateDevice(DEVICE_TYPE, DEVICE_ID, metadata);
+			JsonObject response = apiClient.updateDevice(DEVICE_TYPE, DEVICE_ID, metadata);
 			System.out.println(response);
 			int count = 0;
 			while(count++ < 20) {

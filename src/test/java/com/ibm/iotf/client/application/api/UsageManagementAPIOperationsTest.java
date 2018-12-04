@@ -15,6 +15,9 @@
 
 package com.ibm.iotf.client.application.api;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.util.Properties;
 
@@ -39,7 +42,7 @@ import com.ibm.iotf.test.common.TestEnv;
  *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class UsageManagementAPIOperationsTest extends TestCase {
+public class UsageManagementAPIOperationsTest {
 	
 	private static APIClient apiClient = null;
 	private static final String APP_ID = "UMApiOpApp1";

@@ -1,5 +1,9 @@
 package com.ibm.iotf.client.application.api;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  *****************************************************************************
  * Copyright (c) 2015 IBM Corporation and other Contributors.
@@ -49,7 +53,7 @@ import org.junit.runners.MethodSorters;
  * add/update/get/delete device(s)
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceAPIOperationsTest extends TestCase {
+public class DeviceAPIOperationsTest {
 	
 	private static final String APP_ID = "DevApiOpApp1";
 	
