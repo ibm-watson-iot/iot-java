@@ -15,11 +15,10 @@ package com.ibm.iotf.client.gateway;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 import java.util.logging.Level;
-
-import junit.framework.TestCase;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
@@ -30,6 +29,7 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.app.ApplicationClient;
+import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -40,38 +40,139 @@ import com.ibm.iotf.util.LoggerUtility;
 public class GatewayCommandSubscriptionTest {
 	
 	private static final String CLASS_NAME = GatewayCommandSubscriptionTest.class.getName();
+	private static final String APP_ID = "GwCmdSubApp1";
 	
-	private final static String GATEWAY_PROPERTIES_FILE = "/gateway.properties";
-	private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";
-	
-	private final static String DEVICE_TYPE = "iotsampleType";
-	private final static String SIMULATOR_DEVICE_ID = "Arduino02";
-	private static String GATEWAY_DEVICE_TYPE = "";
-	private static String GATEWAY_DEVICE_ID = "";
+	private final static String DEVICE_TYPE = "SubType1";
+	private final static String DEVICE_ID = "SubDev1";
+	private final static String GW_DEVICE_TYPE = "GwCmdSubType1";
+	private final static String GW_DEVICE_ID = "GwCmdSubDev1";
 	private static GatewayClient gwClient = null;
 	private static APIClient apiClient = null;
+	private static ApplicationClient mqttAppClient = null;
 	
 	@BeforeClass
 	public static void oneTimeSetup() {
+		
 		final String METHOD = "oneTimeSetup";
-	    // do the setup
-		createGatewayClient(GATEWAY_PROPERTIES_FILE);
+		
+		Properties appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
+		
 		try {
-	    	if(apiClient != null) {
-	    		addDeviceType(DEVICE_TYPE);
-	    		addDevice(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
-	    	}
-		} catch (IoTFCReSTException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException", e);
-			e.printStackTrace();
+			mqttAppClient = new ApplicationClient(appProps);
 		} catch (Exception e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Exception", e);
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		try {
+			mqttAppClient.connect();
+		} catch (MqttException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		try {
+			apiClient = new APIClient(appProps);
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		
+		boolean exist = false;
+		
+		try {
+			exist = apiClient.isDeviceTypeExist(GW_DEVICE_TYPE);
+		} catch (IoTFCReSTException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		if (!exist) {
+			JsonObject jsonGW = new JsonObject();
+			jsonGW.addProperty("id", GW_DEVICE_TYPE);
+			try {
+				apiClient.addGatewayDeviceType(jsonGW);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		try {
+			exist = apiClient.isDeviceExist(GW_DEVICE_TYPE, GW_DEVICE_ID);
+		} catch (IoTFCReSTException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		if (!exist) {
+			try {
+				apiClient.registerDevice(GW_DEVICE_TYPE, GW_DEVICE_ID, TestEnv.getGatewayToken(), null, null, null);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		try {
+			exist = apiClient.isDeviceTypeExist(DEVICE_TYPE);
+		} catch (IoTFCReSTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (!exist) {
+			try {
+				apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		try {
+			exist = apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID);
+		} catch (IoTFCReSTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if (!exist) {
+			try {
+				apiClient.registerDeviceUnderGateway(DEVICE_TYPE, DEVICE_ID, GW_DEVICE_TYPE, GW_DEVICE_ID);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		Properties gwProps = TestEnv.getDeviceProperties(GW_DEVICE_TYPE, GW_DEVICE_ID);
+		try {
+			gwClient = new GatewayClient(gwProps);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Gateway client id " + gwClient.getClientID());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Connecting gateway ID " + GW_DEVICE_ID);
+		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Gateway ID is connected: " + gwClient.isConnected());
+		
 	}
 	
 	@AfterClass
-	public static void oneTimeTearDown() throws IoTFCReSTException {
+	public static void oneTimeTearDown() {
 		final String METHOD = "oneTimeTearDown";
 		
 		if (gwClient != null && gwClient.isConnected()) {
@@ -84,104 +185,34 @@ public class GatewayCommandSubscriptionTest {
 				e.printStackTrace();
 			}
 		}
-
 		
 		if (apiClient != null) {
-			apiClient.deleteDevice(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
-    		apiClient.deleteDeviceType(DEVICE_TYPE);
+			try {
+				apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		try {
+				apiClient.deleteDeviceType(DEVICE_TYPE);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		try {
+				apiClient.deleteDevice(GW_DEVICE_TYPE, GW_DEVICE_ID);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		try {
+				apiClient.deleteDeviceType(GW_DEVICE_TYPE);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
     	}
 		
-	}
-	
-	/**
-	 * This sample adds a device type using the Java Client Library. 
-	 * @throws IoTFCReSTException
-	 */
-	private void addDeviceType(String deviceType) throws IoTFCReSTException {
-		final String METHOD = "addDeviceType";
-		if (apiClient == null) {
-			return;
-		}
-		try {
-			//System.out.println("<-- Checking if device type "+deviceType +" already created in Watson IoT Platform");
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Checking device type (" + deviceType + ")");
-			boolean exist = apiClient.isDeviceTypeExist(deviceType);
-			if (!exist) {
-				//System.out.println("<-- Adding device type "+ deviceType + " now..");
-				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Adding device type (" + deviceType + ")");
-				// device type to be created in WIoTP
-				apiClient.addDeviceType(deviceType, deviceType, null, null);
-			}
-		} catch(IoTFCReSTException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException HTTP code(" + e.getHttpCode() + ") Response(" + e.getResponse() + ")");
-			//System.err.println("ERROR: unable to add manually device type " + e.getMessage());
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Add a device under the given gateway using the Java Client Library.
-	 * @throws IoTFCReSTException
-	 */
-	private void addDevice(String deviceType, String deviceId) throws IoTFCReSTException {
-		final String METHOD = "addDevice";
-		if (apiClient == null) {
-			return;
-		}
-		try {
-			//System.out.println("<-- Checking if device " + deviceId +" with deviceType " +
-			//		deviceType +" exists in Watson IoT Platform");
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Checking device ID (" + deviceId + ")");
-			boolean exist = apiClient.isDeviceExist(deviceType, deviceId);
-			if (!exist) {
-				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Adding device ID (" + deviceId + ")");
-				apiClient.registerDeviceUnderGateway(deviceType, deviceId,
-						gwClient.getGWDeviceType(), 
-						gwClient.getGWDeviceId());
-			}
-		} catch (IoTFCReSTException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "IoTFCReSTException HTTP code(" + e.getHttpCode() + ") Response(" + e.getResponse() + ")");
-			//System.out.println("ERROR: unable to add manually device " + deviceId);
-		}
-	}
-	
-	/**
-	 * This method creates a GatewayClient instance by passing the required properties 
-	 * and connects the Gateway to the Watson IoT Platform by calling the connect function.
-	 * 
-	 * After the successful connection to the Watson IoT Platform, the Gateway can perform the following operations,
-	 *   1. Publish events for itself and on behalf of devices connected behind the Gateway
-	 *   2. Subscribe to commands for itself and on behalf of devices behind the Gateway
-	 */
-	private static void createGatewayClient(String fileName) {
-		 /**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(GatewayEventPublishTest.class.getResourceAsStream(fileName));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}		
-		
-		try {
-			//Instantiate & connect the Gateway by passing the properties file
-			gwClient = new GatewayClient(props);
-			gwClient.connect(true);
-			
-			/**
-			 * Get the Device Type and Device Id to which the application will publish the command
-			 */
-			GATEWAY_DEVICE_TYPE = trimedValue(props.getProperty("Gateway-Type"));
-			GATEWAY_DEVICE_ID = trimedValue(props.getProperty("Gateway-ID"));
-						
-			apiClient = gwClient.api();
-			
-		} catch (Exception e) {
-			// Looks like the gateway.property file is not updated with registration details
-			return;
-		}
 	}
 	
 	
@@ -213,7 +244,7 @@ public class GatewayCommandSubscriptionTest {
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
 		
-		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
+		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID);
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, null);
@@ -236,7 +267,7 @@ public class GatewayCommandSubscriptionTest {
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
 		
-		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json");
+		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop", "json");
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, null);
@@ -259,7 +290,7 @@ public class GatewayCommandSubscriptionTest {
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
 		
-		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json", 2);
+		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop", "json", 2);
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, null);
@@ -292,7 +323,7 @@ public class GatewayCommandSubscriptionTest {
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
-		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "start");
+		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "start");
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, "start");
@@ -314,7 +345,7 @@ public class GatewayCommandSubscriptionTest {
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
-		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "start", 2);
+		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "start", 2);
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, "start");
@@ -336,7 +367,7 @@ public class GatewayCommandSubscriptionTest {
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
-		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "start", "json", 2);
+		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "start", "json", 2);
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, "start");
@@ -359,7 +390,7 @@ public class GatewayCommandSubscriptionTest {
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
 		
-		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
+		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID);
 		
 		
 		// Ask application to publish the command to this gateway now
@@ -375,7 +406,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		count = 0;
 		callback.clear();
-		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID);
+		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, DEVICE_ID);
 		publishCommand(false, null);
 		
 		
@@ -397,7 +428,7 @@ public class GatewayCommandSubscriptionTest {
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
 		
-		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop");
+		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop");
 		
 		
 		// Ask application to publish the command to this gateway now
@@ -415,7 +446,7 @@ public class GatewayCommandSubscriptionTest {
 		callback.clear();
 		
 		
-		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop");
+		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop");
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, null);
@@ -437,7 +468,7 @@ public class GatewayCommandSubscriptionTest {
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
 		
-		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json");
+		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop", "json");
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, null);
@@ -454,7 +485,7 @@ public class GatewayCommandSubscriptionTest {
 		callback.clear();
 		
 		
-		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json");
+		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop", "json");
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, null);
@@ -477,7 +508,7 @@ public class GatewayCommandSubscriptionTest {
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
 		
-		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json", 2);
+		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop", "json", 2);
 		
 		
 		// Ask application to publish the command to this gateway now
@@ -495,7 +526,7 @@ public class GatewayCommandSubscriptionTest {
 		callback.clear();
 		
 		
-		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, SIMULATOR_DEVICE_ID, "stop", "json");
+		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop", "json");
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(false, null);
@@ -512,43 +543,28 @@ public class GatewayCommandSubscriptionTest {
 				
 	}
 	
+	/**
+	 * Publish command to gateway device or attached device
+	 * @param gateway Send command to gateway if true
+	 * @param cmdName Name of command
+	 */
 	private void publishCommand(boolean gateway, String cmdName) {
-		/**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(GatewayCommandSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}
-		
-		ApplicationClient myAppClient = null;
-		try {
-			//Instantiate the class by passing the properties file
-			myAppClient = new ApplicationClient(props);
-			myAppClient.connect();
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		
 		JsonObject data = new JsonObject();
 		data.addProperty("name", "stop-rotation");
 		data.addProperty("delay",  0);
 		
-		if(cmdName == null) {
+		if (cmdName == null) {
 			// use default command name 
 			cmdName = "stop";
 		}
-		if(gateway) {
+		
+		if (gateway) {
 			//Registered flow allows 0, 1 and 2 QoS
-			myAppClient.publishCommand(GATEWAY_DEVICE_TYPE, GATEWAY_DEVICE_ID, cmdName, data);
+			mqttAppClient.publishCommand(GW_DEVICE_TYPE, GW_DEVICE_ID, cmdName, data);
 		} else {
-			myAppClient.publishCommand(DEVICE_TYPE, SIMULATOR_DEVICE_ID, cmdName, data);
+			mqttAppClient.publishCommand(DEVICE_TYPE, DEVICE_ID, cmdName, data);
 		}
-		myAppClient.disconnect();
+		
 	}
 
 	
@@ -578,12 +594,4 @@ public class GatewayCommandSubscriptionTest {
 			commandReceived = false;
 		}
 	}
-	
-	private static String trimedValue(String value) {
-		if(value != null) {
-			return value.trim();
-		}
-		return value;
-	}
-
 }

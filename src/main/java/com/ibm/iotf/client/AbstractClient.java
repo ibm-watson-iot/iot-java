@@ -370,6 +370,14 @@ public abstract class AbstractClient {
 	}
 	
 	/**
+	 * 
+	 * @return the MQTT Client ID
+	 */
+	public String getClientID() {
+		return this.clientId;
+	}
+	
+	/**
 	 * Call to the configureConnOptionsWithToken() method is made, when the User chooses to connect to the
 	 * Watson IoT Platform using Device Token as the preferred Authentication mechanism. The Device Properties
 	 * file allows you enable either Token based or Certificate based or both mechanisms to authenticate.

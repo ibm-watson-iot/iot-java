@@ -44,6 +44,20 @@ public final class TestEnv {
 		props.setProperty("MaxInflightMessages", "256");
 		return props;
 	}
+
+	public static Properties getGatewayProperties(String gwType, String gwDeviceId) {
+		Properties props = new Properties();
+		props.setProperty("Organization-ID", getOrgId());
+		props.setProperty("Gateway-Type", gwType);
+		props.setProperty("Gateway-ID", gwDeviceId);
+		props.setProperty("Authentication-Method", "token");
+		props.setProperty("Authentication-Token", getGatewayToken());
+		props.setProperty("Clean-Session", "true");
+		props.setProperty("WebSocket", "false");
+		props.setProperty("Secure", "true");
+		props.setProperty("MaxInflightMessages", "256");
+		return props;
+	}
 	
 	public static Properties getAppProperties(String appId, boolean sharedSubscription, String deviceType, String deviceId) {
 		Properties props = new Properties();
