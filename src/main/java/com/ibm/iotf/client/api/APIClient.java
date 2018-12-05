@@ -458,8 +458,8 @@ public class APIClient {
 				return true;
 			}
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in getting the Device "
-					+ "::"+e.getMessage());
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in getting the Device URL("
+					+ sb.toString() + ") Response code (" + code + ") Exception: "+ e.getMessage());
 			ex.initCause(e);
 			throw ex;
 		}
