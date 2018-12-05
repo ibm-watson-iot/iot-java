@@ -52,7 +52,7 @@ public class GatewayCommandSubscriptionTest {
 	private static APIClient apiClient = null;
 	
 	@BeforeClass
-	public void oneTimeSetup() {
+	public static void oneTimeSetup() {
 		final String METHOD = "oneTimeSetup";
 	    // do the setup
 		createGatewayClient(GATEWAY_PROPERTIES_FILE);
@@ -71,7 +71,7 @@ public class GatewayCommandSubscriptionTest {
 	}
 	
 	@AfterClass
-	public void oneTimeTearDown() throws IoTFCReSTException {
+	public static void oneTimeTearDown() throws IoTFCReSTException {
 		final String METHOD = "oneTimeTearDown";
 		
 		if (gwClient != null && gwClient.isConnected()) {

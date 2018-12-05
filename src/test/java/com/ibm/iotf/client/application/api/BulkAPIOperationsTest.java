@@ -35,6 +35,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.ibm.iotf.client.IoTFCReSTException;
@@ -169,6 +170,7 @@ public class BulkAPIOperationsTest {
 	 *	]
 	 * @throws Exception 
 	 */
+	@Test
 	public void test04BulkDeleteDevices() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;
@@ -224,6 +226,7 @@ public class BulkAPIOperationsTest {
 	 * This sample verifies the bulk addition of devices in IBM Watson IoT Platform
 	 * @throws Exception
 	 */
+	@Test
 	public void test02BulkAddDevices() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;
@@ -277,6 +280,7 @@ public class BulkAPIOperationsTest {
 	 * This sample verifies the Bulk Get
 	 * @throws Exception
 	 */
+	@Test
 	public void test03BulkGetAllDevices() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;
@@ -327,6 +331,7 @@ public class BulkAPIOperationsTest {
 	 * This sample verfies the get organization details API
 	 * @throws Exception
 	 */
+	@Test
 	public void test01GetOrganizationDetails() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;

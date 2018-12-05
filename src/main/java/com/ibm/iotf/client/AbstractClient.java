@@ -259,8 +259,8 @@ public abstract class AbstractClient {
 			}
 			
 			if (mqttAsyncClient.isConnected()) {
-				LoggerUtility.info(CLASS_NAME, METHOD, "Successfully connected "
-						+ "to the IBM Watson IoT Platform");
+				LoggerUtility.info(CLASS_NAME, METHOD, mqttAsyncClient.getClientId() 
+						+ " successfully connected to the IBM Watson IoT Platform");
 				
 				if (LoggerUtility.isLoggable(Level.FINEST)) {
 					LoggerUtility.log(Level.FINEST, CLASS_NAME, METHOD, 
@@ -703,13 +703,15 @@ public abstract class AbstractClient {
 	 */
 	public void disconnect() {
 		final String METHOD = "disconnect";
-		LoggerUtility.info(CLASS_NAME, METHOD, "Disconnecting from the IBM Watson IoT Platform ...");
+		
 		try {
 			this.disconnectRequested = true;
 			if (mqttAsyncClient != null) {
+				LoggerUtility.info(CLASS_NAME, METHOD, mqttAsyncClient.getClientId() 
+						+ " is disconnecting from the IBM Watson IoT Platform ...");
 				mqttAsyncClient.disconnect().waitForCompletion(getActionTimeout());
-				LoggerUtility.info(CLASS_NAME, METHOD, "Successfully disconnected "
-					+ "from the IBM Watson IoT Platform");
+				LoggerUtility.info(CLASS_NAME, METHOD, mqttAsyncClient.getClientId()
+					+ " successfully disconnected from the IBM Watson IoT Platform");
 			}
 		} catch (MqttException e) {
 			e.printStackTrace();
