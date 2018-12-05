@@ -18,6 +18,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
@@ -38,6 +40,7 @@ import org.junit.runners.MethodSorters;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.util.LoggerUtility;
 
 /**
  * This test verifies various bulk ReST operations that can be performed on Watson IoT Platform.
@@ -46,6 +49,7 @@ import com.ibm.iotf.test.common.TestEnv;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BulkAPIOperationsTest {
 	
+	private final static String CLASS_NAME = BulkAPIOperationsTest.class.getName();
 	private final static String APP_ID = "BulkApp1";
 	private final static String DEVICE_TYPE = "SampleDT";
 	private final static String DEVICE_ID1 = "Device01";
@@ -77,23 +81,74 @@ public class BulkAPIOperationsTest {
 	private static APIClient apiClientWithWrongOrg= null;
 	
 	@BeforeClass
-	public static void oneTimeSetUp() throws Exception {
+	public static void oneTimeSetUp() {
+		final String METHOD = "oneTimeSetUp";
+		
 		Properties appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, null);
 		Properties propsWrongToken = new Properties(appProps);
 		Properties propsWrongMethod = new Properties(appProps);
 		Properties propsWrongOrg = new Properties(appProps);
+		
 		//Instantiate the class by passing the properties file
-		apiClient = new APIClient(appProps);
-		apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+		try {
+			apiClient = new APIClient(appProps);
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		boolean typeExist = false;
+		try {
+			typeExist = apiClient.isDeviceTypeExist(DEVICE_TYPE);
+			LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + " exist = " + typeExist);
+		} catch (IoTFCReSTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if (typeExist) {
+			
+			try {
+				apiClient.deleteDeviceType(DEVICE_TYPE);
+				LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + " deleted.");
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		try {
+			apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+			LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + " added.");
+		} catch (IoTFCReSTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		
 		propsWrongToken.setProperty("Authentication-Token", "Wrong");
-		apiClientWithWrongToken = new APIClient(propsWrongToken);
+		try {
+			apiClientWithWrongToken = new APIClient(propsWrongToken);
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		propsWrongMethod.setProperty("API-Key", "Wrong");
-		apiClientWithWrongKey = new APIClient(propsWrongMethod);
+		try {
+			apiClientWithWrongKey = new APIClient(propsWrongMethod);
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		propsWrongOrg.setProperty("Organization-ID", "Wrong");
-		apiClientWithWrongOrg = new APIClient(propsWrongOrg);
+		try {
+			apiClientWithWrongOrg = new APIClient(propsWrongOrg);
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public static void oneTimeCleanUp() throws Exception {
