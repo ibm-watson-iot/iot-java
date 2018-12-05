@@ -452,24 +452,21 @@ public class APIClient {
 		try {			
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
-			String result = this.readContent(response, METHOD);
-			jsonResponse = new JsonParser().parse(result);
-			if(code == 200) {
-				return true;
-			}
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in getting the Device URL("
 					+ sb.toString() + ") Response code (" + code + ") Exception: "+ e.getMessage());
 			ex.initCause(e);
 			throw ex;
 		}
-		
-		if(code == 401) {
+
+		if (code == 200) {
+			return true;
+		} else if (code == 404) {
+			return false;
+		} else if (code == 401) {
 			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
 			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
-		} else if(code == 404) {
-			return false;
 		} else if (code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
@@ -1224,27 +1221,24 @@ public class APIClient {
 		int code = 0;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
-		try {
+		try {			
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
-			String result = this.readContent(response, METHOD);
-			jsonResponse = new JsonParser().parse(result);
-			if(code == 200) {
-				return true;
-			}
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in getting the Device Type "
-					+ "::"+e.getMessage());
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in getting the Device Type URL("
+					+ sb.toString() + ") Response code (" + code + ") Exception: "+ e.getMessage());
 			ex.initCause(e);
 			throw ex;
 		}
-		
-		if(code == 401) {
+
+		if (code == 200) {
+			return true;
+		} else if(code == 404) {
+			return false;
+		} else if (code == 401) {
 			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if(code == 403) {
 			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
-		} else if(code == 404) {
-			return false;
 		} else if (code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
