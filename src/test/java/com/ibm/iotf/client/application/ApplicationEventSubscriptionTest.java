@@ -1135,7 +1135,7 @@ public class ApplicationEventSubscriptionTest {
 	@BeforeClass
 	public static void oneTimeSetUp() {
 		final String METHOD = "oneTimeSetUp";
-		LoggerUtility.info(CLASS_NAME, METHOD, "Setting up...");
+		LoggerUtility.info(CLASS_NAME, METHOD, "Setting up device type (" + DEVICE_TYPE + ") ID(" + DEVICE_ID + ")");
 		deviceProps = TestEnv.getDeviceProperties(DEVICE_TYPE, DEVICE_ID);
 		
 		appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
