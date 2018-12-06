@@ -420,9 +420,30 @@ public class GatewayCommandSubscriptionTest {
 	@Test
 	public void testDeviceSpecificCommandReception() throws MqttException{
 		
+		final String METHOD = "testDeviceSpecificCommandReception";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
+		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
+
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "start");
 		
 		// Ask application to publish the command to this gateway now

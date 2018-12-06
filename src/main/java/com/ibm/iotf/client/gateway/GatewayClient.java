@@ -789,7 +789,12 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 	 */
 	public void connectionLost(Throwable e) {
 		final String METHOD = "connectionLost";
-		LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
+		if (e instanceof MqttException) {
+			MqttException e2 = (MqttException) e;
+			LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: Reason Code: " + e2.getReasonCode());
+		} else {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
+		}
 		try {
 			if (isAutomaticReconnect() == false) {
 				LoggerUtility.info(CLASS_NAME, METHOD, "Reconnecting gateway device client (" + this.clientId + ")");
