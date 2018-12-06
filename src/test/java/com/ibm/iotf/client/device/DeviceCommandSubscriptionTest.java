@@ -13,6 +13,7 @@
 package com.ibm.iotf.client.device;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -73,6 +74,7 @@ public class DeviceCommandSubscriptionTest {
 		if (exist) {
 			try {
 				apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+				LoggerUtility.info(CLASS_NAME, METHOD, METHOD + ": Device " + DEVICE_ID + " has been deleted.");
 			} catch (IoTFCReSTException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -86,13 +88,16 @@ public class DeviceCommandSubscriptionTest {
 			e1.printStackTrace();
 		}
 		
-		if (exist) {
+		if (!exist) {
 			try {
 				apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+				LoggerUtility.info(CLASS_NAME, METHOD, METHOD + ": Device type " + DEVICE_TYPE + " has been created.");
 			} catch (IoTFCReSTException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		} else {
+			LoggerUtility.info(CLASS_NAME, METHOD, METHOD + ": Device type " + DEVICE_TYPE + " already existed.");
 		}
 
 		try {
@@ -131,6 +136,11 @@ public class DeviceCommandSubscriptionTest {
 	public void testCommandReception() throws Exception {
 		final String METHOD = "testCommandReception";
 		
+		if (devClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+		}
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		MyCommandCallback callback = new MyCommandCallback();
 		devClient.setCommandCallback(callback);
@@ -166,6 +176,10 @@ public class DeviceCommandSubscriptionTest {
 	public void testCustomCommandReception() throws Exception {
 		
 		final String METHOD = "testCustomCommandReception";
+		if (devClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+		}
 		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		MyCommandCallback callback = new MyCommandCallback();
