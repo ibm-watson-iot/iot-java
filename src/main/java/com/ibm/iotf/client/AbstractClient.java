@@ -127,7 +127,7 @@ public abstract class AbstractClient {
 	protected int messageCount = 0;
 	
 	protected MqttAsyncClient mqttAsyncClient = null;
-	private static final MemoryPersistence DATA_STORE = new MemoryPersistence();
+	//private static final MemoryPersistence DATA_STORE = new MemoryPersistence();
 	protected MqttConnectOptions mqttClientOptions;
 	protected MqttCallback mqttCallback;
 	protected int keepAliveInterval = -1;  // default
@@ -411,7 +411,7 @@ public abstract class AbstractClient {
 			serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
 		}
 		try {
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, DATA_STORE);
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
 			if (clientUsername != null) {
@@ -475,7 +475,7 @@ public abstract class AbstractClient {
 		}
 		
 		try {
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, DATA_STORE);
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
 			if (clientUsername != null) {
