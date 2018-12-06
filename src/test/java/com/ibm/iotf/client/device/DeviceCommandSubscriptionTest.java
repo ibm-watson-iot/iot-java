@@ -14,19 +14,21 @@ package com.ibm.iotf.client.device;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 
-import junit.framework.TestCase;
-
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
+import com.ibm.iotf.client.IoTFCReSTException;
+import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.app.ApplicationClient;
-import com.ibm.iotf.client.device.Command;
-import com.ibm.iotf.client.device.CommandCallback;
-import com.ibm.iotf.client.device.DeviceClient;
+import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.util.LoggerUtility;
 
 /**
  * This test verifies that the device receives the command published by the application
@@ -35,38 +37,106 @@ import com.ibm.iotf.client.device.DeviceClient;
  */
 public class DeviceCommandSubscriptionTest {
 	
-	private final static String DEVICE_PROPERTIES_FILE = "/device.properties";
-	private final static String APPLICATION_PROPERTIES_FILE = "/application.properties";
+	private final static String CLASS_NAME = DeviceCommandSubscriptionTest.class.getName();
+	private final static String APP_ID = "DevCmdSubApp1";
+	private final static String DEVICE_TYPE = "DevCmdSubType1";
+	private final static String DEVICE_ID = "DevCmdSubID1";
 	
-	@Test
-	public void testCommandReception() throws Exception {
+	private static APIClient apiClient = null;
+	private static DeviceClient devClient = null;
+	
+	@BeforeClass
+	public static void oneTimeSetUp() {
 		
-		/**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
+		final String METHOD = "oneTimeSetUp";
+		
+		Properties appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
 		try {
-			props.load(DeviceCommandSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}		
-		
-		
-		DeviceClient myClient = null;
+			apiClient = new APIClient(appProps);
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		// Delete device if it was left from the last test run
+		boolean exist = false;
 		try {
-			//Instantiate the class by passing the properties file			
-			myClient = new DeviceClient(props);
-		} catch (Exception e) {
+			exist = apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID);
+		} catch (IoTFCReSTException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
+		if (exist) {
+			try {
+				apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		try {
+			exist = apiClient.isDeviceTypeExist(DEVICE_TYPE);
+		} catch (IoTFCReSTException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		if (exist) {
+			try {
+				apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		try {
+			apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken(), null, null, null);
+		} catch (IoTFCReSTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Properties devProps = TestEnv.getDeviceProperties(DEVICE_TYPE, DEVICE_ID);
+		
+		try {
+			devClient = new DeviceClient(devProps);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Setup is complete.");
+	}
+	
+	@AfterClass
+	public static void oneTimeCleanup() throws Exception {
+		final String METHOD = "oneTimeCleanup";
+		if (apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID)) {
+			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+		}
+		
+		if (apiClient.isDeviceTypeExist(DEVICE_TYPE)) {
+			apiClient.deleteDeviceType(DEVICE_TYPE);
+		}
+		LoggerUtility.info(CLASS_NAME, METHOD, "Cleanup is complete.");
+	}	
+	
+	@Test
+	public void testCommandReception() throws Exception {
+		final String METHOD = "testCommandReception";
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		MyCommandCallback callback = new MyCommandCallback();
-		myClient.setCommandCallback(callback);
+		devClient.setCommandCallback(callback);
 		//Connect to the IBM Watson IoT Platform	
 		try {
-			myClient.connect();
+			devClient.connect();
 		} catch (MqttException e1) {
 			// TODO Auto-generated catch block
 			throw e1;
@@ -86,39 +156,23 @@ public class DeviceCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		myClient.disconnect();
+		devClient.disconnect();
+		
 		assertTrue("Command is not received by the device", callback.commandReceived);
+		LoggerUtility.info(CLASS_NAME, METHOD, "Command received : " + callback.commandReceived);
 	}
 	
 	@Test
 	public void testCustomCommandReception() throws Exception {
 		
-		/**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(DeviceCommandSubscriptionTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}		
-		
-		
-		DeviceClient myClient = null;
-		try {
-			//Instantiate the class by passing the properties file			
-			myClient = new DeviceClient(props);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		final String METHOD = "testCustomCommandReception";
 		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		MyCommandCallback callback = new MyCommandCallback();
-		myClient.setCommandCallback(callback);
+		devClient.setCommandCallback(callback);
 		//Connect to the IBM Watson IoT Platform	
 		try {
-			myClient.connect();
+			devClient.connect();
 		} catch (MqttException e1) {
 			// TODO Auto-generated catch block
 			throw e1;
@@ -138,73 +192,68 @@ public class DeviceCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		myClient.disconnect();
+		devClient.disconnect();
 		assertTrue("Device Event is not received by application", callback.commandReceived);
+		LoggerUtility.info(CLASS_NAME, METHOD, "Command received : " + callback.commandReceived);
 	}
 	
 	
-	private void publichCommand(int type) throws Exception {
-		/**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(DeviceCommandSubscriptionTest.class.getResourceAsStream(APPLICATION_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}
+	private void publichCommand(int type) {
+		
+		final String METHOD = "publichCommand";
+		
+		Properties props = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
 		
 		ApplicationClient myAppClient = null;
 		try {
-			//Instantiate the class by passing the properties file
 			myAppClient = new ApplicationClient(props);
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		try {
 			myAppClient.connect();
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(-1);
+		} catch (MqttException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 		
-		/**
-		 * Get the Device Type and Device Id to which the application will publish the command
-		 */
-		String deviceType = trimedValue(props.getProperty("Device-Type"));
-		String deviceId = trimedValue(props.getProperty("Device-ID"));
-		
-		if(type == 1) { // JSON
+		if (type == 1) { // JSON
 			JsonObject data = new JsonObject();
 			data.addProperty("name", "stop-rotation");
 			data.addProperty("delay",  0);
 			
 			//Registered flow allows 0, 1 and 2 QoS
-			myAppClient.publishCommand(deviceType, deviceId, "stop", data);
+			myAppClient.publishCommand(DEVICE_TYPE, DEVICE_ID, "stop", data);
 		} else {
-			myAppClient.publishCommand(deviceType, deviceId, "stop", "rotation:80", "custom", 1);
+			try {
+				myAppClient.publishCommand(DEVICE_TYPE, DEVICE_ID, "stop", "rotation:80", "custom", 1);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		myAppClient.disconnect();
+		LoggerUtility.info(CLASS_NAME, METHOD, "Connected " + myAppClient.isConnected());
 	}
 
 	
 	//Implement the CommandCallback class to provide the way in which you want the command to be handled
 	private static class MyCommandCallback implements CommandCallback {
 		private boolean commandReceived = false;
+		private static final String CLASS_NAME = MyCommandCallback.class.getName();
 		
 		/**
 		 * This method is invoked by the library whenever there is command matching the subscription criteria
 		 */
+		@SuppressWarnings("deprecation")
 		@Override
 		public void processCommand(Command cmd) {
+			final String METHOD = "processCommand";
 			commandReceived = true;
-			System.out.println("Received command, name = "+cmd.getCommand() +
+			LoggerUtility.info(CLASS_NAME, METHOD, "Received command, name = "+cmd.getCommand() +
 					", format = " + cmd.getFormat() + ", Payload = "+cmd.getPayload() + ", time = "+cmd.getTimestamp());
 		}
 	}
 	
-	private static String trimedValue(String value) {
-		if(value != null) {
-			return value.trim();
-		}
-		return value;
-	}
-
 }
