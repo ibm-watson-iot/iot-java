@@ -139,6 +139,7 @@ public class DeviceCommandSubscriptionTest {
 		if (devClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
 			fail("Setup was not completed for test method " + METHOD);
+			return;
 		}
 		
 		//Pass the above implemented CommandCallback as an argument to this device client
@@ -179,6 +180,7 @@ public class DeviceCommandSubscriptionTest {
 		if (devClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
 			fail("Setup was not completed for test method " + METHOD);
+			return;
 		}
 		
 		//Pass the above implemented CommandCallback as an argument to this device client
@@ -187,11 +189,17 @@ public class DeviceCommandSubscriptionTest {
 		//Connect to the IBM Watson IoT Platform	
 		try {
 			devClient.connect();
-		} catch (MqttException e1) {
-			// TODO Auto-generated catch block
-			throw e1;
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
 		} catch (java.lang.IllegalArgumentException e) {
-			// looks like the property file is not modified, exit silently
+			String failMsg = METHOD + " connect IllegalArgumentException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
 			return;
 		}
 		

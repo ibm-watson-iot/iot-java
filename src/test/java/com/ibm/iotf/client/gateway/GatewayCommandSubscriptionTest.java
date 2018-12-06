@@ -14,6 +14,7 @@ package com.ibm.iotf.client.gateway;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -58,31 +59,30 @@ public class GatewayCommandSubscriptionTest {
 		Properties appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
 		
 		try {
-			mqttAppClient = new ApplicationClient(appProps);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		try {
-			mqttAppClient.connect();
-		} catch (MqttException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		try {
 			apiClient = new APIClient(appProps);
 		} catch (KeyManagementException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 		
 		boolean exist = false;
+
+		try {
+			exist = apiClient.isDeviceExist(GW_DEVICE_TYPE, GW_DEVICE_ID);
+		} catch (IoTFCReSTException e1) {
+			e1.printStackTrace();
+		}
+		
+		if (exist) {
+			try {
+				apiClient.deleteDevice(GW_DEVICE_TYPE, GW_DEVICE_ID);
+				LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device ID " + GW_DEVICE_ID + " has been deleted.");
+			} catch (IoTFCReSTException e) {
+				e.printStackTrace();
+			}
+		}
 		
 		try {
 			exist = apiClient.isDeviceTypeExist(GW_DEVICE_TYPE);
@@ -102,33 +102,25 @@ public class GatewayCommandSubscriptionTest {
 			}
 		}
 		
+		// Register GW device
 		try {
-			exist = apiClient.isDeviceExist(GW_DEVICE_TYPE, GW_DEVICE_ID);
-		} catch (IoTFCReSTException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		if (!exist) {
-			try {
-				apiClient.registerDevice(GW_DEVICE_TYPE, GW_DEVICE_ID, TestEnv.getGatewayToken(), null, null, null);
-			} catch (IoTFCReSTException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			apiClient.registerDevice(GW_DEVICE_TYPE, GW_DEVICE_ID, TestEnv.getGatewayToken(), null, null, null);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device ID " + GW_DEVICE_ID + " has been created.");
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
 		}
 		
 		try {
 			exist = apiClient.isDeviceTypeExist(DEVICE_TYPE);
 		} catch (IoTFCReSTException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 		if (!exist) {
 			try {
 				apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+				LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " has been created.");
 			} catch (IoTFCReSTException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -136,17 +128,23 @@ public class GatewayCommandSubscriptionTest {
 		try {
 			exist = apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID);
 		} catch (IoTFCReSTException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		if (!exist) {
+		if (exist) {
 			try {
-				apiClient.registerDeviceUnderGateway(DEVICE_TYPE, DEVICE_ID, GW_DEVICE_TYPE, GW_DEVICE_ID);
+				apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+				LoggerUtility.info(CLASS_NAME, METHOD, "Device ID " + DEVICE_ID + " has been deleted.");
 			} catch (IoTFCReSTException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+
+		try {
+			apiClient.registerDeviceUnderGateway(DEVICE_TYPE, DEVICE_ID, GW_DEVICE_TYPE, GW_DEVICE_ID);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Device ID " + DEVICE_ID + " has been created.");
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
 		}
 		
 		Properties gwProps = TestEnv.getDeviceProperties(GW_DEVICE_TYPE, GW_DEVICE_ID);
@@ -154,20 +152,10 @@ public class GatewayCommandSubscriptionTest {
 			gwClient = new GatewayClient(gwProps);
 			LoggerUtility.info(CLASS_NAME, METHOD, "Gateway client id " + gwClient.getClientID());
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		LoggerUtility.info(CLASS_NAME, METHOD, "Connecting gateway ID " + GW_DEVICE_ID);
-		
-		try {
-			gwClient.connect();
-		} catch (MqttException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		LoggerUtility.info(CLASS_NAME, METHOD, "Gateway ID is connected: " + gwClient.isConnected());
+		LoggerUtility.info(CLASS_NAME, METHOD, METHOD + " setup is complete");
 		
 	}
 	
@@ -217,11 +205,32 @@ public class GatewayCommandSubscriptionTest {
 	
 	
 	@Test
-	public void testGatewayCommandReception() throws MqttException{
+	public void testGatewayCommandReception() {
+		
+		final String METHOD = "testGatewayCommandReception";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
+		
 		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
+
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
 		
 		// Ask application to publish the command to this gateway now
 		publishCommand(true, null);
@@ -234,15 +243,37 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
+		gwClient.disconnect();
 		assertTrue("The command is not received by gateway", callback.commandReceived);
+		
 	}
 	
 	@Test
-	public void testDeviceCommandReception() throws MqttException{
+	public void testDeviceCommandReception() {
+		
+		final String METHOD = "testDeviceCommandReception";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
 		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
+		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
 		
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID);
 		
@@ -257,15 +288,37 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
+		gwClient.disconnect();
+		
 		assertTrue("The command is not received by gateway", callback.commandReceived);
 	}
 	
 	@Test
 	public void test02DeviceCommandReception() throws MqttException{
 		
+		final String METHOD = "test02DeviceCommandReception";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
+		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
 		
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop", "json");
 		
@@ -280,15 +333,37 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
+		gwClient.disconnect();
+		
 		assertTrue("The command is not received by gateway", callback.commandReceived);
 	}
 	
 	@Test
 	public void test03DeviceCommandReception() throws MqttException{
 		
+		final String METHOD = "test03DeviceCommandReception";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
+		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
 		
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop", "json", 2);
 		
@@ -303,6 +378,8 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
+		gwClient.disconnect();
+		
 		assertTrue("The command is not received by gateway", callback.commandReceived);
 	}
 
@@ -310,11 +387,34 @@ public class GatewayCommandSubscriptionTest {
 	@Test
 	public void testNotification() throws MqttException{
 		
+		final String METHOD = "testNotification";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
 		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
+		
 		gwClient.subscribeToGatewayNotification();
+		
+		gwClient.disconnect();
+		
 	}
 	
 	@Test
@@ -342,9 +442,30 @@ public class GatewayCommandSubscriptionTest {
 	@Test
 	public void testDeviceSpecificCommandReceptionWithQoS() throws MqttException{
 		
+		final String METHOD = "testDeviceSpecificCommandReceptionWithQoS";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
+		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
+
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "start", 2);
 		
 		// Ask application to publish the command to this gateway now
@@ -358,15 +479,37 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
+		gwClient.disconnect();
 		assertTrue("The command is not received by gateway", callback.commandReceived);
 	}
 	
 	@Test
 	public void testDeviceSpecificCommandReceptionWithFormat() throws MqttException{
 		
+		final String METHOD = "testDeviceSpecificCommandReceptionWithFormat";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
+		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
+
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "start", "json", 2);
 		
 		// Ask application to publish the command to this gateway now
@@ -380,15 +523,37 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
+		gwClient.disconnect();
 		assertTrue("The command is not received by gateway", callback.commandReceived);
 	}
 
 	@Test
 	public void testDeviceCommandUnsubscription() throws MqttException{
 		
+		final String METHOD = "testDeviceCommandUnsubscription";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
+		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
+
 		
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID);
 		
@@ -404,9 +569,14 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
+		assertTrue("The command is not received by gateway", callback.commandReceived);
+		
 		count = 0;
+		
 		callback.clear();
+		
 		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, DEVICE_ID);
+		
 		publishCommand(false, null);
 		
 		
@@ -417,6 +587,8 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
+		gwClient.disconnect();
+		
 		assertFalse("The command should not be received by gateway", callback.commandReceived);
 				
 	}
@@ -424,9 +596,29 @@ public class GatewayCommandSubscriptionTest {
 	@Test
 	public void test02DeviceCommandUnsubscription() throws MqttException{
 		
+		final String METHOD = "test02DeviceCommandUnsubscription";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
+		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
 		
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop");
 		
@@ -442,9 +634,11 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		count = 0;
-		callback.clear();
+		assertTrue("The command is not received by gateway", callback.commandReceived);
 		
+		count = 0;
+
+		callback.clear();
 		
 		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop");
 		
@@ -457,6 +651,7 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
+		gwClient.disconnect();
 		assertFalse("The command should not be received by gateway", callback.commandReceived);
 				
 	}
@@ -464,9 +659,29 @@ public class GatewayCommandSubscriptionTest {
 	@Test
 	public void test03DeviceCommandUnsubscription() throws MqttException{
 		
+		final String METHOD = "test03DeviceCommandUnsubscription";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
+		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
 		
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop", "json");
 		
@@ -481,9 +696,11 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		count = 0;
-		callback.clear();
+		assertTrue("The command is not received by gateway", callback.commandReceived);
 		
+		count = 0;
+		
+		callback.clear();
 		
 		gwClient.unsubscribeFromDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop", "json");
 		
@@ -504,9 +721,29 @@ public class GatewayCommandSubscriptionTest {
 	@Test
 	public void test04DeviceCommandUnsubscription() throws MqttException{
 		
+		final String METHOD = "test04DeviceCommandUnsubscription";
+
+		if (gwClient == null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
+			fail("Setup was not completed for test method " + METHOD);
+			return;
+		}
+		
 		//Pass the above implemented CommandCallback as an argument to this device client
 		GatewayCommandCallback callback = new GatewayCommandCallback();
 		gwClient.setGatewayCallback(callback);
+		
+		try {
+			gwClient.connect();
+		} catch (MqttException e) {
+			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
+			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+			e.printStackTrace();
+			return;
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, gwClient.getClientID() + " is connected ? " + gwClient.isConnected());
 		
 		gwClient.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID, "stop", "json", 2);
 		
@@ -521,6 +758,8 @@ public class GatewayCommandSubscriptionTest {
 				Thread.sleep(1000);
 			} catch(InterruptedException e) {}
 		}
+		
+		assertTrue("The command is not received by gateway", callback.commandReceived);
 		
 		count = 0;
 		callback.clear();
@@ -549,6 +788,25 @@ public class GatewayCommandSubscriptionTest {
 	 * @param cmdName Name of command
 	 */
 	private void publishCommand(boolean gateway, String cmdName) {
+		
+		final String METHOD = "publichCommand";
+		
+		Properties props = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
+		
+		ApplicationClient myAppClient = null;
+		try {
+			myAppClient = new ApplicationClient(props);
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		try {
+			myAppClient.connect();
+		} catch (MqttException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		JsonObject data = new JsonObject();
 		data.addProperty("name", "stop-rotation");
 		data.addProperty("delay",  0);
@@ -565,33 +823,42 @@ public class GatewayCommandSubscriptionTest {
 			mqttAppClient.publishCommand(DEVICE_TYPE, DEVICE_ID, cmdName, data);
 		}
 		
+		myAppClient.disconnect();
+		LoggerUtility.info(CLASS_NAME, METHOD, myAppClient.getClientID() + " Connected ? " + myAppClient.isConnected());
+		
+		
 	}
 
 	
 	//Implement the CommandCallback class to provide the way in which you want the command to be handled
 	private static class GatewayCommandCallback implements GatewayCallback{
 		private boolean commandReceived = false;
+		private boolean notificationReceived = false;
+		private static final String CLASS_NAME = GatewayCommandCallback.class.getName();
 		
 		/**
 		 * This method is invoked by the library whenever there is command matching the subscription criteria
 		 */
 		@Override
 		public void processCommand(com.ibm.iotf.client.gateway.Command cmd) {
+			final String METHOD = "processCommand";
 			commandReceived = true;
-			System.out.println("Received command, name = "+cmd.getCommand() +
-					", format = " + cmd.getFormat() + ", Payload = "+cmd.getPayload() + ", time = "+cmd.getTimestamp() +
-					", deviceId = "+cmd.getDeviceId() + ", deviceType = "+cmd.getDeviceType());
-			
+			LoggerUtility.info(CLASS_NAME, METHOD, "Received command, name = "+cmd.getCommand() +
+					", format = " + cmd.getFormat() + ", Payload = "+cmd.getPayload() + ", time = "+cmd.getTimestamp());
 		}
 
 		@Override
 		public void processNotification(Notification notification) {
-			// TODO Auto-generated method stub
-			
+			final String METHOD = "processNotification";
+			notificationReceived = true;
+			LoggerUtility.info(CLASS_NAME, METHOD, "Received notification, Device Type (" 
+					+ notification.getDeviceType() + ") Device ID ("
+					+ notification.getDeviceId() + ")");
 		}
 		
 		private void clear() {
 			commandReceived = false;
+			notificationReceived = false;
 		}
 	}
 }
