@@ -204,7 +204,7 @@ public abstract class AbstractClient {
 		final String METHOD = "connect";
 		// return if its already connected
 		if(mqttAsyncClient != null && mqttAsyncClient.isConnected()) {
-			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Client is already connected");
+			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Client " + this.clientId + " is already connected.");
 			return;
 		}
 		boolean tryAgain = true;
