@@ -20,9 +20,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
@@ -789,9 +791,11 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 	 */
 	public void connectionLost(Throwable e) {
 		final String METHOD = "connectionLost";
+		LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Lost connection client (" + clientId + ") : " + e.getMessage());
 		if (e instanceof MqttException) {
 			MqttException e2 = (MqttException) e;
-			LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: Reason Code: " + e2.getReasonCode());
+			LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: Reason Code: " 
+					+ e2.getReasonCode() + " Cause: " + ExceptionUtils.getRootCauseMessage(e2));
 		} else {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
 		}
