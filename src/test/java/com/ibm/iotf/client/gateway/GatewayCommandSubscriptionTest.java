@@ -208,7 +208,8 @@ public class GatewayCommandSubscriptionTest {
 	public void testGatewayCommandReception() {
 		
 		final String METHOD = "testGatewayCommandReception";
-
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
+		
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
 			fail("Setup was not completed for test method " + METHOD);
@@ -245,13 +246,15 @@ public class GatewayCommandSubscriptionTest {
 		
 		gwClient.disconnect();
 		assertTrue("The command is not received by gateway", callback.commandReceived);
-		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 	
 	@Test
 	public void testDeviceCommandReception() {
 		
 		final String METHOD = "testDeviceCommandReception";
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -291,6 +294,8 @@ public class GatewayCommandSubscriptionTest {
 		gwClient.disconnect();
 		
 		assertTrue("The command is not received by gateway", callback.commandReceived);
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 	
 	@Test
@@ -298,6 +303,8 @@ public class GatewayCommandSubscriptionTest {
 		
 		final String METHOD = "test02DeviceCommandReception";
 
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
+		
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
 			fail("Setup was not completed for test method " + METHOD);
@@ -336,12 +343,16 @@ public class GatewayCommandSubscriptionTest {
 		gwClient.disconnect();
 		
 		assertTrue("The command is not received by gateway", callback.commandReceived);
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 	
 	@Test
 	public void test03DeviceCommandReception() throws MqttException{
 		
 		final String METHOD = "test03DeviceCommandReception";
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -381,6 +392,8 @@ public class GatewayCommandSubscriptionTest {
 		gwClient.disconnect();
 		
 		assertTrue("The command is not received by gateway", callback.commandReceived);
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 
 	
@@ -388,6 +401,8 @@ public class GatewayCommandSubscriptionTest {
 	public void testNotification() throws MqttException{
 		
 		final String METHOD = "testNotification";
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -415,12 +430,16 @@ public class GatewayCommandSubscriptionTest {
 		
 		gwClient.disconnect();
 		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
+		
 	}
 	
 	@Test
 	public void testDeviceSpecificCommandReception() throws MqttException{
 		
 		final String METHOD = "testDeviceSpecificCommandReception";
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -458,12 +477,16 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		assertTrue("The command is not received by gateway", callback.commandReceived);
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 
 	@Test
 	public void testDeviceSpecificCommandReceptionWithQoS() throws MqttException{
 		
 		final String METHOD = "testDeviceSpecificCommandReceptionWithQoS";
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -502,12 +525,16 @@ public class GatewayCommandSubscriptionTest {
 		
 		gwClient.disconnect();
 		assertTrue("The command is not received by gateway", callback.commandReceived);
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 	
 	@Test
 	public void testDeviceSpecificCommandReceptionWithFormat() throws MqttException{
 		
 		final String METHOD = "testDeviceSpecificCommandReceptionWithFormat";
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -546,12 +573,16 @@ public class GatewayCommandSubscriptionTest {
 		
 		gwClient.disconnect();
 		assertTrue("The command is not received by gateway", callback.commandReceived);
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 
 	@Test
 	public void testDeviceCommandUnsubscription() throws MqttException{
 		
 		final String METHOD = "testDeviceCommandUnsubscription";
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -612,12 +643,15 @@ public class GatewayCommandSubscriptionTest {
 		
 		assertFalse("The command should not be received by gateway", callback.commandReceived);
 				
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 	
 	@Test
 	public void test02DeviceCommandUnsubscription() throws MqttException{
 		
 		final String METHOD = "test02DeviceCommandUnsubscription";
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -675,12 +709,15 @@ public class GatewayCommandSubscriptionTest {
 		gwClient.disconnect();
 		assertFalse("The command should not be received by gateway", callback.commandReceived);
 				
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 	
 	@Test
 	public void test03DeviceCommandUnsubscription() throws MqttException{
 		
 		final String METHOD = "test03DeviceCommandUnsubscription";
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -737,12 +774,15 @@ public class GatewayCommandSubscriptionTest {
 		
 		assertFalse("The command should not be received by gateway", callback.commandReceived);
 				
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 	
 	@Test
 	public void test04DeviceCommandUnsubscription() throws MqttException{
 		
 		final String METHOD = "test04DeviceCommandUnsubscription";
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 
 		if (gwClient == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -801,6 +841,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		assertFalse("The command should not be received by gateway", callback.commandReceived);
 				
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 	
 	/**
@@ -811,6 +852,8 @@ public class GatewayCommandSubscriptionTest {
 	private void publishCommand(boolean gateway, String cmdName) {
 		
 		final String METHOD = "publichCommand";
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 		
 		Properties props = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
 		
@@ -847,7 +890,7 @@ public class GatewayCommandSubscriptionTest {
 		myAppClient.disconnect();
 		LoggerUtility.info(CLASS_NAME, METHOD, myAppClient.getClientID() + " Connected ? " + myAppClient.isConnected());
 		
-		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
 	}
 
 	
