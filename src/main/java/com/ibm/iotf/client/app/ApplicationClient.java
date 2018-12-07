@@ -265,11 +265,10 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		msg.setRetained(false);
 		
 		try {
-			if (!isConnected() && isAutomaticReconnect()) {
-				// Buffer message
-				mqttAsyncClient.publish(topic, msg);
-			} else {
+			if (isConnected() && !isAutomaticReconnect()) {
 				mqttAsyncClient.publish(topic, msg).waitForCompletion(timeout);
+			} else {
+				mqttAsyncClient.publish(topic, msg);
 			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
@@ -355,11 +354,10 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		msg.setRetained(false);
 		
 		try {
-			if (!isConnected() && isAutomaticReconnect()) {
-				// Buffer message
-				mqttAsyncClient.publish(topic, msg);
-			} else {
+			if (isConnected() && !isAutomaticReconnect()) {
 				mqttAsyncClient.publish(topic, msg).waitForCompletion(timeout);
+			} else {
+				mqttAsyncClient.publish(topic, msg);
 			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
@@ -458,11 +456,10 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		msg.setRetained(false);
 		
 		try {
-			if (!isConnected() && isAutomaticReconnect()) {
-				// Buffer message
-				mqttAsyncClient.publish(topic, msg);
-			} else {
+			if (isConnected() && !isAutomaticReconnect()) {
 				mqttAsyncClient.publish(topic, msg).waitForCompletion(timeout);
+			} else {
+				mqttAsyncClient.publish(topic, msg);
 			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
@@ -548,11 +545,10 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		msg.setRetained(false);
 		
 		try {
-			if (!isConnected() && isAutomaticReconnect()) {
-				// Buffer message
-				mqttAsyncClient.publish(topic, msg);
-			} else {
+			if (isConnected() && !isAutomaticReconnect()) {
 				mqttAsyncClient.publish(topic, msg).waitForCompletion(timeout);
+			} else {
+				mqttAsyncClient.publish(topic, msg);
 			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();

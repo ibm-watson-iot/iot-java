@@ -168,6 +168,21 @@ public class GatewayCommandSubscriptionTest {
 			}
 			testMap.put(iTest, testHelper);
 		}
+		
+		for (int i=1; i <= totalTests; i++) {
+			Integer iTest = new Integer(i);
+			TestHelper testHelper = testMap.get(iTest);
+			if (testHelper != null) {
+				try {
+					exist = apiClient.isDeviceExist(testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId());
+					LoggerUtility.info(CLASS_NAME, METHOD, "Device " + testHelper.getAttachedDeviceId() + " does exist.");
+					exist = apiClient.isDeviceExist(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
+					LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device " + testHelper.getGatewayDeviceId() + " does exist.");
+				} catch (IoTFCReSTException e) { 
+					e.printStackTrace();
+				}
+			}
+		}
 		LoggerUtility.info(CLASS_NAME, METHOD, METHOD + " setup is complete");
 		
 	}
@@ -798,9 +813,9 @@ public class GatewayCommandSubscriptionTest {
 			String devType, String devId, 
 			String cmdName, JsonObject jsonCmd) {
 		
-		final String METHOD = "publichCommand";
+		final String METHOD = "publishCommand";
 		
-		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
+		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 		
 		Properties props = TestEnv.getAppProperties(APP_ID + iTest , false, null, null);
 		
@@ -840,7 +855,7 @@ public class GatewayCommandSubscriptionTest {
 		myAppClient.disconnect();
 		LoggerUtility.info(CLASS_NAME, METHOD, myAppClient.getClientID() + " Connected ? " + myAppClient.isConnected());
 		
-		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting " + METHOD);
+		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
 	}
 
 	

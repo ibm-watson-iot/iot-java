@@ -291,11 +291,10 @@ public class DeviceClient extends AbstractClient {
 		msg.setRetained(false);
 		
 		try {
-			if (!isConnected() && isAutomaticReconnect()) {
-				// Buffer the message
-				mqttAsyncClient.publish(topic, msg);
-			} else {
+			if (isConnected() && !isAutomaticReconnect()) {
 				mqttAsyncClient.publish(topic, msg).waitForCompletion(timeout);
+			} else {
+				mqttAsyncClient.publish(topic, msg);
 			}
 		} catch (MqttPersistenceException e) {
 			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.getMessage(), e);
@@ -371,11 +370,10 @@ public class DeviceClient extends AbstractClient {
 		msg.setRetained(false);
 		
 		try {
-			if (!isConnected() && isAutomaticReconnect()) {
-				// Buffer the message
-				mqttAsyncClient.publish(topic, msg);
-			} else {
+			if (isConnected() && !isAutomaticReconnect()) {
 				mqttAsyncClient.publish(topic, msg).waitForCompletion(timeout);
+			} else {
+				mqttAsyncClient.publish(topic, msg);
 			}
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
