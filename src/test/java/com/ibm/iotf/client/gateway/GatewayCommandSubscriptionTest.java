@@ -26,7 +26,9 @@ import java.util.logging.Level;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.*;
 
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
@@ -40,6 +42,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * successfully.
  *
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GatewayCommandSubscriptionTest {
 	
 	private static final String CLASS_NAME = GatewayCommandSubscriptionTest.class.getName();
