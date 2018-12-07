@@ -789,7 +789,8 @@ public class GatewayCommandSubscriptionTest {
 	 * @param cmdName Command to send, can be null
 	 * @param jsonCmd Json object for the command, can be null
 	 */
-	private synchronized void publishCommand(
+	private void publishCommand(
+			Integer iTest,
 			String gwType, String gwDevId, 
 			String devType, String devId, 
 			String cmdName, JsonObject jsonCmd) {
@@ -798,7 +799,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running " + METHOD);
 		
-		Properties props = TestEnv.getAppProperties(APP_ID, false, null, null);
+		Properties props = TestEnv.getAppProperties(APP_ID + iTest , false, null, null);
 		
 		ApplicationClient myAppClient = null;
 		
@@ -824,6 +825,8 @@ public class GatewayCommandSubscriptionTest {
 			jsonCmd.addProperty("name", "stop-rotation");
 			jsonCmd.addProperty("delay", 0);
 		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, myAppClient.getClientID() + " publish command " + cmdName);
 		
 		if (gwType != null && gwDevId != null) {
 			mqttAppClient.publishCommand(gwType, gwDevId, cmdName, jsonCmd);
