@@ -226,7 +226,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		// Ask application to publish the command to this gateway now
-		publishCommand(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId(), 
+		publishCommand(iTest, testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId(), 
 				null, null, null, null);
 		
 		int count = 0;
@@ -272,7 +272,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommands();
 		
 		// Ask application to publish the command to attached device
-		publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 				null, null);
 		
 		int count = 0;
@@ -322,7 +322,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd, format);
 		
 		// Ask application to publish the command to attached device
-		publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 				cmd, null);
 		
 		int count = 0;
@@ -373,7 +373,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd, format, qos);
 
 		// Ask application to publish the command to attached device
-		publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 				cmd, null);
 		
 		int count = 0;
@@ -506,7 +506,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd);
 		
 		// Ask application to publish the command to attached device
-		publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 				cmd, null);
 		
 		
@@ -557,7 +557,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd, qos);
 		
 		// Ask application to publish the command to attached device
-		publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 				cmd, null);
 		
 		
@@ -605,7 +605,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommands();
 		
 		// Ask application to publish the command to attached device
-		publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 				null, null);
 		
 		int count = 0;
@@ -625,7 +625,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.unsubscribeCommands();
 		
 		// Ask application to publish the command to attached device
-		publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 				null, null);
 		
 		
@@ -674,7 +674,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd);
 		
 		// Ask application to publish the command to attached device
-		publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 				cmd, null);
 		
 		
@@ -695,7 +695,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.unsubscribeCommand(cmd);
 
 		// Ask application to publish the command to attached device
-		publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 				cmd, null);
 		
 		// wait for sometime before checking
@@ -743,7 +743,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd, format);
 		
 		// Ask application to publish the command to attached device
-		publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 				cmd, null);
 		
 		int count = 0;
@@ -761,7 +761,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.clear();
 		testHelper.unsubscribeCommand(cmd, format);
 
-		publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 				cmd, null);
 		
 		// wait for sometime before checking
