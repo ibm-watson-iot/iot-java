@@ -178,6 +178,13 @@ public class GatewayCommandSubscriptionTest {
 					LoggerUtility.info(CLASS_NAME, METHOD, "Device " + testHelper.getAttachedDeviceId() + " does exist.");
 					exist = apiClient.isDeviceExist(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
 					LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device " + testHelper.getGatewayDeviceId() + " does exist.");
+					
+					JsonObject jsonProps = apiClient.getAccessControlProperties(testHelper.getGatewayDeviceId(), null);
+					if (jsonProps != null) {
+						LoggerUtility.info(CLASS_NAME, METHOD, testHelper.getGatewayDeviceId() + " access control : " 
+								+ jsonProps.getAsString());
+					}
+					
 				} catch (IoTFCReSTException e) { 
 					e.printStackTrace();
 				}

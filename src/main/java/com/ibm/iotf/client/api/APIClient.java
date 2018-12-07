@@ -7244,6 +7244,61 @@ public class APIClient {
 		throwException(response, METHOD);
 		return null;
 	}
-
 	
+	
+
+	/**
+	 * Get access control properties of a given device
+	 * 
+	 * See https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/security.html#!/Authorization_-_Device_Management/get_authorization_devices_deviceId
+	 * @param deviceId Device ID
+	 * @param bookmark can be null
+	 * @return
+	 * @throws IoTFCReSTException
+	 */
+	public JsonObject getAccessControlProperties(String deviceId, String bookmark) throws IoTFCReSTException {
+		final String METHOD = "getActiveSchemaDefinitionContents";
+		/**
+		 * Form the url based on this swagger documentation
+		 * 
+		 */
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/authorization/devices/").
+		   append(deviceId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			String result = this.readContent(response, METHOD);
+			jsonResponse = new JsonParser().parse(result);
+
+			if (code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the access control properties "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+		
+	}
 }
