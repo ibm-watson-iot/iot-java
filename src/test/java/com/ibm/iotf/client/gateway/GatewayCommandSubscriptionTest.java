@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.UnsupportedEncodingException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -179,7 +180,13 @@ public class GatewayCommandSubscriptionTest {
 					exist = apiClient.isDeviceExist(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
 					LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device " + testHelper.getGatewayDeviceId() + " does exist.");
 					
-					JsonObject jsonProps = apiClient.getAccessControlProperties(testHelper.getGatewayDeviceId(), null);
+					JsonObject jsonProps = null;
+					try {
+						jsonProps = apiClient.getAccessControlProperties(testHelper.getGatewayDeviceId(), null);
+					} catch (UnsupportedEncodingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					if (jsonProps != null) {
 						LoggerUtility.info(CLASS_NAME, METHOD, testHelper.getGatewayDeviceId() + " access control : " 
 								+ jsonProps.getAsString());
