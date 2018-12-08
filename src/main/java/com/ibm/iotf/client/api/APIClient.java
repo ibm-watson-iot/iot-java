@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -7256,26 +7257,24 @@ public class APIClient {
 	 * @param bookmark can be null
 	 * @return
 	 * @throws IoTFCReSTException
+	 * @throws UnsupportedEncodingException 
 	 */
-	public JsonObject getAccessControlProperties(String deviceId, String bookmark) throws IoTFCReSTException {
+	public JsonObject getAccessControlProperties(String deviceId, String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
 		final String METHOD = "getActiveSchemaDefinitionContents";
-		/**
-		 * Form the url based on this swagger documentation
-		 * 
-		 */
+		String sDeviceId = URLEncoder.encode(deviceId, "UTF-8");
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
 		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/authorization/devices/").
-		   append(deviceId);
+		   append(sDeviceId);
 		
 		int code = 0;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
 
 		try {
-			response = connect("get", URLEncoder.encode(sb.toString(), "UTF-8"), null, null);
+			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
 			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP code: " + code);
 			if (response != null) {
