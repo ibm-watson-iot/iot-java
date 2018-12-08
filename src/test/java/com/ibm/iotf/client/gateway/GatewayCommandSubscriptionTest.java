@@ -180,15 +180,15 @@ public class GatewayCommandSubscriptionTest {
 					exist = apiClient.isDeviceExist(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
 					LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device " + testHelper.getGatewayDeviceId() + " does exist.");
 					
-					JsonObject jsonProps = null;
+					JsonObject jsonResult = null;
 					try {
-						jsonProps = apiClient.getAccessControlProperties(testHelper.getClientID(), null);
+						jsonResult = apiClient.getAccessControlProperties(testHelper.getClientID(), null);
 					} catch (UnsupportedEncodingException e) {
 						e.printStackTrace();
 					}
-					if (jsonProps != null) {
+					if (jsonResult != null && jsonResult.has("results")) {
 						LoggerUtility.info(CLASS_NAME, METHOD, testHelper.getGatewayDeviceId() + " access control : " 
-								+ jsonProps.getAsString());
+								+ jsonResult);
 					}
 					
 				} catch (IoTFCReSTException e) { 

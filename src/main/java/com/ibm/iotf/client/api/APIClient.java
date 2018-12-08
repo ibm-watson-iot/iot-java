@@ -7279,7 +7279,6 @@ public class APIClient {
 			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP code: " + code);
 			if (response != null) {
 				String result = this.readContent(response, METHOD);
-				LoggerUtility.info(CLASS_NAME, METHOD, "HTTP content: " + result);
 				if (result != null) {
 					jsonResponse = new JsonParser().parse(result);
 				}
