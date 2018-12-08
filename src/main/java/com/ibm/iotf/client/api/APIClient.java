@@ -7276,12 +7276,14 @@ public class APIClient {
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
+			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP code: " + code);
 			String result = this.readContent(response, METHOD);
+			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP content: " + result);
 			jsonResponse = new JsonParser().parse(result);
-
 			if (code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
+
 		} catch(Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the access control properties "
 					+ "::"+e.getMessage());
