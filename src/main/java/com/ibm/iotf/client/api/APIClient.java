@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -7251,7 +7252,7 @@ public class APIClient {
 	 * Get access control properties of a given device
 	 * 
 	 * See https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/security.html#!/Authorization_-_Device_Management/get_authorization_devices_deviceId
-	 * @param deviceId Device ID
+	 * @param deviceId Device ID e.g. d:orgid:deviceType:deviceID
 	 * @param bookmark can be null
 	 * @return
 	 * @throws IoTFCReSTException
@@ -7274,12 +7275,16 @@ public class APIClient {
 		JsonElement jsonResponse = null;
 
 		try {
-			response = connect("get", sb.toString(), null, null);
+			response = connect("get", URLEncoder.encode(sb.toString(), "UTF-8"), null, null);
 			code = response.getStatusLine().getStatusCode();
 			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP code: " + code);
-			String result = this.readContent(response, METHOD);
-			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP content: " + result);
-			jsonResponse = new JsonParser().parse(result);
+			if (response != null) {
+				String result = this.readContent(response, METHOD);
+				LoggerUtility.info(CLASS_NAME, METHOD, "HTTP content: " + result);
+				if (result != null) {
+					jsonResponse = new JsonParser().parse(result);
+				}
+			}
 			if (code == 200) {
 				return jsonResponse.getAsJsonObject();
 			}
@@ -7296,6 +7301,8 @@ public class APIClient {
 			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
 		} else if (code == 403) {
 			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "Invalid request", jsonResponse);
 		} else if(code == 500) {
 			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
 		}
