@@ -182,9 +182,8 @@ public class GatewayCommandSubscriptionTest {
 					
 					JsonObject jsonProps = null;
 					try {
-						jsonProps = apiClient.getAccessControlProperties(testHelper.getGatewayDeviceId(), null);
+						jsonProps = apiClient.getAccessControlProperties(testHelper.getClientID(), null);
 					} catch (UnsupportedEncodingException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					if (jsonProps != null) {
@@ -217,11 +216,13 @@ public class GatewayCommandSubscriptionTest {
 			}
     		try {
 				apiClient.deleteDeviceType(DEVICE_TYPE);
+				LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " deleted.");
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
 			}
     		try {
 				apiClient.deleteDeviceType(GW_DEVICE_TYPE);
+				LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device type " + GW_DEVICE_TYPE + " deleted.");
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
 			}
@@ -937,6 +938,10 @@ public class GatewayCommandSubscriptionTest {
 		
 		public void disconnect() {
 			gwClient.disconnect();
+		}
+		
+		public String getClientID() {
+			return gwClient.getClientID();
 		}
 		
 		public boolean commandReceived() {
