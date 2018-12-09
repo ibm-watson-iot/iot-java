@@ -101,6 +101,17 @@ public class GatewayCommandSubscriptionTest {
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
+		
+		try {
+			JsonObject jsonResult = apiClient.getGetAPIKeyRoles(null);
+			if (jsonResult != null && jsonResult.has("results")) {
+				LoggerUtility.info(CLASS_NAME, METHOD, "API Key roles : " + jsonResult);
+			}
+		} catch (UnsupportedEncodingException e2) {
+			e2.printStackTrace();
+		} catch (IoTFCReSTException e2) {
+			e2.printStackTrace();
+		}
 
 		boolean exist = false;
 		try {
@@ -204,6 +215,11 @@ public class GatewayCommandSubscriptionTest {
 	public static void oneTimeTearDown() {
 		final String METHOD = "oneTimeTearDown";
 		
+		if (mqttAppClient != null) {
+			if (mqttAppClient.isConnected()) {
+				mqttAppClient.disconnect();
+			}
+		}
 		if (apiClient != null) {
 			for (int i=1; i<= totalTests; i++) {
 				Integer iTest = new Integer(i);
@@ -822,7 +838,7 @@ public class GatewayCommandSubscriptionTest {
 	 * @param cmdName Command to send, can be null
 	 * @param jsonCmd Json object for the command, can be null
 	 */
-	private void publishCommand(
+	private synchronized void publishCommand(
 			Integer iTest,
 			String gwType, String gwDevId, 
 			String devType, String devId, 
@@ -832,21 +848,23 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 		
-		Properties props = TestEnv.getAppProperties(APP_ID + iTest , false, null, null);
-		
-		ApplicationClient myAppClient = null;
-		
-		try {
-			myAppClient = new ApplicationClient(props);
-		} catch (Exception e1) {
-			e1.printStackTrace();
+		if (mqttAppClient == null) {
+			Properties props = TestEnv.getAppProperties(APP_ID, false, null, null);
+			try {
+				mqttAppClient = new ApplicationClient(props);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
-		try {
-			myAppClient.connect();
-		} catch (MqttException e) {
-			e.printStackTrace();
+		if (mqttAppClient.isConnected() == false) {
+			try {
+				mqttAppClient.connect();
+			} catch (MqttException ex) {
+				ex.printStackTrace();
+			}			
 		}
+
 
 		if (cmdName == null) {
 			// use default command name 
@@ -859,17 +877,14 @@ public class GatewayCommandSubscriptionTest {
 			jsonCmd.addProperty("delay", 0);
 		}
 		
-		LoggerUtility.info(CLASS_NAME, METHOD, myAppClient.getClientID() + " publish command " + cmdName);
+		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " publish command " + cmdName);
 		
 		if (gwType != null && gwDevId != null) {
 			mqttAppClient.publishCommand(gwType, gwDevId, cmdName, jsonCmd);
 		} else {
 			mqttAppClient.publishCommand(devType, devId, cmdName, jsonCmd);
 		}
-		
-		myAppClient.disconnect();
-		LoggerUtility.info(CLASS_NAME, METHOD, myAppClient.getClientID() + " Connected ? " + myAppClient.isConnected());
-		
+				
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
 	}
 

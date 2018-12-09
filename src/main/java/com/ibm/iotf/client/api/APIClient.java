@@ -7308,4 +7308,57 @@ public class APIClient {
 		return null;
 		
 	}
+
+	public JsonObject getGetAPIKeyRoles(String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
+		final String METHOD = "getGetAPIKeyRoles";
+		String sAPIKey = URLEncoder.encode(this.authKey, "UTF-8");
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/authorization/apikeys/").
+		   append(sAPIKey).
+		   append("/roles");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP code: " + code);
+			if (response != null) {
+				String result = this.readContent(response, METHOD);
+				if (result != null) {
+					jsonResponse = new JsonParser().parse(result);
+				}
+			}
+			if (code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving API Key roles "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "Invalid request", jsonResponse);
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+		
+	}
+
+
 }
