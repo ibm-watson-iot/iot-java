@@ -220,21 +220,21 @@ public class DeviceCommandSubscriptionTest {
 	}
 	
 	
-	private void publichCommand(int type) {
+	private synchronized void publishCommand(int type) {
 		
-		final String METHOD = "publichCommand";
+		final String METHOD = "publishCommand";
 		
 		Properties props = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
 		
-		ApplicationClient myAppClient = null;
+		ApplicationClient mqttAppClient = null;
 		try {
-			myAppClient = new ApplicationClient(props);
+			mqttAppClient = new ApplicationClient(props);
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		try {
-			myAppClient.connect();
+			mqttAppClient.connect();
 		} catch (MqttException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -246,17 +246,17 @@ public class DeviceCommandSubscriptionTest {
 			data.addProperty("delay",  0);
 			
 			//Registered flow allows 0, 1 and 2 QoS
-			myAppClient.publishCommand(DEVICE_TYPE, DEVICE_ID, "stop", data);
+			mqttAppClient.publishCommand(DEVICE_TYPE, DEVICE_ID, "stop", data);
 		} else {
 			try {
-				myAppClient.publishCommand(DEVICE_TYPE, DEVICE_ID, "stop", "rotation:80", "custom", 1);
+				mqttAppClient.publishCommand(DEVICE_TYPE, DEVICE_ID, "stop", "rotation:80", "custom", 1);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		myAppClient.disconnect();
-		LoggerUtility.info(CLASS_NAME, METHOD, "Connected " + myAppClient.isConnected());
+		mqttAppClient.disconnect();
+		LoggerUtility.info(CLASS_NAME, METHOD, "Connected " + mqttAppClient.isConnected());
 	}
 
 	

@@ -55,8 +55,6 @@ public class GatewayCommandSubscriptionTest {
 	private final static String GW_DEVICE_ID_PREFIX = "GwCmdSubDev";
 
 	private static APIClient apiClient = null;
-	private static ApplicationClient mqttAppClient = null;
-	
 	private static int testNum = 1;
 	private final static int totalTests = 10;
 	
@@ -215,11 +213,6 @@ public class GatewayCommandSubscriptionTest {
 	public static void oneTimeTearDown() {
 		final String METHOD = "oneTimeTearDown";
 		
-		if (mqttAppClient != null) {
-			if (mqttAppClient.isConnected()) {
-				mqttAppClient.disconnect();
-			}
-		}
 		if (apiClient != null) {
 			for (int i=1; i<= totalTests; i++) {
 				Integer iTest = new Integer(i);
@@ -848,23 +841,19 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 		
-		if (mqttAppClient == null) {
-			Properties props = TestEnv.getAppProperties(APP_ID, false, null, null);
-			try {
-				mqttAppClient = new ApplicationClient(props);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
-		if (mqttAppClient.isConnected() == false) {
-			try {
-				mqttAppClient.connect();
-			} catch (MqttException ex) {
-				ex.printStackTrace();
-			}			
+		ApplicationClient mqttAppClient = null;
+		Properties props = TestEnv.getAppProperties(APP_ID + iTest, false, null, null);
+		try {
+			mqttAppClient = new ApplicationClient(props);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
+		try {
+			mqttAppClient.connect();
+		} catch (MqttException ex) {
+			ex.printStackTrace();
+		}			
 
 		if (cmdName == null) {
 			// use default command name 
@@ -884,7 +873,9 @@ public class GatewayCommandSubscriptionTest {
 		} else {
 			mqttAppClient.publishCommand(devType, devId, cmdName, jsonCmd);
 		}
-				
+		
+		mqttAppClient.disconnect();
+		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
 	}
 
