@@ -94,7 +94,7 @@ public abstract class AbstractClient {
 	protected static final int MQTT_PORT = 1883;
 	protected static final int WS_PORT = 1883;
 
-	private volatile boolean disconnectRequested = false;
+	protected volatile boolean disconnectRequested = false;
 	
 	/* Wait for 1 second after each attempt for the first 10 attempts*/
 	private static final long RATE_0 = TimeUnit.SECONDS.toMillis(1);
