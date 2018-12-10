@@ -389,6 +389,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		testHelper.disconnect();
+		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertTrue("The command is not received by gateway", testHelper.commandReceived());
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
 	}
@@ -435,9 +436,8 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		testHelper.disconnect();
-		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertTrue("The command is not received by gateway", testHelper.commandReceived());
-		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
 	}
 	
@@ -485,6 +485,8 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		testHelper.disconnect();
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "The command received ? " + testHelper.commandReceived());
 		
 		assertTrue("The command is not received by gateway", testHelper.commandReceived());
 		
@@ -536,6 +538,8 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		testHelper.disconnect();
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "The command received ? " + testHelper.commandReceived());
 		
 		assertTrue("The command is not received by gateway", testHelper.commandReceived());
 		
@@ -620,6 +624,8 @@ public class GatewayCommandSubscriptionTest {
 		
 		deleteDevice(newGwType, newGwId);
 		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Notification received ? " + testHelper.notificationReceived());
+		
 		assertTrue("Notification was not received by gateway", testHelper.notificationReceived());
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
@@ -670,9 +676,8 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		testHelper.disconnect();
-		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertTrue("The command is not received by gateway", testHelper.commandReceived());
-		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
 	}
 
@@ -720,6 +725,9 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
+		testHelper.disconnect();
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertTrue("The command is not received by gateway", testHelper.commandReceived());
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
@@ -788,9 +796,8 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		testHelper.disconnect();
-		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertFalse("The command should not be received by gateway", testHelper.commandReceived());
-				
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
 	}
 	
@@ -857,6 +864,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		testHelper.disconnect();
+		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertFalse("The command should not be received by gateway", testHelper.commandReceived());
 				
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
@@ -923,7 +931,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		testHelper.disconnect();
-		
+		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertFalse("The command should not be received by gateway", testHelper.commandReceived());
 				
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
