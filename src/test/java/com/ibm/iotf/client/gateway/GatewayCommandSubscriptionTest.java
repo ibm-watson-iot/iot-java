@@ -191,7 +191,7 @@ public class GatewayCommandSubscriptionTest {
 					
 					JsonObject jsonResult = null;
 					
-					String attachedDeviceUID = null;
+					String attacedDeviceClientId = null;
 					// Get device details
 					jsonResult = apiClient.getDevice(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
 					if (jsonResult != null) {
@@ -203,8 +203,8 @@ public class GatewayCommandSubscriptionTest {
 					if (jsonResult != null) {
 						LoggerUtility.info(CLASS_NAME, METHOD, testHelper.getAttachedDeviceId() + " details : " 
 								+ jsonResult);
-						if (jsonResult.has("id")) {
-							attachedDeviceUID = jsonResult.get("id").getAsString();
+						if (jsonResult.has("clientId")) {
+							attacedDeviceClientId = jsonResult.get("clientId").getAsString();
 						}
 					}
 					
@@ -219,15 +219,15 @@ public class GatewayCommandSubscriptionTest {
 								+ jsonResult);
 					}
 					
-					if (attachedDeviceUID != null) {
+					if (attacedDeviceClientId != null) {
 						try {
-							jsonResult = apiClient.getAccessControlProperties(attachedDeviceUID, null);
+							jsonResult = apiClient.getAccessControlProperties(attacedDeviceClientId, null);
 						} catch (UnsupportedEncodingException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						if (jsonResult != null && jsonResult.has("results")) {
-							LoggerUtility.info(CLASS_NAME, METHOD, attachedDeviceUID + " access control : " 
+							LoggerUtility.info(CLASS_NAME, METHOD, attacedDeviceClientId + " access control : " 
 									+ jsonResult);
 						}
 					}
