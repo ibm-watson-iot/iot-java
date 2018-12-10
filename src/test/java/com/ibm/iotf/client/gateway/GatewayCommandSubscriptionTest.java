@@ -31,6 +31,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.*;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
@@ -85,6 +86,57 @@ public class GatewayCommandSubscriptionTest {
 		}			
 	}
 	
+	private static Properties createAPIKey(APIClient apiClient, String comment, ArrayList<String> roles) {
+		Properties props = null;
+		JsonObject apiKeyDetails = new JsonObject();
+		apiKeyDetails.addProperty("comment", comment);
+		JsonArray jarrayRoles = new JsonArray();
+		for (String role : roles) {
+			jarrayRoles.add(role);
+		}
+		apiKeyDetails.add("roles", jarrayRoles);
+		
+		try {
+			JsonObject jsonResult = apiClient.createAPIKey(apiKeyDetails);
+			if (jsonResult.has("key") && jsonResult.has("token")) {
+				props = new Properties(apiClient.getProperties());
+				props.setProperty("API-Key", jsonResult.get("key").getAsString());
+				props.setProperty("Authentication-Token", jsonResult.get("token").getAsString());
+			}
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
+		}
+		return props;
+	}
+	
+	private static void deleteAPIKeys(APIClient apiClient, String comment) {
+		try {
+			JsonArray jarrayResult = apiClient.getAllAPIKeys();
+			
+			if (jarrayResult != null) {
+				int size = jarrayResult.size();
+				for (int i=0; i<size; i++) {
+					JsonObject jsonObj = jarrayResult.get(i).getAsJsonObject();
+					if (jsonObj.has("comment")) {
+						if (comment.equals(jsonObj.get("comment").getAsString())) {
+							if (jsonObj.has("key")) {
+								try {
+									apiClient.deleteAPIKey(jsonObj.get("key").getAsString());
+								} catch (UnsupportedEncodingException e) {
+									e.printStackTrace();
+								}
+							}
+							
+						}
+					}
+				}
+			}
+			
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@BeforeClass
 	public static void oneTimeSetup() {
 		
@@ -109,6 +161,15 @@ public class GatewayCommandSubscriptionTest {
 			e2.printStackTrace();
 		} catch (IoTFCReSTException e2) {
 			e2.printStackTrace();
+		}
+		
+		// Create test API key with comment = CLASS_NAME
+		ArrayList<String> roles = new ArrayList<String>();
+		roles.add("PD_STANDARD_APP");
+		Properties newApiClientProps = createAPIKey(apiClient, CLASS_NAME, roles);
+		
+		if (newApiClientProps != null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "New test API Key : " + newApiClientProps.getProperty("API-Key"));
 		}
 
 		boolean exist = false;
@@ -217,7 +278,20 @@ public class GatewayCommandSubscriptionTest {
 					if (jsonResult != null && jsonResult.has("results")) {
 						LoggerUtility.info(CLASS_NAME, METHOD, testHelper.getGatewayDeviceId() + " access control : " 
 								+ jsonResult);
+						String groupId = "gw_def_res_grp:" + TestEnv.getOrgId() 
+								+ ":"+ testHelper.getGatewayDeviceType() + ":" + testHelper.getGatewayDeviceId();
+						try {
+							jsonResult = apiClient.getDevicesInResourceGroup(groupId, null);
+						} catch (UnsupportedEncodingException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+						if (jsonResult != null) {
+							LoggerUtility.info(CLASS_NAME, METHOD, groupId + " has devices : " + jsonResult);
+						}
 					}
+					
 					
 					if (attacedDeviceClientId != null) {
 						try {
@@ -246,6 +320,9 @@ public class GatewayCommandSubscriptionTest {
 		final String METHOD = "oneTimeTearDown";
 		
 		if (apiClient != null) {
+			
+			deleteAPIKeys(apiClient, CLASS_NAME);
+			
 			for (int i=1; i<= totalTests; i++) {
 				Integer iTest = new Integer(i);
 				TestHelper testHelper = testMap.get(iTest);

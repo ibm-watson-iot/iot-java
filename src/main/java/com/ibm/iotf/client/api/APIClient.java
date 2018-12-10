@@ -69,6 +69,8 @@ public class APIClient {
 	private static final String CLASS_NAME = APIClient.class.getName();
 	
 	private static final String BASIC_API_V0002_URL = "/api/v0002";
+	
+	private Properties properties = null;
 
 	private String authKey = null;
 	private String authToken = null;
@@ -116,46 +118,56 @@ public class APIClient {
 		
 	private ContentType contentType = ContentType.json;
 	private boolean isSecured = true;
-	public APIClient(Properties opt) throws NoSuchAlgorithmException, KeyManagementException {
+	
+	/**
+	 * API client constructor
+	 * 
+	 * @param props
+	 * @throws NoSuchAlgorithmException
+	 * @throws KeyManagementException
+	 */
+	public APIClient(Properties props) throws NoSuchAlgorithmException, KeyManagementException {
 		boolean isGateway = false;
 		String authKeyPassed = null;
 		
-		if("gateway".equalsIgnoreCase(APIClient.getAuthMethod(opt))) {
+		this.properties = new Properties(props);
+		
+		if("gateway".equalsIgnoreCase(APIClient.getAuthMethod(properties))) {
 			isGateway = true;
-		} else if("device".equalsIgnoreCase(APIClient.getAuthMethod(opt))) {
+		} else if("device".equalsIgnoreCase(APIClient.getAuthMethod(properties))) {
 			authKey = "use-token-auth";
 		} else {
-			authKeyPassed = opt.getProperty("auth-key");
+			authKeyPassed = properties.getProperty("auth-key");
 			if(authKeyPassed == null) {
-				authKeyPassed = opt.getProperty("API-Key");
+				authKeyPassed = properties.getProperty("API-Key");
 			}
 		
 			authKey = trimedValue(authKeyPassed);
 		}
-		String token = opt.getProperty("API-Token");
+		String token = properties.getProperty("API-Token");
 		if (token == null) {
-			token = opt.getProperty("auth-token");
+			token = properties.getProperty("auth-token");
 			if (token == null) {
-				token = opt.getProperty("Authentication-Token");
+				token = properties.getProperty("Authentication-Token");
 			}
 		}
 		authToken = trimedValue(token);
 
 		String org = null;
-		org = opt.getProperty("org");
+		org = properties.getProperty("org");
 		
 		if(org == null) {
-			org = opt.getProperty("Organization-ID");
+			org = properties.getProperty("Organization-ID");
 		}
 		
 		this.orgId = trimedValue(org);
-		this.domain = getDomain(opt);
+		this.domain = getDomain(properties);
 		
 		if(this.orgId == null || this.orgId.equalsIgnoreCase("quickstart"))
 			isQuickstart = true;
-		this.mdeviceType = this.getDeviceType(opt);
-		this.mdeviceId = this.getDeviceId(opt);
-		this.isSecured = this.IsSecuredConnection(opt);
+		this.mdeviceType = this.getDeviceType(properties);
+		this.mdeviceId = this.getDeviceId(properties);
+		this.isSecured = this.IsSecuredConnection(properties);
 		if(isGateway) {
 			authKey = "g/" + this.orgId + '/' + mdeviceType + '/' + mdeviceId;
 		}
@@ -163,7 +175,7 @@ public class APIClient {
 		TrustManager[] trustAllCerts = null;
 		boolean trustAll = false;
 		
-		String value = opt.getProperty("Trust-All-Certificates");
+		String value = properties.getProperty("Trust-All-Certificates");
 		if (value != null) {
 			trustAll = Boolean.parseBoolean(trimedValue(value));
 		}
@@ -187,15 +199,24 @@ public class APIClient {
 	}
 	
 	/**
-	 * @param options List of properties 
+	 * Return the properties of this API client object.
+	 * 
+	 * @return Properties
+	 */
+	public Properties getProperties() {
+		return properties;
+	}
+	
+	/**
+	 * @param propertiesions List of properties 
 	 * @return the domain
 	 */
-	protected String getDomain(Properties options) {
+	protected String getDomain(Properties propertiesions) {
 		String domain;
-		domain = options.getProperty("domain");
+		domain = propertiesions.getProperty("domain");
 		
 		if(domain == null) {
-			domain = options.getProperty("Domain");
+			domain = propertiesions.getProperty("Domain");
 		}
 		domain = trimedValue(domain);
 		
@@ -206,10 +227,10 @@ public class APIClient {
 		}
 	}
 	
-	private static String getAuthMethod(Properties opt) {
-		String method = opt.getProperty("auth-method");
+	private static String getAuthMethod(Properties properties) {
+		String method = properties.getProperty("auth-method");
 		if(method == null) {
-			method = opt.getProperty("Authentication-Method");
+			method = properties.getProperty("Authentication-Method");
 		}
 		
 		return trimedValue(method);
@@ -219,33 +240,33 @@ public class APIClient {
 	 * old style - id
 	 * new style - Device-ID
 	 */
-	protected String getDeviceId(Properties options) {
+	protected String getDeviceId(Properties propertiesions) {
 		String id;
-		id = options.getProperty("Gateway-ID");
+		id = propertiesions.getProperty("Gateway-ID");
 		if(id == null) {
-			id = options.getProperty("Device-ID");
+			id = propertiesions.getProperty("Device-ID");
 		}
 		if(id == null) {
-			id = options.getProperty("id");
+			id = propertiesions.getProperty("id");
 		}
 		return trimedValue(id);
 	}
 	
-	protected String getDeviceType(Properties options) {
+	protected String getDeviceType(Properties propertiesions) {
 		String type;
-		type = options.getProperty("Gateway-Type");
+		type = propertiesions.getProperty("Gateway-Type");
 		if(type == null) {
-			type = options.getProperty("Device-Type");
+			type = propertiesions.getProperty("Device-Type");
 		}
 		if(type == null) {
-			type = options.getProperty("type");
+			type = propertiesions.getProperty("type");
 		}
 		return trimedValue(type);
 	}
-	protected boolean IsSecuredConnection(Properties options) {
+	protected boolean IsSecuredConnection(Properties propertiesions) {
 		boolean type = true;
 		String id;
-		id = options.getProperty("Secure");
+		id = propertiesions.getProperty("Secure");
 		if(id != null)
 			type = trimedValue(id).equalsIgnoreCase("true");
 		
@@ -7276,7 +7297,6 @@ public class APIClient {
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
-			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP code: " + code);
 			if (response != null) {
 				String result = this.readContent(response, METHOD);
 				if (result != null) {
@@ -7309,6 +7329,216 @@ public class APIClient {
 		
 	}
 
+	public JsonObject getDevicesInResourceGroup(String groupId, String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
+		final String METHOD = "getActiveSchemaDefinitionContents";
+		String sGroupId = URLEncoder.encode(groupId, "UTF-8");
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/bulk/devices/").
+		   append(sGroupId);
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if (response != null) {
+				String result = this.readContent(response, METHOD);
+				if (result != null) {
+					jsonResponse = new JsonParser().parse(result);
+				}
+			}
+			if (code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving devices in resource group "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "Invalid request", jsonResponse);
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+		
+	}
+	
+	public JsonArray getAllAPIKeys() throws IoTFCReSTException {
+		final String METHOD = "deleteAPIKey";
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/authorization/apikeys/");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+
+		try {
+			response = connect("get", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if (response != null) {
+				String result = this.readContent(response, METHOD);
+				if (result != null) {
+					jsonResponse = new JsonParser().parse(result);
+				}
+			}
+			if (code == 200) {
+				return jsonResponse.getAsJsonArray();
+			}
+
+		} catch (Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in creating API Key roles "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "Invalid request", jsonResponse);
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+	}
+	
+	/**
+	 * Delete API Key
+	 * 
+	 * @param apiDetails
+	 * @return
+	 * @throws IoTFCReSTException
+	 * @throws UnsupportedEncodingException 
+	 */
+	public boolean deleteAPIKey(String apiKey) throws IoTFCReSTException, UnsupportedEncodingException {
+		final String METHOD = "deleteAPIKey";
+		String sAPIKey = URLEncoder.encode(apiKey, "UTF-8");
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/authorization/apikeys/").
+		   append(sAPIKey);
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+
+		try {
+			response = connect("delete", sb.toString(), null, null);
+			code = response.getStatusLine().getStatusCode();
+			if (code == 200) {
+				return true;
+			}
+
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in creating API Key roles "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "Invalid request", jsonResponse);
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return false;
+
+	}
+
+	/**
+	 * Create API Key
+	 * 
+	 * @param apiDetails
+	 * @return
+	 * @throws IoTFCReSTException
+	 */
+	public JsonObject createAPIKey(JsonObject apiDetails) throws IoTFCReSTException {
+		final String METHOD = "createAPIKey";
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/authorization/apikeys");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+
+		try {
+			response = connect("post", sb.toString(), apiDetails.toString(), null);
+			code = response.getStatusLine().getStatusCode();
+			if (response != null) {
+				String result = this.readContent(response, METHOD);
+				if (result != null) {
+					jsonResponse = new JsonParser().parse(result);
+				}
+			}
+			if (code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting API Key roles "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "Invalid request", jsonResponse);
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+
+	}
+	
+	/**
+	 * Get API Key roles
+	 * 
+	 * @param bookmark Issue the first request without specifying a bookmark, 
+	 *        then take the bookmark returned in the response and provide it 
+	 *        on the request for the next page. 
+	 * @return
+	 * @throws IoTFCReSTException
+	 * @throws UnsupportedEncodingException
+	 */
 	public JsonObject getGetAPIKeyRoles(String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
 		final String METHOD = "getGetAPIKeyRoles";
 		String sAPIKey = URLEncoder.encode(this.authKey, "UTF-8");
@@ -7327,7 +7557,6 @@ public class APIClient {
 		try {
 			response = connect("get", sb.toString(), null, null);
 			code = response.getStatusLine().getStatusCode();
-			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP code: " + code);
 			if (response != null) {
 				String result = this.readContent(response, METHOD);
 				if (result != null) {
