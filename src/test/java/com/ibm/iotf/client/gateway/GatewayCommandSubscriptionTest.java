@@ -913,6 +913,7 @@ public class GatewayCommandSubscriptionTest {
 	}
 	
 	private static class TestHelper {
+		static final String CLASS_NAME = TestHelper.class.getName();
 		String gwDevType = null;
 		String gwDevId = null;
 		String devType = null;
@@ -939,11 +940,15 @@ public class GatewayCommandSubscriptionTest {
 		public String getAttachedDeviceId() { return devId; }
 		
 		public void connect() throws MqttException {
+			final String METHOD = "connect";
 			gwClient.connect();
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " connected " + gwClient.isConnected());
 		}
 		
 		public void disconnect() {
+			final String METHOD = "disconnect";
 			gwClient.disconnect();
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " connected " + gwClient.isConnected());
 		}
 		
 		public String getClientID() {
@@ -963,43 +968,63 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		public void subscribeNotification() {
+			final String METHOD = "subscribeNotification";
 			gwClient.subscribeToGatewayNotification();
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " subscribed to notification");
 		}
 		
 		public void subscribeCommands() {
+			final String METHOD = "subscribeCommands";
 			gwClient.subscribeToDeviceCommands(devType, devId);
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " subscribed to all commands.");
 		}
 		
 		public void subscribeCommand(String command) {
+			final String METHOD = "subscribeCommands";
 			gwClient.subscribeToDeviceCommands(devType, devId, command);
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " subscribed to command " + command);
 		}
 
 		public void subscribeCommand(String command, int qos) {
+			final String METHOD = "subscribeCommand";
 			gwClient.subscribeToDeviceCommands(devType, devId, command, qos);
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " subscribed to command " + command + " and QoS " + qos);
 		}
 		
 		public void subscribeCommand(String command, String format) {
+			final String METHOD = "subscribeCommand";
 			gwClient.subscribeToDeviceCommands(devType, devId, command, format);
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " subscribed to command " + command + " and format " + format);
 		}
 
 		public void subscribeCommand(String command, String format, int qos) {
+			final String METHOD = "subscribeCommand";
 			gwClient.subscribeToDeviceCommands(devType, devId, command, format, qos);
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " subscribed to command " + command + " and format " + format + " and QoS " + qos);
 		}
 
 		public void publishEvent(String devType, String devId, String event, JsonObject jsonData) {
+			final String METHOD = "publishEvent";
 			gwClient.publishDeviceEvent(devId, devId, event, jsonData);
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " publish event to device type " + devType + " device ID " + devId + " Event " + event);
 		}
 
 		public void unsubscribeCommands() {
+			final String METHOD = "unsubscribeCommands";
 			gwClient.unsubscribeFromDeviceCommands(devType, devId);
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " unsubscribed from all commands");
 		}
 
 		public void unsubscribeCommand(String command) {
+			final String METHOD = "unsubscribeCommand";
 			gwClient.unsubscribeFromDeviceCommands(devType, devId, command);
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " unsubscribed from command " + command);
 		}
 
 		public void unsubscribeCommand(String command, String format) {
+			final String METHOD = "unsubscribeCommand";
 			gwClient.unsubscribeFromDeviceCommands(devType, devId, command, format);
+			LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " unsubscribed from command " + command + " and format " + format);
 		}
 
 	}
