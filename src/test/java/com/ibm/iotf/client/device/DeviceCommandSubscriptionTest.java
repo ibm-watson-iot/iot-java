@@ -157,7 +157,7 @@ public class DeviceCommandSubscriptionTest {
 		}
 		
 		// Ask application to publish the command to this device now
-		publichCommand(1);
+		publishCommand(1);
 		
 		int count = 0;
 		// wait for sometime before checking
@@ -204,7 +204,7 @@ public class DeviceCommandSubscriptionTest {
 		}
 		
 		// Ask application to publish the command to this device now
-		publichCommand(2);
+		publishCommand(2);
 		
 		int count = 0;
 		// wait for sometime before checking
