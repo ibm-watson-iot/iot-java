@@ -256,7 +256,7 @@ public class DeviceCommandSubscriptionTest {
 			}
 		}
 		mqttAppClient.disconnect();
-		LoggerUtility.info(CLASS_NAME, METHOD, "Connected " + mqttAppClient.isConnected());
+		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " disconnect succeeded " + (mqttAppClient.isConnected() == false));
 	}
 
 	

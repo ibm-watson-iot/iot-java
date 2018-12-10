@@ -190,6 +190,25 @@ public class GatewayCommandSubscriptionTest {
 					LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device " + testHelper.getGatewayDeviceId() + " does exist.");
 					
 					JsonObject jsonResult = null;
+					
+					String attachedDeviceUID = null;
+					// Get device details
+					jsonResult = apiClient.getDevice(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
+					if (jsonResult != null) {
+						LoggerUtility.info(CLASS_NAME, METHOD, testHelper.getGatewayDeviceId() + " details : " 
+								+ jsonResult);
+					}
+					
+					jsonResult = apiClient.getDevice(testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId());
+					if (jsonResult != null) {
+						LoggerUtility.info(CLASS_NAME, METHOD, testHelper.getAttachedDeviceId() + " details : " 
+								+ jsonResult);
+						if (jsonResult.has("id")) {
+							attachedDeviceUID = jsonResult.get("id").getAsString();
+						}
+					}
+					
+					// Get Resource Group Info
 					try {
 						jsonResult = apiClient.getAccessControlProperties(testHelper.getClientID(), null);
 					} catch (UnsupportedEncodingException e) {
@@ -198,6 +217,19 @@ public class GatewayCommandSubscriptionTest {
 					if (jsonResult != null && jsonResult.has("results")) {
 						LoggerUtility.info(CLASS_NAME, METHOD, testHelper.getGatewayDeviceId() + " access control : " 
 								+ jsonResult);
+					}
+					
+					if (attachedDeviceUID != null) {
+						try {
+							jsonResult = apiClient.getAccessControlProperties(attachedDeviceUID, null);
+						} catch (UnsupportedEncodingException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						if (jsonResult != null && jsonResult.has("results")) {
+							LoggerUtility.info(CLASS_NAME, METHOD, attachedDeviceUID + " access control : " 
+									+ jsonResult);
+						}
 					}
 					
 				} catch (IoTFCReSTException e) { 
