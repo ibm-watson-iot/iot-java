@@ -67,8 +67,14 @@ public class GatewayCommandSubscriptionTest {
 		return number;
 	}
 	
-	private static void deleteDevice(String devType, String devId) {
-		final String METHOD = "deleteDevices";
+	/**
+	 * Delete a device
+	 * 
+	 * @param devType Device Type
+	 * @param devId   Device Id
+	 */
+	private static void deleteDevice(APIClient apiClient, String devType, String devId) {
+		final String METHOD = "deleteDevice";
 		boolean exist = false;
 		try {
 			exist = apiClient.isDeviceExist(devType, devId);
@@ -79,15 +85,30 @@ public class GatewayCommandSubscriptionTest {
 		if (exist) {
 			try {
 				apiClient.deleteDevice(devType, devId);
-				LoggerUtility.info(CLASS_NAME, METHOD, "Device ID " + devId + " has been deleted.");
+				LoggerUtility.info(CLASS_NAME, METHOD, "Device ID (" + devId + ") deleted.");
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
 			}
 		}			
 	}
 	
+	/**
+	 * Create a API Key and return properties which can be used to instantiate application client.
+	 * 
+	 * @param apiClient
+	 * @param comment
+	 * @param roles
+	 * @return
+	 */
 	private static Properties createAPIKey(APIClient apiClient, String comment, ArrayList<String> roles) {
+		final String METHOD = "createAPIKey";
 		Properties props = null;
+		
+		if (comment == null || comment.isEmpty()) {
+			LoggerUtility.warn(CLASS_NAME, METHOD, "comment can not be null or empty.");
+			return null;
+		}
+		
 		JsonObject apiKeyDetails = new JsonObject();
 		apiKeyDetails.addProperty("comment", comment);
 		JsonArray jarrayRoles = new JsonArray();
@@ -103,13 +124,21 @@ public class GatewayCommandSubscriptionTest {
 				props.setProperty("API-Key", jsonResult.get("key").getAsString());
 				props.setProperty("Authentication-Token", jsonResult.get("token").getAsString());
 			}
+			LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + props.getProperty("API-KEY") + ") created.");
 		} catch (IoTFCReSTException e) {
 			e.printStackTrace();
 		}
 		return props;
 	}
 	
+	/**
+	 * Delete API keys that were created in a test run.
+	 * A comment is used to determine if a API key was created by a test.
+	 * @param apiClient
+	 * @param comment
+	 */
 	private static void deleteAPIKeys(APIClient apiClient, String comment) {
+		final String METHOD = "deleteAPIKeys";
 		try {
 			JsonArray jarrayResult = apiClient.getAllAPIKeys();
 			
@@ -119,9 +148,12 @@ public class GatewayCommandSubscriptionTest {
 					JsonObject jsonObj = jarrayResult.get(i).getAsJsonObject();
 					if (jsonObj.has("comment")) {
 						if (comment.equals(jsonObj.get("comment").getAsString())) {
+							
 							if (jsonObj.has("key")) {
 								try {
-									apiClient.deleteAPIKey(jsonObj.get("key").getAsString());
+									String apiKey = jsonObj.get("key").getAsString();
+									LoggerUtility.info(CLASS_NAME, METHOD, "Deleting API Key " + apiKey);
+									apiClient.deleteAPIKey(apiKey);
 								} catch (UnsupportedEncodingException e) {
 									e.printStackTrace();
 								}
@@ -153,9 +185,9 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		try {
-			JsonObject jsonResult = apiClient.getGetAPIKeyRoles(null);
+			JsonObject jsonResult = apiClient.getGetAPIKeyRoles((String)null);
 			if (jsonResult != null && jsonResult.has("results")) {
-				LoggerUtility.info(CLASS_NAME, METHOD, "API Key roles : " + jsonResult);
+				LoggerUtility.info(CLASS_NAME, METHOD, "This API Key roles : " + jsonResult);
 			}
 		} catch (UnsupportedEncodingException e2) {
 			e2.printStackTrace();
@@ -169,7 +201,18 @@ public class GatewayCommandSubscriptionTest {
 		Properties newApiClientProps = createAPIKey(apiClient, CLASS_NAME, roles);
 		
 		if (newApiClientProps != null) {
-			LoggerUtility.info(CLASS_NAME, METHOD, "New test API Key : " + newApiClientProps.getProperty("API-Key"));
+			String apiKey = newApiClientProps.getProperty("API-Key");
+			LoggerUtility.info(CLASS_NAME, METHOD, "New test API Key : " + apiKey);
+			JsonObject jsonResult = null;
+			try {
+				jsonResult = apiClient.getGetAPIKeyRoles((String)null);
+			} catch (UnsupportedEncodingException | IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (jsonResult != null && jsonResult.has("results")) {
+				LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + apiKey + ") roles : " + jsonResult);
+			}
 		}
 
 		boolean exist = false;
@@ -210,8 +253,8 @@ public class GatewayCommandSubscriptionTest {
 			String devId = new String(DEVICE_ID_PREFIX + "_" + i);
 			String gwDevId = new String(GW_DEVICE_ID_PREFIX + "_" + i);
 			
-			deleteDevice(DEVICE_TYPE, devId);
-			deleteDevice(GW_DEVICE_TYPE, gwDevId);
+			deleteDevice(apiClient, DEVICE_TYPE, devId);
+			deleteDevice(apiClient, GW_DEVICE_TYPE, gwDevId);
 			
 			// Register gateway device
 			try {
@@ -281,7 +324,7 @@ public class GatewayCommandSubscriptionTest {
 						String groupId = "gw_def_res_grp:" + TestEnv.getOrgId() 
 								+ ":"+ testHelper.getGatewayDeviceType() + ":" + testHelper.getGatewayDeviceId();
 						try {
-							jsonResult = apiClient.getDevicesInResourceGroup(groupId, null);
+							jsonResult = apiClient.getDevicesInResourceGroup(groupId, (String)null);
 						} catch (UnsupportedEncodingException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -328,8 +371,8 @@ public class GatewayCommandSubscriptionTest {
 				TestHelper testHelper = testMap.get(iTest);
 				
 				if (testHelper != null) {
-					deleteDevice(testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId());
-					deleteDevice(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
+					deleteDevice(apiClient, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId());
+					deleteDevice(apiClient, testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
 				}
 			}
     		try {
@@ -622,7 +665,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		testHelper.disconnect();
 		
-		deleteDevice(newGwType, newGwId);
+		deleteDevice(apiClient, newGwType, newGwId);
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Notification received ? " + testHelper.notificationReceived());
 		
