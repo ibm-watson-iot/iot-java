@@ -11,11 +11,14 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.gateway.GatewayClient;
+import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.test.common.TestGatewayCallback;
 import com.ibm.iotf.util.LoggerUtility;
 
 public class TestHelper {
 	static final String CLASS_NAME = TestHelper.class.getName();
+	Properties appProps = null;
+	ApplicationClient mqttAppClient = null;
 	String gwDevType = null;
 	String gwDevId = null;
 	String devType = null;
@@ -232,10 +235,70 @@ public class TestHelper {
 		gwClient.setGatewayCallback(callback);
 	}
 	
+	public void setAppProperties(Properties props) throws Exception {
+		this.appProps = props;
+		mqttAppClient = new ApplicationClient(this.appProps);
+	}
+	
 	public String getGatewayDeviceType() { return gwDevType; }
 	public String getGatewayDeviceId() { return gwDevId; }
 	public String getAttachedDeviceType() { return devType; }
 	public String getAttachedDeviceId() { return devId; }
+	
+	public void connectApplication() throws MqttException {
+		final String METHOD = "connectApplication";
+		mqttAppClient.connect();
+		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " connected " + mqttAppClient.isConnected());
+	}
+	
+	public void disconnectApplication() {
+		final String METHOD = "disconnectApplication";
+		mqttAppClient.disconnect();
+		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " connected " + mqttAppClient.isConnected());
+	}
+	
+	public void appPublishCommand(
+			String gwType, String gwDevId, 
+			String devType, String devId, 
+			String cmdName, JsonObject jsonCmd) {
+		
+		final String METHOD = "appPublishCommand";
+		
+		if (mqttAppClient == null) {
+			return;
+		}
+		
+		if (mqttAppClient.isConnected() == false) {
+			try {
+				mqttAppClient.connect();
+			} catch (MqttException e) {
+				e.printStackTrace();
+				return;
+			}
+		}
+		
+		if (cmdName == null) {
+			// use default command name 
+			cmdName = "stop";
+		}
+		
+		if (jsonCmd == null) {
+			jsonCmd = new JsonObject();
+			jsonCmd.addProperty("name", "stop-rotation");
+			jsonCmd.addProperty("delay", 0);
+		}
+		
+		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " publish command " + cmdName);
+		
+		if (gwType != null && gwDevId != null) {
+			mqttAppClient.publishCommand(gwType, gwDevId, cmdName, jsonCmd);
+		} else {
+			mqttAppClient.publishCommand(devType, devId, cmdName, jsonCmd);
+		}
+		
+		mqttAppClient.disconnect();
+		
+	}
 	
 	public void connectGateway() throws MqttException {
 		final String METHOD = "connectGateway";
