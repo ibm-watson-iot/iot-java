@@ -7345,7 +7345,8 @@ public class APIClient {
 		   append('.').
 		   append(this.domain).append(BASIC_API_V0002_URL).
 		   append("/bulk/devices/").
-		   append(sGroupId);
+		   append(sGroupId).
+		   append("/add");
 		int code = 0;
 		HttpResponse response = null;
 		JsonElement jsonResponse = null;
