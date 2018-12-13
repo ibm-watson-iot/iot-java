@@ -7329,6 +7329,68 @@ public class APIClient {
 		
 	}
 	
+	/**
+	 * Assign devices to a resource group 
+	 * @param groupId Unique identifier (e.g. acc8b2a1-b979-4323-9d8f-7e2c4752d39a).
+	 * @param devices Json Array of devices [{ "typeId": "string", "deviceId" : "string"}]
+	 * @throws UnsupportedEncodingException
+	 * @throws IoTFCReSTException
+	 */
+	public void assignDevicesToResourceGroup(String groupId, JsonArray devices) throws UnsupportedEncodingException, IoTFCReSTException {
+		
+		final String METHOD = "assignDevicesToResourceGroup";
+		String sGroupId = URLEncoder.encode(groupId, "UTF-8");
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/bulk/devices/").
+		   append(sGroupId);
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+
+		try {
+			response = connect("put", sb.toString(), devices.toString(), null);
+			code = response.getStatusLine().getStatusCode();
+			if (response != null) {
+				String result = this.readContent(response, METHOD);
+				if (result != null) {
+					jsonResponse = new JsonParser().parse(result);
+				}
+			}
+			if (code == 200) {
+				return;
+			}
+
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving devices in resource group "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "Invalid request", jsonResponse);
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);	
+	}
+	
+	/**
+	 * 
+	 * @param groupId
+	 * @param bookmark
+	 * @return
+	 * @throws IoTFCReSTException
+	 * @throws UnsupportedEncodingException
+	 */
 	public JsonObject getDevicesInResourceGroup(String groupId, String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
 		List<NameValuePair> queryParms = null;
 		if (bookmark != null) {
@@ -7338,6 +7400,14 @@ public class APIClient {
 		return getDevicesInResourceGroup(groupId, queryParms);
 	}
 
+	/**
+	 * 
+	 * @param groupId
+	 * @param queryParameters
+	 * @return
+	 * @throws IoTFCReSTException
+	 * @throws UnsupportedEncodingException
+	 */
 	public JsonObject getDevicesInResourceGroup(String groupId, List<NameValuePair> queryParameters) throws IoTFCReSTException, UnsupportedEncodingException {
 		final String METHOD = "getActiveSchemaDefinitionContents";
 		String sGroupId = URLEncoder.encode(groupId, "UTF-8");
@@ -7538,13 +7608,22 @@ public class APIClient {
 
 	}
 
+	public JsonObject getGetAPIKeyRoles(String apiKey, String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
+		List<NameValuePair> queryParms = null;
+		if (bookmark != null) {
+			queryParms = new ArrayList<>();
+			queryParms.add(new BasicNameValuePair("bookmark", bookmark));
+		}
+		return getGetAPIKeyRoles(apiKey, queryParms);
+	}
+	
 	public JsonObject getGetAPIKeyRoles(String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
 		List<NameValuePair> queryParms = null;
 		if (bookmark != null) {
 			queryParms = new ArrayList<>();
 			queryParms.add(new BasicNameValuePair("bookmark", bookmark));
 		}
-		return getGetAPIKeyRoles(queryParms);
+		return getGetAPIKeyRoles(this.authKey, queryParms);
 	}
 	
 	/**
@@ -7557,9 +7636,9 @@ public class APIClient {
 	 * @throws IoTFCReSTException
 	 * @throws UnsupportedEncodingException
 	 */
-	public JsonObject getGetAPIKeyRoles(List<NameValuePair> queryParameters) throws IoTFCReSTException, UnsupportedEncodingException {
+	public JsonObject getGetAPIKeyRoles(String apiKey, List<NameValuePair> queryParameters) throws IoTFCReSTException, UnsupportedEncodingException {
 		final String METHOD = "getGetAPIKeyRoles";
-		String sAPIKey = URLEncoder.encode(this.authKey, "UTF-8");
+		String sAPIKey = URLEncoder.encode(apiKey, "UTF-8");
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
 		   append('.').
