@@ -134,6 +134,15 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 	protected GatewayClient(MqttClient mqttClient) {
 		super(mqttClient);
 	}
+	
+	protected void finalize() {
+		final String METHOD = "finalize";
+		LoggerUtility.fine(CLASS_NAME, METHOD, "Still connected ? " + isConnected());
+		if (isConnected()) {
+			disconnect();
+		}
+	}
+	
 
 	/**
 	 * Returns the {@link com.ibm.iotf.client.api.APIClient} that allows the users to interact with 
@@ -903,8 +912,7 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 		final String METHOD = "connectComplete";
 		
 		if (disconnectRequested) {
-			LoggerUtility.info(CLASS_NAME, METHOD, "Disconnected requested, disconnecting from " + serverURI );
-			disconnect();
+			LoggerUtility.info(CLASS_NAME, METHOD, "Disconnected requested" + serverURI );
 			return;
 		}
 		
