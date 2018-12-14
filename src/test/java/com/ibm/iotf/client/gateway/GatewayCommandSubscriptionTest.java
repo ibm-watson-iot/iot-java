@@ -34,7 +34,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestGatewayHelper;
 import com.ibm.iotf.test.common.TestHelper;
@@ -122,8 +121,18 @@ public class GatewayCommandSubscriptionTest {
 			String devId = new String(DEVICE_ID_PREFIX + "_" + i);
 			String gwDevId = new String(GW_DEVICE_ID_PREFIX + "_" + i);
 			
-			TestGatewayHelper.deleteDevice(apiClient, DEVICE_TYPE, devId);
-			TestGatewayHelper.deleteDevice(apiClient, GW_DEVICE_TYPE, gwDevId);
+			try {
+				TestGatewayHelper.deleteDevice(apiClient, DEVICE_TYPE, devId);
+			} catch (IoTFCReSTException e1) {
+				e1.printStackTrace();
+				continue; // Move to next test
+			}
+			try {
+				TestGatewayHelper.deleteDevice(apiClient, GW_DEVICE_TYPE, gwDevId);
+			} catch (IoTFCReSTException e1) {
+				e1.printStackTrace();
+				continue; //move to next test
+			}
 			
 			// Register gateway device
 			try {
@@ -236,7 +245,7 @@ public class GatewayCommandSubscriptionTest {
 							if (jsonResult != null && jsonResult.has("results")) {
 								LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + apiKey + ") roles : " + jsonResult);
 								
-								jsonResult = TestGatewayHelper.updateAPIKeyRole(apiClient, apiKey, roleId, groupId);
+								jsonResult = TestHelper.updateAPIKeyRole(apiClient, apiKey, roleId, groupId);
 								if (jsonResult != null) {
 									LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + apiKey + ") updated roles : " + jsonResult);
 								}
@@ -270,19 +279,25 @@ public class GatewayCommandSubscriptionTest {
 			
 			for (int i=1; i<= totalTests; i++) {
 				Integer iTest = new Integer(i);
-				TestGatewayHelper TestGatewayHelper = testMap.get(iTest);
+				TestGatewayHelper testHelper = testMap.get(iTest);
 				
-				if (TestGatewayHelper != null) {
-					TestGatewayHelper.deleteDevice(apiClient, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId());
-					TestGatewayHelper.deleteDevice(apiClient, TestGatewayHelper.getGatewayDeviceType(), TestGatewayHelper.getGatewayDeviceId());
+				if (testHelper != null) {
+					try {
+						TestHelper.deleteDevice(apiClient, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId());
+						TestHelper.deleteDevice(apiClient, testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
+					} catch (IoTFCReSTException e) {
+						e.printStackTrace();
+					}
 				}
 			}
+			
     		try {
-				apiClient.deleteDeviceType(DEVICE_TYPE);
+				TestHelper.deleteDeviceType(apiClient, DEVICE_TYPE);
 				LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " deleted.");
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
 			}
+    		
     		try {
 				apiClient.deleteDeviceType(GW_DEVICE_TYPE);
 				LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device type " + GW_DEVICE_TYPE + " deleted.");
@@ -582,7 +597,12 @@ public class GatewayCommandSubscriptionTest {
 		
 		testHelper.disconnect();
 		
-		testHelper.deleteDevice(apiClient, newGwType, newGwId);
+		try {
+			TestHelper.deleteDevice(apiClient, newGwType, newGwId);
+		} catch (IoTFCReSTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Notification received ? " + testHelper.notificationReceived());
 		

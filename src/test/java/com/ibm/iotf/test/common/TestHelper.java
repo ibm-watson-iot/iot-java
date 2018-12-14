@@ -25,8 +25,9 @@ public class TestHelper {
 	 * 
 	 * @param devType Device Type
 	 * @param devId   Device Id
+	 * @throws IoTFCReSTException 
 	 */
-	public static void deleteDevice(APIClient apiClient, String devType, String devId) {
+	public static void deleteDevice(APIClient apiClient, String devType, String devId) throws IoTFCReSTException {
 		final String METHOD = "deleteDevice";
 		boolean exist = false;
 		try {
@@ -36,13 +37,32 @@ public class TestHelper {
 		}
 		
 		if (exist) {
-			try {
-				apiClient.deleteDevice(devType, devId);
-				LoggerUtility.info(CLASS_NAME, METHOD, "Device ID (" + devId + ") deleted.");
-			} catch (IoTFCReSTException e) {
-				e.printStackTrace();
-			}
+			apiClient.deleteDevice(devType, devId);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Device ID (" + devId + ") deleted.");
 		}			
+	}
+	
+	/**
+	 * Delete device type.
+	 * 
+	 * @param apiClient
+	 * @param devType
+	 * @throws IoTFCReSTException 
+	 */
+	public static void deleteDeviceType(APIClient apiClient, String devType) throws IoTFCReSTException {
+		final String METHOD = "deleteDeviceType";
+		boolean exist = false;
+		try {
+			exist = apiClient.isDeviceTypeExist(devType);
+		} catch (IoTFCReSTException e1) {
+			e1.printStackTrace();
+		}
+		
+		if (exist) {
+			apiClient.deleteDeviceType(devType);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Device Type (" + devType + ") deleted.");
+		}			
+		
 	}
 
 	/**

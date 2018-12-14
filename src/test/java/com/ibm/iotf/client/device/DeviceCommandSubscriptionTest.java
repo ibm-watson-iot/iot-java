@@ -92,9 +92,15 @@ public class DeviceCommandSubscriptionTest {
 			}
 		}
 		
-		for (int i=1; i<= totalTests; i++) {			
+		for (int i=1; i<= totalTests; i++) {
+			
 			String devId = new String(DEVICE_ID_PREFIX + "_" + i);
-			TestDeviceHelper.deleteDevice(apiClient, DEVICE_TYPE, devId);
+			try {
+				TestDeviceHelper.deleteDevice(apiClient, DEVICE_TYPE, devId);
+			} catch (IoTFCReSTException e2) {
+				e2.printStackTrace();
+				continue; // Move to next test
+			}
 			
 			try {
 				TestHelper.registerDevice(apiClient, DEVICE_TYPE, devId, TestEnv.getDeviceToken());
@@ -141,6 +147,14 @@ public class DeviceCommandSubscriptionTest {
 	@AfterClass
 	public static void oneTimeCleanup() throws Exception {
 		final String METHOD = "oneTimeCleanup";
+		for (int i=1; i<= totalTests; i++) {
+			Integer iTest = new Integer(i);
+			TestDeviceHelper testHelper = testMap.get(iTest);
+			
+			if (testHelper != null) {
+				TestHelper.deleteDevice(apiClient, testHelper.getDeviceType(), testHelper.getDeviceId());
+			}
+		}
 		LoggerUtility.info(CLASS_NAME, METHOD, "Cleanup is complete.");
 	}	
 	
