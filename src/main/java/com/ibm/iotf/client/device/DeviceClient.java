@@ -195,11 +195,12 @@ public class DeviceClient extends AbstractClient {
 		}
 	}
 	
-	private void subscribeToCommands() {
+	private void subscribeToCommands() throws MqttException{
 		try {
 			mqttAsyncClient.subscribe("iot-2/cmd/+/fmt/+", 2).waitForCompletion(getActionTimeout());
 		} catch (MqttException e) {
 			e.printStackTrace();
+			throw e;
 		}
 	}
 	
@@ -450,7 +451,11 @@ public class DeviceClient extends AbstractClient {
 			if (reconnect) {
 				LoggerUtility.info(CLASS_NAME, METHOD, "Reconnected to " + serverURI );
 				if (!getOrgId().equals("quickstart")) {
-					subscribeToCommands();
+					try {
+						subscribeToCommands();
+					} catch (MqttException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}

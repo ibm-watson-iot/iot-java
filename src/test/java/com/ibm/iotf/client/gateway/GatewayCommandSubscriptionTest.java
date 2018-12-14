@@ -36,6 +36,7 @@ import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.test.common.TestGatewayHelper;
 import com.ibm.iotf.test.common.TestHelper;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -59,7 +60,7 @@ public class GatewayCommandSubscriptionTest {
 	private static int testNum = 1;
 	private final static int totalTests = 10;
 	
-	private static HashMap<Integer,TestHelper> testMap = new HashMap<Integer,TestHelper>();
+	private static HashMap<Integer,TestGatewayHelper> testMap = new HashMap<Integer,TestGatewayHelper>();
 	
 	private synchronized int getTestNumber() {
 		int number = testNum;
@@ -75,10 +76,6 @@ public class GatewayCommandSubscriptionTest {
 		Properties appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, null);
 		
 		String apiKey = appProps.getProperty("API-Key");
-		String[] tokens = apiKey.split("-");
-		for (String token : tokens) {
-			LoggerUtility.info(CLASS_NAME, METHOD, "API Key token : " + token);
-		}
 		
 		try {
 			apiClient = new APIClient(appProps);
@@ -88,21 +85,9 @@ public class GatewayCommandSubscriptionTest {
 			e.printStackTrace();
 		}
 		
-		try {
-			JsonObject jsonResult = apiClient.getGetAPIKeyRoles((String)null);
-			if (jsonResult != null && jsonResult.has("results")) {
-				LoggerUtility.info(CLASS_NAME, METHOD, "This API Key roles : " + jsonResult);
-			}
-		} catch (UnsupportedEncodingException e2) {
-			e2.printStackTrace();
-		} catch (IoTFCReSTException e2) {
-			e2.printStackTrace();
-		}
-		
 		boolean exist = false;
 		try {
 			exist = apiClient.isDeviceTypeExist(GW_DEVICE_TYPE);
-			
 		} catch (IoTFCReSTException e1) {
 			e1.printStackTrace();
 		}
@@ -137,8 +122,8 @@ public class GatewayCommandSubscriptionTest {
 			String devId = new String(DEVICE_ID_PREFIX + "_" + i);
 			String gwDevId = new String(GW_DEVICE_ID_PREFIX + "_" + i);
 			
-			TestHelper.deleteDevice(apiClient, DEVICE_TYPE, devId);
-			TestHelper.deleteDevice(apiClient, GW_DEVICE_TYPE, gwDevId);
+			TestGatewayHelper.deleteDevice(apiClient, DEVICE_TYPE, devId);
+			TestGatewayHelper.deleteDevice(apiClient, GW_DEVICE_TYPE, gwDevId);
 			
 			// Register gateway device
 			try {
@@ -157,61 +142,61 @@ public class GatewayCommandSubscriptionTest {
 			}
 			
 			Integer iTest = new Integer(i);
-			TestHelper testHelper = null;
+			TestGatewayHelper TestGatewayHelper = null;
 			try {
-				testHelper = new TestHelper(GW_DEVICE_TYPE, gwDevId, DEVICE_TYPE, devId);
+				TestGatewayHelper = new TestGatewayHelper(GW_DEVICE_TYPE, gwDevId, DEVICE_TYPE, devId);
+				testMap.put(iTest, TestGatewayHelper);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			testMap.put(iTest, testHelper);
 		}
 		
 		for (int i=1; i <= totalTests; i++) {
 			Integer iTest = new Integer(i);
-			TestHelper testHelper = testMap.get(iTest);
-			if (testHelper != null) {
+			TestGatewayHelper TestGatewayHelper = testMap.get(iTest);
+			if (TestGatewayHelper != null) {
 				try {
-					exist = apiClient.isDeviceExist(testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId());
-					LoggerUtility.info(CLASS_NAME, METHOD, "Device " + testHelper.getAttachedDeviceId() + " does exist.");
-					exist = apiClient.isDeviceExist(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
-					LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device " + testHelper.getGatewayDeviceId() + " does exist.");
+					exist = apiClient.isDeviceExist(TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId());
+					LoggerUtility.info(CLASS_NAME, METHOD, "Device " + TestGatewayHelper.getAttachedDeviceId() + " does exist.");
+					exist = apiClient.isDeviceExist(TestGatewayHelper.getGatewayDeviceType(), TestGatewayHelper.getGatewayDeviceId());
+					LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device " + TestGatewayHelper.getGatewayDeviceId() + " does exist.");
 					
 					JsonObject jsonResult = null;
 					
 					// Get gateway device details
 					/*
-					jsonResult = apiClient.getDevice(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
+					jsonResult = apiClient.getDevice(TestGatewayHelper.getGatewayDeviceType(), TestGatewayHelper.getGatewayDeviceId());
 					if (jsonResult != null) {
-						LoggerUtility.info(CLASS_NAME, METHOD, testHelper.getGatewayDeviceId() + " details : " 
+						LoggerUtility.info(CLASS_NAME, METHOD, TestGatewayHelper.getGatewayDeviceId() + " details : " 
 								+ jsonResult);
 					}
 					*/
 					
 					// Get Resource Group Info
 					try {
-						jsonResult = apiClient.getAccessControlProperties(testHelper.getClientID(), null);
+						jsonResult = apiClient.getAccessControlProperties(TestGatewayHelper.getClientID(), null);
 					} catch (UnsupportedEncodingException e) {
 						e.printStackTrace();
 					}
 					if (jsonResult != null && jsonResult.has("results")) {
-						LoggerUtility.info(CLASS_NAME, METHOD, testHelper.getGatewayDeviceId() + " access control : " 
+						LoggerUtility.info(CLASS_NAME, METHOD, TestGatewayHelper.getGatewayDeviceId() + " access control : " 
 								+ jsonResult);
 						String groupId = "gw_def_res_grp:" + TestEnv.getOrgId() 
-								+ ":"+ testHelper.getGatewayDeviceType() + ":" + testHelper.getGatewayDeviceId();
+								+ ":"+ TestGatewayHelper.getGatewayDeviceType() + ":" + TestGatewayHelper.getGatewayDeviceId();
 						
 						
 						// Assign devices to the resource group
 						JsonArray jarrayDevices = new JsonArray();
 						
 						JsonObject aDevice = new JsonObject();
-						aDevice.addProperty("typeId", testHelper.getAttachedDeviceType());
-						aDevice.addProperty("deviceId", testHelper.getAttachedDeviceId());
+						aDevice.addProperty("typeId", TestGatewayHelper.getAttachedDeviceType());
+						aDevice.addProperty("deviceId", TestGatewayHelper.getAttachedDeviceId());
 						jarrayDevices.add(aDevice);
 						
 						JsonObject gwDevice = new JsonObject();
-						gwDevice.addProperty("typeId", testHelper.getGatewayDeviceType());
-						gwDevice.addProperty("deviceId", testHelper.getGatewayDeviceId());
+						gwDevice.addProperty("typeId", TestGatewayHelper.getGatewayDeviceType());
+						gwDevice.addProperty("deviceId", TestGatewayHelper.getGatewayDeviceId());
 						jarrayDevices.add(gwDevice);
 						
 						try {
@@ -251,14 +236,14 @@ public class GatewayCommandSubscriptionTest {
 							if (jsonResult != null && jsonResult.has("results")) {
 								LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + apiKey + ") roles : " + jsonResult);
 								
-								jsonResult = TestHelper.updateAPIKeyRole(apiClient, apiKey, roleId, groupId);
+								jsonResult = TestGatewayHelper.updateAPIKeyRole(apiClient, apiKey, roleId, groupId);
 								if (jsonResult != null) {
 									LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + apiKey + ") updated roles : " + jsonResult);
 								}
 							}
 							
 							try {
-								testHelper.setAppProperties(newApiClientProps);
+								TestGatewayHelper.setAppProperties(newApiClientProps);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -281,15 +266,15 @@ public class GatewayCommandSubscriptionTest {
 		
 		if (apiClient != null) {
 			
-			TestHelper.deleteAPIKeys(apiClient, CLASS_NAME);
+			TestGatewayHelper.deleteAPIKeys(apiClient, CLASS_NAME);
 			
 			for (int i=1; i<= totalTests; i++) {
 				Integer iTest = new Integer(i);
-				TestHelper testHelper = testMap.get(iTest);
+				TestGatewayHelper TestGatewayHelper = testMap.get(iTest);
 				
-				if (testHelper != null) {
-					TestHelper.deleteDevice(apiClient, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId());
-					TestHelper.deleteDevice(apiClient, testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
+				if (TestGatewayHelper != null) {
+					TestGatewayHelper.deleteDevice(apiClient, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId());
+					TestGatewayHelper.deleteDevice(apiClient, TestGatewayHelper.getGatewayDeviceType(), TestGatewayHelper.getGatewayDeviceId());
 				}
 			}
     		try {
@@ -318,7 +303,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 		
-		TestHelper testHelper = testMap.get(iTest);
+		TestGatewayHelper testHelper = testMap.get(iTest);
 		
 		if (testHelper == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -327,7 +312,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 
 		try {
-			testHelper.connectGateway();
+			testHelper.connect();
 		} catch (MqttException e) {
 			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
 			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
@@ -338,7 +323,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		// Ask application to publish the command to this gateway now
 		/*
-		publishCommand(iTest, testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId(), 
+		publishCommand(iTest, TestGatewayHelper.getGatewayDeviceType(), TestGatewayHelper.getGatewayDeviceId(), 
 				null, null, null, null);
 				*/
 		testHelper.appPublishCommand(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId(), 
@@ -352,7 +337,7 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		testHelper.disconnectGateway();
+		testHelper.disconnect();
 		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertTrue("The command is not received by gateway", testHelper.commandReceived());
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
@@ -367,7 +352,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 
-		TestHelper testHelper = testMap.get(iTest);
+		TestGatewayHelper testHelper = testMap.get(iTest);
 		
 		if (testHelper == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -376,7 +361,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		try {
-			testHelper.connectGateway();
+			testHelper.connect();
 		} catch (MqttException e) {
 			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
 			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
@@ -388,7 +373,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommands();
 		
 		/*
-		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				null, null);
 				*/
 		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
@@ -402,7 +387,7 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		testHelper.disconnectGateway();
+		testHelper.disconnect();
 		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertTrue("The command is not received by gateway", testHelper.commandReceived());
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
@@ -417,7 +402,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 
-		TestHelper testHelper = testMap.get(iTest);
+		TestGatewayHelper testHelper = testMap.get(iTest);
 		
 		if (testHelper == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -426,7 +411,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		try {
-			testHelper.connectGateway();
+			testHelper.connect();
 		} catch (MqttException e) {
 			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
 			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
@@ -440,7 +425,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd, format);
 		
 		/*
-		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 		*/
 		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
@@ -454,7 +439,7 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		testHelper.disconnectGateway();
+		testHelper.disconnect();
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "The command received ? " + testHelper.commandReceived());
 		
@@ -472,7 +457,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 
-		TestHelper testHelper = testMap.get(iTest);
+		TestGatewayHelper testHelper = testMap.get(iTest);
 		
 		if (testHelper == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -481,7 +466,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		try {
-			testHelper.connectGateway();
+			testHelper.connect();
 		} catch (MqttException e) {
 			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
 			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
@@ -496,7 +481,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd, format, qos);
 
 		/*
-		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 				*/
 		
@@ -512,7 +497,7 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		testHelper.disconnectGateway();
+		testHelper.disconnect();
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "The command received ? " + testHelper.commandReceived());
 		
@@ -531,7 +516,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 
-		TestHelper testHelper = testMap.get(iTest);
+		TestGatewayHelper testHelper = testMap.get(iTest);
 		
 		if (testHelper == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -569,7 +554,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		
 		try {
-			testHelper.connectGateway();
+			testHelper.connect();
 		} catch (MqttException e) {
 			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
 			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
@@ -595,9 +580,9 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		testHelper.disconnectGateway();
+		testHelper.disconnect();
 		
-		TestHelper.deleteDevice(apiClient, newGwType, newGwId);
+		testHelper.deleteDevice(apiClient, newGwType, newGwId);
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Notification received ? " + testHelper.notificationReceived());
 		
@@ -616,7 +601,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 
-		TestHelper testHelper = testMap.get(iTest);
+		TestGatewayHelper testHelper = testMap.get(iTest);
 		
 		if (testHelper == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -625,7 +610,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		try {
-			testHelper.connectGateway();
+			testHelper.connect();
 		} catch (MqttException e) {
 			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
 			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
@@ -638,7 +623,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd);
 		
 		/*
-		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 				*/
 		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
@@ -653,7 +638,7 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		testHelper.disconnectGateway();
+		testHelper.disconnect();
 		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertTrue("The command is not received by gateway", testHelper.commandReceived());
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
@@ -668,7 +653,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 
-		TestHelper testHelper = testMap.get(iTest);
+		TestGatewayHelper testHelper = testMap.get(iTest);
 		
 		if (testHelper == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -677,7 +662,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		try {
-			testHelper.connectGateway();
+			testHelper.connect();
 		} catch (MqttException e) {
 			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
 			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
@@ -691,7 +676,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd, qos);
 		
 		/*
-		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 				*/
 		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
@@ -706,7 +691,7 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		testHelper.disconnectGateway();
+		testHelper.disconnect();
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertTrue("The command is not received by gateway", testHelper.commandReceived());
@@ -724,7 +709,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 
-		TestHelper testHelper = testMap.get(iTest);
+		TestGatewayHelper testHelper = testMap.get(iTest);
 		
 		if (testHelper == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -733,7 +718,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		try {
-			testHelper.connectGateway();
+			testHelper.connect();
 		} catch (MqttException e) {
 			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
 			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
@@ -745,7 +730,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommands();
 		
 		/*
-		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				null, null);
 				*/
 		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
@@ -768,7 +753,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.unsubscribeCommands();
 		
 		/*
-		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				null, null);
 				*/
 		
@@ -783,7 +768,7 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		testHelper.disconnectGateway();
+		testHelper.disconnect();
 		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertFalse("The command should not be received by gateway", testHelper.commandReceived());
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
@@ -798,7 +783,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 
-		TestHelper testHelper = testMap.get(iTest);
+		TestGatewayHelper testHelper = testMap.get(iTest);
 		
 		if (testHelper == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -807,7 +792,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		try {
-			testHelper.connectGateway();
+			testHelper.connect();
 		} catch (MqttException e) {
 			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
 			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
@@ -820,7 +805,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd);
 		
 		/*
-		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 				*/
 		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
@@ -844,7 +829,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.unsubscribeCommand(cmd);
 
 		/*
-		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 				*/
 		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
@@ -857,7 +842,7 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		testHelper.disconnectGateway();
+		testHelper.disconnect();
 		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertFalse("The command should not be received by gateway", testHelper.commandReceived());
 				
@@ -873,7 +858,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
 
-		TestHelper testHelper = testMap.get(iTest);
+		TestGatewayHelper testHelper = testMap.get(iTest);
 		
 		if (testHelper == null) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Skipping test " + METHOD);
@@ -882,7 +867,7 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		try {
-			testHelper.connectGateway();
+			testHelper.connect();
 		} catch (MqttException e) {
 			String failMsg = METHOD + " connect MqttException: " +  e.getMessage();
 			LoggerUtility.info(CLASS_NAME, METHOD, failMsg);
@@ -896,7 +881,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.subscribeCommand(cmd, format);
 		
 		/*
-		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 		*/
 		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
@@ -917,7 +902,7 @@ public class GatewayCommandSubscriptionTest {
 		testHelper.unsubscribeCommand(cmd, format);
 
 		/*
-		publishCommand(iTest, null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 		*/
 		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
@@ -930,71 +915,11 @@ public class GatewayCommandSubscriptionTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		testHelper.disconnectGateway();
+		testHelper.disconnect();
 		LoggerUtility.info(CLASS_NAME, METHOD, "Command received ? " + testHelper.commandReceived());
 		assertFalse("The command should not be received by gateway", testHelper.commandReceived());
 				
 		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
 	}
-	
-	
-	/**
-	 * Publish a command to gateway or attached device
-	 * 
-	 * @param gwType Gateway device type, can be null
-	 * @param gwDevId Gateway device ID, can be null
-	 * @param devType Device type, can be null
-	 * @param devId Devid ID, can be null
-	 * @param cmdName Command to send, can be null
-	 * @param jsonCmd Json object for the command, can be null
-	 */
-	private synchronized void publishCommand(
-			Integer iTest,
-			String gwType, String gwDevId, 
-			String devType, String devId, 
-			String cmdName, JsonObject jsonCmd) {
-		
-		final String METHOD = "publishCommand";
-		
-		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
-		
-		ApplicationClient mqttAppClient = null;
-		Properties props = TestEnv.getAppProperties(APP_ID + iTest, false, null, null);
-		try {
-			mqttAppClient = new ApplicationClient(props);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		try {
-			mqttAppClient.connect();
-		} catch (MqttException ex) {
-			ex.printStackTrace();
-		}			
-
-		if (cmdName == null) {
-			// use default command name 
-			cmdName = "stop";
-		}
-		
-		if (jsonCmd == null) {
-			jsonCmd = new JsonObject();
-			jsonCmd.addProperty("name", "stop-rotation");
-			jsonCmd.addProperty("delay", 0);
-		}
-		
-		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " publish command " + cmdName);
-		
-		if (gwType != null && gwDevId != null) {
-			mqttAppClient.publishCommand(gwType, gwDevId, cmdName, jsonCmd);
-		} else {
-			mqttAppClient.publishCommand(devType, devId, cmdName, jsonCmd);
-		}
-		
-		mqttAppClient.disconnect();
-		
-		LoggerUtility.info(CLASS_NAME, METHOD, "Exiting test #" + iTest);
-	}
-
 	
 }
