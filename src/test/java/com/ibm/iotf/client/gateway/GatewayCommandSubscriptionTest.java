@@ -163,74 +163,57 @@ public class GatewayCommandSubscriptionTest {
 		
 		for (int i=1; i <= totalTests; i++) {
 			Integer iTest = new Integer(i);
-			TestGatewayHelper TestGatewayHelper = testMap.get(iTest);
-			if (TestGatewayHelper != null) {
+			TestGatewayHelper testHelper = testMap.get(iTest);
+			if (testHelper != null) {
 				try {
-					exist = apiClient.isDeviceExist(TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId());
-					LoggerUtility.info(CLASS_NAME, METHOD, "Device " + TestGatewayHelper.getAttachedDeviceId() + " does exist.");
-					exist = apiClient.isDeviceExist(TestGatewayHelper.getGatewayDeviceType(), TestGatewayHelper.getGatewayDeviceId());
-					LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device " + TestGatewayHelper.getGatewayDeviceId() + " does exist.");
-					
+
+					JsonArray jarrayGroups = null;
 					JsonObject jsonResult = null;
 					
-					// Get gateway device details
-					/*
-					jsonResult = apiClient.getDevice(TestGatewayHelper.getGatewayDeviceType(), TestGatewayHelper.getGatewayDeviceId());
-					if (jsonResult != null) {
-						LoggerUtility.info(CLASS_NAME, METHOD, TestGatewayHelper.getGatewayDeviceId() + " details : " 
-								+ jsonResult);
-					}
-					*/
-					
 					// Get Resource Group Info
-					try {
-						jsonResult = apiClient.getAccessControlProperties(TestGatewayHelper.getClientID(), null);
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					}
-					if (jsonResult != null && jsonResult.has("results")) {
-						LoggerUtility.info(CLASS_NAME, METHOD, TestGatewayHelper.getGatewayDeviceId() + " access control : " 
-								+ jsonResult);
-						String groupId = "gw_def_res_grp:" + TestEnv.getOrgId() 
-								+ ":"+ TestGatewayHelper.getGatewayDeviceType() + ":" + TestGatewayHelper.getGatewayDeviceId();
+					jarrayGroups = TestHelper.getResourceGroups(apiClient, testHelper.getClientID());
+					
+					if (jarrayGroups != null && jarrayGroups.size() > 0) {
 						
-						
-						// Assign devices to the resource group
-						JsonArray jarrayDevices = new JsonArray();
-						
-						JsonObject aDevice = new JsonObject();
-						aDevice.addProperty("typeId", TestGatewayHelper.getAttachedDeviceType());
-						aDevice.addProperty("deviceId", TestGatewayHelper.getAttachedDeviceId());
-						jarrayDevices.add(aDevice);
-						
-						JsonObject gwDevice = new JsonObject();
-						gwDevice.addProperty("typeId", TestGatewayHelper.getGatewayDeviceType());
-						gwDevice.addProperty("deviceId", TestGatewayHelper.getGatewayDeviceId());
-						jarrayDevices.add(gwDevice);
-						
-						try {
-							apiClient.assignDevicesToResourceGroup(groupId, jarrayDevices);
-						} catch (UnsupportedEncodingException e) {
-							e.printStackTrace();
+						for (int j=0; j<jarrayGroups.size(); j++) {
+							String groupId = jarrayGroups.get(i).getAsString();
+							// Assign devices to the resource group
+							JsonArray jarrayDevices = new JsonArray();
+							
+							JsonObject aDevice = new JsonObject();
+							aDevice.addProperty("typeId", testHelper.getAttachedDeviceType());
+							aDevice.addProperty("deviceId", testHelper.getAttachedDeviceId());
+							jarrayDevices.add(aDevice);
+							
+							JsonObject gwDevice = new JsonObject();
+							gwDevice.addProperty("typeId", testHelper.getGatewayDeviceType());
+							gwDevice.addProperty("deviceId", testHelper.getGatewayDeviceId());
+							jarrayDevices.add(gwDevice);
+							
+							try {
+								apiClient.assignDevicesToResourceGroup(groupId, jarrayDevices);
+							} catch (UnsupportedEncodingException e) {
+								e.printStackTrace();
+							}
+							
+							try {
+								jsonResult = apiClient.getDevicesInResourceGroup(groupId, (String)null);
+							} catch (UnsupportedEncodingException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							
+							if (jsonResult != null) {
+								LoggerUtility.info(CLASS_NAME, METHOD, groupId + " has devices : " + jsonResult);
+							}
 						}
-						
-						try {
-							jsonResult = apiClient.getDevicesInResourceGroup(groupId, (String)null);
-						} catch (UnsupportedEncodingException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						
-						if (jsonResult != null) {
-							LoggerUtility.info(CLASS_NAME, METHOD, groupId + " has devices : " + jsonResult);
-						}
-						
+
 						// Create test API key with comment = CLASS_NAME
 						ArrayList<String> roles = new ArrayList<String>();
 						String roleId = "PD_STANDARD_APP";
 						roles.add(roleId);
 						Properties newApiClientProps = TestHelper.createAPIKey(apiClient, CLASS_NAME, roles);
-						
+
 						if (newApiClientProps != null) {
 							newApiClientProps.setProperty("id", APP_ID + iTest);
 							apiKey = newApiClientProps.getProperty("API-Key");
@@ -239,27 +222,25 @@ public class GatewayCommandSubscriptionTest {
 							try {
 								jsonResult = apiClient.getGetAPIKeyRoles((String)null);
 							} catch (UnsupportedEncodingException | IoTFCReSTException e) {
-								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 							if (jsonResult != null && jsonResult.has("results")) {
 								LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + apiKey + ") roles : " + jsonResult);
 								
-								jsonResult = TestHelper.updateAPIKeyRole(apiClient, apiKey, roleId, groupId);
+								jsonResult = TestHelper.updateAPIKeyRole(apiClient, apiKey, roleId, jarrayGroups);
 								if (jsonResult != null) {
 									LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + apiKey + ") updated roles : " + jsonResult);
 								}
 							}
 							
 							try {
-								TestGatewayHelper.setAppProperties(newApiClientProps);
+								testHelper.setAppProperties(newApiClientProps);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
 						}
-						
-					}	
-					
+					}
+										
 				} catch (IoTFCReSTException e) { 
 					e.printStackTrace();
 				}

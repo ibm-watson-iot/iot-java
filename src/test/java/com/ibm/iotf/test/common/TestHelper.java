@@ -193,10 +193,10 @@ public class TestHelper {
 	 * @param apiClient
 	 * @param apiKey
 	 * @param roleId
-	 * @param resourceGroup
+	 * @param resourceGroups
 	 * @return
 	 */
-	public static JsonObject updateAPIKeyRole(APIClient apiClient, String apiKey, String roleId, String resourceGroup) {
+	public static JsonObject updateAPIKeyRole(APIClient apiClient, String apiKey, String roleId, JsonArray resourceGroups) {
 		final String METHOD = "updateAPIKeyRole";
 		JsonObject jsonResult = null;
 		JsonObject jsonRolesToGroups = null;
@@ -256,7 +256,10 @@ public class TestHelper {
 			jarrayRoleToGroups = new JsonArray();
 		}
 		
-		jarrayRoleToGroups.add(resourceGroup); /* e.g ["group-uuid-abcdef-12345"] */
+		for (int i=0; i<resourceGroups.size(); i++) {
+			String groupId = resourceGroups.get(i).getAsString();
+			jarrayRoleToGroups.add(groupId); /* e.g ["group-uuid-abcdef-12345"] */
+		}
 		jsonRolesToGroups.add(roleId, jarrayRoleToGroups); /* "CUSTOM_ROLE_ACME": ["group-uuid-abcdef-12345"] */
 				
 		aRole.addProperty("roleId", roleId);
@@ -270,12 +273,36 @@ public class TestHelper {
 		
 		try {
 			jsonResult = apiClient.updateAPIKeyRoles(apiKey, jsonBody);
-			LoggerUtility.info(CLASS_NAME, METHOD, "API key (" + apiKey + ") roles updated");
+			LoggerUtility.info(CLASS_NAME, METHOD, "API key (" + apiKey + ") roles updated.");
 		} catch (UnsupportedEncodingException | IoTFCReSTException e) {
 			e.printStackTrace();
 		}
 		
 		return jsonResult;
+	}
+	
+	/**
+	 * Get resource groups.
+	 * 
+	 * @param apiClient
+	 * @param clientID
+	 * @return e.g. JsonArray e.g. ["gw_def_res_grp:abcdef:GatewayType1:GatewayDevID1"],
+	 */
+	public static JsonArray getResourceGroups(APIClient apiClient, String clientID) {
+		JsonArray groups = null;
+		try {
+			JsonObject jsonResult = apiClient.getAccessControlProperties(clientID, null);
+			if (jsonResult != null && jsonResult.has("results")) {
+				JsonArray jarrayResults = jsonResult.get("results").getAsJsonArray();
+				JsonObject firstObj = jarrayResults.get(0).getAsJsonObject();
+				if (firstObj != null && firstObj.has("resourceGroups")) {
+					groups = firstObj.get("resourceGroups").getAsJsonArray();
+				}
+			}
+		} catch (UnsupportedEncodingException | IoTFCReSTException e) {
+			e.printStackTrace();
+		}
+		return groups;
 	}
 	
 	public TestHelper(Properties appProperties) throws Exception {
