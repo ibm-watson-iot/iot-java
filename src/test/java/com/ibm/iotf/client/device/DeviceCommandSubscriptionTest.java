@@ -26,13 +26,11 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.app.ApplicationClient;
+import com.ibm.iotf.test.common.TestDeviceHelper;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestHelper;
-import com.ibm.iotf.test.common.TestDeviceHelper;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -68,11 +66,11 @@ public class DeviceCommandSubscriptionTest {
 		try {
 			apiClient = new APIClient(appProps);
 		} catch (KeyManagementException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return;
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return;
 		}
 		
 		boolean exist = false;
@@ -85,7 +83,7 @@ public class DeviceCommandSubscriptionTest {
 		
 		if (!exist) {
 			try {
-				apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+				TestHelper.addDeviceType(apiClient, DEVICE_TYPE);
 				LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " has been created.");
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
