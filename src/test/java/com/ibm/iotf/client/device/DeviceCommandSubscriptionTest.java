@@ -96,15 +96,20 @@ public class DeviceCommandSubscriptionTest {
 			String devId = new String(DEVICE_ID_PREFIX + "_" + i);
 			TestDeviceHelper.deleteDevice(apiClient, DEVICE_TYPE, devId);
 			
-			Integer iTest = new Integer(i);
 			try {
-				TestDeviceHelper testHelper = new TestDeviceHelper(DEVICE_TYPE, devId);
-				testMap.put(iTest, testHelper);
-			} catch (Exception e) {
-				e.printStackTrace();
+				TestHelper.registerDevice(apiClient, DEVICE_TYPE, devId, TestEnv.getDeviceToken());
+				Integer iTest = new Integer(i);
+				try {
+					TestDeviceHelper testHelper = new TestDeviceHelper(DEVICE_TYPE, devId);
+					testMap.put(iTest, testHelper);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} catch (IoTFCReSTException e1) {
+				e1.printStackTrace();
 			}
-			
 		}
+		
 		for (int i=1; i<= totalTests; i++) {
 			Integer iTest = new Integer(i);
 			TestDeviceHelper testHelper = testMap.get(iTest);

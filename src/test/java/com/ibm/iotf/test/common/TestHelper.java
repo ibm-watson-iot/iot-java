@@ -44,6 +44,23 @@ public class TestHelper {
 			}
 		}			
 	}
+
+	/**
+	 * Register a new device
+	 * 
+	 * @param apiClient
+	 * @param deviceType
+	 * @param deviceId
+	 * @param authToken
+	 * @throws IoTFCReSTException 
+	 */
+	public static void registerDevice(APIClient apiClient, String deviceType, String deviceId, String authToken) throws IoTFCReSTException {
+		final String METHOD = "deleteDevice";
+		apiClient.registerDevice(deviceType, deviceId, authToken, null, null, null);
+		LoggerUtility.info(CLASS_NAME, METHOD, "Device Type(" + deviceType + ")  ID(" + deviceId + ") created.");
+	}
+	
+
 	
 	/**
 	 * Create a API Key and return properties which can be used to instantiate application client.
