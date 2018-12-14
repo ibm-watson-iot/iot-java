@@ -176,7 +176,7 @@ public class GatewayCommandSubscriptionTest {
 					if (jarrayGroups != null && jarrayGroups.size() > 0) {
 						
 						for (int j=0; j<jarrayGroups.size(); j++) {
-							String groupId = jarrayGroups.get(i).getAsString();
+							String groupId = jarrayGroups.get(j).getAsString();
 							// Assign devices to the resource group
 							JsonArray jarrayDevices = new JsonArray();
 							
