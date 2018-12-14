@@ -201,12 +201,18 @@ public class GatewayCommandSubscriptionTest {
 								+ ":"+ testHelper.getGatewayDeviceType() + ":" + testHelper.getGatewayDeviceId();
 						
 						
-						// Assign device to the resource group
+						// Assign devices to the resource group
 						JsonArray jarrayDevices = new JsonArray();
+						
 						JsonObject aDevice = new JsonObject();
 						aDevice.addProperty("typeId", testHelper.getAttachedDeviceType());
 						aDevice.addProperty("deviceId", testHelper.getAttachedDeviceId());
 						jarrayDevices.add(aDevice);
+						
+						JsonObject gwDevice = new JsonObject();
+						gwDevice.addProperty("typeId", testHelper.getGatewayDeviceType());
+						gwDevice.addProperty("deviceId", testHelper.getGatewayDeviceId());
+						jarrayDevices.add(gwDevice);
 						
 						try {
 							apiClient.assignDevicesToResourceGroup(groupId, jarrayDevices);
