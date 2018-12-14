@@ -60,7 +60,33 @@ public class TestHelper {
 		LoggerUtility.info(CLASS_NAME, METHOD, "Device Type(" + deviceType + ")  ID(" + deviceId + ") created.");
 	}
 	
-
+	/**
+	 * Add a device type.
+	 * 
+	 * @param apiClient
+	 * @param devType
+	 * @throws IoTFCReSTException
+	 */
+	public static void addDeviceType(APIClient apiClient, String devType) throws IoTFCReSTException {
+		final String METHOD = "addDeviceType";
+		apiClient.addDeviceType(devType, null, null, null);
+		LoggerUtility.info(CLASS_NAME, METHOD, "Device Type(" + devType + ") created.");
+	}
+	
+	/**
+	 * Add a new gateway type.
+	 * 
+	 * @param apiClient
+	 * @param gwType
+	 * @throws IoTFCReSTException
+	 */
+	public static void addGatewayType(APIClient apiClient, String gwType) throws IoTFCReSTException {
+		final String METHOD = "addGatewayType";
+		JsonObject jsonGW = new JsonObject();
+		jsonGW.addProperty("id", gwType);
+		apiClient.addGatewayDeviceType(jsonGW);
+		LoggerUtility.info(CLASS_NAME, METHOD, "Gateway Type(" + gwType + ") created.");
+	}
 	
 	/**
 	 * Create a API Key and return properties which can be used to instantiate application client.

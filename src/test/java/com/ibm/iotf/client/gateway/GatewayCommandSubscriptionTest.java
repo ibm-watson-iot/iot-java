@@ -93,13 +93,11 @@ public class GatewayCommandSubscriptionTest {
 		}
 		
 		if (!exist) {
-			JsonObject jsonGW = new JsonObject();
-			jsonGW.addProperty("id", GW_DEVICE_TYPE);
 			try {
-				apiClient.addGatewayDeviceType(jsonGW);
-				LoggerUtility.info(CLASS_NAME, METHOD, "Gateway device type " + GW_DEVICE_TYPE + " has been created.");
+				TestHelper.addGatewayType(apiClient, GW_DEVICE_TYPE);
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
+				return;
 			}
 		}
 
@@ -111,13 +109,15 @@ public class GatewayCommandSubscriptionTest {
 		
 		if (!exist) {
 			try {
-				apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
-				LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " has been created.");
-			} catch (IoTFCReSTException e) {
-				e.printStackTrace();
-			}
+				TestHelper.addDeviceType(apiClient, DEVICE_TYPE);
+			} catch (IoTFCReSTException e1) {
+				e1.printStackTrace();
+				return;
+			}			
 		}
 		
+		// Delete devices that were left in previous test run
+		// Register gateway and attached devices ...
 		for (int i=1; i<= totalTests; i++) {			
 			String devId = new String(DEVICE_ID_PREFIX + "_" + i);
 			String gwDevId = new String(GW_DEVICE_ID_PREFIX + "_" + i);
