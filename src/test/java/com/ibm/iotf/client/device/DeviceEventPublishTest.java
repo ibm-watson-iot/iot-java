@@ -110,8 +110,8 @@ public class DeviceEventPublishTest {
 			String devId = new String(DEVICE_ID_PREFIX + "_" + i);
 			try {
 				TestDeviceHelper.deleteDevice(apiClient, DEVICE_TYPE, devId);
-			} catch (IoTFCReSTException e2) {
-				e2.printStackTrace();
+			} catch (IoTFCReSTException e) {
+				e.printStackTrace();
 				continue; // Move to next test
 			}
 			

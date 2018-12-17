@@ -9,10 +9,12 @@ import com.ibm.iotf.client.application.ApplicationEventSubscriptionTest;
 import com.ibm.iotf.client.application.api.BulkAPIOperationsTest;
 import com.ibm.iotf.client.device.DeviceCommandSubscriptionTest;
 import com.ibm.iotf.client.device.DeviceEventPublishTest;
+import com.ibm.iotf.client.device.DeviceManagementTest;
 import com.ibm.iotf.client.gateway.GatewayCommandSubscriptionTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({ 
+	DeviceManagementTest.class,
 	DeviceEventPublishTest.class,
 	DeviceCommandSubscriptionTest.class,
 	GatewayCommandSubscriptionTest.class

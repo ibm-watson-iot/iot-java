@@ -30,6 +30,7 @@ import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.test.common.TestDeviceHelper;
 import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.test.common.TestGatewayHelper;
 import com.ibm.iotf.test.common.TestHelper;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -145,15 +146,20 @@ public class DeviceCommandSubscriptionTest {
 	@AfterClass
 	public static void oneTimeCleanup() throws Exception {
 		final String METHOD = "oneTimeCleanup";
-		for (int i=1; i<= totalTests; i++) {
-			Integer iTest = new Integer(i);
-			TestDeviceHelper testHelper = testMap.get(iTest);
+		
+		if (apiClient != null) {
+			TestGatewayHelper.deleteAPIKeys(apiClient, CLASS_NAME);
 			
-			if (testHelper != null) {
-				TestHelper.deleteDevice(apiClient, testHelper.getDeviceType(), testHelper.getDeviceId());
+			for (int i=1; i<= totalTests; i++) {
+				Integer iTest = new Integer(i);
+				TestDeviceHelper testHelper = testMap.get(iTest);
+				
+				if (testHelper != null) {
+					TestHelper.deleteDevice(apiClient, testHelper.getDeviceType(), testHelper.getDeviceId());
+				}
 			}
+			LoggerUtility.info(CLASS_NAME, METHOD, "Cleanup is complete.");			
 		}
-		LoggerUtility.info(CLASS_NAME, METHOD, "Cleanup is complete.");
 	}	
 	
 	@Test
