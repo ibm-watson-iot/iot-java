@@ -14,6 +14,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonObject;
@@ -174,6 +175,7 @@ public class DeviceManagementTest {
 		LoggerUtility.info(CLASS_NAME, METHOD, "completed."); 
 	}	
 	
+	@Test
 	public void test01ManageRequest() {
 		final String METHOD = "test01ManageRequest";
 		boolean status = false;
@@ -190,6 +192,7 @@ public class DeviceManagementTest {
 		assertTrue("Manage request is unsuccessfull", status);
 	}
 	
+	@Test
 	public void test02UnManageRequest() {
 		final String METHOD = "test02UnManageRequest";
 		boolean status = false;
@@ -205,6 +208,7 @@ public class DeviceManagementTest {
 		assertTrue("UnManage request is unsuccessfull", status);
 	}
 	
+	@Test
 	public void test03LocationUpdate() {
 		final String METHOD = "test03LocationUpdate";
 		boolean status = false;
@@ -232,6 +236,7 @@ public class DeviceManagementTest {
 		assertTrue("Location update is unsuccessfull", rc==200);
 	}
 	
+	@Test
 	public void test04Errorcodes() {
 		final String METHOD = "test04Errorcodes";
 		boolean status = false;
@@ -252,6 +257,7 @@ public class DeviceManagementTest {
 		assertTrue("clear Errorcode operation is unsuccessfull", rc==200);
 	}
 
+	@Test
 	public void test05LogMessages() {
 		
 		final String METHOD = "test04Errorcodes";
@@ -279,6 +285,7 @@ public class DeviceManagementTest {
 		assertTrue("clear Log operation is unsuccessfull", rc==200);
 	}
 
+	@Test
 	public void test06FirmwareDownload() {
 		final String METHOD = "test06FirmwareDownload";
 		try {
@@ -361,6 +368,7 @@ public class DeviceManagementTest {
 	}
 
 
+	@Test
 	public void test07FirmwareUpdate() {
 		
 		final String METHOD = "test07FirmwareUpdate";
@@ -438,6 +446,7 @@ public class DeviceManagementTest {
 		}
 	}
 
+	@Test
 	public void test08RebootRequest() {
 		final String METHOD = "test08RebootRequest";
 		
@@ -511,6 +520,7 @@ public class DeviceManagementTest {
 		assertTrue("The device reboot request is not received", handler.rebooted());
 	}
 
+	@Test
 	public void test09FactoryResetRequest() {
 		
 		final String METHOD = "test09FactoryResetRequest";
