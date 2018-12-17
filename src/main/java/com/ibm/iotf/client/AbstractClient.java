@@ -613,7 +613,7 @@ public abstract class AbstractClient {
 	}
 	
 	public boolean isAutomaticReconnect() {
-		boolean enabled = true;
+		boolean enabled = false;
 		String value = options.getProperty("Automatic-Reconnect");
 		if (value != null) {
 			enabled = Boolean.parseBoolean(trimedValue(value));
