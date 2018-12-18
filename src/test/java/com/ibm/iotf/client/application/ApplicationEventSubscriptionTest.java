@@ -1174,16 +1174,18 @@ public class ApplicationEventSubscriptionTest {
 	public static void oneTimeCleanup() {
 		final String METHOD = "oneTimeCleanup";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Cleanup...");
+		boolean deleted = false;
 		try {
-			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
-			LoggerUtility.info(CLASS_NAME, METHOD, "Device " + DEVICE_ID + " deleted.");
+			deleted = apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Device " + DEVICE_ID + " deleted ? " + deleted);
 		} catch (IoTFCReSTException e) {
 			log.log(Level.SEVERE, METHOD + "deleteDevice caught exception:", e);
 		}
 		
 		try {
-			apiClient.deleteDeviceType(DEVICE_TYPE);
-			LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " deleted.");
+			deleted = false;
+			deleted = apiClient.deleteDeviceType(DEVICE_TYPE);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " deleted ? " + deleted);
 		} catch (Exception e) {
 			log.log(Level.SEVERE, METHOD + "deleteDeviceType caught exception:", e);
 		}

@@ -36,10 +36,30 @@ public class TestHelper {
 			e1.printStackTrace();
 		}
 		
+		boolean deleted = false;
+		int maxAttempts = 5;
 		if (exist) {
-			apiClient.deleteDevice(devType, devId);
-			LoggerUtility.info(CLASS_NAME, METHOD, "Device ID (" + devId + ") deleted.");
-		}			
+			for (int i=1; i<maxAttempts; i++) {
+				try {
+					deleted = apiClient.deleteDevice(devType, devId);
+				} catch (IoTFCReSTException e) {
+					LoggerUtility.severe(CLASS_NAME, METHOD, 
+							"Failed delete device, Type (" + devType + ") ID(" + devId 
+							+ ")  HTTP error code : " + e.getHttpCode() 
+							+ " Response: " + e.getResponse());
+					if (i == maxAttempts) {
+						throw e;
+					}
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e1) {
+						// Ignore
+					}
+				}				
+			}
+			LoggerUtility.info(CLASS_NAME, METHOD, "Device Type (" + devType + ") ID (" + devId 
+					+ ") deleted ? " + deleted);
+		}
 	}
 	
 	/**
@@ -58,9 +78,29 @@ public class TestHelper {
 			e1.printStackTrace();
 		}
 		
+		boolean deleted = false;
+		int maxAttempts = 5;
 		if (exist) {
-			apiClient.deleteDeviceType(devType);
-			LoggerUtility.info(CLASS_NAME, METHOD, "Device Type (" + devType + ") deleted.");
+			for (int i=1; i<maxAttempts; i++) {
+				try {
+					deleted = apiClient.deleteDeviceType(devType);
+				} catch (IoTFCReSTException e) {
+					LoggerUtility.severe(CLASS_NAME, METHOD, 
+							"Failed delete device type (" + devType
+							+ ")  HTTP error code : " + e.getHttpCode() 
+							+ " Response: " + e.getResponse());
+					if (i == maxAttempts) {
+						throw e;
+					}
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e1) {
+						// Ignore
+					}
+				}				
+			}
+			
+			LoggerUtility.info(CLASS_NAME, METHOD, "Device Type (" + devType + ") deleted ? " + deleted);
 		}			
 		
 	}
