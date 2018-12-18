@@ -76,7 +76,13 @@ public class TestHelper {
 	 */
 	public static void registerDevice(APIClient apiClient, String deviceType, String deviceId, String authToken) throws IoTFCReSTException {
 		final String METHOD = "deleteDevice";
-		apiClient.registerDevice(deviceType, deviceId, authToken, null, null, null);
+		try {
+			apiClient.registerDevice(deviceType, deviceId, authToken, null, null, null);
+		} catch (IoTFCReSTException e) {
+			LoggerUtility.severe(CLASS_NAME, METHOD, "Failed to register Device Type(" + deviceType + ")  ID(" + deviceId + ") HTTP Error Code: " 
+					+ e.getHttpCode() + " Resonse: " + e.getResponse() );
+			throw e;
+		}
 		LoggerUtility.info(CLASS_NAME, METHOD, "Device Type(" + deviceType + ")  ID(" + deviceId + ") created.");
 	}
 	
