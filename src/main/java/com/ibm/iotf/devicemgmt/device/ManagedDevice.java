@@ -867,7 +867,11 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 		requests.put(uuid, message);
 
-		publish(topic, message);
+		IMqttDeliveryToken token = publish(topic, message);
+		
+		if (token != null) {
+			token.waitForCompletion(this.getActionTimeout());
+		}
 
 		JsonObject jsonResponse = null;
 		while (jsonResponse == null) {
