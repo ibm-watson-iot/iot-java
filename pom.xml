@@ -45,6 +45,13 @@
         </developer>
     </developers>
     
+    <repositories>
+  		<repository>
+  			<id>Eclipse Paho Repo</id>
+  			<url>https://repo.eclipse.org/content/repositories/paho-snapshots/</url>
+  		</repository>
+    </repositories>
+    
     <distributionManagement>
   		<snapshotRepository>
 	    	<id>ossrh</id>
@@ -53,10 +60,6 @@
   		<repository>
     		<id>ossrh</id>
     		<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-  		</repository>
-  		<repository>
-  			<id>Eclipse Paho Repo</id>
-  			<url>https://repo.eclipse.org/content/repositories/paho-snapshots/</url>
   		</repository>
 	</distributionManagement>
 
