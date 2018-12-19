@@ -909,15 +909,9 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		final String METHOD = "connectComplete";
-		
-		if (disconnectRequested) {
-			LoggerUtility.info(CLASS_NAME, METHOD, "Disconnected requested" + serverURI );
-			return;
-		}
-		
+		final String METHOD = "connectComplete";		
+		LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " reconnected (" + reconnect + ") URI: " + serverURI);
 		if (reconnect) {
-			LoggerUtility.info(CLASS_NAME, METHOD, "Reconnected to " + serverURI );
 			if (this.isCleanSession() == true) {
 			    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
 			    while (iterator.hasNext()) {

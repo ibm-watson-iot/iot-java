@@ -41,7 +41,7 @@ import com.ibm.iotf.util.LoggerUtility;
  * 
  * This is a derived class from AbstractClient and can be used by embedded devices to handle connections with IBM Watson IoT Platform.
  */
-public class DeviceClient extends AbstractClient {
+public class DeviceClient extends AbstractClient implements MqttCallbackExtended {
 	
 	private static final String CLASS_NAME = DeviceClient.class.getName();
 	
@@ -90,7 +90,7 @@ public class DeviceClient extends AbstractClient {
 			this.clientUsername = "use-token-auth";
 			this.clientPassword = getAuthToken();
 		}
-		createClient(this.new MqttDeviceCallBack());
+		createClient(this);
 		
 		options.setProperty("auth-method", "device");
 		
@@ -387,81 +387,6 @@ public class DeviceClient extends AbstractClient {
 	}
 
 	
-	private class MqttDeviceCallBack implements MqttCallbackExtended {
-	
-		/**
-		 * If we lose connection trigger the connect logic to attempt to
-		 * reconnect to the IBM Watson IoT Platform.
-		 * 
-		 * @param exception
-		 *            Throwable which caused the connection to get lost
-		 */
-		public void connectionLost(Throwable exception) {
-			final String METHOD = "connectionLost";
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, exception.getMessage(), exception);
-			try {
-				reconnect();
-			} catch (MqttException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		/**
-		 * A completed deliver does not guarantee that the message is received by the service
-		 * because devices send messages with Quality of Service (QoS) 0. <br>
-		 * 
-		 * The message count
-		 * represents the number of messages that were sent by the device without an error on
-		 * from the perspective of the device.
-		 * @param token
-		 *            MQTT delivery token
-		 */
-		public void deliveryComplete(IMqttDeliveryToken token) {
-			final String METHOD = "deliveryComplete";
-			LoggerUtility.fine(CLASS_NAME, METHOD, "token " + token.getMessageId());
-			messageCount++;
-		}
-		
-		/**
-		 * The Device client does not currently support subscriptions.
-		 */
-		public void messageArrived(String topic, MqttMessage msg) throws Exception {
-			final String METHOD = "messageArrived";
-			if (commandCallback != null) {
-				/* Only check whether the message is a command if a callback 
-				 * has been defined, otherwise it is a waste of time
-				 * as without a callback there is nothing to process the generated
-				 * command.
-				 */
-				Matcher matcher = COMMAND_PATTERN.matcher(topic);
-				if (matcher.matches()) {
-					String command = matcher.group(1);
-					String format = matcher.group(2);
-					Command cmd = new Command(command, format, msg);
-					LoggerUtility.fine(CLASS_NAME, METHOD, "Event received: " + cmd.toString());
-					commandCallback.processCommand(cmd);
-			    }
-			}
-		}
-
-		@Override
-		public void connectComplete(boolean reconnect, String serverURI) {
-			final String METHOD = "connectComplete";
-			if (reconnect) {
-				LoggerUtility.info(CLASS_NAME, METHOD, "Reconnected to " + serverURI );
-				if (!getOrgId().equals("quickstart")) {
-					try {
-						subscribeToCommands();
-					} catch (MqttException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-
-	}
-	
 	public void setCommandCallback(CommandCallback callback) {
 		this.commandCallback  = callback;
 	}
@@ -481,4 +406,77 @@ public class DeviceClient extends AbstractClient {
 		return publishEventsThroughHttps(this.getOrgId(), this.getDomain(), this.getDeviceType(), this.getDeviceId(), 
 				eventName, true, authKey, this.getAuthToken(), payload);
 	}	
+
+	/**
+	 * If we lose connection trigger the connect logic to attempt to
+	 * reconnect to the IBM Watson IoT Platform.
+	 * 
+	 * @param exception
+	 *            Throwable which caused the connection to get lost
+	 */
+	public void connectionLost(Throwable exception) {
+		final String METHOD = "connectionLost";
+		LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, 
+				this.getClientID() + " " + exception.getMessage(), exception);
+		try {
+			reconnect();
+		} catch (MqttException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * A completed deliver does not guarantee that the message is received by the service
+	 * because devices send messages with Quality of Service (QoS) 0. <br>
+	 * 
+	 * The message count
+	 * represents the number of messages that were sent by the device without an error on
+	 * from the perspective of the device.
+	 * @param token
+	 *            MQTT delivery token
+	 */
+	public void deliveryComplete(IMqttDeliveryToken token) {
+		final String METHOD = "deliveryComplete";
+		LoggerUtility.fine(CLASS_NAME, METHOD, "token " + token.getMessageId());
+		messageCount++;
+	}
+	
+	/**
+	 * The Device client does not currently support subscriptions.
+	 */
+	public void messageArrived(String topic, MqttMessage msg) throws Exception {
+		final String METHOD = "messageArrived";
+		if (commandCallback != null) {
+			/* Only check whether the message is a command if a callback 
+			 * has been defined, otherwise it is a waste of time
+			 * as without a callback there is nothing to process the generated
+			 * command.
+			 */
+			Matcher matcher = COMMAND_PATTERN.matcher(topic);
+			if (matcher.matches()) {
+				String command = matcher.group(1);
+				String format = matcher.group(2);
+				Command cmd = new Command(command, format, msg);
+				LoggerUtility.fine(CLASS_NAME, METHOD, "Event received: " + cmd.toString());
+				commandCallback.processCommand(cmd);
+		    }
+		}
+	}
+
+	@Override
+	public void connectComplete(boolean reconnect, String serverURI) {
+		final String METHOD = "connectComplete";
+		LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " reconnected (" + reconnect + ") URI: " + serverURI);
+		if (reconnect) {
+			if (!getOrgId().equals("quickstart")) {
+				try {
+					subscribeToCommands();
+				} catch (MqttException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
 }
