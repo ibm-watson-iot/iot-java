@@ -21,15 +21,15 @@ import com.ibm.iotf.client.gateway.GatewayCommandSubscriptionTest;
 @RunWith(Suite.class)
 @SuiteClasses({ 
 	DeviceManagementTest1.class,
-	DeviceManagementTest2.class,
-	DeviceManagementTest3.class,
-	DeviceManagementTest4.class,
-	DeviceManagementTest5.class,
-	DeviceManagementTest6.class,
-	DeviceManagementTest7.class,
-	DeviceEventPublishTest.class,
-	DeviceCommandSubscriptionTest.class,
-	GatewayCommandSubscriptionTest.class
+	//DeviceManagementTest2.class,
+	//DeviceManagementTest3.class,
+	//DeviceManagementTest4.class,
+	//DeviceManagementTest5.class,
+	//DeviceManagementTest6.class,
+	//DeviceManagementTest7.class,
+	//DeviceEventPublishTest.class,
+	//DeviceCommandSubscriptionTest.class,
+	//GatewayCommandSubscriptionTest.class
 	//BulkAPIOperationsTest.class
 	//GatewayManagementTest.class,
 	//ApplicationEventSubscriptionTest.class
