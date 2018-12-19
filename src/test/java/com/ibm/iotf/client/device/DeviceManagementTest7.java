@@ -6,9 +6,7 @@ import static org.junit.Assert.fail;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
 import java.util.Properties;
-import java.util.Random;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
@@ -24,14 +22,10 @@ import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
-import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
-import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
 import com.ibm.iotf.devicemgmt.DeviceInfo;
 import com.ibm.iotf.devicemgmt.DeviceMetadata;
-import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.test.common.TestDeviceActionHandler;
-import com.ibm.iotf.test.common.TestDeviceFirmwareHandler;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestHelper;
 import com.ibm.iotf.util.LoggerUtility;;
@@ -40,7 +34,6 @@ import com.ibm.iotf.util.LoggerUtility;;
 public class DeviceManagementTest7 {
 	private static final String CLASS_NAME = DeviceManagementTest7.class.getName();
 	
-	private static Random random = new Random();
 	private static APIClient apiClient = null;
 	private static ManagedDevice dmClient = null;
 	private static final String DEVICE_TYPE = "DevMgmtType6";
@@ -48,10 +41,6 @@ public class DeviceManagementTest7 {
 	private static final String APP_ID = "DevMgmtApp6";
 	
 	
-	private static final String rebootRequestToBeInitiated = "{\"action\": \"device/reboot\","
-				+ "\"devices\": [ {\"typeId\": \"" + DEVICE_TYPE +"\","
-				+ "\"deviceId\": \"" + DEVICE_ID + "\"}]}";
-		
 	private static final String	factoryRequestToBeInitiated = "{\"action\": \"device/factoryReset\","
 				+ "\"devices\": [ {\"typeId\": \"" + DEVICE_TYPE +"\","
 				+ "\"deviceId\": \"" + DEVICE_ID + "\"}]}";
@@ -174,7 +163,8 @@ public class DeviceManagementTest7 {
 		
 		try {
 			dmClient.connect();
-			dmClient.sendManageRequest(0, true, true);
+			boolean status = dmClient.sendManageRequest(0, true, true);
+			LoggerUtility.info(CLASS_NAME, METHOD, "send manage request, success = " + status); 
 		} catch (MqttException e) {
 			fail(e.getMessage());
 		}

@@ -154,6 +154,7 @@ public class DeviceManagementTest3 {
 		final String METHOD = "test01Errorcodes";
 		boolean status = false;
 		try {
+			dmClient.connect();
 			status = dmClient.sendManageRequest(0, true, false);
 			LoggerUtility.info(CLASS_NAME, METHOD, "send manage request, success = " + status); 
 		} catch (MqttException e) {
@@ -168,6 +169,8 @@ public class DeviceManagementTest3 {
 		// Let us clear the errorcode now
 		rc = dmClient.clearErrorCodes();
 		assertTrue("clear Errorcode operation is unsuccessfull", rc==200);
+		
+		dmClient.disconnect();
 	}
 
 }

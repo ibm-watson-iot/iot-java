@@ -7281,7 +7281,7 @@ public class APIClient {
 	 * @throws UnsupportedEncodingException 
 	 */
 	public JsonObject getAccessControlProperties(String deviceId, String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
-		final String METHOD = "getActiveSchemaDefinitionContents";
+		final String METHOD = "getAccessControlProperties";
 		String sDeviceId = URLEncoder.encode(deviceId, "UTF-8");
 		StringBuilder sb = new StringBuilder("https://");
 		sb.append(orgId).
@@ -7308,7 +7308,7 @@ public class APIClient {
 			}
 
 		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the access control properties "
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the access control properties for device ID (" + deviceId + ") Exception: "
 					+ "::"+e.getMessage());
 			ex.initCause(e);
 			throw ex;

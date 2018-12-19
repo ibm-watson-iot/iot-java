@@ -161,7 +161,8 @@ public class DeviceManagementTest5 {
 		
 		try {
 			dmClient.connect();
-			dmClient.sendManageRequest(0, true, true);
+			boolean status = dmClient.sendManageRequest(0, true, true);
+			LoggerUtility.info(CLASS_NAME, METHOD, "send manage request, success = " + status); 
 		} catch (MqttException e) {
 			fail(e.getMessage());
 		}

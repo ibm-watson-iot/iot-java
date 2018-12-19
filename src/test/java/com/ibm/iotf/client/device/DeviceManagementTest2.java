@@ -178,6 +178,8 @@ public class DeviceManagementTest2 {
 		// user overloaded method
 		rc = dmClient.updateLocation(latitude, longitude, elevation, new Date(), 1d);
 		assertTrue("Location update is unsuccessfull", rc==200);
+		
+		dmClient.disconnect();
 	}
 	
 

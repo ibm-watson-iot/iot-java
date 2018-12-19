@@ -162,7 +162,8 @@ public class DeviceManagementTest4 {
 		final String METHOD = "test01FirmwareDownload";
 		try {
 			dmClient.connect(true);
-			dmClient.sendManageRequest(0, true, true);
+			boolean status = dmClient.sendManageRequest(0, true, true);
+			LoggerUtility.info(CLASS_NAME, METHOD, "send manage request, success = " + status); 
 		} catch (MqttException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
