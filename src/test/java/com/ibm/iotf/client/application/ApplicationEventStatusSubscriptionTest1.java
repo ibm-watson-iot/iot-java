@@ -46,12 +46,12 @@ import com.ibm.iotf.util.LoggerUtility;
  */
 public class ApplicationEventStatusSubscriptionTest1 {
 	
-	static Properties deviceProps;
 	static Properties appProps;
 	
 	private final static String DEVICE_TYPE = "AppEvtSubTestType1";
 	private final static String DEVICE_ID = "AppEvtSubTestDev1";
-	private final static String APP_ID = "AppEvtSubTest1";
+	private final static String APP_ID = "AppEvtSubTest";
+	private final static String APP1_ID = "AppEvtSubTest1";
 
 	private static final String CLASS_NAME = ApplicationEventStatusSubscriptionTest1.class.getName();
 	private static APIClient apiClient = null;
@@ -61,10 +61,9 @@ public class ApplicationEventStatusSubscriptionTest1 {
 		final String METHOD = "oneTimeSetUp";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Setting up device type (" + DEVICE_TYPE + ") ID(" + DEVICE_ID + ")");
 
-		deviceProps = TestEnv.getDeviceProperties(DEVICE_TYPE, DEVICE_ID);
-		
+		Properties apiProps = TestEnv.getAppProperties(APP_ID, false, null, null);
 		try {
-			apiClient = new APIClient(appProps);
+			apiClient = new APIClient(apiProps);
 		} catch (KeyManagementException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -104,7 +103,7 @@ public class ApplicationEventStatusSubscriptionTest1 {
 		appProps = TestHelper.createAPIKey(apiClient, CLASS_NAME);
 		
 		if (appProps != null) {
-			appProps.setProperty("id", APP_ID);
+			appProps.setProperty("id", APP1_ID);
 		}
 		
 	}

@@ -20,7 +20,6 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -29,7 +28,6 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.app.ApplicationClient;
-import com.ibm.iotf.client.app.DeviceStatus;
 import com.ibm.iotf.client.app.Event;
 import com.ibm.iotf.test.common.TestDeviceHelper;
 import com.ibm.iotf.test.common.TestEnv;
@@ -46,12 +44,12 @@ import com.ibm.iotf.util.LoggerUtility;
  */
 public class ApplicationCommandStatusSubscriptionTest1 {
 	
-	static Properties deviceProps;
 	static Properties app1Props;
 	static Properties app2Props;
 	
 	private final static String DEVICE_TYPE = "AppCmdSubTestType1";
 	private final static String DEVICE_ID = "AppCmdSubTestDev1";
+	private final static String APP_ID = "AppCmdSubTest";
 	private final static String APP1_ID = "AppCmdSubTest1";
 	private final static String APP2_ID = "AppCmdSubTest2";
 
@@ -63,10 +61,9 @@ public class ApplicationCommandStatusSubscriptionTest1 {
 		final String METHOD = "oneTimeSetUp";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Setting up device type (" + DEVICE_TYPE + ") ID(" + DEVICE_ID + ")");
 
-		deviceProps = TestEnv.getDeviceProperties(DEVICE_TYPE, DEVICE_ID);
-		
+		Properties apiProps = TestEnv.getAppProperties(APP_ID, false, null, null);
 		try {
-			apiClient = new APIClient(app1Props);
+			apiClient = new APIClient(apiProps);
 		} catch (KeyManagementException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -112,7 +109,7 @@ public class ApplicationCommandStatusSubscriptionTest1 {
 		app2Props = TestHelper.createAPIKey(apiClient, CLASS_NAME);
 		
 		if (app2Props != null) {
-			app2Props.setProperty("id", APP1_ID);
+			app2Props.setProperty("id", APP2_ID);
 		}
 		
 	}

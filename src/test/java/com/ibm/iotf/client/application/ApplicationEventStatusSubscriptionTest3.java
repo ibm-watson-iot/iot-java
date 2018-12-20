@@ -52,7 +52,8 @@ public class ApplicationEventStatusSubscriptionTest3 {
 	
 	private final static String DEVICE_TYPE = "AppEvtSubTestType3";
 	private final static String DEVICE_ID = "AppEvtSubTestDev3";
-	private final static String APP_ID = "AppEvtSubTest3";
+	private final static String APP_ID = "AppEvtSubTest";
+	private final static String APP1_ID = "AppEvtSubTest3";
 
 	private static final String CLASS_NAME = ApplicationEventStatusSubscriptionTest3.class.getName();
 	private static APIClient apiClient = null;
