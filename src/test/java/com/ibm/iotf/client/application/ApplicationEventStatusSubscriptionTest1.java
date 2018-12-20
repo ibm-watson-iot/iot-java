@@ -125,6 +125,13 @@ public class ApplicationEventStatusSubscriptionTest1 {
 	public void test01EventSubscribe() {
 		final String METHOD = "test01EventSubscribe";
 
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
 		TestDeviceHelper testHelper;
 		try {
 			testHelper = new TestDeviceHelper(DEVICE_TYPE, DEVICE_ID);
@@ -143,6 +150,7 @@ public class ApplicationEventStatusSubscriptionTest1 {
 		}
 		try {
 			appClient.connect();
+			LoggerUtility.info(CLASS_NAME, METHOD, appClient.getClientID() + " connected ? " + appClient.isConnected());
 		} catch (Exception e) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Failed connect application " + e.getMessage());			
 			fail(e.getMessage());

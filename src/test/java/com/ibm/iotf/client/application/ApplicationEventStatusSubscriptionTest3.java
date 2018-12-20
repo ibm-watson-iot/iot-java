@@ -47,7 +47,6 @@ import com.ibm.iotf.util.LoggerUtility;
  */
 public class ApplicationEventStatusSubscriptionTest3 {
 	
-	static Properties deviceProps;
 	static Properties appProps;
 	
 	private final static String DEVICE_TYPE = "AppEvtSubTestType3";
@@ -63,10 +62,9 @@ public class ApplicationEventStatusSubscriptionTest3 {
 		final String METHOD = "oneTimeSetUp";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Setting up device type (" + DEVICE_TYPE + ") ID(" + DEVICE_ID + ")");
 
-		deviceProps = TestEnv.getDeviceProperties(DEVICE_TYPE, DEVICE_ID);
-		
+		Properties apiProps = TestEnv.getAppProperties(APP_ID, false, null, null);
 		try {
-			apiClient = new APIClient(appProps);
+			apiClient = new APIClient(apiProps);
 		} catch (KeyManagementException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -106,7 +104,7 @@ public class ApplicationEventStatusSubscriptionTest3 {
 		appProps = TestHelper.createAPIKey(apiClient, CLASS_NAME);
 		
 		if (appProps != null) {
-			appProps.setProperty("id", APP_ID);
+			appProps.setProperty("id", APP1_ID);
 		}
 		
 	}
@@ -128,6 +126,14 @@ public class ApplicationEventStatusSubscriptionTest3 {
 	public void test01EventSubscribeNotMatch() {
 		final String METHOD = "test01EventSubscribeNotMatch";
 
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
+		
 		TestDeviceHelper testHelper;
 		try {
 			testHelper = new TestDeviceHelper(DEVICE_TYPE, DEVICE_ID);
@@ -146,6 +152,7 @@ public class ApplicationEventStatusSubscriptionTest3 {
 		}
 		try {
 			appClient.connect();
+			LoggerUtility.info(CLASS_NAME, METHOD, appClient.getClientID() + " connected ? " + appClient.isConnected());
 		} catch (Exception e) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Failed connect application " + e.getMessage());			
 			fail(e.getMessage());

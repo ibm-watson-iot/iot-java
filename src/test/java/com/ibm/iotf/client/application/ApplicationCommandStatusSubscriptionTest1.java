@@ -131,6 +131,13 @@ public class ApplicationCommandStatusSubscriptionTest1 {
 	public void test01CommandSubscribe() {
 		final String METHOD = "test01CommandSubscribe";
 
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
 		ApplicationClient app1Client = null;
 		try {
 			app1Client = new ApplicationClient(app1Props);
@@ -140,6 +147,7 @@ public class ApplicationCommandStatusSubscriptionTest1 {
 		}
 		try {
 			app1Client.connect();
+			LoggerUtility.info(CLASS_NAME, METHOD, app1Client.getClientID() + " connected ? " + app1Client.isConnected());
 		} catch (Exception e) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Failed connect application " + e.getMessage());			
 			fail(e.getMessage());
@@ -156,6 +164,7 @@ public class ApplicationCommandStatusSubscriptionTest1 {
 		
 		try {
 			app2Client.connect();
+			LoggerUtility.info(CLASS_NAME, METHOD, app2Client.getClientID() + " connected ? " + app2Client.isConnected());
 		} catch (Exception e) {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Failed connect application " + e.getMessage());			
 			fail(e.getMessage());
