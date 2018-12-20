@@ -204,7 +204,7 @@ public class TestHelper {
 				props.setProperty("API-Key", jsonResult.get("key").getAsString());
 				props.setProperty("Authentication-Token", jsonResult.get("token").getAsString());
 			}
-			LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + props.getProperty("API-Key") + ") created.");
+			LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + jsonResult + ") created.");
 		} catch (IoTFCReSTException e) {
 			e.printStackTrace();
 		}
