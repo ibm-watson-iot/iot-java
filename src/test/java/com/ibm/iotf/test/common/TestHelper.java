@@ -10,15 +10,18 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.client.app.ApplicationClient;
-import com.ibm.iotf.test.common.TestGatewayCallback;
 import com.ibm.iotf.util.LoggerUtility;
 
 public class TestHelper {
 	static final String CLASS_NAME = TestHelper.class.getName();
 	Properties appProps = null;
 	ApplicationClient mqttAppClient = null;
+	
+	
+	public TestHelper(Properties appProperties) throws Exception {
+		this.appProps = appProperties;
+	}
 	
 	/**
 	 * Delete a device
@@ -155,8 +158,22 @@ public class TestHelper {
 	}
 	
 	/**
+	 * Create a API Key with role PD_STANDARD_APP
+	 * 
+	 * @param apiClient
+	 * @param comment
+	 * @return Properties which can be used to instantiate application client.
+	 * Note that the caller should update Application ID before using the returned properties.
+	 */
+	public static Properties createAPIKey(APIClient apiClient, String comment) {
+		ArrayList<String> roles = new ArrayList<String>();
+		roles.add("PD_STANDARD_APP");
+		return createAPIKey(apiClient, comment, roles);
+	}
+	
+	/**
 	 * Create a API Key and return properties which can be used to instantiate application client.
-	 * Note that the caller should update Application ID before us
+	 * Note that the caller should update Application ID before using the returned properties.
 	 * 
 	 * @param apiClient
 	 * @param comment
@@ -351,9 +368,6 @@ public class TestHelper {
 		return groups;
 	}
 	
-	public TestHelper(Properties appProperties) throws Exception {
-		this.appProps = appProperties;
-	}
 	
 	public void setAppProperties(Properties props) throws Exception {
 		this.appProps = props;
@@ -361,32 +375,38 @@ public class TestHelper {
 	}
 	
 	
-	public void connectApplication() throws MqttException {
+	public void connectApplication() throws MqttException, TestException {
 		final String METHOD = "connectApplication";
+		if (mqttAppClient == null) {
+			throw new TestException(TestException.MQTT_APP_CLIENT_NOT_INITIALIZED);
+		}
 		mqttAppClient.connect();
 		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " connected " + mqttAppClient.isConnected());
 	}
 	
-	public void disconnectApplication() {
+	public void disconnectApplication() throws TestException {
 		final String METHOD = "disconnectApplication";
+		if (mqttAppClient == null) {
+			throw new TestException(TestException.MQTT_APP_CLIENT_NOT_INITIALIZED);
+		}
 		mqttAppClient.disconnect();
 		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " connected " + mqttAppClient.isConnected());
 	}
 	
-	public void appPublishCommand(String devType, String devId, 
-			String cmdName, JsonObject jsonCmd) {
-		appPublishCommand(null, null, devType, devId, cmdName, jsonCmd);
+	public JsonObject appPublishCommand(String devType, String devId, 
+			String cmdName, JsonObject jsonCmd) throws TestException {
+		return appPublishCommand(null, null, devType, devId, cmdName, jsonCmd);
 	}
 	
-	public void appPublishCommand(
+	public JsonObject appPublishCommand(
 			String gwType, String gwDevId, 
 			String devType, String devId, 
-			String cmdName, JsonObject jsonCmd) {
+			String cmdName, JsonObject jsonCmd) throws TestException {
 		
 		final String METHOD = "appPublishCommand";
 		
 		if (mqttAppClient == null) {
-			return;
+			throw new TestException(TestException.MQTT_APP_CLIENT_NOT_INITIALIZED);
 		}
 		
 		if (mqttAppClient.isConnected() == false) {
@@ -394,7 +414,7 @@ public class TestHelper {
 				mqttAppClient.connect();
 			} catch (MqttException e) {
 				e.printStackTrace();
-				return;
+				return null;
 			}
 		}
 		
@@ -419,6 +439,7 @@ public class TestHelper {
 		
 		mqttAppClient.disconnect();
 		
+		return jsonCmd;
 	}
 	
 

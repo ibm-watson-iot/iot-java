@@ -35,6 +35,7 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.test.common.TestException;
 import com.ibm.iotf.test.common.TestGatewayHelper;
 import com.ibm.iotf.test.common.TestHelper;
 import com.ibm.iotf.util.LoggerUtility;
@@ -322,8 +323,14 @@ public class GatewayCommandSubscriptionTest {
 		publishCommand(iTest, TestGatewayHelper.getGatewayDeviceType(), TestGatewayHelper.getGatewayDeviceId(), 
 				null, null, null, null);
 				*/
-		testHelper.appPublishCommand(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId(), 
-				null, null, null, null);
+		try {
+			testHelper.appPublishCommand(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId(), 
+					null, null, null, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		int count = 0;
 		// wait for sometime before checking
@@ -372,8 +379,14 @@ public class GatewayCommandSubscriptionTest {
 		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				null, null);
 				*/
-		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
-				null, null);
+		try {
+			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+					null, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		int count = 0;
 		// wait for sometime before checking
@@ -424,8 +437,14 @@ public class GatewayCommandSubscriptionTest {
 		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 		*/
-		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
-				cmd, null);
+		try {
+			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+					cmd, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		int count = 0;
 		// wait for sometime before checking
@@ -481,8 +500,14 @@ public class GatewayCommandSubscriptionTest {
 				cmd, null);
 				*/
 		
-		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
-				cmd, null);
+		try {
+			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+					cmd, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		
 		int count = 0;
@@ -627,8 +652,14 @@ public class GatewayCommandSubscriptionTest {
 		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 				*/
-		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
-				cmd, null);
+		try {
+			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+					cmd, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		
 		int count = 0;
@@ -680,8 +711,14 @@ public class GatewayCommandSubscriptionTest {
 		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 				*/
-		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
-				cmd, null);
+		try {
+			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+					cmd, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		
 		int count = 0;
@@ -734,8 +771,14 @@ public class GatewayCommandSubscriptionTest {
 		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				null, null);
 				*/
-		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
-				null, null);
+		try {
+			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+					null, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		int count = 0;
 		// wait for sometime before checking
@@ -758,8 +801,14 @@ public class GatewayCommandSubscriptionTest {
 				null, null);
 				*/
 		
-		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
-				null, null);
+		try {
+			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+					null, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		
 		// wait for sometime before checking
@@ -809,8 +858,14 @@ public class GatewayCommandSubscriptionTest {
 		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 				*/
-		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
-				cmd, null);
+		try {
+			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+					cmd, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		
 		int count = 0;
@@ -833,8 +888,14 @@ public class GatewayCommandSubscriptionTest {
 		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 				*/
-		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
-				cmd, null);
+		try {
+			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+					cmd, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		// wait for sometime before checking
 		while(testHelper.commandReceived() == false && count++ <= 5) {
@@ -885,8 +946,14 @@ public class GatewayCommandSubscriptionTest {
 		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 		*/
-		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
-				cmd, null);
+		try {
+			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+					cmd, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		int count = 0;
 		// wait for sometime before checking
 		while(testHelper.commandReceived() == false && count++ <= 5) {
@@ -906,8 +973,14 @@ public class GatewayCommandSubscriptionTest {
 		publishCommand(iTest, null, null, TestGatewayHelper.getAttachedDeviceType(), TestGatewayHelper.getAttachedDeviceId(),
 				cmd, null);
 		*/
-		testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
-				cmd, null);
+		try {
+			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+					cmd, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		// wait for sometime before checking
 		while(testHelper.commandReceived() == false && count++ <= 5) {

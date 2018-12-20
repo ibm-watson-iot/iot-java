@@ -30,6 +30,7 @@ import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.test.common.TestDeviceHelper;
 import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.test.common.TestException;
 import com.ibm.iotf.test.common.TestGatewayHelper;
 import com.ibm.iotf.test.common.TestHelper;
 import com.ibm.iotf.util.LoggerUtility;
@@ -188,7 +189,13 @@ public class DeviceCommandSubscriptionTest {
 			return;
 		}
 		
-		testHelper.appPublishCommand(testHelper.getDeviceType(), testHelper.getDeviceId(), null, null);
+		try {
+			testHelper.appPublishCommand(testHelper.getDeviceType(), testHelper.getDeviceId(), null, null);
+		} catch (TestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+			return;
+		}
 		
 		int count = 0;
 		// wait for sometime before checking

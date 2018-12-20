@@ -1,12 +1,12 @@
-package com.ibm.iotf.client.device;
+package com.ibm.iotf.client.device.devicemanagement;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
-import java.util.Random;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceData;
@@ -24,21 +25,27 @@ import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceInfo;
 import com.ibm.iotf.devicemgmt.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+import com.ibm.iotf.test.common.TestDeviceActionHandler;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestHelper;
 import com.ibm.iotf.util.LoggerUtility;;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceManagementTest3 {
-	private static final String CLASS_NAME = DeviceManagementTest3.class.getName();
+public class DeviceManagementTest7 {
+	private static final String CLASS_NAME = DeviceManagementTest7.class.getName();
 	
-	private static Random random = new Random();
 	private static APIClient apiClient = null;
 	private static ManagedDevice dmClient = null;
-	private static final String DEVICE_TYPE = "DevMgmtType3";
-	private static final String DEVICE_ID = "DevMgmtDev3";
-	private static final String APP_ID = "DevMgmtApp3";
+	private static final String DEVICE_TYPE = "DevMgmtType6";
+	private static final String DEVICE_ID = "DevMgmtDev6";
+	private static final String APP_ID = "DevMgmtApp6";
 	
+	
+	private static final String	factoryRequestToBeInitiated = "{\"action\": \"device/factoryReset\","
+				+ "\"devices\": [ {\"typeId\": \"" + DEVICE_TYPE +"\","
+				+ "\"deviceId\": \"" + DEVICE_ID + "\"}]}";
+		
+
 	/**
 	 * This method builds the device objects required to create the
 	 * ManagedClient
@@ -150,27 +157,82 @@ public class DeviceManagementTest3 {
 	}	
 	
 	@Test
-	public void test01Errorcodes() {
-		final String METHOD = "test01Errorcodes";
-		boolean status = false;
+	public void test01FactoryResetRequest() {
+		
+		final String METHOD = "test01FactoryResetRequest";
+		
 		try {
 			dmClient.connect();
-			status = dmClient.sendManageRequest(0, true, false);
+			boolean status = dmClient.sendManageRequest(0, true, true);
 			LoggerUtility.info(CLASS_NAME, METHOD, "send manage request, success = " + status); 
 		} catch (MqttException e) {
-			e.printStackTrace();
 			fail(e.getMessage());
 		}
 		
-		int errorCode = random.nextInt(500);
-		int rc = dmClient.addErrorCode(errorCode);
-		assertTrue("Errorcode addition unsuccessfull", rc==200);
+		TestDeviceActionHandler handler = new TestDeviceActionHandler(dmClient);
 		
-		// Let us clear the errorcode now
-		rc = dmClient.clearErrorCodes();
-		assertTrue("clear Errorcode operation is unsuccessfull", rc==200);
+		try {
+			dmClient.addDeviceActionHandler(handler);
+		} catch(Exception e) {
+			// ignore the error
+		}
 		
-		dmClient.disconnect();
-	}
+		JsonObject factory = (JsonObject) new JsonParser().parse(factoryRequestToBeInitiated);
+		System.out.println(factory);
+		JsonObject response = null;
+		
+		try {
+			response = apiClient.initiateDMRequest(factory);
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
 
+		if (response != null) {
+			if (response.has("reqId")) {
+				LoggerUtility.info(CLASS_NAME, METHOD, "initiated reboot request ID = " + response.get("reqId").getAsString());
+			} else {
+				LoggerUtility.info(CLASS_NAME, METHOD, "initiated reboot request, response " + response);
+			}
+		}
+		
+		int counter = 0;
+		// wait for sometime
+		while(counter <= 20) {
+			// For some reason the volatile doesn't work, so using the lock
+			if (handler.factoryReset()) {
+				break;
+			}
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			counter++;
+		}
+
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		JsonObject status = null;
+		try {
+			status = apiClient.getDeviceManagementRequestStatusByDevice(response.get("reqId").getAsString(), DEVICE_TYPE, DEVICE_ID);
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+		if (status != null) {
+			assertEquals(0, status.get("status").getAsInt());
+			assertTrue(status.get("complete").getAsBoolean());
+		} else {
+			fail("Failed to get status of DM request");
+		}
+		assertTrue("The device factory reset request is not received", handler.factoryReset());
+	}
+	
+	
 }

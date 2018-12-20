@@ -1,4 +1,4 @@
-package com.ibm.iotf.client.device;
+package com.ibm.iotf.client.device.devicemanagement;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

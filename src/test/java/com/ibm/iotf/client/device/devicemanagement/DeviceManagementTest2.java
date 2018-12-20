@@ -1,4 +1,4 @@
-package com.ibm.iotf.client.device;
+package com.ibm.iotf.client.device.devicemanagement;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -7,6 +7,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Properties;
+import java.util.Random;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
@@ -23,24 +24,23 @@ import com.ibm.iotf.devicemgmt.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceInfo;
 import com.ibm.iotf.devicemgmt.DeviceMetadata;
-import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestHelper;
 import com.ibm.iotf.util.LoggerUtility;;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceManagementTest1 {
-	private static final String CLASS_NAME = DeviceManagementTest1.class.getName();
+public class DeviceManagementTest2 {
+	private static final String CLASS_NAME = DeviceManagementTest2.class.getName();
 	
+	private static Random random = new Random();
 	private static APIClient apiClient = null;
 	private static ManagedDevice dmClient = null;
-	private static final String DEVICE_TYPE = "DevMgmtType1";
-	private static final String DEVICE_ID = "DevMgmtDev1";
-	private static final String APP_ID = "DevMgmtApp1";
+	private static final String DEVICE_TYPE = "DevMgmtType2";
+	private static final String DEVICE_ID = "DevMgmtDev2";
+	private static final String APP_ID = "DevMgmtApp2";
 	
 	
-
 	/**
 	 * This method builds the device objects required to create the
 	 * ManagedClient
@@ -151,13 +151,12 @@ public class DeviceManagementTest1 {
 		LoggerUtility.info(CLASS_NAME, METHOD, "completed."); 
 	}	
 	
+	
 	@Test
-	public void test01LogMessages() {
-		
-		final String METHOD = "test01LogMessages";
+	public void test01LocationUpdate() {
+		final String METHOD = "test01LocationUpdate";
 		boolean status = false;
 		try {
-			dmClient.connect();
 			status = dmClient.sendManageRequest(0, true, false);
 			LoggerUtility.info(CLASS_NAME, METHOD, "send manage request, success = " + status); 
 		} catch (MqttException e) {
@@ -165,22 +164,23 @@ public class DeviceManagementTest1 {
 			fail(e.getMessage());
 		}
 		
-		String message = "Log event 1";
-		Date timestamp = new Date();
-		LogSeverity severity = LogSeverity.informational;
-		int rc = dmClient.addLog(message, timestamp, severity);
-		assertTrue("Log addition unsuccessfull", rc==200);
+		double latitude = random.nextDouble() + 30;
+		double longitude = random.nextDouble() - 98;
+		double elevation = (double)random.nextInt(100);
 		
-		// Use overloaded methods
-		rc = dmClient.addLog("Log event with data", timestamp, severity, "Sample data");
-		assertTrue("Log addition unsuccessfull", rc==200);
-
-		// Let us clear the errorcode now
-		rc = dmClient.clearLogs();
-		assertTrue("clear Log operation is unsuccessfull", rc==200);
+		int rc = dmClient.updateLocation(latitude, longitude, elevation);
+		assertTrue("Location update is unsuccessfull", rc==200);
+		
+		// user overloaded method
+		rc = dmClient.updateLocation(latitude, longitude, elevation, new Date());
+		assertTrue("Location update is unsuccessfull", rc==200);
+		
+		// user overloaded method
+		rc = dmClient.updateLocation(latitude, longitude, elevation, new Date(), 1d);
+		assertTrue("Location update is unsuccessfull", rc==200);
 		
 		dmClient.disconnect();
 	}
-
 	
+
 }

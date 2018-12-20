@@ -1,4 +1,4 @@
-package com.ibm.iotf.client.device;
+package com.ibm.iotf.client.device.devicemanagement;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -25,26 +25,24 @@ import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceInfo;
 import com.ibm.iotf.devicemgmt.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
-import com.ibm.iotf.test.common.TestDeviceActionHandler;
+import com.ibm.iotf.test.common.TestDeviceFirmwareHandler;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestHelper;
 import com.ibm.iotf.util.LoggerUtility;;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceManagementTest7 {
-	private static final String CLASS_NAME = DeviceManagementTest7.class.getName();
+public class DeviceManagementTest5 {
+	private static final String CLASS_NAME = DeviceManagementTest5.class.getName();
 	
 	private static APIClient apiClient = null;
 	private static ManagedDevice dmClient = null;
-	private static final String DEVICE_TYPE = "DevMgmtType6";
-	private static final String DEVICE_ID = "DevMgmtDev6";
-	private static final String APP_ID = "DevMgmtApp6";
+	private static final String DEVICE_TYPE = "DevMgmtType5";
+	private static final String DEVICE_ID = "DevMgmtDev5";
+	private static final String APP_ID = "DevMgmtApp5";
 	
 	
-	private static final String	factoryRequestToBeInitiated = "{\"action\": \"device/factoryReset\","
-				+ "\"devices\": [ {\"typeId\": \"" + DEVICE_TYPE +"\","
-				+ "\"deviceId\": \"" + DEVICE_ID + "\"}]}";
-		
+	private static final String	updateRequest = "{\"action\": \"firmware/update\", \"devices\": [{\"typeId\": \"" + DEVICE_TYPE + "\",\"deviceId\": \"" + DEVICE_ID + "\"}]}";
+	
 
 	/**
 	 * This method builds the device objects required to create the
@@ -157,9 +155,9 @@ public class DeviceManagementTest7 {
 	}	
 	
 	@Test
-	public void test01FactoryResetRequest() {
+	public void test01FirmwareUpdate() {
 		
-		final String METHOD = "test01FactoryResetRequest";
+		final String METHOD = "test01FirmwareUpdate";
 		
 		try {
 			dmClient.connect();
@@ -169,38 +167,38 @@ public class DeviceManagementTest7 {
 			fail(e.getMessage());
 		}
 		
-		TestDeviceActionHandler handler = new TestDeviceActionHandler(dmClient);
+		TestDeviceFirmwareHandler handler = new TestDeviceFirmwareHandler(dmClient);
 		
 		try {
-			dmClient.addDeviceActionHandler(handler);
+			dmClient.addFirmwareHandler(handler);
 		} catch(Exception e) {
 			// ignore the error
 		}
 		
-		JsonObject factory = (JsonObject) new JsonParser().parse(factoryRequestToBeInitiated);
-		System.out.println(factory);
-		JsonObject response = null;
+		JsonObject update = (JsonObject) new JsonParser().parse(updateRequest);
 		
+		JsonObject response = null;
 		try {
-			response = apiClient.initiateDMRequest(factory);
+			response = apiClient.initiateDMRequest(update);
 		} catch (IoTFCReSTException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
-
+		
 		if (response != null) {
 			if (response.has("reqId")) {
-				LoggerUtility.info(CLASS_NAME, METHOD, "initiated reboot request ID = " + response.get("reqId").getAsString());
+				LoggerUtility.info(CLASS_NAME, METHOD, "initiated firmware update request ID = " + response.get("reqId").getAsString());
 			} else {
-				LoggerUtility.info(CLASS_NAME, METHOD, "initiated reboot request, response " + response);
+				LoggerUtility.info(CLASS_NAME, METHOD, "initiated firmware update, response " + response);
 			}
 		}
+		
 		
 		int counter = 0;
 		// wait for sometime
 		while(counter <= 20) {
 			// For some reason the volatile doesn't work, so using the lock
-			if (handler.factoryReset()) {
+			if(handler.firmwareUpdated()) {
 				break;
 			}
 			try {
@@ -214,7 +212,6 @@ public class DeviceManagementTest7 {
 		try {
 			Thread.sleep(2000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -222,17 +219,19 @@ public class DeviceManagementTest7 {
 		try {
 			status = apiClient.getDeviceManagementRequestStatusByDevice(response.get("reqId").getAsString(), DEVICE_TYPE, DEVICE_ID);
 		} catch (IoTFCReSTException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			fail(e.getMessage());
 		}
+		
+		assertTrue("The firmware request/parameters not received", handler.firmwareUpdated());	
+		
 		if (status != null) {
 			assertEquals(0, status.get("status").getAsInt());
 			assertTrue(status.get("complete").getAsBoolean());
 		} else {
 			fail("Failed to get status of DM request");
 		}
-		assertTrue("The device factory reset request is not received", handler.factoryReset());
 	}
-	
+
 	
 }

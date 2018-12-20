@@ -1,11 +1,11 @@
-package com.ibm.iotf.client.device;
+package com.ibm.iotf.client.device.devicemanagement;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.Properties;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceData;
@@ -24,24 +23,22 @@ import com.ibm.iotf.devicemgmt.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.DeviceInfo;
 import com.ibm.iotf.devicemgmt.DeviceMetadata;
+import com.ibm.iotf.devicemgmt.LogSeverity;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
-import com.ibm.iotf.test.common.TestDeviceFirmwareHandler;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestHelper;
 import com.ibm.iotf.util.LoggerUtility;;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceManagementTest5 {
-	private static final String CLASS_NAME = DeviceManagementTest5.class.getName();
+public class DeviceManagementTest1 {
+	private static final String CLASS_NAME = DeviceManagementTest1.class.getName();
 	
 	private static APIClient apiClient = null;
 	private static ManagedDevice dmClient = null;
-	private static final String DEVICE_TYPE = "DevMgmtType5";
-	private static final String DEVICE_ID = "DevMgmtDev5";
-	private static final String APP_ID = "DevMgmtApp5";
+	private static final String DEVICE_TYPE = "DevMgmtType1";
+	private static final String DEVICE_ID = "DevMgmtDev1";
+	private static final String APP_ID = "DevMgmtApp1";
 	
-	
-	private static final String	updateRequest = "{\"action\": \"firmware/update\", \"devices\": [{\"typeId\": \"" + DEVICE_TYPE + "\",\"deviceId\": \"" + DEVICE_ID + "\"}]}";
 	
 
 	/**
@@ -155,82 +152,34 @@ public class DeviceManagementTest5 {
 	}	
 	
 	@Test
-	public void test01FirmwareUpdate() {
+	public void test01LogMessages() {
 		
-		final String METHOD = "test01FirmwareUpdate";
-		
+		final String METHOD = "test01LogMessages";
+		boolean status = false;
 		try {
 			dmClient.connect();
-			boolean status = dmClient.sendManageRequest(0, true, true);
+			status = dmClient.sendManageRequest(0, true, false);
 			LoggerUtility.info(CLASS_NAME, METHOD, "send manage request, success = " + status); 
 		} catch (MqttException e) {
-			fail(e.getMessage());
-		}
-		
-		TestDeviceFirmwareHandler handler = new TestDeviceFirmwareHandler(dmClient);
-		
-		try {
-			dmClient.addFirmwareHandler(handler);
-		} catch(Exception e) {
-			// ignore the error
-		}
-		
-		JsonObject update = (JsonObject) new JsonParser().parse(updateRequest);
-		
-		JsonObject response = null;
-		try {
-			response = apiClient.initiateDMRequest(update);
-		} catch (IoTFCReSTException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
 		
-		if (response != null) {
-			if (response.has("reqId")) {
-				LoggerUtility.info(CLASS_NAME, METHOD, "initiated firmware update request ID = " + response.get("reqId").getAsString());
-			} else {
-				LoggerUtility.info(CLASS_NAME, METHOD, "initiated firmware update, response " + response);
-			}
-		}
+		String message = "Log event 1";
+		Date timestamp = new Date();
+		LogSeverity severity = LogSeverity.informational;
+		int rc = dmClient.addLog(message, timestamp, severity);
+		assertTrue("Log addition unsuccessfull", rc==200);
 		
-		
-		int counter = 0;
-		// wait for sometime
-		while(counter <= 20) {
-			// For some reason the volatile doesn't work, so using the lock
-			if(handler.firmwareUpdated()) {
-				break;
-			}
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			counter++;
-		}
+		// Use overloaded methods
+		rc = dmClient.addLog("Log event with data", timestamp, severity, "Sample data");
+		assertTrue("Log addition unsuccessfull", rc==200);
 
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		// Let us clear the errorcode now
+		rc = dmClient.clearLogs();
+		assertTrue("clear Log operation is unsuccessfull", rc==200);
 		
-		JsonObject status = null;
-		try {
-			status = apiClient.getDeviceManagementRequestStatusByDevice(response.get("reqId").getAsString(), DEVICE_TYPE, DEVICE_ID);
-		} catch (IoTFCReSTException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		assertTrue("The firmware request/parameters not received", handler.firmwareUpdated());	
-		
-		if (status != null) {
-			assertEquals(0, status.get("status").getAsInt());
-			assertTrue(status.get("complete").getAsBoolean());
-		} else {
-			fail("Failed to get status of DM request");
-		}
+		dmClient.disconnect();
 	}
 
 	
