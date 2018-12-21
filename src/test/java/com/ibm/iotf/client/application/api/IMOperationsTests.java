@@ -14,6 +14,9 @@
 
 package com.ibm.iotf.client.application.api;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -36,38 +41,70 @@ import com.google.gson.JsonParser;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.api.APIClient.SchemaOperation;
+import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.util.LoggerUtility;
 
 /**
  * This test verifies various IM ReST operations that can be performed on Watson IoT Platform.
  *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class IMOperationsTests extends TestCase {
+public class IMOperationsTests {
 	
-	private final static String PROPERTIES_FILE_NAME = "/application.properties";
-	private final static String DEVICE_TYPE = "SampleDT";
-	private final static String DEVICE_ID1 = "Device01";
-
-	private static boolean setUpIsDone = false;
+	private final static String CLASS_NAME = IMOperationsTests.class.getName();
+	private final static String APP_ID = "IMOpApp1";
+	private final static String DEVICE_TYPE = "IMOpType1";
+	private final static String DEVICE_ID = "IMOpDev1";
 	
-	private static String EVENT_SCHEMA1 = null;
-	private static String SCHEMA_NAME1 = null;
-	private static String SCHEMA_DESCRIPTION1 = null;
-	private static String SCHEMA_TYPE1 = null;
+	private static String EVENT_SCHEMA1 = "fahrenhietSchema.json";
+	private static String SCHEMA_NAME1 = "fahrenhietSchema";
+	private static String SCHEMA_DESCRIPTION1 = "Schema to capture the temperature readings in Fahrenhiet";
+	private static String SCHEMA_TYPE1 = "json-schema";
+	private static final String jsonStringSchema1 =  "{"
+        + "\"$schema\": \"http://json-schema.org/draft-04/schema#\","
+        + "\"type\": \"object\","
+        + "\"title\": \"EnvSensor4 tempEvent Schema\","
+        + "\"description\": \"defines the structure of a temperature event in degrees Fahrenheit \","
+        + "\"properties\": {"
+        +        "\"temp\": {"
+        +                "\"description\": \"temperature in degrees Fahrenheit\","
+        +                "\"type\": \"number\","
+        +                "\"minimum\": -459.67,"
+        +                "\"default\": 75.0"
+        +        "}"
+        + "},"
+        + "\"required\": [\"temp\"] }";
 	
-	private static String EVENT_SCHEMA2 = null;
-	private static String SCHEMA_NAME2 = null;
-	private static String SCHEMA_DESCRIPTION2 = null;
-	private static String SCHEMA_TYPE2 = null;
 	
-	private static String EVENT_DESCRIPTION1 = null;
-	private static String EVT_TOPIC = null;
+	private static String EVENT_SCHEMA2 = "celciusSchema.json";
+	private static String SCHEMA_NAME2 = "celciusSchema";
+	private static String SCHEMA_DESCRIPTION2 = "Schema to capture the temperature readings in Celcius";
+	private static String SCHEMA_TYPE2 = "json-schema";
+	private static final String jsonStringSchema2 =  "{"
+	        + "\"$schema\": \"http://json-schema.org/draft-04/schema#\","
+	        + "\"type\": \"object\","
+	        + "\"title\": \"Environment Sensor Schema\","
+	        + "\"description\": \"temperature in degrees Celsius\","
+	        + "\"properties\": {"
+	        +        "\"temperature\": {"
+	        +                "\"description\": \"temperature in degrees Celsius\","
+	        +                "\"type\": \"number\","
+	        +                "\"minimum\": -273.15,"
+	        +                "\"default\": 0.0"
+	        +        "}"
+	        + "},"
+	        + "\"required\": [\"temperature\"] }";
+	
+	private static String EVENT_DESCRIPTION1 = "Native event definition for the MyBulbCo light bulb on event";
+	private static String EVT_TOPIC = "tempEvent";
 	
 	
 	private static APIClient apiClient = null;
@@ -80,127 +117,81 @@ public class IMOperationsTests extends TestCase {
 	private static String eventId = null;
 	private static String API_KEY = null;
 	
-	/**
-	 * This sample adds a device type using the Java Client Library. 
-	 * @throws IoTFCReSTException
-	 */
-	private void addDeviceType(String deviceType) throws IoTFCReSTException {
-		
-		System.out.println("<-- Checking if device type "+deviceType +" already created in Watson IoT Platform");
-		boolean exist = apiClient.isDeviceTypeExist(deviceType);
+	private final String currentDir = System.getProperty("user.dir");
+	
+	private static void writeToFile(String filename, String content) {
+		final String METHOD = "writeToFile";
+		String pathname = System.getProperty("user.dir") + File.pathSeparator + filename;
+		LoggerUtility.info(CLASS_NAME, METHOD, "pathname: " + pathname);
+		PrintWriter writer;
 		try {
-			if (!exist) {
-				System.out.println("<-- Adding device type "+deviceType + " now..");
-				// device type to be created in WIoTP
-				apiClient.addDeviceType(deviceType, deviceType, null, null);
-			}
-		} catch(IoTFCReSTException e) {
-			System.err.println("ERROR: unable to add manually device type " + e.getMessage());
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * This sample adds a device type using the Java Client Library. 
-	 * @throws IoTFCReSTException
-	 */
-	private void addDevice(String deviceType, String deviceId) throws IoTFCReSTException {
-		
-		System.out.println("<-- Checking if device " + deviceType + " already created in Watson IoT Platform");
-		boolean deviceTypeExist = apiClient.isDeviceTypeExist(deviceType);
-		boolean deviceExist = apiClient.isDeviceExist(deviceType, deviceId);
-		try {
-			if (!deviceTypeExist) {
-				System.out.println("<-- Adding device type " + deviceType + " now..");
-				// device type to be created in WIoTP
-				apiClient.addDeviceType(deviceType, deviceType, null, null);
-			} else {
-				System.out.println("Device Type " + deviceType + " already exists");
-			}
-			if (!deviceTypeExist && !deviceExist) {
-				System.out.println("<-- Adding device " + deviceId + " now..");
-				// device type to be created in WIoTP
-				apiClient.registerDevice(deviceType, deviceId, "password", null, null, null);
-			} else {
-				System.out.println("Device " + deviceId + " already exists");				
-			}
-			
-		} catch(IoTFCReSTException e) {
-			System.err.println("ERROR: unable to add manually device type or device s" + e.getMessage());
-			e.printStackTrace();
+			writer = new PrintWriter(pathname, "UTF-8");
+			writer.println(content);
+			writer.close();		
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
+			LoggerUtility.severe(CLASS_NAME, METHOD, e.getMessage());
 		}
 	}
 	
-	public synchronized void setUp() {
-	    if (setUpIsDone) {
-	        return;
-	    }
-	    
-	    /**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(IMOperationsTests.class.getResourceAsStream(PROPERTIES_FILE_NAME));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}	
-		
-		try {
-			//Instantiate the class by passing the properties file
-			apiClient = new APIClient(props);
-			addDeviceType(DEVICE_TYPE);
-			addDevice(DEVICE_TYPE, DEVICE_ID1);
-			
-			API_KEY = props.getProperty("API-Key");
-			EVENT_SCHEMA1 = props.getProperty("EVENT_SCHEMA1");
-			EVENT_SCHEMA2 = props.getProperty("EVENT_SCHEMA2");
-			
-			SCHEMA_NAME1 = props.getProperty("SCHEMA_NAME1");
-			SCHEMA_DESCRIPTION1 = props.getProperty("SCHEMA_DESCRIPTION1");
-			SCHEMA_TYPE1 = props.getProperty("SCHEMA_TYPE1");
-			
-			SCHEMA_NAME2 = props.getProperty("SCHEMA_NAME2");
-			SCHEMA_DESCRIPTION2 = props.getProperty("SCHEMA_DESCRIPTION2");
-			SCHEMA_TYPE2 = props.getProperty("SCHEMA_TYPE2");
-			
-			EVENT_DESCRIPTION1 = props.getProperty("EVENT_DESCRIPTION1");
-			EVT_TOPIC = props.getProperty("EVT_TOPIC");
-			
-			System.out.println("API KEY = " + API_KEY + 
-					"\nEVENT_SCHEMA1 = " + EVENT_SCHEMA1 + 
-					"\nEVENT_SCHEMA2 = " + EVENT_SCHEMA2 +
-					
-					"\nSCHEMA_NAME1 = " + SCHEMA_NAME1 + 
-					"\nSCHEMA_DESCRIPTION1 = " + SCHEMA_DESCRIPTION1 +
-					"\nSCHEMA_TYPE1 = " + SCHEMA_TYPE1 +
-					
-					"\nSCHEMA_NAME2 = " + SCHEMA_NAME2 + 
-					"\nSCHEMA_DESCRIPTION2 = " + SCHEMA_DESCRIPTION2 +
-					"\nSCHEMA_TYPE2 = " + SCHEMA_TYPE2 +
-					"\nEVENT_DESCRIPTION1 = " + EVENT_DESCRIPTION1 +
-					"\nEVT_TOPIC = " + EVT_TOPIC);
-		} catch (Exception e) { 
-			e.printStackTrace();
-			// looks like the application.properties file is not updated properly
-			apiClient = null;
-		}
-	    setUpIsDone = true;
+	private static void createSchema1() {
+		JsonParser parser = new JsonParser();
+		JsonElement schema = parser.parse(jsonStringSchema1);
+		writeToFile(EVENT_SCHEMA1, schema.getAsString());
 	}
+
+	private static void createSchema2() {
+		JsonParser parser = new JsonParser();
+		JsonElement schema = parser.parse(jsonStringSchema2);
+		writeToFile(EVENT_SCHEMA2, schema.getAsString());
+	}
+	
+
+	@BeforeClass
+	public static void oneTimeSetUp() throws Exception {
 		
+		createSchema1();
+		createSchema2();
+		
+		Properties appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
+		apiClient = new APIClient(appProps);
+
+		// Delete device if it was left from the last test run
+		if (apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID)) {
+			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+		}
+		
+		// If the device type does not exist, create it
+		if (apiClient.isDeviceTypeExist(DEVICE_TYPE) == false) {
+			apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+		}
+		
+		// Register the test device DEVICE_ID
+		apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken(), null, null, null);
+
+	}
+	
+	@AfterClass
+	public static void oneTimeCleanup() throws Exception {
+		
+		if (apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID)) {
+			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
+		}
+		
+		if (apiClient.isDeviceTypeExist(DEVICE_TYPE)) {
+			apiClient.deleteDeviceType(DEVICE_TYPE);
+		}
+	}	
+	
 	/**
 	 * This sample verifies the Schema addition in Watson IoT
 	 * 
 	 * @throws Exception 
 	 */
 	public void test01AddEventSchema() throws IoTFCReSTException {
-		System.out.println("\nInside test method test01AddEventSchema()");
-		if(apiClient == null) {
-			return;
-		}
+		final String METHOD = "test01AddEventSchema";
 
 		//Create Schema Resource
+		
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(new FileReader(new File(EVENT_SCHEMA1)));
@@ -213,16 +204,21 @@ public class IMOperationsTests extends TestCase {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
 		JsonObject draftSchemaResponse = apiClient.addDraftSchemaDefinition(new File(EVENT_SCHEMA1), SCHEMA_NAME1, SCHEMA_DESCRIPTION1, SCHEMA_TYPE1);
 		physicalSchemaId = draftSchemaResponse.get("id").getAsString();
-		System.out.println("Schema created with id = " + physicalSchemaId);
-		System.out.println("Schema Object = " + physicalSchemaId);
+
+		LoggerUtility.info(CLASS_NAME, METHOD,"Schema created with id = " + physicalSchemaId);
+		
+		//System.out.println("Schema Object = " + physicalSchemaId);
 
 		try{
 			Thread.sleep(5000);
 		} catch(InterruptedException iex) {
 			
 		}
+		
 		try {
 			if(br != null) {
 				br.close();
@@ -230,19 +226,14 @@ public class IMOperationsTests extends TestCase {
 		} catch(IOException ioe) {
 			br = null;
 		}
+		
 		assertTrue("Schema "+ physicalSchemaId + " got created in the Platform", (physicalSchemaId != null));
 	}
 	
-	
 	public void test02RetrieveSchemaDefinitionContent() throws IoTFCReSTException {
-		System.out.println("\nInside test method test02RetrieveSchemaDefinitionContent()");		
-		if(apiClient == null) {
-			return;
-		}
-		//Retrieve Schema Content
+		final String METHOD = "test02RetrieveSchemaDefinitionContent";
+		LoggerUtility.info(CLASS_NAME, METHOD, "Get schema ID " + physicalSchemaId);
 		JsonObject draftSchemaResponse = apiClient.getDraftSchemaDefinitionContents(physicalSchemaId);
-		// check if the devices are actually deleted from the platform1
-		System.out.println("Retrieved " );
 		assertTrue("Schema Content of Id = "+ physicalSchemaId + " got retrieved from the Platform", (! draftSchemaResponse.isJsonNull()));
 	}
 	

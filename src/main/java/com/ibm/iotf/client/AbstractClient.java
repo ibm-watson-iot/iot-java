@@ -76,6 +76,8 @@ public abstract class AbstractClient {
 	
 	private static final String CLASS_NAME = AbstractClient.class.getName();
 	private static final String QUICK_START = "quickstart";
+	private static final int DEFAULT_MAX_CONNECT_ATTEMPTS = 10;
+	private static final long DEFAULT_ACTION_TIMEOUT = 5 * 1000L;
 	private static final int DEFAULT_MAX_INFLIGHT_MESSAGES = 100;
 	private static final int DEFAULT_MESSAGING_QOS = 1;
 	
@@ -92,7 +94,7 @@ public abstract class AbstractClient {
 	protected static final int MQTT_PORT = 1883;
 	protected static final int WS_PORT = 1883;
 
-	private volatile boolean disconnectRequested = false;
+	protected volatile boolean disconnectRequested = false;
 	
 	/* Wait for 1 second after each attempt for the first 10 attempts*/
 	private static final long RATE_0 = TimeUnit.SECONDS.toMillis(1);
@@ -125,7 +127,7 @@ public abstract class AbstractClient {
 	protected int messageCount = 0;
 	
 	protected MqttAsyncClient mqttAsyncClient = null;
-	private static final MemoryPersistence DATA_STORE = new MemoryPersistence();
+	//private static final MemoryPersistence DATA_STORE = new MemoryPersistence();
 	protected MqttConnectOptions mqttClientOptions;
 	protected MqttCallback mqttCallback;
 	protected int keepAliveInterval = -1;  // default
@@ -202,7 +204,7 @@ public abstract class AbstractClient {
 		final String METHOD = "connect";
 		// return if its already connected
 		if(mqttAsyncClient != null && mqttAsyncClient.isConnected()) {
-			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Client is already connected");
+			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Client " + this.clientId + " is already connected.");
 			return;
 		}
 		boolean tryAgain = true;
@@ -240,12 +242,14 @@ public abstract class AbstractClient {
 					" (attempt #" + connectAttempts + ")...");
 			
 			try {
-				mqttAsyncClient.connect(mqttClientOptions).waitForCompletion(1000 * 60);
+				mqttAsyncClient.connect(mqttClientOptions).waitForCompletion(getActionTimeout());
 			} catch (MqttSecurityException e) {
 				System.err.println("Looks like one or more connection parameters are wrong !!!");
 				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Connecting to Watson IoT Platform failed - " +
 						"one or more connection parameters are wrong !!!", e);
-				throw e;
+				if (connectAttempts > numberOfRetryAttempts) {
+					throw e;
+				}
 				
 			} catch (MqttException e) {
 				if(connectAttempts > numberOfRetryAttempts) {
@@ -257,8 +261,8 @@ public abstract class AbstractClient {
 			}
 			
 			if (mqttAsyncClient.isConnected()) {
-				LoggerUtility.info(CLASS_NAME, METHOD, "Successfully connected "
-						+ "to the IBM Watson IoT Platform");
+				LoggerUtility.info(CLASS_NAME, METHOD, mqttAsyncClient.getClientId() 
+						+ " successfully connected to the IBM Watson IoT Platform");
 				
 				if (LoggerUtility.isLoggable(Level.FINEST)) {
 					LoggerUtility.log(Level.FINEST, CLASS_NAME, METHOD, 
@@ -290,7 +294,7 @@ public abstract class AbstractClient {
 		if(autoRetry == false) {
 			connect(0);
 		} else {
-			connect(Integer.MAX_VALUE);
+			connect(getMaxConnectAttempts());
 		}
 	}
 	
@@ -368,6 +372,14 @@ public abstract class AbstractClient {
 	}
 	
 	/**
+	 * 
+	 * @return the MQTT Client ID
+	 */
+	public String getClientID() {
+		return this.clientId;
+	}
+	
+	/**
 	 * Call to the configureConnOptionsWithToken() method is made, when the User chooses to connect to the
 	 * Watson IoT Platform using Device Token as the preferred Authentication mechanism. The Device Properties
 	 * file allows you enable either Token based or Certificate based or both mechanisms to authenticate.
@@ -401,7 +413,7 @@ public abstract class AbstractClient {
 			serverURI = protocol + getOrgId() + "." + MESSAGING + "." + this.getDomain() + ":" + port;
 		}
 		try {
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, DATA_STORE);
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
 			if (clientUsername != null) {
@@ -465,7 +477,7 @@ public abstract class AbstractClient {
 		}
 		
 		try {
-			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, DATA_STORE);
+			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
 			mqttAsyncClient.setCallback(mqttCallback);
 			mqttClientOptions = new MqttConnectOptions();
 			if (clientUsername != null) {
@@ -619,6 +631,25 @@ public abstract class AbstractClient {
 		}
 		return size;
 	}
+	
+	public long getActionTimeout() {
+		long timeout = DEFAULT_ACTION_TIMEOUT;
+		String value = options.getProperty("ActionTimeout");
+		if (value != null) {
+			timeout = Integer.parseInt(trimedValue(value));
+		}
+		return timeout;
+	}
+	
+	public int getMaxConnectAttempts() {
+		int attempts = DEFAULT_MAX_CONNECT_ATTEMPTS;
+		String value = options.getProperty("MaxConnectAttempts");
+		if (value != null) {
+			attempts = Integer.parseInt(trimedValue(value));
+		}
+		return attempts;
+	}
+	
 	public int getMaxInflight() {
 		int maxInflight = DEFAULT_MAX_INFLIGHT_MESSAGES;
 		String value = options.getProperty("MaxInflightMessages");
@@ -682,14 +713,32 @@ public abstract class AbstractClient {
 	 */
 	public void disconnect() {
 		final String METHOD = "disconnect";
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Disconnecting from the IBM Watson IoT Platform ...");
+		
 		try {
 			this.disconnectRequested = true;
-			mqttAsyncClient.disconnect();
-			LoggerUtility.info(CLASS_NAME, METHOD, "Successfully disconnected "
-					+ "from the IBM Watson IoT Platform");
+			if (mqttAsyncClient != null) {
+				LoggerUtility.info(CLASS_NAME, METHOD, mqttAsyncClient.getClientId() 
+						+ " is disconnecting from the IBM Watson IoT Platform ...");
+				mqttAsyncClient.disconnect().waitForCompletion(getActionTimeout());
+				LoggerUtility.info(CLASS_NAME, METHOD, mqttAsyncClient.getClientId()
+					+ " successfully disconnected from the IBM Watson IoT Platform");
+			}
 		} catch (MqttException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Close and free all MQTT client resources
+	 * @throws MqttException Thrown if an error occurs
+	 */
+	public void close() throws MqttException {
+		final String METHOD = "close";
+		LoggerUtility.info(CLASS_NAME, METHOD, "Closing MQTT client (" + clientId + ")");
+		if (mqttAsyncClient != null) {
+			mqttAsyncClient.close(true);
+			mqttAsyncClient = null;
+			LoggerUtility.info(CLASS_NAME, METHOD, "Closed MQTT client (" + clientId + ")");
 		}
 	}
 	

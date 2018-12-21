@@ -15,20 +15,25 @@
 
 package com.ibm.iotf.client.application.api;
 
-import java.io.IOException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runners.MethodSorters;
 
-import junit.framework.TestCase;
-
 import com.google.gson.JsonElement;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
+import com.ibm.iotf.test.common.TestEnv;
 
 /**
  * This sample showcases various ReST operations that can be performed on Watson IoT Platform to
@@ -36,42 +41,33 @@ import com.ibm.iotf.client.api.APIClient;
  *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class UsageManagementAPIOperationsTest extends TestCase {
-	
-	private final static String PROPERTIES_FILE_NAME = "/application.properties";
+public class UsageManagementAPIOperationsTest {
 	
 	private static APIClient apiClient = null;
+	private static final String APP_ID = "UMApiOpApp1";
 	
-	private static boolean setUpIsDone = false;
 	
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 	
-	public synchronized void setUp() {
-	    if (setUpIsDone) {
-	        return;
-	    }
-	    
-	    /**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(DeviceAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}	
+	@BeforeClass
+	public static void oneTimeSetUp() {
 		
+		Properties appProps = TestEnv.getAppProperties(APP_ID, false, null, null);
 		try {
-			//Instantiate the class by passing the properties file
-			apiClient = new APIClient(props);
-		} catch (Exception e) {
-			// looks like the application.properties file is not updated properly
-			apiClient = null;
+			apiClient = new APIClient(appProps);
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-	    setUpIsDone = true;
 	}
+	
+	@AfterClass
+	public static void oneTimeCleanup() throws Exception {
+	}	
 	
 	/**
 	 * Retrieve the number of active devices over a period of time, 

@@ -1,5 +1,8 @@
 package com.ibm.iotf.client.device;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.util.Properties;
 
@@ -26,7 +29,7 @@ import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceDMETest extends TestCase {
+public class DeviceDMETest {
 	private static ManagedDevice dmClient;
 	private static APIClient apiClient = null;
 

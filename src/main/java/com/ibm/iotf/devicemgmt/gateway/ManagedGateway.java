@@ -191,7 +191,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	public void connect() throws MqttException {
 		final String METHOD = "connect";
 		if (this.isConnected()) {
-			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Gateway device is already connected");
+			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Gateway device client (" + this.clientId + ") is already connected");
 			return;
 		}
 		super.connect();
@@ -641,6 +641,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		String topic = mc.getDMAgentTopic().getManageTopic();
 		
 		if (!this.isConnected()) {
+			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Gateway device client (" + this.clientId + ") is not connected.");
 			this.connect();
 		}
 		
@@ -1201,7 +1202,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic(" + topic + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
-				mqttAsyncClient.subscribe(topic, qos, listener);
+				mqttAsyncClient.subscribe(topic, qos, listener).waitForCompletion(getActionTimeout());
 			} else if(mqttClient != null) {
 				mqttClient.subscribe(topic, qos, listener);
 			}
@@ -1227,7 +1228,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topics(" + topics + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
-				mqttAsyncClient.subscribe(topics, qos, listeners);
+				mqttAsyncClient.subscribe(topics, qos, listeners).waitForCompletion(getActionTimeout());
 			} else if(mqttClient != null) {
 				mqttClient.subscribe(topics, qos, listeners);
 			}
@@ -1251,7 +1252,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic(" + topic + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
-				mqttAsyncClient.unsubscribe(topic);
+				mqttAsyncClient.unsubscribe(topic).waitForCompletion(getActionTimeout());
 			} else if (mqttClient != null) {
 				mqttClient.unsubscribe(topic);
 			}
@@ -1275,7 +1276,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topics(" + topics + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
-				mqttAsyncClient.unsubscribe(topics);
+				mqttAsyncClient.unsubscribe(topics).waitForCompletion(getActionTimeout());
 			} else if (mqttClient != null) {
 				mqttClient.unsubscribe(topics);
 			}

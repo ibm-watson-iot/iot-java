@@ -13,16 +13,19 @@
  */
 package com.ibm.iotf.client.application.api;
 
-import java.io.IOException;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
-import java.util.ArrayList;
-
-import junit.framework.TestCase;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonArray;
@@ -35,97 +38,51 @@ import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceFirmware;
 import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.util.LoggerUtility;
+
+import junit.framework.TestCase;
 
 /**
  * This sample showcases various ReST operations that can be performed on Watson IoT Platform to
  * initiate/get/delete one or more device management operations.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceManagementAPIOperationsTest extends TestCase {
+public class DeviceManagementAPIOperationsTest {
 	
-	private final static String PROPERTIES_FILE_NAME = "/application.properties";
-	
-	// Example Json format to add a device
-	/*
-	 * {
- 	 *	"action": "device/reboot",
- 	 *	"devices": [
- 	 *		{
- 	 *		"typeId": "TestDT1",
- 	 *		"deviceId": "RasPi101"
- 	 *		}
- 	 *	]
-	 * }
-	 */
-	private final static String DEVICE_PROPERTIES_FILE = "/device.properties";
-	private static final String DEVICE_TYPE;
-	private static final String DEVICE_ID;
-	private static final String rebootRequestToBeInitiated;
+	private static final String CLASS_NAME = DeviceManagementAPIOperationsTest.class.getName();
+
+	private static final String APP_ID = "DMApp1";
+	private static final String DEVICE_TYPE = "DMType1";
+	private static final String DEVICE_ID = "DMDev1";
+	private static final String rebootRequestToBeInitiated = "{\"action\": \"device/reboot\","
+			+ "\"devices\": [ {\"typeId\": \"" + DEVICE_TYPE +"\","
+			+ "\"deviceId\": \"" + DEVICE_ID + "\"}]}";
 
 	private static APIClient apiClient = null;
-	private static boolean setUpIsDone = false;
-
-	static {
-		Properties deviceProps = new Properties();
-		try {
-			deviceProps.load(DeviceManagementAPIOperationsTest.class.getResourceAsStream(DEVICE_PROPERTIES_FILE));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}
-
-		DEVICE_TYPE = deviceProps.getProperty("Device-Type");
-		DEVICE_ID = deviceProps.getProperty("Device-ID");
-		rebootRequestToBeInitiated = "{\"action\": \"device/reboot\","
-				+ "\"devices\": [ {\"typeId\": \"" + DEVICE_TYPE +"\","
-				+ "\"deviceId\": \"" + DEVICE_ID + "\"}]}";
-
-	}
-	public synchronized void setUp() {
-	    if (setUpIsDone) {
-	        return;
-	    }
-	    
-	    /**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(DeviceManagementAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}	
-		
-		try {
-			//Instantiate the class by passing the properties file
-			apiClient = new APIClient(props);
-		} catch (Exception e) {
-			// looks like the application.properties file is not updated properly
-			apiClient = null;
-		}
-		setUpIsDone = true;
-	}
+	private static ManagedDevice managedDevice = null;
 	
-	/**
-	 * This method builds the device objects required to create the
-	 * ManagedClient
-	 * 
-	 * @param propertiesFile
-	 * @throws Exception
-	 */
-	private ManagedDevice createManagedClient(String propertiesFile) throws Exception {
-		/**
-		 * Load device properties
-		 */
-		Properties deviceProps = new Properties();
-		try {
-			deviceProps.load(DeviceManagementAPIOperationsTest.class.getResourceAsStream(propertiesFile));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
+	@BeforeClass
+	public static void oneTimeSetUp() throws Exception {
+		
+		Properties appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
+		apiClient = new APIClient(appProps);
+
+		// Delete device if it was left from the last test run
+		if (apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID)) {
+			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
 		}
 		
+		// If the device type does not exist, create it
+		if (apiClient.isDeviceTypeExist(DEVICE_TYPE) == false) {
+			apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+		}
+		
+		// Register the test device DEVICE_ID
+		apiClient.registerDevice(DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken(), null, null, null);
+
+		Properties devProps = TestEnv.getDeviceProperties(DEVICE_TYPE, DEVICE_ID);
+
 		DeviceFirmware firmware = new DeviceFirmware.Builder().
 				version("1.0.1").
 				name("iot-arm.deb").
@@ -134,119 +91,76 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 				state(FirmwareState.IDLE).				
 				build();
 		
-		/**
-		 * Create a DeviceMetadata object
-		 */
 		JsonObject data = new JsonObject();
 		data.addProperty("customField", "customValue");
-		//DeviceMetadata metadata = new DeviceMetadata(data);
 		
 		DeviceData deviceData = new DeviceData.Builder().
-						 //deviceInfo(deviceInfo).
 						 deviceFirmware(firmware).
-						 //metadata(metadata).
 						 build();
-		
-		return new ManagedDevice(deviceProps, deviceData);
+		managedDevice = new ManagedDevice(devProps, deviceData);
 	}
-
 	
-	/**
-	 * This sample showcases how to get a list of device management requests, which can be in progress or recently completed.
-	 * @throws IoTFCReSTException
-	 */
-	public void test04getAllMgmtRequests() throws IoTFCReSTException {
-		System.out.println("Retrieve all DM requests from the organization..");
-		try {
-			JsonElement response = apiClient.getAllDeviceManagementRequests();
-			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
-			for(Iterator<JsonElement> iterator = requests.iterator(); iterator.hasNext(); ) {
-				JsonElement request = iterator.next();
-				JsonObject responseJson = request.getAsJsonObject();
-				System.out.println(responseJson);
-			}
-		} catch(IoTFCReSTException e) {
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
-			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+	@AfterClass
+	public static void oneTimeCleanup() throws Exception {
+		
+		if (apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID)) {
+			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
 		}
 		
+		if (apiClient.isDeviceTypeExist(DEVICE_TYPE)) {
+			apiClient.deleteDeviceType(DEVICE_TYPE);
+		}
 	}
 	
+
 	/**
 	 * This sample showcases how to initiate a device management request, such as reboot.
 	 * @throws Exception 
 	 */
+	@Test
 	public void test01initiateMgmtRequest() throws Exception {
-		System.out.println("Initiate reboot request .. "+rebootRequestToBeInitiated);
-		// Let us connect the device first
-		ManagedDevice dmClient = createManagedClient(DEVICE_PROPERTIES_FILE);
-		dmClient.connect();
-		dmClient.sendManageRequest(0, false, true);
+		final String METHOD = "test01AddDiagnosticLog";
+		LoggerUtility.info(CLASS_NAME, METHOD, 
+				"Initiate reboot request .. " + rebootRequestToBeInitiated);
+		managedDevice.connect();
+		managedDevice.sendManageRequest(0, false, true);
 		try {
 			JsonObject reboot = (JsonObject) new JsonParser().parse(rebootRequestToBeInitiated);
 			boolean response = apiClient.initiateDeviceManagementRequest(reboot);
 			System.out.println(response);
 			assertTrue("Not able to initiate DM request", response);
 		} catch(IoTFCReSTException e) {
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
-			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);		
 		} finally {
-			dmClient.disconnect();
+			managedDevice.disconnect();
 		}
-	}
-	
-	/**
-	 * Clears the status of a device management request. The status for a 
-	 * request that has been completed is automatically cleared soon after 
-	 * the request completes. You can use this operation to clear the status 
-	 * for a completed request, or for an in-progress request which may never 
-	 * complete due to a problem.
-	 * 
-	 * @throws IoTFCReSTException
-	 */
-	public void test05deleteMgmtRequest() throws IoTFCReSTException {
-		System.out.println("Delete a DM request from the organization..");
-		// Lets clear the first ID from the list
-		try {
-			JsonElement response = apiClient.getAllDeviceManagementRequests();
-			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
-			JsonElement request = requests.get(0);
-			System.out.println("Delete a DM request .. "+request.getAsJsonObject().get("id").getAsString());
-			boolean status = apiClient.deleteDeviceManagementRequest(request.getAsJsonObject().get("id").getAsString());
-			System.out.println("Delete status: "+status);
-			assertTrue("Fail to delete the DM request", status);
-		} catch(IoTFCReSTException e) {
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
-			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-		}
-		
 	}
 	
 	/**
 	 * This sample showcases how to get details of a device management request.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test02getMgmtRequest() throws IoTFCReSTException {
-		System.out.println("Retrieve a DM request from the organization..");
+		final String METHOD = "test02getMgmtRequest";
+		LoggerUtility.info(CLASS_NAME, METHOD, 
+				"Retrieve a DM request from the organization..");
 		// Lets clear the first ID from the list
 		try {
 			JsonElement response = apiClient.getAllDeviceManagementRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
 			JsonElement request = requests.get(0);
-			System.out.println("Get a DM request .. "+request.getAsJsonObject().get("id").getAsString());
+			LoggerUtility.info(CLASS_NAME, METHOD,
+					"Get a DM request .. "+request.getAsJsonObject().get("id").getAsString());
 			JsonObject details = apiClient.getDeviceManagementRequest(request.getAsJsonObject().get("id").getAsString());
-			System.out.println(details);
+			LoggerUtility.info(CLASS_NAME, METHOD,
+					details.toString());
 		} catch(IoTFCReSTException e) {
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
-			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);		
 		}
 		
 	}
@@ -255,9 +169,11 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 	 * This sample showcases how to get list of device management request device statuses
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test03getMgmtRequestDeviceStatus() throws IoTFCReSTException {
-		// Lets get the DM request status from the list
-		System.out.println("Get DM request device status..");
+		final String METHOD = "test03getMgmtRequestDeviceStatus";
+		LoggerUtility.info(CLASS_NAME, METHOD, 
+				"Get DM request device status..");
 		try {
 			JsonElement response = apiClient.getAllDeviceManagementRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
@@ -276,14 +192,13 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
 				JsonElement deviceElement = iterator.next();
 				JsonObject responseJson = deviceElement.getAsJsonObject();
-				System.out.println(responseJson);
+				LoggerUtility.info(CLASS_NAME, METHOD, responseJson.toString());
 			}
 
 		} catch(IoTFCReSTException e) {
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
-			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);		
 		}
 	}
 	
@@ -291,9 +206,11 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 	 * This sample showcases how to get list of device management request device statuses
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test031getMgmtRequestDeviceStatus() throws IoTFCReSTException {
-		// Lets get the DM request status from the list
-		System.out.println("Get DM request device status..");
+		final String METHOD = "test031getMgmtRequestDeviceStatus";
+		LoggerUtility.info(CLASS_NAME, METHOD, 
+				"Get DM request device status..");
 		try {
 			JsonElement response = apiClient.getAllDeviceManagementRequests();
 			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
@@ -301,16 +218,68 @@ public class DeviceManagementAPIOperationsTest extends TestCase {
 			String id = request.getAsJsonObject().get("id").getAsString();
 			
 			JsonObject details = apiClient.getDeviceManagementRequestStatusByDevice(id, DEVICE_TYPE, DEVICE_ID);
-			System.out.println(details);
+			LoggerUtility.info(CLASS_NAME, METHOD, details.toString());
 		} catch(IoTFCReSTException e) {
-			e.printStackTrace();
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
-			//uncomment when the defect is fixed
-			//fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);		
 		}
 		
 	}
+	
+	/**
+	 * This sample showcases how to get a list of device management requests, which can be in progress or recently completed.
+	 * @throws IoTFCReSTException
+	 */
+	@Test
+	public void test04getAllMgmtRequests() throws IoTFCReSTException {
+		final String METHOD = "test04getAllMgmtRequests";
+		LoggerUtility.info(CLASS_NAME, METHOD, 
+				"Retrieve all DM requests from the organization..");
+		try {
+			JsonElement response = apiClient.getAllDeviceManagementRequests();
+			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
+			for(Iterator<JsonElement> iterator = requests.iterator(); iterator.hasNext(); ) {
+				JsonElement request = iterator.next();
+				JsonObject responseJson = request.getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, responseJson.toString());
+			}
+		} catch(IoTFCReSTException e) {
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);		
+		}
+		
+	}
+	
+	/**
+	 * Clears the status of a device management request. The status for a 
+	 * request that has been completed is automatically cleared soon after 
+	 * the request completes. You can use this operation to clear the status 
+	 * for a completed request, or for an in-progress request which may never 
+	 * complete due to a problem.
+	 * 
+	 * @throws IoTFCReSTException
+	 */
+	@Test
+	public void test05deleteMgmtRequest() throws IoTFCReSTException {
+		final String METHOD = "test05deleteMgmtRequest";
+		LoggerUtility.info(CLASS_NAME, METHOD, 
+				"Delete a DM request");
+		try {
+			JsonElement response = apiClient.getAllDeviceManagementRequests();
+			JsonArray requests = response.getAsJsonObject().get("results").getAsJsonArray();
+			JsonElement request = requests.get(0);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Delete a DM request .. "+request.getAsJsonObject().get("id").getAsString());
+			boolean status = apiClient.deleteDeviceManagementRequest(request.getAsJsonObject().get("id").getAsString());
+			LoggerUtility.info(CLASS_NAME, METHOD, "Delete status: "+status);
+			assertTrue("Fail to delete the DM request", status);
+		} catch(IoTFCReSTException e) {
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);		
+		}
+		
+	}	
 
 }

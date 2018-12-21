@@ -14,60 +14,45 @@
 
 package com.ibm.iotf.client.application.api;
 
-import java.io.IOException;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 
-import junit.framework.TestCase;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
-
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
+import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.util.LoggerUtility;
 
 /**
  * This test verifies various bulk ReST operations that can be performed on Watson IoT Platform.
  *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class BulkAPIOperationsTest extends TestCase {
+public class BulkAPIOperationsTest {
 	
-	private final static String PROPERTIES_FILE_NAME = "/application.properties";
+	private final static String CLASS_NAME = BulkAPIOperationsTest.class.getName();
+	private final static String APP_ID = "BulkApp1";
 	private final static String DEVICE_TYPE = "SampleDT";
 	private final static String DEVICE_ID1 = "Device01";
 	private final static String DEVICE_ID2 = "Device02";
 	
-	// Example Json format to add a device
-	/*
-	 * {
-		    "typeId": "SampleDT",
-		    "deviceId": "RasPi100",
-		    "authToken": "password",
-		    "deviceInfo": {
-		        "serialNumber": "10087",
-		        "manufacturer": "IBM",
-		        "model": "7865",
-		        "deviceClass": "A",
-		        "description": "My RasPi01 Device",
-		        "fwVersion": "1.0.0",
-		        "hwVersion": "1.0",
-		        "descriptiveLocation": "EGL C"
-		    },
-		    "location": {
-		        "measuredDateTime": "2015-23-07T11:23:23+00:00"
-		    },
-		    "metadata": {}
-		}
-	 */
 	private final static String deviceToBeAdded1 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
 			+ "\"" + DEVICE_ID1 + "\",\"authToken\": \"password\",\"deviceInfo\": {\"serialNumber\": "
 			+ "\"10087\",\"manufacturer\": \"IBM\",\"model\": \"7865\",\"deviceClass\": "
@@ -87,57 +72,87 @@ public class BulkAPIOperationsTest extends TestCase {
 
 	private final static String deviceToBeDeleted1 = "{\"typeId\": \""+ DEVICE_TYPE + "\", \"deviceId\": \"" + DEVICE_ID1 + "\"}";
 	private final static String deviceToBeDeleted2 = "{\"typeId\": \"" + DEVICE_TYPE + "\", \"deviceId\": \"" + DEVICE_ID2 + "\"}";
-	private static boolean setUpIsDone = false;
 	
 	private static APIClient apiClient = null;
 	private static APIClient apiClientWithWrongToken = null;
 	private static APIClient apiClientWithWrongKey = null;
 	private static APIClient apiClientWithWrongOrg= null;
 	
-	public synchronized void setUp() {
-	    if (setUpIsDone) {
-	        return;
-	    }
-	    
-	    /**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		Properties propsWrongToken = new Properties();
-		Properties propsWrongMethod = new Properties();
-		Properties propsWrongOrg = new Properties();
-		try {
-			props.load(BulkAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
-			propsWrongToken.load(BulkAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
-			propsWrongMethod.load(BulkAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
-			propsWrongOrg.load(BulkAPIOperationsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}	
+	@BeforeClass
+	public static void oneTimeSetUp() {
+		final String METHOD = "oneTimeSetUp";
 		
+		Properties appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, null);
+		Properties propsWrongToken = new Properties(appProps);
+		Properties propsWrongMethod = new Properties(appProps);
+		Properties propsWrongOrg = new Properties(appProps);
+		
+		//Instantiate the class by passing the properties file
 		try {
-			//Instantiate the class by passing the properties file
-			this.apiClient = new APIClient(props);
-			addDeviceType(DEVICE_TYPE);
-			
-			propsWrongToken.setProperty("Authentication-Token", "Wrong");
-			apiClientWithWrongToken = new APIClient(propsWrongToken);
-			
-			propsWrongMethod.setProperty("API-Key", "Wrong");
-			apiClientWithWrongKey = new APIClient(propsWrongMethod);
-			
-			propsWrongOrg.setProperty("Organization-ID", "Wrong");
-			apiClientWithWrongOrg = new APIClient(propsWrongOrg);
-			
-		} catch (Exception e) {
+			apiClient = new APIClient(appProps);
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			// looks like the application.properties file is not updated properly
-			apiClient = null;
-			apiClientWithWrongToken = null;
 		}
 		
-	    setUpIsDone = true;
+		boolean typeExist = false;
+		try {
+			typeExist = apiClient.isDeviceTypeExist(DEVICE_TYPE);
+			LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + " exist = " + typeExist);
+		} catch (IoTFCReSTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if (typeExist) {
+			
+			try {
+				apiClient.deleteDeviceType(DEVICE_TYPE);
+				LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + " deleted.");
+			} catch (IoTFCReSTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		try {
+			apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+			LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + " added.");
+		} catch (IoTFCReSTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		propsWrongToken.setProperty("Authentication-Token", "Wrong");
+		try {
+			apiClientWithWrongToken = new APIClient(propsWrongToken);
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		propsWrongMethod.setProperty("API-Key", "Wrong");
+		try {
+			apiClientWithWrongKey = new APIClient(propsWrongMethod);
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		propsWrongOrg.setProperty("Organization-ID", "Wrong");
+		try {
+			apiClientWithWrongOrg = new APIClient(propsWrongOrg);
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void oneTimeCleanUp() throws Exception {
+		Properties appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, null);
+		apiClient = new APIClient(appProps);
+		apiClient.deleteDeviceType(DEVICE_TYPE);
 	}
 		
 	/**
@@ -152,6 +167,7 @@ public class BulkAPIOperationsTest extends TestCase {
 	 *	]
 	 * @throws Exception 
 	 */
+	@Test
 	public void test04BulkDeleteDevices() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;
@@ -164,7 +180,7 @@ public class BulkAPIOperationsTest extends TestCase {
 		arryOfDevicesToBeDeleted.add(device2);
 		JsonArray devices = null;
 		try {
-			devices = this.apiClient.deleteMultipleDevices(arryOfDevicesToBeDeleted);
+			devices = apiClient.deleteMultipleDevices(arryOfDevicesToBeDeleted);
 			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
 				JsonElement deviceElement = iterator.next();
 				JsonObject responseJson = deviceElement.getAsJsonObject();
@@ -199,26 +215,6 @@ public class BulkAPIOperationsTest extends TestCase {
 		} catch(IoTFCReSTException e) {	}
 	}
 	
-	/**
-	 * This sample adds a device type using the Java Client Library. 
-	 * @throws IoTFCReSTException
-	 */
-	private void addDeviceType(String deviceType) throws IoTFCReSTException {
-		
-		System.out.println("<-- Checking if device type "+deviceType +" already created in Watson IoT Platform");
-		boolean exist = apiClient.isDeviceTypeExist(deviceType);
-		try {
-			if (!exist) {
-				System.out.println("<-- Adding device type "+deviceType + " now..");
-				// device type to be created in WIoTP
-				apiClient.addDeviceType(deviceType, deviceType, null, null);
-			}
-		} catch(IoTFCReSTException e) {
-			System.err.println("ERROR: unable to add manually device type " + e.getMessage());
-			e.printStackTrace();
-		}
-	}
-	
 	private boolean checkIfDeviceExists(String deviceType, String deviceId) throws IoTFCReSTException {
 		return apiClient.isDeviceExist(deviceType, deviceId);
 	}
@@ -227,6 +223,7 @@ public class BulkAPIOperationsTest extends TestCase {
 	 * This sample verifies the bulk addition of devices in IBM Watson IoT Platform
 	 * @throws Exception
 	 */
+	@Test
 	public void test02BulkAddDevices() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;
@@ -240,7 +237,7 @@ public class BulkAPIOperationsTest extends TestCase {
 		
 		JsonArray devices = null;
 		try {
-			devices = this.apiClient.addMultipleDevices(arryOfDevicesToBeAdded);
+			devices = apiClient.addMultipleDevices(arryOfDevicesToBeAdded);
 			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
 				JsonElement deviceElement = iterator.next();
 				JsonObject responseJson = deviceElement.getAsJsonObject();
@@ -259,19 +256,19 @@ public class BulkAPIOperationsTest extends TestCase {
 		// negative test, it should fail
 		try {
 			apiClientWithWrongToken.addMultipleDevices(arryOfDevicesToBeAdded);
-			fail("Doesn't throw invild Auth token exception");
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
 			apiClientWithWrongKey.addMultipleDevices(arryOfDevicesToBeAdded);
-			fail("Doesn't throw invild API Key exception");
+			fail("Doesn't throw invalid API Key exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Org
+		// Wrong Org
 		try {
 			apiClientWithWrongOrg.addMultipleDevices(arryOfDevicesToBeAdded);
-			fail("Doesn't throw invild ORG exception");
+			fail("Doesn't throw invalid ORG exception");
 		} catch(IoTFCReSTException e) {}
 
 	}
@@ -280,6 +277,7 @@ public class BulkAPIOperationsTest extends TestCase {
 	 * This sample verifies the Bulk Get
 	 * @throws Exception
 	 */
+	@Test
 	public void test03BulkGetAllDevices() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;
@@ -295,7 +293,7 @@ public class BulkAPIOperationsTest extends TestCase {
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
 		parameters.add(new BasicNameValuePair("_sort","deviceId"));
 		//parameters.add(new BasicNameValuePair("_limit","2"));
-		JsonObject response = this.apiClient.getAllDevices(parameters);
+		JsonObject response = apiClient.getAllDevices(parameters);
 		
 		System.out.println(response);
 		// The response will contain more parameters that will be used to issue
@@ -330,19 +328,20 @@ public class BulkAPIOperationsTest extends TestCase {
 	 * This sample verfies the get organization details API
 	 * @throws Exception
 	 */
+	@Test
 	public void test01GetOrganizationDetails() throws IoTFCReSTException {
 		if(apiClient == null) {
 			return;
 		}
 		System.out.println("Retrieve Organization details...");
 		// Get the organization detail
-		JsonObject orgDetail = this.apiClient.getOrganizationDetails();
+		JsonObject orgDetail = apiClient.getOrganizationDetails();
 		System.out.println(orgDetail);
 		
 		// negative test, it should fail
 		try {
 			apiClientWithWrongToken.getOrganizationDetails();
-			fail("Doesn't throw invild Auth token exception");
+			fail("Doesn't throw invalid Auth token exception");
 		} catch(IoTFCReSTException e) {
 			System.out.println(e.getHttpCode() + " " +e.getMessage());
 		}
@@ -361,23 +360,6 @@ public class BulkAPIOperationsTest extends TestCase {
 			fail("Doesn't throw invild ORG exception");
 		} catch(IoTFCReSTException e) {
 			System.out.println(e.getHttpCode() + " " +e.getMessage());
-		}
-	}
-	
-	/**
-	 * This sample showcases how to Delete a device type using the Java Client Library.
-	 * @throws IoTFCReSTException
-	 */
-	public void test07deleteDeviceType() throws IoTFCReSTException {
-		System.out.println("Delete a device type "+DEVICE_TYPE);
-		try {
-			boolean status = this.apiClient.deleteDeviceType(DEVICE_TYPE);
-			assertFalse("Could not delete the device type", apiClient.isDeviceTypeExist(DEVICE_TYPE));
-		} catch(IoTFCReSTException e) {
-			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-			// Print if there is a partial response
-			System.out.println(e.getResponse());
-			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
 		}
 	}
 

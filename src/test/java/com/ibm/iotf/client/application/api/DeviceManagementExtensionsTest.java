@@ -13,10 +13,14 @@
  */
 package com.ibm.iotf.client.application.api;
 
-import java.io.IOException;
+import static org.junit.Assert.fail;
+
 import java.util.Properties;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonArray;
@@ -24,6 +28,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
+import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.util.LoggerUtility;
 
 import junit.framework.TestCase;
 /**
@@ -31,13 +37,13 @@ import junit.framework.TestCase;
  * add/update/get/Gateway device(s)
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class DeviceManagementExtensionsTest extends TestCase {
+public class DeviceManagementExtensionsTest {
 	
-	private final static String PROPERTIES_FILE_NAME = "/application.properties";
+	private static final String CLASS_NAME = DeviceManagementExtensionsTest.class.getName();
 	
-
-	private static boolean setUpIsDone = false;
-	
+	private static final String APP_ID = "DMExtApp1";
+	private static final String DEVICE_TYPE = "DMExtType1";
+	private static final String DEVICE_ID = "DMExtDev1";
 	private static APIClient apiClient = null;
 
 	String bundleId = "TEST_BUNDLE_01";
@@ -56,34 +62,17 @@ public class DeviceManagementExtensionsTest extends TestCase {
 	String parameter_1_value = "^(0|[1-9][0-9]*)$";
 	boolean parameter_1_required = false;
 	String parameter_1_default_value = "1000";
+
+	@BeforeClass
+	public static void oneTimeSetUp() throws Exception {
+		
+		Properties appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, DEVICE_ID);
+		apiClient = new APIClient(appProps);
+
+	}
 	
-	public synchronized void setUp() {
-	    if (setUpIsDone) {
-	        return;
-	    }
-	    
-	    /**
-		  * Load device properties
-		  */
-		Properties props = new Properties();
-		try {
-			props.load(DeviceManagementExtensionsTest.class.getResourceAsStream(PROPERTIES_FILE_NAME));
-		} catch (IOException e1) {
-			System.err.println("Not able to read the properties file, exiting..");
-			System.exit(-1);
-		}	
-		
-		try {
-			//Instantiate the class by passing the properties file
-			apiClient = new APIClient(props);
-			
-		} catch (Exception e) {
-			// looks like the application.properties file is not updated properly
-			apiClient = null;
-			return;
-		}
-		
-	    setUpIsDone = true;
+	@AfterClass
+	public static void oneTimeCleanup() throws Exception {
 	}
 	
 	/**
@@ -119,7 +108,10 @@ public class DeviceManagementExtensionsTest extends TestCase {
 		}
 	}
 	*/
+	@Test
 	public void test01AddDeviceManagementExtension() {
+	
+		final String METHOD = "test01AddDeviceManagementExtension";
 		
 		JsonObject jsonRequest = new JsonObject();
 		//BundleId
@@ -168,50 +160,57 @@ public class DeviceManagementExtensionsTest extends TestCase {
 		
 		jsonRequest.add("actions", jsonActions);
 		
-		System.out.println("ADD " + jsonRequest.toString());
-		
+		LoggerUtility.info(CLASS_NAME, METHOD,
+				"Add " + jsonRequest.toString());
+			
 		//Add
 		try {
 			JsonObject jsonResponse = apiClient.addDeviceManagementExtension(jsonRequest);
-			System.out.println("Response: " + jsonResponse.toString());
-		} catch (IoTFCReSTException ex) {
-			System.err.println(ex.getResponse());
-			fail(ex.getMessage());
+			LoggerUtility.info(CLASS_NAME, METHOD, 
+					"Response: " + jsonResponse.toString());
+		} catch (IoTFCReSTException e) {
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);		
 		} catch(Exception e) { 
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
 	}
 	
+	@Test
 	public void test02GetDeviceManagementExtension() {
-		System.out.println("GET " + bundleId);
+		final String METHOD = "test02GetDeviceManagementExtension";
+		LoggerUtility.info(CLASS_NAME, METHOD, "Get " + bundleId);
 		//Get
 		try {
 			JsonObject jsonResponse = apiClient.getDeviceManagementExtension(bundleId);
-			System.out.println("Response: " + jsonResponse.toString());
-		} catch (IoTFCReSTException ex) {
-			System.err.println(ex.getResponse());
-			fail(ex.getMessage());
+			LoggerUtility.info(CLASS_NAME, METHOD, "Response: " + jsonResponse.toString());
+		} catch (IoTFCReSTException e) {
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);		
 		} catch(Exception e) { 
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
 	}
 	
+	@Test
 	public void test03DeleteDeviceManagementExtension() {
-		System.out.println("DELETE " + bundleId);
+		final String METHOD = "test03DeleteDeviceManagementExtension";
+		LoggerUtility.info(CLASS_NAME, METHOD, "Delete " + bundleId);
 		//Delete
 		try {
 			apiClient.deleteDeviceManagementExtension(bundleId);
-		} catch (IoTFCReSTException ex) {
-			System.err.println(ex.getResponse());
-			fail(ex.getMessage());
+		} catch (IoTFCReSTException e) {
+			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);		
 		} catch(Exception e) { 
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
 	}
-	
-	
 	
 }
