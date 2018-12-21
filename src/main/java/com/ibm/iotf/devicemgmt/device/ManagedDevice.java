@@ -867,11 +867,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 		requests.put(uuid, message);
 
-		IMqttDeliveryToken token = publish(topic, message);
-		
-		if (token != null) {
-			token.waitForCompletion(this.getActionTimeout());
-		}
+		publish(topic, message);
 
 		JsonObject jsonResponse = null;
 		while (jsonResponse == null) {
@@ -1177,7 +1173,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * must be implemented by the subclass to handle the actions sent by the IBM Watson IoT Platform.</p>
 	 * 
 	 * @param actionHandler Handler to handle the custom action
-	 * @throws Exception
+	 * @throws Exception Thrown if an error occurs when setting action handler
 	 */
 	public void addCustomActionHandler(CustomActionHandler actionHandler) throws Exception {
 		final String METHOD = "addDeviceActionHandler";

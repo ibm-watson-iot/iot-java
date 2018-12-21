@@ -37,9 +37,13 @@ public class DeviceManagementTest5 {
 	private static APIClient apiClient = null;
 	private static ManagedDevice dmClient = null;
 	private static final String DEVICE_TYPE = "DevMgmtType5";
-	private static final String DEVICE_ID = "DevMgmtDev5";
+	private static final String DEVICE_ID = "DevMgmtDevXX5"; // @FIXME remove X
 	private static final String APP_ID = "DevMgmtApp5";
 	
+	private static final String	downloadRequest = "{\"action\": \"firmware/download\", \"parameters\": [{\"name\": \"version\", \"value\": \"0.1.10\" }," +
+			"{\"name\": \"name\", \"value\": \"RasPi01 firmware\"}, {\"name\": \"verifier\", \"value\": \"123df\"}," +
+			"{\"name\": \"uri\",\"value\": \"https://github.com/ibm-messaging/iot-raspberrypi/releases/download/1.0.2.1/iot_1.0-2_armhf.deb\"}" +
+			"],\"devices\": [{\"typeId\": \"" + DEVICE_TYPE + "\",\"deviceId\": \"" + DEVICE_ID + "\"}]}";
 	
 	private static final String	updateRequest = "{\"action\": \"firmware/update\", \"devices\": [{\"typeId\": \"" + DEVICE_TYPE + "\",\"deviceId\": \"" + DEVICE_ID + "\"}]}";
 	
@@ -175,9 +179,42 @@ public class DeviceManagementTest5 {
 			// ignore the error
 		}
 		
-		JsonObject update = (JsonObject) new JsonParser().parse(updateRequest);
+		JsonObject download = (JsonObject) new JsonParser().parse(downloadRequest);
 		
 		JsonObject response = null;
+		try {
+			response = apiClient.initiateDMRequest(download);
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+
+		if (response != null) {
+			if (response.has("reqId")) {
+				LoggerUtility.info(CLASS_NAME, METHOD, "initiated firmware download request ID = " + response.get("reqId").getAsString());
+			} else {
+				LoggerUtility.info(CLASS_NAME, METHOD, "initiated firmware download, response " + response);
+			}
+		}
+
+		int counter = 0;
+		// wait for sometime
+		while(counter <= 20) {
+			// For some reason the volatile doesn't work, so using the lock
+			if (handler.firmwareDownloaded()) {
+				break;
+			}
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			counter++;
+		}
+		
+		JsonObject update = (JsonObject) new JsonParser().parse(updateRequest);
+		
+		response = null;
 		try {
 			response = apiClient.initiateDMRequest(update);
 		} catch (IoTFCReSTException e) {
@@ -194,7 +231,7 @@ public class DeviceManagementTest5 {
 		}
 		
 		
-		int counter = 0;
+		counter = 0;
 		// wait for sometime
 		while(counter <= 20) {
 			// For some reason the volatile doesn't work, so using the lock
@@ -209,18 +246,14 @@ public class DeviceManagementTest5 {
 			counter++;
 		}
 
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
 		JsonObject status = null;
-		try {
-			status = apiClient.getDeviceManagementRequestStatusByDevice(response.get("reqId").getAsString(), DEVICE_TYPE, DEVICE_ID);
-		} catch (IoTFCReSTException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		
+		if (response != null && response.has("reqId")) {
+			try {
+				status = apiClient.getDeviceManagementRequestStatusByDevice(response.get("reqId").getAsString(), DEVICE_TYPE, DEVICE_ID);
+			} catch (IoTFCReSTException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		assertTrue("The firmware request/parameters not received", handler.firmwareUpdated());	
@@ -231,6 +264,9 @@ public class DeviceManagementTest5 {
 		} else {
 			fail("Failed to get status of DM request");
 		}
+		
+		dmClient.disconnect();
+		
 	}
 
 	

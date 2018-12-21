@@ -528,7 +528,7 @@ public class GatewayCommandSubscriptionTest {
 	}
 
 	
-	@Test
+	//FIXME Test gateway notification
 	public void test05GatewayNotification() throws MqttException{
 		
 		final String METHOD = "test05GatewayNotification";
@@ -595,7 +595,7 @@ public class GatewayCommandSubscriptionTest {
 		
 		int count = 0;
 		// wait for sometime before checking
-		while(testHelper.notificationReceived() == false && count++ <= 5) {
+		while (testHelper.notificationReceived() == false && count++ <= 10) {
 			try {
 				Thread.sleep(1000);
 			} catch(InterruptedException e) {}
@@ -606,7 +606,6 @@ public class GatewayCommandSubscriptionTest {
 		try {
 			TestHelper.deleteDevice(apiClient, newGwType, newGwId);
 		} catch (IoTFCReSTException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

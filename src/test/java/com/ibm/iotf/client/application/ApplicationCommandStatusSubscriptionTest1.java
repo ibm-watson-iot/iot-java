@@ -28,12 +28,10 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.app.ApplicationClient;
-import com.ibm.iotf.client.app.Event;
 import com.ibm.iotf.test.common.TestDeviceHelper;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestEventCallback;
 import com.ibm.iotf.test.common.TestHelper;
-import com.ibm.iotf.test.common.TestStatusCallback;
 import com.ibm.iotf.util.LoggerUtility;
 
 
@@ -131,13 +129,6 @@ public class ApplicationCommandStatusSubscriptionTest1 {
 	public void test01CommandSubscribe() {
 		final String METHOD = "test01CommandSubscribe";
 
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
-		
 		ApplicationClient app1Client = null;
 		try {
 			app1Client = new ApplicationClient(app1Props);
@@ -175,32 +166,39 @@ public class ApplicationCommandStatusSubscriptionTest1 {
 		TestEventCallback evtCallback = new TestEventCallback();
 		app1Client.setEventCallback(evtCallback);
 		
-		TestStatusCallback statusCallback = new TestStatusCallback();
-		app1Client.setStatusCallback(statusCallback);
-		
 		app1Client.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID);
+		LoggerUtility.info(CLASS_NAME, METHOD, app1Client.getClientID() + " subscribed to device commands");		
 		
 		JsonObject data = new JsonObject();
 		data.addProperty("distance", 10);
 		app2Client.publishCommand(DEVICE_TYPE, DEVICE_ID, "run", data);
 
 		int count;
-		Event event = evtCallback.getEvent();
+		com.ibm.iotf.client.app.Command cmd = evtCallback.getCommand();
 		count = 0;
-		while( event == null && count++ <= 10) {
+		while( cmd == null && count++ <= 10) {
 			try {
-				event = evtCallback.getEvent();
+				cmd = evtCallback.getCommand();
 				Thread.sleep(1000);
 			} catch(InterruptedException e) {}
 		}
 		
-		if (event != null) {
-			LoggerUtility.info(CLASS_NAME, METHOD, "Command received by application: " + event);
+		if (cmd != null) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Command received by application: " + cmd);
 		}
-		assertTrue("Command is not received by application", (event != null));
+		assertTrue("Command is not received by application", (cmd != null));
 				
 		app2Client.disconnect();
+		LoggerUtility.info(CLASS_NAME, METHOD, app1Client.getClientID() + " connected ? " + app2Client.isConnected());
 		app1Client.disconnect();
+		LoggerUtility.info(CLASS_NAME, METHOD, app1Client.getClientID() + " connected ? " + app1Client.isConnected());
+		// Wait for a few second before deleting API keys in cleanup method.
+		// If we don't wait, we might receive notification connectionLost and retry to connect this client. 
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}	
 	
 }

@@ -234,6 +234,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 *            Payload data
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
+	 * @param timeout
+	 *            Timeout value in milliseconds waiting for publish token to complete
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishEvent(String deviceType, String deviceId, String event, Object data, int qos, long timeout) {
@@ -701,6 +703,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 *            object of String which denotes format, typical example of format could be json
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
+	 * @param timeout
+	 *            Timeout value in milliseconds to wait for subscribe token to complete 
 	 */
 	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, String format, int qos, long timeout) {
 		try {
@@ -1006,8 +1010,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 *            object of String which denotes deviceType 
 	 * @param deviceId
 	 *            object of String which denotes deviceId
-	 * @param timeout
-	 * 		The maximum amount of time to wait for the action, in milliseconds, to complete
 	 */
 	public void subscribeToDeviceStatus(String deviceType, String deviceId) {
 		subscribeToDeviceStatus(deviceType, deviceId, getActionTimeout());

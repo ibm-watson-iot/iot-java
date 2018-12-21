@@ -228,6 +228,8 @@ public class DeviceManagementTest6 {
 			fail("Failed to get status of DM request");
 		}
 		assertTrue("The device reboot request is not received", handler.rebooted());
+		
+		dmClient.disconnect();
 	}
 
 }

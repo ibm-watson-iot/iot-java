@@ -13,6 +13,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonObject;
@@ -436,6 +437,7 @@ public class GatewayManagementTest {
 	}
 	
 
+	@Test
 	public void test08RebootRequest() throws Exception {
 		actionHandler.isGateway = true;
 		
@@ -472,6 +474,7 @@ public class GatewayManagementTest {
 		assertTrue("The device reboot request is not received", actionHandler.reboot);
 	}
 
+	@Test
 	public void test09FactoryResetRequest() throws Exception {
 		actionHandler.clear();
 		actionHandler.isGateway = true;
@@ -507,6 +510,7 @@ public class GatewayManagementTest {
 		assertTrue("The device factory reset request is not received", actionHandler.factoryReset);
 	}
 	
+	@Test
 	public void test081RebootRequest() throws Exception {
 		
 		actionHandler.clear();
@@ -543,6 +547,7 @@ public class GatewayManagementTest {
 		assertTrue("The device reboot request is not received", actionHandler.reboot);
 	}
 
+	@Test
 	public void test091FactoryResetRequest() throws Exception {
 		actionHandler.clear();
 		actionHandler.isGateway = false;
@@ -579,6 +584,7 @@ public class GatewayManagementTest {
 	}
 
 
+	@Test
 	public void test06FirmwareDownload() throws Exception {
 		
 		try {
@@ -610,6 +616,7 @@ public class GatewayManagementTest {
 	}
 
 
+	@Test
 	public void test07FirmwareUpdate() throws Exception {
 		
 		firmwareHandler.clear();
@@ -638,6 +645,7 @@ public class GatewayManagementTest {
 		assertTrue("The firmware request/parameters not received", firmwareHandler.firmwareUpdateCalled);
 	}
 	
+	@Test
 	public void test061FirmwareDownload() throws Exception {
 		
 		firmwareHandler.clear();
@@ -670,6 +678,7 @@ public class GatewayManagementTest {
 	}
 
 
+	@Test
 	public void test071FirmwareUpdate() throws Exception {
 		
 		firmwareHandler.clear();
@@ -699,6 +708,7 @@ public class GatewayManagementTest {
 	}
 
 
+	@Test
 	public void test01ManageRequest() {
 		final String METHOD = "test01ManageRequest";
 		boolean status = false;
@@ -745,6 +755,7 @@ public class GatewayManagementTest {
 		}
 	}
 	
+	@Test
 	public void test02UnManageRequest() {
 		
 		final String METHOD = "test02UnManageRequest";
@@ -769,6 +780,7 @@ public class GatewayManagementTest {
 		
 	}
 	
+	@Test
 	public void test03LocationUpdate() throws MqttException {
 		
 		final String METHOD = "test03LocationUpdate";
@@ -802,6 +814,7 @@ public class GatewayManagementTest {
 		assertTrue("device location update is unsuccessfull", rc==200);
 	}
 	
+	@Test
 	public void test04Errorcodes() throws MqttException {
 		gwClient.sendGatewayManageRequest(0, false, true);
 		
@@ -825,6 +838,7 @@ public class GatewayManagementTest {
 
 	}
 
+	@Test
 	public void test05LogMessages() throws MqttException {
 		gwClient.sendGatewayManageRequest(0, false, true);
 		

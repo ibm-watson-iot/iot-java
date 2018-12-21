@@ -18,7 +18,8 @@ package com.ibm.iotf.client.application.api;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 
 import org.junit.AfterClass;
@@ -28,8 +29,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runners.MethodSorters;
-
-import junit.framework.TestCase;
 
 import com.google.gson.JsonElement;
 import com.ibm.iotf.client.IoTFCReSTException;
@@ -52,10 +51,18 @@ public class UsageManagementAPIOperationsTest {
 	public ExpectedException thrown = ExpectedException.none();
 	
 	@BeforeClass
-	public static void oneTimeSetUp() throws Exception {
+	public static void oneTimeSetUp() {
 		
 		Properties appProps = TestEnv.getAppProperties(APP_ID, false, null, null);
-		apiClient = new APIClient(appProps);
+		try {
+			apiClient = new APIClient(appProps);
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	@AfterClass

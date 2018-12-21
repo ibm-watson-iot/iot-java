@@ -4,37 +4,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-/**
- *****************************************************************************
- * Copyright (c) 2015 IBM Corporation and other Contributors.
-
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- * Sathiskumar Palaniappan - Initial Contribution
- * Amit M Mangalvedkar - Added on 02-Mar-2018
- *****************************************************************************
- */
-
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 
-import junit.extensions.TestSetup;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -45,8 +25,7 @@ import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.test.common.TestEnv;
-
-import org.junit.runners.MethodSorters;
+import com.ibm.iotf.util.LoggerUtility;
 
 /**
  * This test-case tests various ReST operations that can be performed on Watson IoT Platform to
@@ -54,6 +33,8 @@ import org.junit.runners.MethodSorters;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DeviceAPIOperationsTest {
+	
+	private static final String CLASS_NAME = DeviceAPIOperationsTest.class.getName();
 	
 	private static final String APP_ID = "DevApiOpApp1";
 	
@@ -122,8 +103,8 @@ public class DeviceAPIOperationsTest {
 	
 	/**
 	 * This test-case tests how to add a device using the Java Client Library.
-	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test01addDevice() {
 		
 		JsonParser parser = new JsonParser();
@@ -156,8 +137,8 @@ public class DeviceAPIOperationsTest {
 	
 	/**
 	 * This test-case tests how to get device details using the Java Client Library.
-	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test02getDevice() throws IoTFCReSTException {
 		try {
 			JsonObject response = apiClient.getDevice(DEVICE_TYPE, DEVICE_ID);
@@ -174,11 +155,15 @@ public class DeviceAPIOperationsTest {
 	 * Negative test - Specify an invalid device type
 	 * @throws IoTFCReSTException
 	 */
+	//FIXME
 	public void test021getDevice() throws IoTFCReSTException {
+		final String METHOD = "test021getDevice";
 		try {
 			JsonObject response = apiClient.getDevice("Non-Exist", DEVICE_ID);
-			fail("Must thorw an exception, but received a response: " + response.getAsString());
+			fail("Must throw an exception, but received a response: " + response.getAsString());
 		} catch (IoTFCReSTException e) {
+			LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + "HTTP Code " + e.getHttpCode() 
+				+ " Response: " + e.getResponse() );
 			assertTrue("HTTP error code must be 404", e.getHttpCode() == 404);
 		}
 	}
@@ -187,6 +172,7 @@ public class DeviceAPIOperationsTest {
 	 * This test-case tests how to update a device location using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test03updateDeviceLocation() throws IoTFCReSTException {
 		
 		JsonElement newLocation = new JsonParser().parse(newlocationToBeAdded);
@@ -202,6 +188,7 @@ public class DeviceAPIOperationsTest {
 	 * This test-case tests how to get a device location using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test04getDeviceLocation() throws IoTFCReSTException {
 		try {
 			JsonObject response = apiClient.getDeviceLocation(DEVICE_TYPE, DEVICE_ID);
@@ -215,6 +202,7 @@ public class DeviceAPIOperationsTest {
 	 * This test-case tests how to get a device location weather using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	//FIXME
 	public void test05getDeviceLocationWeather() throws IoTFCReSTException {
 		try {
 			JsonObject response = apiClient.getDeviceLocationWeather(DEVICE_TYPE, DEVICE_ID);
@@ -229,6 +217,7 @@ public class DeviceAPIOperationsTest {
 	 * This test-case tests how to get a management information of a device using the Java Client Library.
 	 * @throws Exception 
 	 */
+	@Test
 	public void test06getDeviceManagementInformation() {
 		
 		String managedDevId = "manDev1";
@@ -276,6 +265,7 @@ public class DeviceAPIOperationsTest {
 	 * This test-case tests how to update a device using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test07updateDevice() throws IoTFCReSTException {
 		
 		JsonObject updatedMetadata = new JsonObject();
@@ -298,6 +288,7 @@ public class DeviceAPIOperationsTest {
 	 * This test-case tests how to retrieve all the devices in an organization using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test08getAllDevicesOfAType() throws IoTFCReSTException {
 		
 		// Get all the devices of type TestDT
@@ -330,6 +321,7 @@ public class DeviceAPIOperationsTest {
 	 * This test-case tests how to retrieve all the devices in an organization using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test08getAllDevices() throws IoTFCReSTException {
 
 		try {
@@ -354,6 +346,7 @@ public class DeviceAPIOperationsTest {
 	 * This test-case tests how to Delete a device using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test08deleteDevice() throws IoTFCReSTException {
 		try {
 			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
@@ -368,6 +361,7 @@ public class DeviceAPIOperationsTest {
 	 * This test-case tests how to add a device, registered under a gateway, using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test09addDeviceUnderGateway() {
 		
 		String gwType = "gwType1";

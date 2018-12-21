@@ -22,6 +22,7 @@ import java.util.Properties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonObject;
@@ -85,6 +86,7 @@ public class GatewayAPIOperationsTest {
 		}
 	}	
 	
+	@Test
 	public void test01RegisterDevicesUnderGateway() {
 		final String METHOD = "test01RegisterDevicesUnderGateway";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Registering devices under the gateway --> " + GW_DEVICE_ID);
@@ -147,6 +149,7 @@ public class GatewayAPIOperationsTest {
 	 * This sample showcases how to get device details using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test02getDevicesConnectedThroughGateway() throws IoTFCReSTException {
 		final String METHOD = "test02getDevicesConnectedThroughGateway";
 		LoggerUtility.info(CLASS_NAME, METHOD, "get Devices Connected Through Gateway --> "+ GW_DEVICE_ID);
@@ -166,6 +169,7 @@ public class GatewayAPIOperationsTest {
 	 * This sample showcases how to Delete a device using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test03deleteDevices() {
 		final String METHOD = "test03deleteDevices";
 		

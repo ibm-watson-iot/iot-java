@@ -9,6 +9,9 @@ import java.util.Properties;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -19,25 +22,12 @@ import com.ibm.iotf.client.device.DeviceClient;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.util.LoggerUtility;
 
-/**
- *****************************************************************************
- * Copyright (c) 2016 IBM Corporation and other Contributors.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- * Jose Paul - Initial Contribution
- *****************************************************************************
- */
-import junit.framework.TestCase;
-
 
 /**
  * This test verifies various Event Cache API operations that can be performed on Watson IoT Platform.
  *
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EventCacheAPITests {
 	
 	private static final String CLASS_NAME = EventCacheAPITests.class.getName();
@@ -88,6 +78,7 @@ public class EventCacheAPITests {
 	 * This test verifies whether "getLastEvent" method call returns last event published by Device 
 	 * @throws MqttException 
 	 */
+	@Test
 	public void test01GetLastEvent() throws IoTFCReSTException, MqttException {
 		final String METHOD = "testGetLastEvent";
 		String eventID = METHOD;
@@ -124,6 +115,7 @@ public class EventCacheAPITests {
 	 * This test verifies whether "getLastEvents" method call returns last events published by Device 
 	 * @throws MqttException 
 	 */
+	@Test
 	public void test02GetLastEvents() throws IoTFCReSTException, MqttException {
 		
 		final String METHOD = "testGetLastEvents";
@@ -160,6 +152,7 @@ public class EventCacheAPITests {
 		assertTrue("Expected device events for the device", numEvents == returnEvents);
 	}
 	
+	@Test
 	public void test03VerifyExceptionMessage() throws IoTFCReSTException {
 		final String METHOD = "testVerifyExceptionMessage";
 

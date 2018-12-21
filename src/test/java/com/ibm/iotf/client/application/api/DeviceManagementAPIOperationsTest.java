@@ -25,6 +25,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonArray;
@@ -116,6 +117,7 @@ public class DeviceManagementAPIOperationsTest {
 	 * This sample showcases how to initiate a device management request, such as reboot.
 	 * @throws Exception 
 	 */
+	@Test
 	public void test01initiateMgmtRequest() throws Exception {
 		final String METHOD = "test01AddDiagnosticLog";
 		LoggerUtility.info(CLASS_NAME, METHOD, 
@@ -140,6 +142,7 @@ public class DeviceManagementAPIOperationsTest {
 	 * This sample showcases how to get details of a device management request.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test02getMgmtRequest() throws IoTFCReSTException {
 		final String METHOD = "test02getMgmtRequest";
 		LoggerUtility.info(CLASS_NAME, METHOD, 
@@ -166,6 +169,7 @@ public class DeviceManagementAPIOperationsTest {
 	 * This sample showcases how to get list of device management request device statuses
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test03getMgmtRequestDeviceStatus() throws IoTFCReSTException {
 		final String METHOD = "test03getMgmtRequestDeviceStatus";
 		LoggerUtility.info(CLASS_NAME, METHOD, 
@@ -202,6 +206,7 @@ public class DeviceManagementAPIOperationsTest {
 	 * This sample showcases how to get list of device management request device statuses
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test031getMgmtRequestDeviceStatus() throws IoTFCReSTException {
 		final String METHOD = "test031getMgmtRequestDeviceStatus";
 		LoggerUtility.info(CLASS_NAME, METHOD, 
@@ -226,6 +231,7 @@ public class DeviceManagementAPIOperationsTest {
 	 * This sample showcases how to get a list of device management requests, which can be in progress or recently completed.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test04getAllMgmtRequests() throws IoTFCReSTException {
 		final String METHOD = "test04getAllMgmtRequests";
 		LoggerUtility.info(CLASS_NAME, METHOD, 
@@ -255,6 +261,7 @@ public class DeviceManagementAPIOperationsTest {
 	 * 
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test05deleteMgmtRequest() throws IoTFCReSTException {
 		final String METHOD = "test05deleteMgmtRequest";
 		LoggerUtility.info(CLASS_NAME, METHOD, 

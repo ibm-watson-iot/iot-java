@@ -23,6 +23,7 @@ import java.util.Properties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonArray;
@@ -31,12 +32,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.application.ApplicationEventSubscriptionTest;
-import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.client.device.DeviceClient;
+import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.util.LoggerUtility;
-
-import junit.framework.TestCase;
 
 /**
  * This sample showcases various ReST operations that can be performed on Watson IoT Platform to
@@ -113,6 +111,7 @@ public class DeviceDiagnosticsAPIOperationsTest {
 	/**
 	 * Add a diagnostic Log for a particular device.
 	 */
+	@Test
 	public void test01AddDiagnosticLog() {
 		final String METHOD = "test01AddDiagnosticLog";
 		LoggerUtility.info(CLASS_NAME, METHOD, 
@@ -137,6 +136,7 @@ public class DeviceDiagnosticsAPIOperationsTest {
 	/**
 	 * Get all the diagnostic Logs of a device.
 	 */
+	@Test
 	public void test02GetAllDiagnosticLogs() {
 		final String METHOD = "test02GetAllDiagnosticLogs";
 		LoggerUtility.info(CLASS_NAME, METHOD, 
@@ -162,6 +162,7 @@ public class DeviceDiagnosticsAPIOperationsTest {
 	/**
 	 * Get a diagnostic Log with a given ID.
 	 */
+	@Test
 	public void test03GetDiagnosticLog() {
 		final String METHOD = "test03GetDiagnosticLog";
 		JsonObject responseJson = null;
@@ -186,6 +187,7 @@ public class DeviceDiagnosticsAPIOperationsTest {
 	/**
 	 * Delete a diagnostic Log.
 	 */
+	@Test
 	public void test04DeleteDiagnosticLog() {
 		final String METHOD = "test04DeleteDiagnosticLog";
 		LoggerUtility.info(CLASS_NAME, METHOD, 
@@ -216,7 +218,7 @@ public class DeviceDiagnosticsAPIOperationsTest {
 	/**
 	 * Clear a diagnostic Log with the given ID.
 	 */
-
+	@Test
 	public void test05ClearDiagnosticLogs() {
 		final String METHOD = "test05ClearDiagnosticLogs";
 		LoggerUtility.info(CLASS_NAME, METHOD, 
@@ -240,6 +242,7 @@ public class DeviceDiagnosticsAPIOperationsTest {
 	/**
 	 * Clear the diagnostic error codes.
 	 */
+	@Test
 	public void test08ClearDiagnosticErrorCodes() {
 		final String METHOD = "test08ClearDiagnosticErrorCodes";
 		LoggerUtility.info(CLASS_NAME, METHOD,
@@ -261,6 +264,7 @@ public class DeviceDiagnosticsAPIOperationsTest {
 	/**
 	 * Get all the diagnostic error codes.
 	 */
+	@Test
 	public void test07GetAllDiagnosticErrorCodes() {
 		final String METHOD = "test07GetAllDiagnosticErrorCodes";
 		LoggerUtility.info(CLASS_NAME, METHOD,
@@ -290,6 +294,7 @@ public class DeviceDiagnosticsAPIOperationsTest {
 	 * 1. JSON Format
 	 * 2. providing properties in raw format
 	 */
+	@Test
 	public void test06AddDiagnosticErrorCode() {
 		final String METHOD = "test06AddDiagnosticErrorCode";
 		LoggerUtility.info(CLASS_NAME, METHOD,
@@ -316,6 +321,7 @@ public class DeviceDiagnosticsAPIOperationsTest {
 	/**
 	 * Get connection logs which is not related to the Diagnostic Log.
 	 */
+	@Test
 	public void test09getDeviceConnectionLogs() {
 		final String METHOD = "test09getDeviceConnectionLogs";
 		

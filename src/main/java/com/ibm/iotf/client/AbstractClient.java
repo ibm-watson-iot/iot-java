@@ -77,7 +77,7 @@ public abstract class AbstractClient {
 	private static final String CLASS_NAME = AbstractClient.class.getName();
 	private static final String QUICK_START = "quickstart";
 	private static final int DEFAULT_MAX_CONNECT_ATTEMPTS = 10;
-	private static final long DEFAULT_ACTION_TIMEOUT = 30 * 1000L;
+	private static final long DEFAULT_ACTION_TIMEOUT = 5 * 1000L;
 	private static final int DEFAULT_MAX_INFLIGHT_MESSAGES = 100;
 	private static final int DEFAULT_MESSAGING_QOS = 1;
 	
@@ -247,7 +247,9 @@ public abstract class AbstractClient {
 				System.err.println("Looks like one or more connection parameters are wrong !!!");
 				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Connecting to Watson IoT Platform failed - " +
 						"one or more connection parameters are wrong !!!", e);
-				throw e;
+				if (connectAttempts > numberOfRetryAttempts) {
+					throw e;
+				}
 				
 			} catch (MqttException e) {
 				if(connectAttempts > numberOfRetryAttempts) {
@@ -728,10 +730,9 @@ public abstract class AbstractClient {
 	
 	/**
 	 * Close and free all MQTT client resources
-	 * 
-	 * @throws Exception
+	 * @throws MqttException Thrown if an error occurs
 	 */
-	public void close() throws Exception {
+	public void close() throws MqttException {
 		final String METHOD = "close";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Closing MQTT client (" + clientId + ")");
 		if (mqttAsyncClient != null) {

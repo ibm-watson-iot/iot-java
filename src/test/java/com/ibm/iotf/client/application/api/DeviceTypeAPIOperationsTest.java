@@ -27,6 +27,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonArray;
@@ -100,6 +101,7 @@ public class DeviceTypeAPIOperationsTest {
 	 * This sample showcases how to Create a device type using the Java Client Library. 
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test01addDeviceType() throws IoTFCReSTException {
 		final String METHOD = "test01addDeviceType";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Add a device type "+DEVICE_TYPE);
@@ -119,6 +121,7 @@ public class DeviceTypeAPIOperationsTest {
 	 * This sample showcases how to Delete a device type using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test02deleteDeviceType() throws IoTFCReSTException {
 		final String METHOD = "test02deleteDeviceType";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Delete device type "+DEVICE_TYPE);
@@ -138,6 +141,7 @@ public class DeviceTypeAPIOperationsTest {
 	 * This sample showcases how to Create a device type using the Java Client Library. 
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test03addDeviceTypeWithMoreParameters() throws IoTFCReSTException {
 		final String METHOD = "test03addDeviceTypeWithMoreParameters";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Add a device type with more parameters "+DEVICE_TYPE);
@@ -164,6 +168,7 @@ public class DeviceTypeAPIOperationsTest {
 	 * This sample showcases how to get the details of a device type using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test04getDeviceType() throws IoTFCReSTException {
 		final String METHOD = "test04getDeviceType";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Get device type "+DEVICE_TYPE);
@@ -182,6 +187,7 @@ public class DeviceTypeAPIOperationsTest {
 	 * This sample showcases how to update a device type using the Java Client Library.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test05updateDeviceType() throws IoTFCReSTException {
 		final String METHOD = "test05updateDeviceType";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Update device type "+DEVICE_TYPE);
@@ -202,6 +208,7 @@ public class DeviceTypeAPIOperationsTest {
 	 * This sample showcases how to retrieve all the device types present in the given Organization.
 	 * @throws IoTFCReSTException
 	 */
+	@Test
 	public void test06getAllDeviceTypes() throws IoTFCReSTException {
 		final String METHOD = "test06getAllDeviceTypes";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Get all device types present in the Organization");

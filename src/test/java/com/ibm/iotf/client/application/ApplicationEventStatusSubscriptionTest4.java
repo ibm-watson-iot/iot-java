@@ -125,14 +125,6 @@ public class ApplicationEventStatusSubscriptionTest4 {
 	public void test01EventSubscribeJson() {
 		final String METHOD = "test01EventSubscribeJson";
 
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
-		
-
 		TestDeviceHelper testHelper;
 		try {
 			testHelper = new TestDeviceHelper(DEVICE_TYPE, DEVICE_ID);
@@ -165,6 +157,11 @@ public class ApplicationEventStatusSubscriptionTest4 {
 		appClient.setStatusCallback(statusCallback);
 		
 		appClient.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID, "custom", "json");
+		LoggerUtility.info(CLASS_NAME, METHOD, appClient.getClientID() + " subscribed to device events");
+		
+		appClient.subscribeToDeviceStatus(DEVICE_TYPE, DEVICE_ID);
+		LoggerUtility.info(CLASS_NAME, METHOD, appClient.getClientID() + " subscribed to device status");
+		
 		
 		try {
 			testHelper.connect();
@@ -228,6 +225,14 @@ public class ApplicationEventStatusSubscriptionTest4 {
 		assertTrue("Device Status Disconnect is not received by application", (status != null));
 		
 		appClient.disconnect();
+		// Wait for a few second before deleting API keys in cleanup method.
+		// If we don't wait, we might receive notification connectionLost and retry to connect this client. 
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 	}	
 	
 }

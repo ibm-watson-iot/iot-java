@@ -20,6 +20,7 @@ import java.util.Properties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonArray;
@@ -107,6 +108,7 @@ public class DeviceManagementExtensionsTest {
 		}
 	}
 	*/
+	@Test
 	public void test01AddDeviceManagementExtension() {
 	
 		final String METHOD = "test01AddDeviceManagementExtension";
@@ -176,6 +178,7 @@ public class DeviceManagementExtensionsTest {
 		}
 	}
 	
+	@Test
 	public void test02GetDeviceManagementExtension() {
 		final String METHOD = "test02GetDeviceManagementExtension";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Get " + bundleId);
@@ -193,6 +196,7 @@ public class DeviceManagementExtensionsTest {
 		}
 	}
 	
+	@Test
 	public void test03DeleteDeviceManagementExtension() {
 		final String METHOD = "test03DeleteDeviceManagementExtension";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Delete " + bundleId);

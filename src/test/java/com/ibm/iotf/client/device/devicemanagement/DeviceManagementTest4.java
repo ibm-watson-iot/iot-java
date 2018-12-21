@@ -238,6 +238,8 @@ public class DeviceManagementTest4 {
 		} else {
 			fail("Failed to get status of DM request");
 		}		
+		
+		dmClient.disconnect();
 	}
 
 

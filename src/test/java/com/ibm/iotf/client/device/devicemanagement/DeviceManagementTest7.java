@@ -36,9 +36,9 @@ public class DeviceManagementTest7 {
 	
 	private static APIClient apiClient = null;
 	private static ManagedDevice dmClient = null;
-	private static final String DEVICE_TYPE = "DevMgmtType6";
-	private static final String DEVICE_ID = "DevMgmtDev6";
-	private static final String APP_ID = "DevMgmtApp6";
+	private static final String DEVICE_TYPE = "DevMgmtType7";
+	private static final String DEVICE_ID = "DevMgmtDev7";
+	private static final String APP_ID = "DevMgmtApp7";
 	
 	
 	private static final String	factoryRequestToBeInitiated = "{\"action\": \"device/factoryReset\","
@@ -232,6 +232,8 @@ public class DeviceManagementTest7 {
 			fail("Failed to get status of DM request");
 		}
 		assertTrue("The device factory reset request is not received", handler.factoryReset());
+	
+		dmClient.disconnect();
 	}
 	
 	

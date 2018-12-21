@@ -670,6 +670,8 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 	 *            object of String which denotes deviceId
 	 * @param command
 	 *            object of String which denotes the command name
+	 * @param timeout
+	 *            Timeout value in milliseconds waiting for unsubscribe token to complete
 	 */
 	public void unsubscribeFromDeviceCommands(String deviceType, String deviceId, String command, long timeout) {
 		unsubscribeFromDeviceCommands(deviceType, deviceId, command, "+", timeout);

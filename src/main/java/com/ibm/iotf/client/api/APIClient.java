@@ -122,9 +122,9 @@ public class APIClient {
 	/**
 	 * API client constructor
 	 * 
-	 * @param props
-	 * @throws NoSuchAlgorithmException
-	 * @throws KeyManagementException
+	 * @param props Properties of this API client object
+	 * @throws NoSuchAlgorithmException Thrown if failed to get an instance of SSL context
+	 * @throws KeyManagementException Thrown if SSL context failed to initialzie
 	 */
 	public APIClient(Properties props) throws NoSuchAlgorithmException, KeyManagementException {
 		boolean isGateway = false;
@@ -208,8 +208,10 @@ public class APIClient {
 	}
 	
 	/**
+	 * Get domain from properties
+	 * 
 	 * @param propertiesions List of properties 
-	 * @return the domain
+	 * @return the domain e.g. internetofthings.ibmcloud.com
 	 */
 	protected String getDomain(Properties propertiesions) {
 		String domain;
@@ -235,10 +237,12 @@ public class APIClient {
 		
 		return trimedValue(method);
 	}
-	
-	/*
-	 * old style - id
-	 * new style - Device-ID
+
+	/**
+	 * Get Device ID from properties
+	 * 
+	 * @param propertiesions Properties to check for device ID
+	 * @return String Device ID
 	 */
 	protected String getDeviceId(Properties propertiesions) {
 		String id;
@@ -252,6 +256,11 @@ public class APIClient {
 		return trimedValue(id);
 	}
 	
+	/**
+	 * Get Device Type from properties
+	 * @param propertiesions Properties to check for device type
+	 * @return String Device Type
+	 */
 	protected String getDeviceType(Properties propertiesions) {
 		String type;
 		type = propertiesions.getProperty("Gateway-Type");
@@ -263,6 +272,13 @@ public class APIClient {
 		}
 		return trimedValue(type);
 	}
+	
+	/**
+	 * Check if the connection is secured.
+	 * 
+	 * @param propertiesions Properties to check for SSL connection
+	 * @return true if connection is secured, false otherwise
+	 */
 	protected boolean IsSecuredConnection(Properties propertiesions) {
 		boolean type = true;
 		String id;
@@ -7276,9 +7292,9 @@ public class APIClient {
 	 * See https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/security.html#!/Authorization_-_Device_Management/get_authorization_devices_deviceId
 	 * @param deviceId Device ID e.g. d:orgid:deviceType:deviceID
 	 * @param bookmark can be null
-	 * @return
-	 * @throws IoTFCReSTException
-	 * @throws UnsupportedEncodingException 
+	 * @return JsonObject JSON object describes access control properties
+	 * @throws IoTFCReSTException Thrown if a HTTP error occurs
+	 * @throws UnsupportedEncodingException Thrown if error occurs when parsing the deviceId
 	 */
 	public JsonObject getAccessControlProperties(String deviceId, String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
 		final String METHOD = "getAccessControlProperties";
@@ -7333,8 +7349,8 @@ public class APIClient {
 	 * Assign devices to a resource group 
 	 * @param groupId Unique identifier (e.g. acc8b2a1-b979-4323-9d8f-7e2c4752d39a).
 	 * @param devices Json Array of devices [{ "typeId": "string", "deviceId" : "string"}]
-	 * @throws UnsupportedEncodingException
-	 * @throws IoTFCReSTException
+	 * @throws UnsupportedEncodingException Thrown if an error occurs when parsing groupId
+	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
 	 */
 	public void assignDevicesToResourceGroup(String groupId, JsonArray devices) throws UnsupportedEncodingException, IoTFCReSTException {
 		
@@ -7385,12 +7401,13 @@ public class APIClient {
 	}
 	
 	/**
+	 * Get devices in resource group
 	 * 
-	 * @param groupId
-	 * @param bookmark
-	 * @return
-	 * @throws IoTFCReSTException
-	 * @throws UnsupportedEncodingException
+	 * @param groupId Resource group ID
+	 * @param bookmark Bookmark for next page
+	 * @return JsonObject JSON object describes devices in the resource group
+	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
+	 * @throws UnsupportedEncodingException Thrown if an error occurs when parsing group ID
 	 */
 	public JsonObject getDevicesInResourceGroup(String groupId, String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
 		List<NameValuePair> queryParms = null;
@@ -7402,12 +7419,13 @@ public class APIClient {
 	}
 
 	/**
+	 * Get devices in resource group
 	 * 
-	 * @param groupId
-	 * @param queryParameters
-	 * @return
-	 * @throws IoTFCReSTException
-	 * @throws UnsupportedEncodingException
+	 * @param groupId Resource group ID
+	 * @param queryParameters Additional query parameter such as bookmark
+	 * @return JsonObject JSON object describes devices in the resource group
+	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
+	 * @throws UnsupportedEncodingException Thrown if an error occurs when parsing group ID
 	 */
 	public JsonObject getDevicesInResourceGroup(String groupId, List<NameValuePair> queryParameters) throws IoTFCReSTException, UnsupportedEncodingException {
 		final String METHOD = "getActiveSchemaDefinitionContents";
@@ -7507,10 +7525,10 @@ public class APIClient {
 	/**
 	 * Delete API Key
 	 * 
-	 * @param apiDetails
-	 * @return
-	 * @throws IoTFCReSTException
-	 * @throws UnsupportedEncodingException 
+	 * @param apiKey API key to delete
+	 * @return true for success, false for failure
+	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
+	 * @throws UnsupportedEncodingException  Thrown if an error occurs when parsing apiKey
 	 */
 	public boolean deleteAPIKey(String apiKey) throws IoTFCReSTException, UnsupportedEncodingException {
 		final String METHOD = "deleteAPIKey";
@@ -7558,9 +7576,9 @@ public class APIClient {
 	/**
 	 * Create API Key
 	 * 
-	 * @param apiDetails
-	 * @return
-	 * @throws IoTFCReSTException
+	 * @param apiDetails JSON object describes API details
+	 * @return JsonObject JSON Object which contains the API key and token
+	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
 	 */
 	public JsonObject createAPIKey(JsonObject apiDetails) throws IoTFCReSTException {
 		final String METHOD = "createAPIKey";
@@ -7609,6 +7627,17 @@ public class APIClient {
 
 	}
 
+	/**
+	 * Get roles of the API key
+	 * 
+	 * @param apiKey API Key
+	 * @param bookmark Issue the first request without specifying a bookmark,
+	 *                 then take the bookmark returned in the response and provide it 
+	 *                 on the request for the next page.
+	 * @return JsonObject JSON Object describes roles of the API Key
+	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
+	 * @throws UnsupportedEncodingException Thrown if an error occurs when parsing apiKey
+	 */
 	public JsonObject getGetAPIKeyRoles(String apiKey, String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
 		List<NameValuePair> queryParms = null;
 		if (bookmark != null) {
@@ -7618,6 +7647,16 @@ public class APIClient {
 		return getGetAPIKeyRoles(apiKey, queryParms);
 	}
 	
+	/**
+	 * Get roles of this API Client's API Key
+	 * 
+	 * @param bookmark Issue the first request without specifying a bookmark,
+	 *                 then take the bookmark returned in the response and provide it 
+	 *                 on the request for the next page.
+	 * @return JsonObject JSON Object describes roles of the API Key
+	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
+	 * @throws UnsupportedEncodingException Thrown if an error occurs when parsing apiKey
+	 */
 	public JsonObject getGetAPIKeyRoles(String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
 		List<NameValuePair> queryParms = null;
 		if (bookmark != null) {
@@ -7630,12 +7669,14 @@ public class APIClient {
 	/**
 	 * Get API Key roles
 	 * 
-	 * @param bookmark Issue the first request without specifying a bookmark, 
+	 * @param apiKey API Key
+	 * @param queryParameters such as a bookmark. 
+	 *        Issue the first request without specifying a bookmark, 
 	 *        then take the bookmark returned in the response and provide it 
 	 *        on the request for the next page. 
-	 * @return
-	 * @throws IoTFCReSTException
-	 * @throws UnsupportedEncodingException
+	 * @return JsonObject JSON Object describes roles of the API Key
+	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
+	 * @throws UnsupportedEncodingException Thrown if an error occurs when parsing apiKey
 	 */
 	public JsonObject getGetAPIKeyRoles(String apiKey, List<NameValuePair> queryParameters) throws IoTFCReSTException, UnsupportedEncodingException {
 		final String METHOD = "getGetAPIKeyRoles";
@@ -7687,10 +7728,27 @@ public class APIClient {
 		
 	}
 
+	/**
+	 * Update roles of this API client's API key
+	 * 
+	 * @param listOfRoles List of roles to update
+	 * @return JsonObject JSON object with updated roles
+	 * @throws UnsupportedEncodingException Thrown if an error occurs when parsing API key
+	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
+	 */
 	public JsonObject updateAPIKeyRoles(JsonObject listOfRoles) throws UnsupportedEncodingException, IoTFCReSTException {
 		return updateAPIKeyRoles(this.authKey, listOfRoles);
 	}
 	
+	/**
+	 * Update roles of the API key
+	 * 
+	 * @param apiKey API Key 
+	 * @param listOfRoles List of roles to update
+	 * @return JsonObject JSON object with updated roles
+	 * @throws UnsupportedEncodingException Thrown if an error occurs when parsing API key
+	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
+	 */
 	public JsonObject updateAPIKeyRoles(String apiKey, JsonObject listOfRoles) throws UnsupportedEncodingException, IoTFCReSTException {
 		final String METHOD = "updateAPIKeyRoles";
 		String sAPIKey = URLEncoder.encode(apiKey, "UTF-8");

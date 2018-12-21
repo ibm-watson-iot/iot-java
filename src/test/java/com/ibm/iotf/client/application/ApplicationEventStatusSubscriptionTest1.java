@@ -125,13 +125,6 @@ public class ApplicationEventStatusSubscriptionTest1 {
 	public void test01EventSubscribe() {
 		final String METHOD = "test01EventSubscribe";
 
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
-		
 		TestDeviceHelper testHelper;
 		try {
 			testHelper = new TestDeviceHelper(DEVICE_TYPE, DEVICE_ID);
@@ -164,7 +157,11 @@ public class ApplicationEventStatusSubscriptionTest1 {
 		appClient.setStatusCallback(statusCallback);
 		
 		appClient.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID);
+		LoggerUtility.info(CLASS_NAME, METHOD, appClient.getClientID() + " subscribed to device events");
 		
+		appClient.subscribeToDeviceStatus(DEVICE_TYPE, DEVICE_ID);
+		LoggerUtility.info(CLASS_NAME, METHOD, appClient.getClientID() + " subscribed to device status");
+				
 		try {
 			testHelper.connect();
 		} catch (MqttException e) {
@@ -194,6 +191,7 @@ public class ApplicationEventStatusSubscriptionTest1 {
 		JsonObject data = new JsonObject();
 		data.addProperty("indoor", 70);
 		testHelper.publishEvent("temp", data);
+		LoggerUtility.info(CLASS_NAME, METHOD, testHelper.getClientID() + " sent event (" + data + ")");
 		
 		Event event = evtCallback.getEvent();
 		count = 0;
@@ -227,6 +225,14 @@ public class ApplicationEventStatusSubscriptionTest1 {
 		assertTrue("Device Status Disconnect is not received by application", (status != null));
 		
 		appClient.disconnect();
+		// Wait for a few second before deleting API keys in cleanup method.
+		// If we don't wait, we might receive notification connectionLost and retry to connect this client. 
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 	}	
 	
 }
