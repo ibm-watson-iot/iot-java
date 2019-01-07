@@ -90,6 +90,53 @@ public class GatewayManagementTest2 {
 	}
 	
 	@Test
+	public void test02ManageRequest() {
+		final String METHOD = "test02ManageRequest";
+		ManagedGateway gwClient = null;
+		boolean status = false;
+		try {
+			final DeviceData deviceData = new DeviceData.Builder()
+			        .typeId(GW_DEVICE_TYPE).deviceId(GW_DEVICE_ID).metadata(null).build();
+			
+			Properties gwProps = TestEnv.getGatewayProperties(GW_DEVICE_TYPE, GW_DEVICE_ID);
+			try {
+				gwClient = new ManagedGateway(gwProps, deviceData);
+				LoggerUtility.info(CLASS_NAME, METHOD, "Created managed gateway client");
+			} catch (Exception e) {
+				String failMsg = "ManagedGateway Exception: " + e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			}
+			gwClient.setGatewayCallback(new GatewayCallbackTest(gwProps));
+			try {
+				gwClient.connect();
+				LoggerUtility.info(CLASS_NAME, METHOD, "connected (" + gwClient.isConnected() + ")");
+			} catch (MqttException e) {
+				String failMsg = "Connect failed, Exception: " + e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			}
+			
+
+			// Gateway manage request
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayManageRequest(0, false, false)");
+
+			status = gwClient.sendGatewayManageRequest(0, false, false);
+			assertTrue("Gateway Manage request is unsuccessfull", status);
+			
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayUnmanageRequet()");
+			status = gwClient.sendGatewayUnmanageRequet();
+			assertTrue("Gateway Un-manage request is unsuccessfull", status);
+			
+			gwClient.disconnect();
+			LoggerUtility.info(CLASS_NAME, METHOD, "connected (" + gwClient.isConnected() + ")");
+			
+		} catch (MqttException e) {
+			String failMsg = "Unexpected MQTT Exception : " + e.getMessage();
+			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			fail(failMsg);
+		}
+	}
+
+	@Test
 	public void test01ManageRequest() {
 		final String METHOD = "test01ManageRequest";
 		ManagedGateway gwClient = null;
@@ -117,11 +164,12 @@ public class GatewayManagementTest2 {
 			
 
 			// Gateway manage request
-			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayManageRequest(0, false, true)");
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayManageRequest(0, false, false)");
 
 			status = gwClient.sendGatewayManageRequest(0, false, false);
 			assertTrue("Gateway Manage request is unsuccessfull", status);
 			
+			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayUnmanageRequet()");
 			status = gwClient.sendGatewayUnmanageRequet();
 			assertTrue("Gateway Un-manage request is unsuccessfull", status);
 			
@@ -134,5 +182,5 @@ public class GatewayManagementTest2 {
 			fail(failMsg);
 		}
 	}
-
+	
 }
