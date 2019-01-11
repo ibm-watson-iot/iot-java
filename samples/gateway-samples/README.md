@@ -5,9 +5,9 @@ This Java project contains 3 samples, which will help you to connect your Gatewa
 
 Following are examples present in this project,
 
-* [SimpleGatewayExample](https://github.com/ibm-messaging/gateway-samples/blob/master/java/gateway-samples/src/main/java/com/ibm/iotf/sample/client/gateway/SimpleGatewayExample.java)
+* [SimpleGatewayExample](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/gateway-samples/src/main/java/com/ibm/iotf/sample/client/gateway/SimpleGatewayExample.java)
 * [SampleRasPiGateway](https://github.com/ibm-messaging/gateway-samples/blob/master/java/gateway-samples/src/main/java/com/ibm/iotf/sample/client/gateway/SampleRasPiGateway.java)
-* [ManagedRasPiGateway](https://github.com/ibm-messaging/gateway-samples/blob/master/java/gateway-samples/src/main/java/com/ibm/iotf/sample/client/gateway/devicemgmt/ManagedRasPiGateway.java)
+* [ManagedRasPiGateway](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/gateway-samples/src/main/java/com/ibm/iotf/sample/client/gateway/devicemgmt/ManagedRasPiGateway.java)
 
 ----
 

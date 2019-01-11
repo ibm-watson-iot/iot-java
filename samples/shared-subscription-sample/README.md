@@ -3,8 +3,8 @@ Shared subscription sample
 
 There are two stand-alone samples present in this project to demonstrate the shared subscription support:
 
-* [Device sample](https://github.com/ibm-messaging/iot-scalable-application-samples/blob/master/java/ibmiot-shared-subscription-sample/src/main/java/com/ibm/iotf/sample/client/device/DeviceEventPublishWithCounter.java) that publishes an event, every second to IBM Watson IoT Platform.
-* [Application sample](https://github.com/ibm-messaging/iot-scalable-application-samples/blob/master/java/ibmiot-shared-subscription-sample/src/main/java/com/ibm/iotf/sample/client/application/SharedSubscriptionSample.java) that subscribes to all the device events in the given IBM Watson IoT Platform organization and outputs the events in real-time.
+* [Device sample](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/shared-subscription-sample/src/main/java/com/ibm/iotf/sample/client/device/DeviceEventPublishWithCounter.java) that publishes an event, every second to IBM Watson IoT Platform.
+* [Application sample](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/shared-subscription-sample/src/main/java/com/ibm/iotf/sample/client/application/SharedSubscriptionSample.java) that subscribes to all the device events in the given IBM Watson IoT Platform organization and outputs the events in real-time.
 
 Both the samples are written using the [Java Client Library](https://github.com/ibm-messaging/iot-java) for IBM Watson IoT Platform that simplifies the interactions with the IBM Watson IoT Platform.
 

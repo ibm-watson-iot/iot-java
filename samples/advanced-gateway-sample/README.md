@@ -1,7 +1,7 @@
 Advanced gateway sample
 ============================================
 
-In this sample, we demonstrate a [sample home gateway](https://github.com/ibm-messaging/gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/HomeGatewaySample.java) that manages few attached home devices like, Lights, Switches, Elevator, Oven and OutdoorTemperature. And the following configuration is assumed,
+In this sample, we demonstrate a [sample home gateway](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/gateway/HomeGatewaySample.java) that manages few attached home devices like, Lights, Switches, Elevator, Oven and OutdoorTemperature. And the following configuration is assumed,
  
  * Few devices are not manageable
  * Few devices are manageable but accept only firmware
@@ -9,7 +9,7 @@ In this sample, we demonstrate a [sample home gateway](https://github.com/ibm-me
  * Few devices are manageable and accept both firmware/device actions 
  * All devices publish events and few devices accept commands.
 
-Also, the sample has an [application](https://github.com/ibm-messaging/gateway-samples/blob/master/java/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/application/HomeApplication.java) that can be used to control one or more attached devices. For example, turn on/off a particular switch, turn on Oven or control the brightness of the light and etc..
+Also, the sample has an [application](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/advanced-gateway-sample/src/main/java/com/ibm/iotf/sample/application/HomeApplication.java) that can be used to control one or more attached devices. For example, turn on/off a particular switch, turn on Oven or control the brightness of the light and etc..
 
 Also, one can use the IBM Watson IoT Platform dashboard to update the firmware, reboot and reset the gateway or devices connected through the gateway.
 
