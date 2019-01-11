@@ -14,6 +14,7 @@
  */
 package com.ibm.iotf.devicemgmt;
 
+import com.google.gson.JsonObject;
 import com.ibm.internal.iotf.devicemgmt.ConcreteCustomAction;
 import com.ibm.internal.iotf.devicemgmt.ConcreteDeviceAction;
 import com.ibm.internal.iotf.devicemgmt.DeviceMgmt;
@@ -157,7 +158,7 @@ public class DeviceData {
 		private String deviceId = null;
 		private DeviceInfo deviceInfo = null;
 		private DeviceFirmware deviceFirmware = null;
-		private DeviceMetadata metadata = null;
+		private DeviceMetadata metadata = new DeviceMetadata(new JsonObject());
 		
 		public Builder() {}
 		
