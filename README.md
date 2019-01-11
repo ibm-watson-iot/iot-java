@@ -142,12 +142,11 @@ Samples
 -------------------------------------------------------------------------------
 You can find samples in each of the corresponding repositories as follows:
 
-* [Device samples](https://github.com/ibm-messaging/iot-device-samples) - Repository contains all device (also device management) related samples in different programming languages. Information and instructions regarding the use of these samples can be found in their respective directories.
-* [Gateway Samples](https://github.com/ibm-messaging/iot-gateway-samples) - Repository contains all Gateway (also gateway management) related samples in different programming languages.
-* [Application samples](https://github.com/ibm-messaging/iot-application-samples) - Repository contains samples for developing the application(s) in IBM Watson Internet of Things Platform in different languages.
-* [Watson IoT Platform API V002 samples](https://github.com/ibm-messaging/iot-platform-apiv2-samples) - Repository contains samples that interacts with IBM Watson IoT Platform using the platform API Version 2.
-* [Scalable Application samples](https://github.com/ibm-messaging/iot-scalable-application-samples) - Repository contains sample(s) for building scalable applications, using shared subscription support in IBM Watson IoT Platform.
-* [Backup-restore sample](https://github.com/ibm-messaging/iot-backup-restore-sample) - The sample in the repository shows how to backup the device configuration in Cloudant NoSQL DB and restore the same later.
+* [Device samples](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/device-samples) - Repository contains all device (also device management) related samples in Java. Information and instructions regarding the use of these samples can be found in their respective directories.
+* [Gateway Samples](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/gateway-samples) - Repository contains all Gateway (also gateway management) related samples in Java.
+* [Watson IoT Platform API V002 samples](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/api) - Repository contains samples that interacts with IBM Watson IoT Platform using the platform API Version 2.
+* [Scalable Application samples](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/shared-subscription-sample) - Repository contains sample(s) for building scalable applications, using shared subscription support in IBM Watson IoT Platform.
+* [Backup-restore sample](https://github.com/ibm-watson-iot/iot-java/blob/master/samples/backup-restore) - The sample in the repository shows how to backup the device configuration in Cloudant NoSQL DB and restore the same later.
 * [Data management sample](https://github.com/amitmangalvedkar/iot-platform-apiv2-samples/blob/master/java/api-samples-v2/src/main/java/com/ibm/iotf/sample/client/application/api/SampleDataManagementAPIOperations.java) - The sample in the repository creates all the artifacts needed for getting a working Data Management sample that converts values from Fahrenhiet to Celcius.
 
 Dependencies
