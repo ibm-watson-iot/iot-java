@@ -4,6 +4,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
+import com.ibm.iotf.client.gateway.GatewayManagementTest;
 import com.ibm.iotf.client.gateway.GatewayManagementTest2;
 import com.ibm.iotf.client.application.ApplicationEventSubscriptionTest;
 import com.ibm.iotf.client.application.ApplicationCommandStatusSubscriptionTest1;
@@ -43,7 +44,7 @@ import com.ibm.iotf.client.gateway.GatewayCommandSubscriptionTest;
 	DeviceManagementTest7.class,
 	DeviceCommandSubscriptionTest.class,
 	GatewayCommandSubscriptionTest.class,
-	//GatewayManagementTest.class,
+	GatewayManagementTest.class,
 	GatewayManagementTest2.class,
 	BulkAPIOperationsTest.class,
 	DeviceAPIOperationsTest.class,
