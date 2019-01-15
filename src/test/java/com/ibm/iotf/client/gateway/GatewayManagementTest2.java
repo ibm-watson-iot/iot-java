@@ -204,11 +204,15 @@ public class GatewayManagementTest2 {
 			
 			assertTrue("Property Listener has not been notified", notify);
 			
+			// Verify metadata update
 			try {
 				JsonObject jsonDevice = apiClient.getDevice(GW_DEVICE_TYPE, gwDevId);
-				LoggerUtility.info(CLASS_NAME, METHOD, "Device Info : " + jsonDevice.toString());
+				JsonObject updateDeviceMetadata = jsonDevice.get("metadata").getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Watson IoT Platform API : " + updateDeviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(updateDeviceMetadata));
+				
 				JsonObject deviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
-				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata : " + deviceMetadata.toString());
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Gateway Client : " + deviceMetadata.toString());
 				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(deviceMetadata));				
 			} catch (IoTFCReSTException e) {
 				String failMsg = "Get Device failed, Exception: " + e.getMessage();
@@ -313,11 +317,15 @@ public class GatewayManagementTest2 {
 			
 			assertTrue("Property Listener has not been notified", notify);
 			
+			// Verify metadata update
 			try {
 				JsonObject jsonDevice = apiClient.getDevice(GW_DEVICE_TYPE, gwDevId);
-				LoggerUtility.info(CLASS_NAME, METHOD, "Device Info : " + jsonDevice.toString());
+				JsonObject updateDeviceMetadata = jsonDevice.get("metadata").getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Watson IoT Platform API : " + updateDeviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(updateDeviceMetadata));
+				
 				JsonObject deviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
-				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata : " + deviceMetadata.toString());
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Gateway Client : " + deviceMetadata.toString());
 				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(deviceMetadata));				
 			} catch (IoTFCReSTException e) {
 				String failMsg = "Get Device failed, Exception: " + e.getMessage();
@@ -422,11 +430,15 @@ public class GatewayManagementTest2 {
 			
 			assertTrue("Property Listener has not been notified", notify);
 			
+			// Verify metadata update
 			try {
 				JsonObject jsonDevice = apiClient.getDevice(GW_DEVICE_TYPE, gwDevId);
-				LoggerUtility.info(CLASS_NAME, METHOD, "Device Info : " + jsonDevice.toString());
+				JsonObject updateDeviceMetadata = jsonDevice.get("metadata").getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Watson IoT Platform API : " + updateDeviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(updateDeviceMetadata));
+				
 				JsonObject deviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
-				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata : " + deviceMetadata.toString());
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Gateway Client : " + deviceMetadata.toString());
 				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(deviceMetadata));				
 			} catch (IoTFCReSTException e) {
 				String failMsg = "Get Device failed, Exception: " + e.getMessage();
@@ -529,11 +541,15 @@ public class GatewayManagementTest2 {
 			
 			assertTrue("Property Listener has not been notified", notify);
 			
+			// Verify metadata update
 			try {
 				JsonObject jsonDevice = apiClient.getDevice(GW_DEVICE_TYPE, gwDevId);
-				LoggerUtility.info(CLASS_NAME, METHOD, "Device Info : " + jsonDevice.toString());
+				JsonObject updateDeviceMetadata = jsonDevice.get("metadata").getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Watson IoT Platform API : " + updateDeviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(updateDeviceMetadata));
+				
 				JsonObject deviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
-				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata : " + deviceMetadata.toString());
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Gateway Client : " + deviceMetadata.toString());
 				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(deviceMetadata));				
 			} catch (IoTFCReSTException e) {
 				String failMsg = "Get Device failed, Exception: " + e.getMessage();
