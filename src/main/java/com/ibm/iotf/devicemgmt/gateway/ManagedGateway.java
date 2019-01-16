@@ -662,11 +662,13 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			if (jsonDevInfo != null && !jsonDevInfo.isJsonNull())
 				data.add("deviceInfo", mc.getDeviceData().getDeviceInfo().toJsonObject());
 		}
-		DeviceMetadata metadta = mc.getDeviceData().getMetadata();
-		if (metadta != null) {
-			JsonObject jsonMetadata = metadta.toJsonObject().getAsJsonObject();
-			if (jsonMetadata != null && !jsonMetadata.isJsonNull()) {
-				data.add("metadata", mc.getDeviceData().getMetadata().getMetadata());
+		DeviceMetadata metadata = mc.getDeviceData().getMetadata();
+		if (metadata != null) {
+			JsonObject jsonMetadata = metadata.getMetadata();
+			if (jsonMetadata != null && !jsonMetadata.isJsonNull() && 
+					jsonMetadata.entrySet() != null && 
+					jsonMetadata.entrySet().size() > 0) {
+				data.add("metadata", jsonMetadata);
 			}
 		}
 		data.add("lifetime", new JsonPrimitive(lifetime));

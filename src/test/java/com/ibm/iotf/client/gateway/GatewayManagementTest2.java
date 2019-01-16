@@ -40,7 +40,7 @@ public class GatewayManagementTest2 {
 	private static final String GW_DEVICE_ID_PREFIX = "GwMgmtDev2";
 
 	private static int testNum = 1;
-	private static int totalTests = 4;
+	private static int totalTests = 2;
 	
 	private static HashMap<Integer,String> testMap = new HashMap<Integer,String>();
 	
@@ -98,6 +98,23 @@ public class GatewayManagementTest2 {
 				
 				LoggerUtility.info(CLASS_NAME, METHOD, apiClient.getDevice(GW_DEVICE_TYPE, gwDevId).toString());
 				
+
+				/* Set metadata
+				JsonObject jsonProps = new JsonObject();
+				JsonObject jsonMetadata = new JsonObject();
+				jsonMetadata.addProperty("setup", i);
+				jsonProps.add("metadata", jsonMetadata);
+				
+				try {
+					apiClient.updateDevice(GW_DEVICE_TYPE, gwDevId, jsonProps);
+				} catch (IoTFCReSTException e) {
+					String failMsg = "Update Device failed, Exception: " + e.getMessage();
+					LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+				}
+
+				LoggerUtility.info(CLASS_NAME, METHOD, apiClient.getDevice(GW_DEVICE_TYPE, gwDevId).toString());
+				
+				*/
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
 			}
@@ -135,8 +152,34 @@ public class GatewayManagementTest2 {
 		
 		boolean status = false;
 		try {
+			// Current Watson IoT Device Info
+			JsonObject curMetadata = null;
+			DeviceMetadata curDeviceMetadata = null;
+
+			try {
+				JsonObject curDevice = apiClient.getDevice(GW_DEVICE_TYPE, gwDevId);
+				if (curDevice.has("metadata") && 
+						curDevice.get("metadata").getAsJsonObject().entrySet() != null &&
+						curDevice.get("metadata").getAsJsonObject().entrySet().size() > 0) {
+					curMetadata = curDevice.get("metadata").getAsJsonObject();
+					LoggerUtility.info(CLASS_NAME, METHOD, "Current Metadata : "  + curMetadata.toString());
+					curDeviceMetadata = new DeviceMetadata(curMetadata);
+				}
+				if (curMetadata == null) {
+					curDeviceMetadata = new DeviceMetadata(new JsonObject());
+					LoggerUtility.info(CLASS_NAME, METHOD, "New Metadata : "  + curDeviceMetadata.getMetadata().toString());
+				}
+			} catch (IoTFCReSTException e) {
+				String failMsg = "Get Device failed, Exception: " + e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+				e.printStackTrace();
+			}
+
+			// Build device data with current metadata
 			final DeviceData deviceData = new DeviceData.Builder()
-			        .typeId(GW_DEVICE_TYPE).deviceId(gwDevId).build();
+			        .typeId(GW_DEVICE_TYPE)
+			        .deviceId(gwDevId)
+			        .metadata(curDeviceMetadata).build();
 			
 			Properties gwProps = TestEnv.getGatewayProperties(GW_DEVICE_TYPE, gwDevId);
 			try {
@@ -154,10 +197,8 @@ public class GatewayManagementTest2 {
 				String failMsg = "Connect failed, Exception: " + e.getMessage();
 				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
 			}
-			
-			// Gateway manage request
-			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayManageRequest(0, false, false)");
 
+			// Gateway manage request
 			status = gwClient.sendGatewayManageRequest(0, false, false);
 			assertTrue("Gateway Manage request is unsuccessfull", status);
 
@@ -165,9 +206,18 @@ public class GatewayManagementTest2 {
 			TestPropertyChangeListener listener = new TestPropertyChangeListener();
 			gwClient.getGatewayDeviceData().getMetadata().addPropertyChangeListener(listener);
 			
+			// Current Watson IoT device details
+			try {
+				LoggerUtility.info(CLASS_NAME, METHOD, "Watson IoT Platform Device details after manage request : " + apiClient.getDevice(GW_DEVICE_TYPE, gwDevId).toString());
+			} catch (IoTFCReSTException e) {
+				String failMsg = "Get Device failed, Exception: " + e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+				e.printStackTrace();
+			}
+			
 			// Current metadata
 			JsonObject currentDeviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
-			LoggerUtility.info(CLASS_NAME, METHOD, "Current Metadata : " + currentDeviceMetadata.toString());
+			LoggerUtility.info(CLASS_NAME, METHOD, "Current Gateway Device Metadata : " + currentDeviceMetadata.toString());
 			
 			// Update metadata
 			JsonObject jsonProps = new JsonObject();
@@ -242,14 +292,15 @@ public class GatewayManagementTest2 {
 		
 		String gwDevId = testMap.get(iTest);
 		
-		String serialNumber = "123456789";
-		
-		DeviceInfo deviceInfo = new DeviceInfo.Builder().serialNumber(serialNumber).build();
+		JsonObject newData = new JsonObject();
+		newData.addProperty("start", true);
+		DeviceMetadata newMetadata = new DeviceMetadata(newData);
 		
 		boolean status = false;
 		try {
+			// Build device data with new metadata
 			final DeviceData deviceData = new DeviceData.Builder()
-			        .typeId(GW_DEVICE_TYPE).deviceId(gwDevId).deviceInfo(deviceInfo).build();
+			        .typeId(GW_DEVICE_TYPE).deviceId(gwDevId).metadata(newMetadata).build();
 			
 			Properties gwProps = TestEnv.getGatewayProperties(GW_DEVICE_TYPE, gwDevId);
 			try {
@@ -269,242 +320,25 @@ public class GatewayManagementTest2 {
 			}
 			
 			// Gateway manage request
-			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayManageRequest(0, false, false)");
-
 			status = gwClient.sendGatewayManageRequest(0, false, false);
 			assertTrue("Gateway Manage request is unsuccessfull", status);
 
 			// Add properties change listener
 			TestPropertyChangeListener listener = new TestPropertyChangeListener();
 			gwClient.getGatewayDeviceData().getMetadata().addPropertyChangeListener(listener);
-
-			// Current metadata
-			JsonObject currentDeviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
-			LoggerUtility.info(CLASS_NAME, METHOD, "Current Metadata : " + currentDeviceMetadata.toString());
 			
-			// Update metadata
-			JsonObject jsonProps = new JsonObject();
-			JsonObject jsonMetadata = new JsonObject();
-			jsonMetadata.addProperty("test", iTest.intValue());
-			jsonProps.add("metadata", jsonMetadata);
-			
+			// Current Watson IoT device details
 			try {
-				apiClient.updateDevice(GW_DEVICE_TYPE, gwDevId, jsonProps);
-			} catch (IoTFCReSTException e) {
-				e.printStackTrace();
-			}
-			
-			// Check for property change listener
-			int count = 10;
-			boolean notify = false;
-			while (--count > 0) {
-				String propertyName = listener.getPropertyName();
-				if (propertyName != null && propertyName.equals("metadata")) {
-					Object newValue = listener.getNewValue();
-					if (newValue != null) {
-						notify = true;
-						LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "New Value : " + newValue);
-						break;
-					}
-				}
-				
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			assertTrue("Property Listener has not been notified", notify);
-			
-			// Verify metadata update
-			try {
-				JsonObject jsonDevice = apiClient.getDevice(GW_DEVICE_TYPE, gwDevId);
-				JsonObject updateDeviceMetadata = jsonDevice.get("metadata").getAsJsonObject();
-				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Watson IoT Platform API : " + updateDeviceMetadata.toString());
-				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(updateDeviceMetadata));
-				
-				JsonObject deviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
-				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Gateway Client : " + deviceMetadata.toString());
-				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(deviceMetadata));				
+				LoggerUtility.info(CLASS_NAME, METHOD, "Watson IoT Platform Device details after manage request : " + apiClient.getDevice(GW_DEVICE_TYPE, gwDevId).toString());
 			} catch (IoTFCReSTException e) {
 				String failMsg = "Get Device failed, Exception: " + e.getMessage();
 				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
-			}
-			
-			status = gwClient.sendGatewayUnmanageRequet();
-			assertTrue("Gateway Un-manage request is unsuccessfull", status);			
-			
-			gwClient.disconnect();
-			
-		} catch (MqttException e) {
-			String failMsg = "Unexpected MQTT Exception : " + e.getMessage();
-			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
-			fail(failMsg);
-		}
-	}
-
-	@Test
-	public void test03ManageRequest() {
-		final String METHOD = "test03ManageRequest";
-		ManagedGateway gwClient = null;
-		
-		Integer iTest = new Integer(getTestNumber());
-		
-		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
-		
-		String gwDevId = testMap.get(iTest);
-		
-		String version = "1.0";
-		
-		DeviceFirmware firmware = new DeviceFirmware.Builder().version(version).build();
-		
-		boolean status = false;
-		try {
-			final DeviceData deviceData = new DeviceData.Builder()
-			        .typeId(GW_DEVICE_TYPE).deviceId(gwDevId).deviceFirmware(firmware).build();
-			
-			Properties gwProps = TestEnv.getGatewayProperties(GW_DEVICE_TYPE, gwDevId);
-			try {
-				gwClient = new ManagedGateway(gwProps, deviceData);
-				LoggerUtility.info(CLASS_NAME, METHOD, "Created managed gateway client");
-			} catch (Exception e) {
-				String failMsg = "ManagedGateway Exception: " + e.getMessage();
-				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
-			}
-			gwClient.setGatewayCallback(new GatewayCallbackTest(gwProps));
-			try {
-				gwClient.connect();
-				LoggerUtility.info(CLASS_NAME, METHOD, "connected (" + gwClient.isConnected() + ")");
-			} catch (MqttException e) {
-				String failMsg = "Connect failed, Exception: " + e.getMessage();
-				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
-			}
-			
-			// Gateway manage request
-			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayManageRequest(0, false, false)");
-
-			status = gwClient.sendGatewayManageRequest(0, false, false);
-			assertTrue("Gateway Manage request is unsuccessfull", status);
-
-			// Add properties change listener
-			TestPropertyChangeListener listener = new TestPropertyChangeListener();
-			gwClient.getGatewayDeviceData().getMetadata().addPropertyChangeListener(listener);
-			
-			// Current metadata
-			JsonObject currentDeviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
-			LoggerUtility.info(CLASS_NAME, METHOD, "Current Metadata : " + currentDeviceMetadata.toString());
-
-			// Update metadata
-			JsonObject jsonProps = new JsonObject();
-			JsonObject jsonMetadata = new JsonObject();
-			jsonMetadata.addProperty("test", iTest.intValue());
-			jsonProps.add("metadata", jsonMetadata);
-			
-			try {
-				apiClient.updateDevice(GW_DEVICE_TYPE, gwDevId, jsonProps);
-			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
 			}
 			
-			// Check for property change listener
-			int count = 10;
-			boolean notify = false;
-			while (--count > 0) {
-				String propertyName = listener.getPropertyName();
-				if (propertyName != null && propertyName.equals("metadata")) {
-					Object newValue = listener.getNewValue();
-					if (newValue != null) {
-						notify = true;
-						LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "New Value : " + newValue);
-						break;
-					}
-				}
-				
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			assertTrue("Property Listener has not been notified", notify);
-			
-			// Verify metadata update
-			try {
-				JsonObject jsonDevice = apiClient.getDevice(GW_DEVICE_TYPE, gwDevId);
-				JsonObject updateDeviceMetadata = jsonDevice.get("metadata").getAsJsonObject();
-				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Watson IoT Platform API : " + updateDeviceMetadata.toString());
-				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(updateDeviceMetadata));
-				
-				JsonObject deviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
-				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Gateway Client : " + deviceMetadata.toString());
-				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(deviceMetadata));				
-			} catch (IoTFCReSTException e) {
-				String failMsg = "Get Device failed, Exception: " + e.getMessage();
-				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
-			}
-			
-			status = gwClient.sendGatewayUnmanageRequet();
-			assertTrue("Gateway Un-manage request is unsuccessfull", status);			
-			
-			gwClient.disconnect();
-			
-		} catch (MqttException e) {
-			String failMsg = "Unexpected MQTT Exception : " + e.getMessage();
-			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
-			fail(failMsg);
-		}
-	}
-
-	@Test
-	public void test04ManageRequest() {
-		final String METHOD = "test04ManageRequest";
-		ManagedGateway gwClient = null;
-		
-		Integer iTest = new Integer(getTestNumber());
-		
-		LoggerUtility.info(CLASS_NAME, METHOD, "Running test #" + iTest);
-		
-		String gwDevId = testMap.get(iTest);
-		
-		DeviceMetadata emptyMetadata = new DeviceMetadata(new JsonObject());
-		
-		boolean status = false;
-		try {
-			final DeviceData deviceData = new DeviceData.Builder()
-			        .typeId(GW_DEVICE_TYPE).deviceId(gwDevId).metadata(emptyMetadata).build();
-			
-			Properties gwProps = TestEnv.getGatewayProperties(GW_DEVICE_TYPE, gwDevId);
-			try {
-				gwClient = new ManagedGateway(gwProps, deviceData);
-				LoggerUtility.info(CLASS_NAME, METHOD, "Created managed gateway client");
-			} catch (Exception e) {
-				String failMsg = "ManagedGateway Exception: " + e.getMessage();
-				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
-			}
-			gwClient.setGatewayCallback(new GatewayCallbackTest(gwProps));
-			try {
-				gwClient.connect();
-				LoggerUtility.info(CLASS_NAME, METHOD, "connected (" + gwClient.isConnected() + ")");
-			} catch (MqttException e) {
-				String failMsg = "Connect failed, Exception: " + e.getMessage();
-				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
-			}
-			
-			// Gateway manage request
-			LoggerUtility.log(Level.INFO, CLASS_NAME, METHOD, "Testing sendGatewayManageRequest(0, false, false)");
-
-			status = gwClient.sendGatewayManageRequest(0, false, false);
-			assertTrue("Gateway Manage request is unsuccessfull", status);
-
-			// Add properties change listener
-			TestPropertyChangeListener listener = new TestPropertyChangeListener();
-			gwClient.getGatewayDeviceData().getMetadata().addPropertyChangeListener(listener);
-			
 			// Current metadata
 			JsonObject currentDeviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
-			LoggerUtility.info(CLASS_NAME, METHOD, "Current Metadata : " + currentDeviceMetadata.toString());
+			LoggerUtility.info(CLASS_NAME, METHOD, "Current Gateway Device Metadata : " + currentDeviceMetadata.toString());
 			
 			// Update metadata
 			JsonObject jsonProps = new JsonObject();

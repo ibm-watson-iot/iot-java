@@ -158,7 +158,7 @@ public class DeviceData {
 		private String deviceId = null;
 		private DeviceInfo deviceInfo = null;
 		private DeviceFirmware deviceFirmware = null;
-		private DeviceMetadata metadata = new DeviceMetadata(new JsonObject());
+		private DeviceMetadata metadata = null;
 		
 		public Builder() {}
 		
