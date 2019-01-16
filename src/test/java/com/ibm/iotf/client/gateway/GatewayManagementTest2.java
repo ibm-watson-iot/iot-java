@@ -165,6 +165,10 @@ public class GatewayManagementTest2 {
 			TestPropertyChangeListener listener = new TestPropertyChangeListener();
 			gwClient.getGatewayDeviceData().getMetadata().addPropertyChangeListener(listener);
 			
+			// Current metadata
+			JsonObject currentDeviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
+			LoggerUtility.info(CLASS_NAME, METHOD, "Current Metadata : " + currentDeviceMetadata.toString());
+			
 			// Update metadata
 			JsonObject jsonProps = new JsonObject();
 			JsonObject jsonMetadata = new JsonObject();
@@ -174,7 +178,8 @@ public class GatewayManagementTest2 {
 			try {
 				apiClient.updateDevice(GW_DEVICE_TYPE, gwDevId, jsonProps);
 			} catch (IoTFCReSTException e) {
-				e.printStackTrace();
+				String failMsg = "Update Device failed, Exception: " + e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
 			}
 			
 			// Check for property change listener
@@ -194,11 +199,25 @@ public class GatewayManagementTest2 {
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					e.printStackTrace();
 				}
 			}
 			
 			assertTrue("Property Listener has not been notified", notify);
+			
+			// Verify metadata update
+			try {
+				JsonObject jsonDevice = apiClient.getDevice(GW_DEVICE_TYPE, gwDevId);
+				JsonObject updateDeviceMetadata = jsonDevice.get("metadata").getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Watson IoT Platform API : " + updateDeviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(updateDeviceMetadata));
+				
+				JsonObject deviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Gateway Client : " + deviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(deviceMetadata));				
+			} catch (IoTFCReSTException e) {
+				String failMsg = "Get Device failed, Exception: " + e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			}
 			
 			status = gwClient.sendGatewayUnmanageRequet();
 			assertTrue("Gateway Un-manage request is unsuccessfull", status);			
@@ -258,6 +277,10 @@ public class GatewayManagementTest2 {
 			// Add properties change listener
 			TestPropertyChangeListener listener = new TestPropertyChangeListener();
 			gwClient.getGatewayDeviceData().getMetadata().addPropertyChangeListener(listener);
+
+			// Current metadata
+			JsonObject currentDeviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
+			LoggerUtility.info(CLASS_NAME, METHOD, "Current Metadata : " + currentDeviceMetadata.toString());
 			
 			// Update metadata
 			JsonObject jsonProps = new JsonObject();
@@ -293,6 +316,21 @@ public class GatewayManagementTest2 {
 			}
 			
 			assertTrue("Property Listener has not been notified", notify);
+			
+			// Verify metadata update
+			try {
+				JsonObject jsonDevice = apiClient.getDevice(GW_DEVICE_TYPE, gwDevId);
+				JsonObject updateDeviceMetadata = jsonDevice.get("metadata").getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Watson IoT Platform API : " + updateDeviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(updateDeviceMetadata));
+				
+				JsonObject deviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Gateway Client : " + deviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(deviceMetadata));				
+			} catch (IoTFCReSTException e) {
+				String failMsg = "Get Device failed, Exception: " + e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			}
 			
 			status = gwClient.sendGatewayUnmanageRequet();
 			assertTrue("Gateway Un-manage request is unsuccessfull", status);			
@@ -353,6 +391,10 @@ public class GatewayManagementTest2 {
 			TestPropertyChangeListener listener = new TestPropertyChangeListener();
 			gwClient.getGatewayDeviceData().getMetadata().addPropertyChangeListener(listener);
 			
+			// Current metadata
+			JsonObject currentDeviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
+			LoggerUtility.info(CLASS_NAME, METHOD, "Current Metadata : " + currentDeviceMetadata.toString());
+
 			// Update metadata
 			JsonObject jsonProps = new JsonObject();
 			JsonObject jsonMetadata = new JsonObject();
@@ -387,6 +429,21 @@ public class GatewayManagementTest2 {
 			}
 			
 			assertTrue("Property Listener has not been notified", notify);
+			
+			// Verify metadata update
+			try {
+				JsonObject jsonDevice = apiClient.getDevice(GW_DEVICE_TYPE, gwDevId);
+				JsonObject updateDeviceMetadata = jsonDevice.get("metadata").getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Watson IoT Platform API : " + updateDeviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(updateDeviceMetadata));
+				
+				JsonObject deviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Gateway Client : " + deviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(deviceMetadata));				
+			} catch (IoTFCReSTException e) {
+				String failMsg = "Get Device failed, Exception: " + e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			}
 			
 			status = gwClient.sendGatewayUnmanageRequet();
 			assertTrue("Gateway Un-manage request is unsuccessfull", status);			
@@ -445,6 +502,10 @@ public class GatewayManagementTest2 {
 			TestPropertyChangeListener listener = new TestPropertyChangeListener();
 			gwClient.getGatewayDeviceData().getMetadata().addPropertyChangeListener(listener);
 			
+			// Current metadata
+			JsonObject currentDeviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
+			LoggerUtility.info(CLASS_NAME, METHOD, "Current Metadata : " + currentDeviceMetadata.toString());
+			
 			// Update metadata
 			JsonObject jsonProps = new JsonObject();
 			JsonObject jsonMetadata = new JsonObject();
@@ -479,6 +540,21 @@ public class GatewayManagementTest2 {
 			}
 			
 			assertTrue("Property Listener has not been notified", notify);
+			
+			// Verify metadata update
+			try {
+				JsonObject jsonDevice = apiClient.getDevice(GW_DEVICE_TYPE, gwDevId);
+				JsonObject updateDeviceMetadata = jsonDevice.get("metadata").getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Watson IoT Platform API : " + updateDeviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(updateDeviceMetadata));
+				
+				JsonObject deviceMetadata = gwClient.getGatewayDeviceData().getMetadata().getMetadata();
+				LoggerUtility.info(CLASS_NAME, METHOD, "Metadata from Gateway Client : " + deviceMetadata.toString());
+				assertTrue("Device Metadata was not updated.", jsonMetadata.equals(deviceMetadata));				
+			} catch (IoTFCReSTException e) {
+				String failMsg = "Get Device failed, Exception: " + e.getMessage();
+				LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
+			}
 			
 			status = gwClient.sendGatewayUnmanageRequet();
 			assertTrue("Gateway Un-manage request is unsuccessfull", status);			
