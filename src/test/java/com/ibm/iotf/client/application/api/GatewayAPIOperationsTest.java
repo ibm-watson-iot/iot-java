@@ -25,6 +25,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
@@ -103,8 +104,15 @@ public class GatewayAPIOperationsTest {
 		}
 		
 		try {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Registering device type (" + ATTACHED_DEVICE_TYPE + ") ID(" + ATTACHED_DEVICE_ID + ")");
+
 			JsonObject response = apiClient.registerDeviceUnderGateway(ATTACHED_DEVICE_TYPE, ATTACHED_DEVICE_ID, GW_DEVICE_TYPE, GW_DEVICE_ID);
 			assertFalse("Response must not be null", response.isJsonNull());
+			
+			JsonArray groups = apiClient.getResourceGroups("g:" + TestEnv.getOrgId() + ":" + GW_DEVICE_TYPE + ":" + GW_DEVICE_ID);
+			if (groups != null) {
+				LoggerUtility.info(CLASS_NAME, METHOD, groups.toString());
+			}
 		} catch (IoTFCReSTException e) {
 			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
 			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);
@@ -126,8 +134,16 @@ public class GatewayAPIOperationsTest {
 		jsonDevice.addProperty("authToken", TestEnv.getDeviceToken());
 		
 		try {
+			LoggerUtility.info(CLASS_NAME, METHOD, "Registering device type (" + ATTACHED_DEVICE_TYPE + ") ID(" + ATTACHED_DEVICE_ID2 + ")");
+
 			JsonObject response = apiClient.registerDeviceUnderGateway(ATTACHED_DEVICE_TYPE, GW_DEVICE_ID, GW_DEVICE_TYPE, jsonDevice);
 			assertFalse("Response must not be null", response.isJsonNull());
+
+			JsonArray groups = apiClient.getResourceGroups("g:" + TestEnv.getOrgId() + ":" + GW_DEVICE_TYPE + ":" + GW_DEVICE_ID);
+			if (groups != null) {
+				LoggerUtility.info(CLASS_NAME, METHOD, groups.toString());
+			}
+
 		} catch (IoTFCReSTException e) {
 			String failMsg = "HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage();
 			LoggerUtility.severe(CLASS_NAME, METHOD, failMsg);

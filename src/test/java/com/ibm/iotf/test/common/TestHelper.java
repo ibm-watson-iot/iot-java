@@ -2,11 +2,16 @@ package com.ibm.iotf.test.common;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
@@ -349,21 +354,59 @@ public class TestHelper {
 	 * 
 	 * @param apiClient
 	 * @param clientID
-	 * @return e.g. JsonArray e.g. ["gw_def_res_grp:abcdef:GatewayType1:GatewayDevID1"],
+	 * @return JsonArray e.g. ["gw_def_res_grp:abcdef:GatewayType1:GatewayDevID1"],
 	 */
 	public static JsonArray getResourceGroups(APIClient apiClient, String clientID) {
+		final String METHOD = "getResourceGroups";
 		JsonArray groups = null;
 		try {
-			JsonObject jsonResult = apiClient.getAccessControlProperties(clientID, null);
-			if (jsonResult != null && jsonResult.has("results")) {
-				JsonArray jarrayResults = jsonResult.get("results").getAsJsonArray();
-				JsonObject firstObj = jarrayResults.get(0).getAsJsonObject();
-				if (firstObj != null && firstObj.has("resourceGroups")) {
-					groups = firstObj.get("resourceGroups").getAsJsonArray();
+			boolean done = false;
+			String bookmark = null;
+			while (!done) {
+				List <NameValuePair> parameters = null;
+				if (bookmark != null) {
+					parameters = new ArrayList<NameValuePair>();
+					NameValuePair nvpBookmark = new BasicNameValuePair("_bookmark", bookmark);
+					parameters.add(nvpBookmark);
+				}
+				JsonObject jsonResult = apiClient.getAccessControlProperties(clientID, parameters);
+				if (jsonResult != null) {
+					if (jsonResult.has("results")) {
+						LoggerUtility.info(CLASS_NAME, METHOD, jsonResult.toString());
+						JsonArray devicesArray = jsonResult.get("results").getAsJsonArray();
+						for (Iterator<JsonElement> iterator = devicesArray.iterator(); iterator.hasNext(); ) {
+							JsonElement deviceElement = iterator.next();
+							JsonObject jsonDevice = deviceElement.getAsJsonObject();
+							if (jsonDevice.has("resourceGroups")) {
+								JsonArray innerGroups = jsonDevice.get("resourceGroups").getAsJsonArray();
+								if (groups == null) {
+									groups = innerGroups;
+								} else {
+									groups.addAll(innerGroups);
+								}
+							}
+						}
+						
+						if (jsonResult.has("bookmark")) {
+							bookmark = jsonResult.get("bookmark").getAsString();
+						}
+					}
+					
+					if (bookmark == null) {
+						done = true;
+					}					
+				} else {
+					done = true;
 				}
 			}
-		} catch (UnsupportedEncodingException | IoTFCReSTException e) {
+		} catch (UnsupportedEncodingException e) {
+			LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
 			e.printStackTrace();
+			return null;
+		} catch (IoTFCReSTException e) {
+			LoggerUtility.warn(CLASS_NAME, METHOD, "HTTP Status Code (" + e.getHttpCode() + ") " + e.getMessage());
+			e.printStackTrace();
+			return null;
 		}
 		return groups;
 	}

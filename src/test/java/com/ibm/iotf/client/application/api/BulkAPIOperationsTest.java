@@ -49,9 +49,12 @@ public class BulkAPIOperationsTest {
 	
 	private final static String CLASS_NAME = BulkAPIOperationsTest.class.getName();
 	private final static String APP_ID = "BulkApp1";
-	private final static String DEVICE_TYPE = "SampleDT";
-	private final static String DEVICE_ID1 = "Device01";
-	private final static String DEVICE_ID2 = "Device02";
+	private final static String DEVICE_TYPE = "BulkT1";
+	private final static String DEVICE_ID1 = "dev01";
+	private final static String DEVICE_ID2 = "dev02";
+	private final static String DEVICE_ID3 = "dev03";
+	private final static String DEVICE_NOT_EXIST = "devnotexist";
+	private final static String TYPE_NOT_EXIST = "typenotexist";
 	
 	private final static String deviceToBeAdded1 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
 			+ "\"" + DEVICE_ID1 + "\",\"authToken\": \"password\",\"deviceInfo\": {\"serialNumber\": "
@@ -68,10 +71,16 @@ public class BulkAPIOperationsTest {
 			+ "\"hwVersion\": \"1.0\",\"descriptiveLocation\": \"EGL C\"    },    "
 			+ "\"location\": {\"measuredDateTime\": \"2015-23-07T11:23:23+00:00\"    "
 			+ "},    \"metadata\": {}}";
+	
+	private final static String deviceToBeAdded3 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
+			+ "\"" + DEVICE_ID3 + "\",\"authToken\": \"password\"}";
 
 
 	private final static String deviceToBeDeleted1 = "{\"typeId\": \""+ DEVICE_TYPE + "\", \"deviceId\": \"" + DEVICE_ID1 + "\"}";
 	private final static String deviceToBeDeleted2 = "{\"typeId\": \"" + DEVICE_TYPE + "\", \"deviceId\": \"" + DEVICE_ID2 + "\"}";
+	private final static String deviceToBeDeleted3 = "{\"typeId\": \"" + DEVICE_TYPE + "\", \"deviceId\": \"" + DEVICE_ID3 + "\"}";
+	private final static String deviceNotExist = "{\"typeId\": \"" + DEVICE_TYPE + "\", \"deviceId\": \"" + DEVICE_NOT_EXIST + "\"}";
+	private final static String typeNotExist = "{\"typeId\": \"" + TYPE_NOT_EXIST + "\", \"deviceId\": \"" + DEVICE_NOT_EXIST + "\"}";
 	
 	private static APIClient apiClient = null;
 	private static APIClient apiClientWithWrongToken = null;
@@ -91,7 +100,6 @@ public class BulkAPIOperationsTest {
 		try {
 			apiClient = new APIClient(appProps);
 		} catch (KeyManagementException | NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -100,7 +108,6 @@ public class BulkAPIOperationsTest {
 			typeExist = apiClient.isDeviceTypeExist(DEVICE_TYPE);
 			LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + " exist = " + typeExist);
 		} catch (IoTFCReSTException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -119,7 +126,6 @@ public class BulkAPIOperationsTest {
 			apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
 			LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + " added.");
 		} catch (IoTFCReSTException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -136,7 +142,6 @@ public class BulkAPIOperationsTest {
 		try {
 			apiClientWithWrongKey = new APIClient(propsWrongMethod);
 		} catch (KeyManagementException | NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -144,7 +149,6 @@ public class BulkAPIOperationsTest {
 		try {
 			apiClientWithWrongOrg = new APIClient(propsWrongOrg);
 		} catch (KeyManagementException | NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -155,97 +159,93 @@ public class BulkAPIOperationsTest {
 		apiClient.deleteDeviceType(DEVICE_TYPE);
 	}
 		
+	
+	private boolean checkIfDeviceExists(String deviceType, String deviceId) {
+		boolean exist = false;
+		try {
+			exist = apiClient.isDeviceExist(deviceType, deviceId);
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
+		}
+		return exist;
+	}
+
+
 	/**
-	 * This sample verifies the bulk deletion of devices in the Platform
-	 * 
-	 * Json Format to delete the device
-	 * [
-	 *	  {
-	 *	    "typeId": "string",
-	 *	    "deviceId": "string"
-	 *	  }
-	 *	]
-	 * @throws Exception 
+	 * This sample verfies the get organization details API
+	 * @throws Exception
 	 */
 	@Test
-	public void test04BulkDeleteDevices() throws IoTFCReSTException {
-		if(apiClient == null) {
-			return;
-		}
-		System.out.println("Deleting couple of devices");
-		JsonElement device1 = new JsonParser().parse(deviceToBeDeleted1);
-		JsonElement device2 = new JsonParser().parse(deviceToBeDeleted2);
-		JsonArray arryOfDevicesToBeDeleted = new JsonArray();
-		arryOfDevicesToBeDeleted.add(device1);
-		arryOfDevicesToBeDeleted.add(device2);
-		JsonArray devices = null;
-		try {
-			devices = apiClient.deleteMultipleDevices(arryOfDevicesToBeDeleted);
-			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
-				JsonElement deviceElement = iterator.next();
-				JsonObject responseJson = deviceElement.getAsJsonObject();
-				System.out.println(responseJson);
-			}
-		} catch (IoTFCReSTException e) {
-			if(e.getHttpCode() != 202) {
-				throw e;
-			}
-		}
+	public void test01GetOrganizationDetails() {
+		final String METHOD = "test01GetOrganizationDetails";
 		
-		// check if the devices are actually deleted from the platform
-		assertFalse("Device "+ DEVICE_ID1 + " is present in the Platform", this.checkIfDeviceExists(DEVICE_TYPE, DEVICE_ID1));
-		assertFalse("Device "+ DEVICE_ID2 + " is present in the Platform", this.checkIfDeviceExists(DEVICE_TYPE, DEVICE_ID2));
+		JsonObject orgDetail = null;
+		try {
+			orgDetail = apiClient.getOrganizationDetails();
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
+			fail(e.toString());
+		}
+		LoggerUtility.info(CLASS_NAME, METHOD, orgDetail.toString());
 		
 		// negative test, it should fail
 		try {
-			apiClientWithWrongToken.deleteMultipleDevices(arryOfDevicesToBeDeleted);
-			fail("Doesn't throw invild Auth token exception");
-		} catch(IoTFCReSTException e) {	}
+			apiClientWithWrongToken.getOrganizationDetails();
+			fail("Doesn't throw invalid Auth token exception");
+		} catch(IoTFCReSTException e) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP Code = " + e.getHttpCode() + " " + e.getMessage());
+		}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
-			apiClientWithWrongKey.deleteMultipleDevices(arryOfDevicesToBeDeleted);
+			apiClientWithWrongKey.getOrganizationDetails();
 			fail("Doesn't throw invild API Key exception");
-		} catch(IoTFCReSTException e) {	}
-		
-		// Wrrong Org
+		} catch(IoTFCReSTException e) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP Code = " + e.getHttpCode() + " " + e.getMessage());
+		}
+						
+		// Wrong Org
 		try {
-			apiClientWithWrongOrg.deleteMultipleDevices(arryOfDevicesToBeDeleted);
+			apiClientWithWrongOrg.getOrganizationDetails();
 			fail("Doesn't throw invild ORG exception");
-		} catch(IoTFCReSTException e) {	}
+		} catch(IoTFCReSTException e) {
+			LoggerUtility.info(CLASS_NAME, METHOD, "HTTP Code = " + e.getHttpCode() + " " + e.getMessage());
+		}
 	}
 	
-	private boolean checkIfDeviceExists(String deviceType, String deviceId) throws IoTFCReSTException {
-		return apiClient.isDeviceExist(deviceType, deviceId);
-	}
-
 	/**
 	 * This sample verifies the bulk addition of devices in IBM Watson IoT Platform
 	 * @throws Exception
 	 */
 	@Test
-	public void test02BulkAddDevices() throws IoTFCReSTException {
-		if(apiClient == null) {
-			return;
-		}
-		System.out.println("Adding couple of devices");
+	public void test02BulkAddDevices() {
+
+		final String METHOD = "test02BulkAddDevices";
+		
 		JsonElement device1 = new JsonParser().parse(deviceToBeAdded1);
 		JsonElement device2 = new JsonParser().parse(deviceToBeAdded2);
+		JsonElement device3 = new JsonParser().parse(deviceToBeAdded3);
 		JsonArray arryOfDevicesToBeAdded = new JsonArray();
 		arryOfDevicesToBeAdded.add(device1);
 		arryOfDevicesToBeAdded.add(device2);
+		arryOfDevicesToBeAdded.add(device3);
 		
 		JsonArray devices = null;
 		try {
 			devices = apiClient.addMultipleDevices(arryOfDevicesToBeAdded);
-			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
+			for (Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
 				JsonElement deviceElement = iterator.next();
 				JsonObject responseJson = deviceElement.getAsJsonObject();
-				System.out.println(responseJson);
+				LoggerUtility.info(CLASS_NAME, METHOD, responseJson.toString());
 			}
-		} catch(IoTFCReSTException e) {
-			if(e.getHttpCode() != 202) {
-				throw e;
+		} catch (IoTFCReSTException e) {
+
+			LoggerUtility.warn(CLASS_NAME, METHOD, "HTTP Code : " + e.getHttpCode() + " Exception: " + e.toString());
+			LoggerUtility.warn(CLASS_NAME, METHOD, "Response : " + e.getResponse().toString());
+			
+			if (e.getHttpCode() != 202) {
+				e.printStackTrace();
+				fail(e.toString());
 			}
 		}
 		
@@ -278,11 +278,9 @@ public class BulkAPIOperationsTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void test03BulkGetAllDevices() throws IoTFCReSTException {
-		if(apiClient == null) {
-			return;
-		}
-		System.out.println("Retrieve all devices in the Organization..");
+	public void test03BulkGetAllDevices() {
+		final String METHOD = "test03BulkGetAllDevices";
+		
 		// Get all the devices in the organization
 		/**
 		 * The Java ibmiotf client library provides an one argument constructor
@@ -292,17 +290,26 @@ public class BulkAPIOperationsTest {
 		
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
 		parameters.add(new BasicNameValuePair("_sort","deviceId"));
-		//parameters.add(new BasicNameValuePair("_limit","2"));
-		JsonObject response = apiClient.getAllDevices(parameters);
 		
-		System.out.println(response);
+		//parameters.add(new BasicNameValuePair("_limit","2"));
+		
+		JsonObject response = null;
+		try {
+			response = apiClient.getAllDevices(parameters);
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
+			fail(e.toString());
+		}
+		
+		//LoggerUtility.info(CLASS_NAME, METHOD, response.toString());
 		// The response will contain more parameters that will be used to issue
 		// the next request. The result element will contain the current list of devices
 		JsonArray devices = response.get("results").getAsJsonArray(); 
-		for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
+		
+		for (Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
 			JsonElement deviceElement = iterator.next();
 			JsonObject responseJson = deviceElement.getAsJsonObject();
-			System.out.println(responseJson);
+			LoggerUtility.info(CLASS_NAME, METHOD, responseJson.toString());
 		}	
 		
 		// negative test, it should fail
@@ -311,55 +318,115 @@ public class BulkAPIOperationsTest {
 			fail("Doesn't throw invild Auth token exception");
 		} catch(IoTFCReSTException e) {}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
 			apiClientWithWrongKey.getAllDevices();
 			fail("Doesn't throw invild API Key exception");
 		} catch(IoTFCReSTException e) {}
 				
-		// Wrrong Org
+		// Wrong Org
 		try {
 			apiClientWithWrongOrg.getAllDevices();
 			fail("Doesn't throw invild ORG exception");
 		} catch(IoTFCReSTException e) {}
 	}
-
-	/**
-	 * This sample verfies the get organization details API
-	 * @throws Exception
-	 */
+	
 	@Test
-	public void test01GetOrganizationDetails() throws IoTFCReSTException {
-		if(apiClient == null) {
-			return;
+	public void test04BulkDeleteDevices() {
+		final String METHOD = "test04BulkDeleteDevices";
+
+		JsonElement device1 = new JsonParser().parse(deviceToBeDeleted1);
+		JsonElement device2 = new JsonParser().parse(deviceToBeDeleted2);
+		JsonArray arryOfDevicesToBeDeleted = new JsonArray();
+		arryOfDevicesToBeDeleted.add(device1);
+		arryOfDevicesToBeDeleted.add(device2);
+		JsonArray devices = null;
+		try {
+			devices = apiClient.deleteMultipleDevices(arryOfDevicesToBeDeleted);
+			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
+				JsonElement deviceElement = iterator.next();
+				JsonObject responseJson = deviceElement.getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, responseJson.toString());
+			}
+		} catch (IoTFCReSTException e) {
+			LoggerUtility.warn(CLASS_NAME, METHOD, "HTTP Code : " + e.getHttpCode() + " Exception: " + e.toString());
+			LoggerUtility.warn(CLASS_NAME, METHOD, "Response : " + e.getResponse().toString());
+			fail(e.toString());
 		}
-		System.out.println("Retrieve Organization details...");
-		// Get the organization detail
-		JsonObject orgDetail = apiClient.getOrganizationDetails();
-		System.out.println(orgDetail);
+		
+		// check if the devices are actually deleted from the platform
+		assertFalse("Device "+ DEVICE_ID1 + " is present in the Platform", this.checkIfDeviceExists(DEVICE_TYPE, DEVICE_ID1));
+		assertFalse("Device "+ DEVICE_ID2 + " is present in the Platform", this.checkIfDeviceExists(DEVICE_TYPE, DEVICE_ID2));
 		
 		// negative test, it should fail
 		try {
-			apiClientWithWrongToken.getOrganizationDetails();
-			fail("Doesn't throw invalid Auth token exception");
-		} catch(IoTFCReSTException e) {
-			System.out.println(e.getHttpCode() + " " +e.getMessage());
-		}
+			apiClientWithWrongToken.deleteMultipleDevices(arryOfDevicesToBeDeleted);
+			fail("Doesn't throw invild Auth token exception");
+		} catch(IoTFCReSTException e) {	}
 		
-		// Wrrong Method
+		// Wrong Method
 		try {
-			apiClientWithWrongKey.getOrganizationDetails();
+			apiClientWithWrongKey.deleteMultipleDevices(arryOfDevicesToBeDeleted);
 			fail("Doesn't throw invild API Key exception");
-		} catch(IoTFCReSTException e) {
-			System.out.println(e.getHttpCode() + " " +e.getMessage());
-		}
-						
-		// Wrrong Org
+		} catch(IoTFCReSTException e) {	}
+		
+		// Wrong Org
 		try {
-			apiClientWithWrongOrg.getOrganizationDetails();
+			apiClientWithWrongOrg.deleteMultipleDevices(arryOfDevicesToBeDeleted);
 			fail("Doesn't throw invild ORG exception");
-		} catch(IoTFCReSTException e) {
-			System.out.println(e.getHttpCode() + " " +e.getMessage());
+		} catch(IoTFCReSTException e) {	}
+	}
+	
+	@Test
+	public void test05BulkDeleteDevices() {
+		final String METHOD = "test05BulkDeleteDevices";
+
+		JsonElement device1 = new JsonParser().parse(deviceToBeDeleted3);
+		JsonElement device2 = new JsonParser().parse(deviceNotExist);
+		JsonArray arryOfDevicesToBeDeleted = new JsonArray();
+		arryOfDevicesToBeDeleted.add(device1);
+		arryOfDevicesToBeDeleted.add(device2);
+		JsonArray devices = null;
+		try {
+			devices = apiClient.deleteMultipleDevices(arryOfDevicesToBeDeleted);
+			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
+				JsonElement deviceElement = iterator.next();
+				JsonObject responseJson = deviceElement.getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, responseJson.toString());
+			}
+		} catch (IoTFCReSTException e) {
+			LoggerUtility.warn(CLASS_NAME, METHOD, "HTTP Code : " + e.getHttpCode() + " Exception: " + e.toString());
+			LoggerUtility.warn(CLASS_NAME, METHOD, "Response : " + e.getResponse().toString());
+			if (e.getHttpCode() != 202) {
+				e.printStackTrace();
+				fail(e.toString());
+			}
+		}
+	}
+
+	@Test
+	public void test06BulkDeleteDevices() {
+		final String METHOD = "test06BulkDeleteDevices";
+
+		JsonElement device1 = new JsonParser().parse(typeNotExist);
+		JsonArray arryOfDevicesToBeDeleted = new JsonArray();
+		arryOfDevicesToBeDeleted.add(device1);
+
+		JsonArray devices = null;
+		try {
+			devices = apiClient.deleteMultipleDevices(arryOfDevicesToBeDeleted);
+			for(Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
+				JsonElement deviceElement = iterator.next();
+				JsonObject responseJson = deviceElement.getAsJsonObject();
+				LoggerUtility.info(CLASS_NAME, METHOD, responseJson.toString());
+			}
+		} catch (IoTFCReSTException e) {
+			LoggerUtility.warn(CLASS_NAME, METHOD, "HTTP Code : " + e.getHttpCode() + " Exception: " + e.toString());
+			LoggerUtility.warn(CLASS_NAME, METHOD, "Response : " + e.getResponse().toString());
+			if (e.getHttpCode() != 202) {
+				e.printStackTrace();
+				fail(e.toString());
+			}
 		}
 	}
 
