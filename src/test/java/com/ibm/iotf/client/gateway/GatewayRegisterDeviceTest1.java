@@ -46,15 +46,15 @@ import com.ibm.iotf.util.LoggerUtility;
  *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class GatewayCommandSubscriptionTest {
+public class GatewayRegisterDeviceTest1 {
 	
-	private static final String CLASS_NAME = GatewayCommandSubscriptionTest.class.getName();
-	private static final String APP_ID = "GwCmdSubApp1";
+	private static final String CLASS_NAME = GatewayRegisterDeviceTest1.class.getName();
+	private static final String APP_ID = "GwDevRegApp1";
 	
-	private final static String DEVICE_TYPE = "SubType1";
-	private final static String DEVICE_ID_PREFIX = "SubDev";
-	private final static String GW_DEVICE_TYPE = "GwCmdSubType1";
-	private final static String GW_DEVICE_ID_PREFIX = "GwCmdSubDev";
+	private final static String DEVICE_TYPE = "RegType1";
+	private final static String DEVICE_ID_PREFIX = "RegDev";
+	private final static String GW_DEVICE_TYPE = "GwDevRegType1";
+	private final static String GW_DEVICE_ID_PREFIX = "GwDevRegDev";
 
 	private static APIClient apiClient = null;
 	private static int testNum = 1;
@@ -143,11 +143,9 @@ public class GatewayCommandSubscriptionTest {
 				e.printStackTrace();
 			}
 			
-			// Register device
+			// Register device under gateway
 			try {
-				JsonObject jsonDevice = new JsonObject();
-				jsonDevice.addProperty("deviceId", devId);
-				apiClient.registerDevice(DEVICE_TYPE, jsonDevice);
+				apiClient.registerDeviceUnderGateway(DEVICE_TYPE, devId, GW_DEVICE_TYPE, gwDevId);
 				LoggerUtility.info(CLASS_NAME, METHOD, "Device " + devId + " has been created.");
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
@@ -168,84 +166,46 @@ public class GatewayCommandSubscriptionTest {
 			Integer iTest = new Integer(i);
 			TestGatewayHelper testHelper = testMap.get(iTest);
 			if (testHelper != null) {
-				try {
+				JsonArray jarrayGroups = null;
+				JsonObject jsonResult = null;
+				
+				// Get Resource Group Info
+				jarrayGroups = TestHelper.getResourceGroups(apiClient, testHelper.getClientID());
+				
+				if (jarrayGroups != null && jarrayGroups.size() > 0) {
+					
 
-					JsonArray jarrayGroups = null;
-					JsonObject jsonResult = null;
-					
-					// Get Resource Group Info
-					jarrayGroups = TestHelper.getResourceGroups(apiClient, testHelper.getClientID());
-					
-					if (jarrayGroups != null && jarrayGroups.size() > 0) {
-						
-						for (int j=0; j<jarrayGroups.size(); j++) {
-							String groupId = jarrayGroups.get(j).getAsString();
-							// Assign devices to the resource group
-							JsonArray jarrayDevices = new JsonArray();
+					// Create test API key with comment = CLASS_NAME
+					ArrayList<String> roles = new ArrayList<String>();
+					String roleId = "PD_STANDARD_APP";
+					roles.add(roleId);
+					Properties newApiClientProps = TestHelper.createAPIKey(apiClient, CLASS_NAME, roles);
+
+					if (newApiClientProps != null) {
+						newApiClientProps.setProperty("id", APP_ID + iTest);
+						apiKey = newApiClientProps.getProperty("API-Key");
+						LoggerUtility.info(CLASS_NAME, METHOD, "New test API Key : " + apiKey);
+						jsonResult = null;
+						try {
+							jsonResult = apiClient.getGetAPIKeyRoles((String)null);
+						} catch (UnsupportedEncodingException | IoTFCReSTException e) {
+							e.printStackTrace();
+						}
+						if (jsonResult != null && jsonResult.has("results")) {
+							LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + apiKey + ") roles : " + jsonResult);
 							
-							JsonObject aDevice = new JsonObject();
-							aDevice.addProperty("typeId", testHelper.getAttachedDeviceType());
-							aDevice.addProperty("deviceId", testHelper.getAttachedDeviceId());
-							jarrayDevices.add(aDevice);
-							
-							JsonObject gwDevice = new JsonObject();
-							gwDevice.addProperty("typeId", testHelper.getGatewayDeviceType());
-							gwDevice.addProperty("deviceId", testHelper.getGatewayDeviceId());
-							jarrayDevices.add(gwDevice);
-							
-							try {
-								apiClient.assignDevicesToResourceGroup(groupId, jarrayDevices);
-							} catch (UnsupportedEncodingException e) {
-								e.printStackTrace();
-							}
-							
-							try {
-								jsonResult = apiClient.getDevicesInResourceGroup(groupId, (String)null);
-							} catch (UnsupportedEncodingException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							
+							jsonResult = TestHelper.updateAPIKeyRole(apiClient, apiKey, roleId, jarrayGroups);
 							if (jsonResult != null) {
-								LoggerUtility.info(CLASS_NAME, METHOD, groupId + " has devices : " + jsonResult);
+								LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + apiKey + ") updated roles : " + jsonResult);
 							}
 						}
-
-						// Create test API key with comment = CLASS_NAME
-						ArrayList<String> roles = new ArrayList<String>();
-						String roleId = "PD_STANDARD_APP";
-						roles.add(roleId);
-						Properties newApiClientProps = TestHelper.createAPIKey(apiClient, CLASS_NAME, roles);
-
-						if (newApiClientProps != null) {
-							newApiClientProps.setProperty("id", APP_ID + iTest);
-							apiKey = newApiClientProps.getProperty("API-Key");
-							LoggerUtility.info(CLASS_NAME, METHOD, "New test API Key : " + apiKey);
-							jsonResult = null;
-							try {
-								jsonResult = apiClient.getGetAPIKeyRoles((String)null);
-							} catch (UnsupportedEncodingException | IoTFCReSTException e) {
-								e.printStackTrace();
-							}
-							if (jsonResult != null && jsonResult.has("results")) {
-								LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + apiKey + ") roles : " + jsonResult);
-								
-								jsonResult = TestHelper.updateAPIKeyRole(apiClient, apiKey, roleId, jarrayGroups);
-								if (jsonResult != null) {
-									LoggerUtility.info(CLASS_NAME, METHOD, "API Key (" + apiKey + ") updated roles : " + jsonResult);
-								}
-							}
-							
-							try {
-								testHelper.setAppProperties(newApiClientProps);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
+						
+						try {
+							testHelper.setAppProperties(newApiClientProps);
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
 					}
-										
-				} catch (IoTFCReSTException e) { 
-					e.printStackTrace();
 				}
 			}
 		}
