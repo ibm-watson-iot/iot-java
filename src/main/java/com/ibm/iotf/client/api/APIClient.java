@@ -23,15 +23,16 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.security.cert.X509Certificate;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.net.util.Base64;
@@ -46,6 +47,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 
@@ -56,9 +58,6 @@ import com.google.gson.JsonParser;
 import com.ibm.iotf.client.AbstractClient;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.util.LoggerUtility;
-
-
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 /**
  * Class to register, delete and retrieve information about devices <br>
  * This class can also be used to retrieve historian information
@@ -1739,12 +1738,44 @@ public class APIClient {
 	public JsonObject registerDeviceUnderGateway(String typeId, String gatewayId, 
 			String gatewayTypeId, JsonElement device) throws IoTFCReSTException {
 		
-		if(device != null) {
+		if (device != null) {
 			JsonObject deviceObj = device.getAsJsonObject();
 			deviceObj.addProperty("gatewayId", gatewayId);
 			deviceObj.addProperty("gatewayTypeId", gatewayTypeId);
 		}
-		return this.registerDevice(typeId, device);
+		
+		JsonObject jsonDevice = registerDevice(typeId, device);
+		
+		if (jsonDevice != null) {
+			String gwClientID =  "g:" + this.orgId + ":" + gatewayTypeId + ":" + gatewayId;
+			JsonArray jarrayGroups = getResourceGroups(gwClientID);
+			if (jarrayGroups != null && jarrayGroups.size() > 0) {
+				
+				for (int j=0; j<jarrayGroups.size(); j++) {
+					String groupId = jarrayGroups.get(j).getAsString();
+					// Assign devices to the resource group
+					JsonArray jarrayDevices = new JsonArray();
+					
+					JsonObject aDevice = new JsonObject();
+					aDevice.addProperty("typeId", typeId);
+					aDevice.addProperty("deviceId", device.getAsJsonObject().get("deviceId").getAsString());
+					jarrayDevices.add(aDevice);
+					
+					JsonObject gwDevice = new JsonObject();
+					gwDevice.addProperty("typeId", gatewayTypeId);
+					gwDevice.addProperty("deviceId", gatewayId);
+					jarrayDevices.add(gwDevice);
+					
+					try {
+						assignDevicesToResourceGroup(groupId, jarrayDevices);
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		
+		return jsonDevice;
 	}
 	
 	/**
@@ -2467,29 +2498,52 @@ public class APIClient {
 			code = response.getStatusLine().getStatusCode();
 			String result = this.readContent(response, METHOD);
 			jsonResponse = new JsonParser().parse(result);
-			if(code != 500) {
-				// success
-			}
-			if(code == 201) {
+			if (code == 201) {
 				return jsonResponse.getAsJsonArray();
+			} else if (code == 202) {
+				// Loop through all devices to determine success or failure.
+				JsonArray devices = jsonResponse.getAsJsonArray();
+				boolean success = true;
+				for (Iterator<JsonElement> iterator = devices.iterator(); iterator.hasNext(); ) {
+					JsonElement deviceElement = iterator.next();
+					JsonObject jsonDevice = deviceElement.getAsJsonObject();
+					if (jsonDevice.get("success").getAsBoolean() == false) {
+						success = false;
+						break;
+					}
+				}
+				// All devices were deleted ?
+				if (success == true) {
+					return devices;
+				}
 			}
-		} catch(Exception e) {
+		} catch (Exception e) {
 			IoTFCReSTException ex = new IoTFCReSTException("Failure in deleting the Devices, "
 					+ ":: "+e.getMessage());
 			ex.initCause(e);
 			throw ex;
 		}
 		
-		if(code == 202) {
-			throw new IoTFCReSTException(202, "Some devices deleted successfully", jsonResponse);
-		} else if(code == 400) {
-			throw new IoTFCReSTException(400, "Invalid request (No body, invalid JSON, unexpected key, bad value)", jsonResponse);
-		} else if(code == 413) {
-			throw new IoTFCReSTException(413, "Request content exceeds 512Kb", jsonResponse);
-		} else if (code == 500) {
-			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		IoTFCReSTException e = null;
+		switch (code) {
+		case 202:
+			e = new IoTFCReSTException(code, "Some devices deleted successfully", jsonResponse);
+			break;
+		case 400:
+			e = new IoTFCReSTException(code, "Invalid request (No body, invalid JSON, unexpected key, bad value)", jsonResponse);
+			break;
+		case 413:
+			e = new IoTFCReSTException(code, "Request content exceeds 512Kb", jsonResponse);
+			break;
+		case 500:
+			e = new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+			break;
+		default:
+			e = new IoTFCReSTException(code, "", jsonResponse);
+			break;
 		}
-		throw new IoTFCReSTException(code, "", jsonResponse);
+		
+		throw e;
 	}
 	
 	/**
@@ -3313,13 +3367,9 @@ public class APIClient {
 
 	public JsonObject registerDeviceUnderGateway(String deviceType, String deviceId,
 			String gwTypeId, String gwDeviceId) throws IoTFCReSTException {
-		
-		JsonObject deviceObj = new JsonObject();
-		deviceObj.addProperty("deviceId", deviceId);
-		deviceObj.addProperty("gatewayId", gwDeviceId);
-		deviceObj.addProperty("gatewayTypeId", gwTypeId);
-		
-		return this.registerDevice(deviceType, deviceObj);
+		JsonObject jsonDevice = new JsonObject();
+		jsonDevice.addProperty("deviceId", deviceId);
+		return this.registerDeviceUnderGateway(deviceType, gwDeviceId, gwTypeId, jsonDevice);
 	}
 	
 	        /**
@@ -7291,12 +7341,12 @@ public class APIClient {
 	 * 
 	 * See https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/security.html#!/Authorization_-_Device_Management/get_authorization_devices_deviceId
 	 * @param deviceId Device ID e.g. d:orgid:deviceType:deviceID
-	 * @param bookmark can be null
+	 * @param parameters to control the output such as _bookmark, can be null
 	 * @return JsonObject JSON object describes access control properties
 	 * @throws IoTFCReSTException Thrown if a HTTP error occurs
 	 * @throws UnsupportedEncodingException Thrown if error occurs when parsing the deviceId
 	 */
-	public JsonObject getAccessControlProperties(String deviceId, String bookmark) throws IoTFCReSTException, UnsupportedEncodingException {
+	public JsonObject getAccessControlProperties(String deviceId, List<NameValuePair> parameters) throws IoTFCReSTException, UnsupportedEncodingException {
 		final String METHOD = "getAccessControlProperties";
 		String sDeviceId = URLEncoder.encode(deviceId, "UTF-8");
 		StringBuilder sb = new StringBuilder("https://");
@@ -7311,7 +7361,7 @@ public class APIClient {
 		JsonElement jsonResponse = null;
 
 		try {
-			response = connect("get", sb.toString(), null, null);
+			response = connect("get", sb.toString(), null, parameters);
 			code = response.getStatusLine().getStatusCode();
 			if (response != null) {
 				String result = this.readContent(response, METHOD);
@@ -7342,6 +7392,67 @@ public class APIClient {
 		}
 		throwException(response, METHOD);
 		return null;
+		
+	}
+	
+	/**
+	 * Get resource groups for a client ID
+	 * 
+	 * @param clientID e.g. g:abcdef:gwType1:gwDev1
+	 * @return JsonArray e.g. ["gw_def_res_grp:abcdef:gwType1:gwDev1"],
+	 */
+	public JsonArray getResourceGroups(String clientID) {
+		final String METHOD = "getResourceGroups";
+		JsonArray groups = null;
+		try {
+			boolean done = false;
+			String bookmark = null;
+			while (!done) {
+				List <NameValuePair> parameters = null;
+				if (bookmark != null) {
+					parameters = new ArrayList<NameValuePair>();
+					NameValuePair nvpBookmark = new BasicNameValuePair("_bookmark", bookmark);
+					parameters.add(nvpBookmark);
+				}
+				JsonObject jsonResult = getAccessControlProperties(clientID, parameters);
+				if (jsonResult != null) {
+					if (jsonResult.has("results")) {
+						JsonArray devicesArray = jsonResult.get("results").getAsJsonArray();
+						for (Iterator<JsonElement> iterator = devicesArray.iterator(); iterator.hasNext(); ) {
+							JsonElement deviceElement = iterator.next();
+							JsonObject jsonDevice = deviceElement.getAsJsonObject();
+							if (jsonDevice.has("resourceGroups")) {
+								JsonArray innerGroups = jsonDevice.get("resourceGroups").getAsJsonArray();
+								if (groups == null) {
+									groups = innerGroups;
+								} else {
+									groups.addAll(innerGroups);
+								}
+							}
+						}
+						
+						if (jsonResult.has("bookmark")) {
+							bookmark = jsonResult.get("bookmark").getAsString();
+						}
+					}
+					
+					if (bookmark == null) {
+						done = true;
+					}					
+				} else {
+					done = true;
+				}
+			}
+		} catch (UnsupportedEncodingException e) {
+			LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
+			e.printStackTrace();
+			return null;
+		} catch (IoTFCReSTException e) {
+			LoggerUtility.warn(CLASS_NAME, METHOD, "HTTP Status Code (" + e.getHttpCode() + ") " + e.getMessage());
+			e.printStackTrace();
+			return null;
+		}
+		return groups;
 		
 	}
 	
@@ -7413,7 +7524,7 @@ public class APIClient {
 		List<NameValuePair> queryParms = null;
 		if (bookmark != null) {
 			queryParms = new ArrayList<>();
-			queryParms.add(new BasicNameValuePair("bookmark", bookmark));
+			queryParms.add(new BasicNameValuePair("_bookmark", bookmark));
 		}
 		return getDevicesInResourceGroup(groupId, queryParms);
 	}
@@ -7422,7 +7533,7 @@ public class APIClient {
 	 * Get devices in resource group
 	 * 
 	 * @param groupId Resource group ID
-	 * @param queryParameters Additional query parameter such as bookmark
+	 * @param queryParameters Additional query parameter such as _bookmark
 	 * @return JsonObject JSON object describes devices in the resource group
 	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
 	 * @throws UnsupportedEncodingException Thrown if an error occurs when parsing group ID
@@ -7642,7 +7753,7 @@ public class APIClient {
 		List<NameValuePair> queryParms = null;
 		if (bookmark != null) {
 			queryParms = new ArrayList<>();
-			queryParms.add(new BasicNameValuePair("bookmark", bookmark));
+			queryParms.add(new BasicNameValuePair("_bookmark", bookmark));
 		}
 		return getGetAPIKeyRoles(apiKey, queryParms);
 	}
@@ -7661,7 +7772,7 @@ public class APIClient {
 		List<NameValuePair> queryParms = null;
 		if (bookmark != null) {
 			queryParms = new ArrayList<>();
-			queryParms.add(new BasicNameValuePair("bookmark", bookmark));
+			queryParms.add(new BasicNameValuePair("_bookmark", bookmark));
 		}
 		return getGetAPIKeyRoles(this.authKey, queryParms);
 	}
