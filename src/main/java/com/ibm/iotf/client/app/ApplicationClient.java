@@ -1129,8 +1129,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 
 	
 	/**
-	 * If we lose connection trigger the connect logic to attempt to
-	 * reconnect to the IBM Watson IoT Platform.
+	 * Simply log error when connection is lost
 	 */
 	public void connectionLost(Throwable e) {
 		final String METHOD = "connectionLost";
@@ -1143,32 +1142,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 			LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
 		}
 		
-		try {
-			if (isAutomaticReconnect() == false) {
-				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Reconnecting client (" + clientId + ") ");
-				connect();
-				if (isCleanSession() && isConnected()) {
-					if (this.isCleanSession() == true) {
-						Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
-					    LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing....");
-					    while (iterator.hasNext() && this.isConnected()) {
-					        Entry<String, Integer> pairs = iterator.next();
-					        LoggerUtility.info(CLASS_NAME, METHOD, pairs.getKey() + " = " + pairs.getValue());
-					        try {
-					        	mqttAsyncClient.subscribe(pairs.getKey().toString(), Integer.parseInt(pairs.getValue().toString())).waitForCompletion(getActionTimeout());
-							} catch (NumberFormatException | MqttException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
-					    }						
-					}
-				}
-			}
-		} catch (MqttException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
-	    
 	}
 	
 	@Override
