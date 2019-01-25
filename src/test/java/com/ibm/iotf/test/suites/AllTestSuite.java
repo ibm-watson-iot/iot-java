@@ -27,6 +27,7 @@ import com.ibm.iotf.client.device.devicemanagement.DeviceManagementTest6;
 import com.ibm.iotf.client.device.devicemanagement.DeviceManagementTest7;
 import com.ibm.iotf.client.gateway.GatewayCommandSubscriptionTest;
 import com.ibm.iotf.client.gateway.GatewayRegisterDeviceTest1;
+import com.ibm.iotf.client.gateway.GatewayRegisterDeviceTest2;
 
 @RunWith(Suite.class)
 @SuiteClasses({ 
@@ -46,6 +47,7 @@ import com.ibm.iotf.client.gateway.GatewayRegisterDeviceTest1;
 	DeviceCommandSubscriptionTest.class,
 	GatewayCommandSubscriptionTest.class,
 	GatewayRegisterDeviceTest1.class,
+	GatewayRegisterDeviceTest2.class,
 	//GatewayManagementTest.class,
 	GatewayManagementTest2.class,
 	BulkAPIOperationsTest.class,

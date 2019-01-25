@@ -417,6 +417,14 @@ public class TestHelper {
 		mqttAppClient = new ApplicationClient(this.appProps);
 	}
 	
+	public Properties getAppProperties() {
+		return appProps;
+	}
+	
+	public ApplicationClient getApplicationClient() {
+		return mqttAppClient;
+	}
+	
 	
 	public void connectApplication() throws MqttException, TestException {
 		final String METHOD = "connectApplication";

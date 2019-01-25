@@ -25,6 +25,7 @@ import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.test.common.TestEnv;
+import com.ibm.iotf.test.common.TestHelper;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -43,6 +44,7 @@ public class DeviceAPIOperationsTest {
 	private static final String DEVICE_TYPE = "DevApiOpType";
 	private static final String DEVICE_ID = "DevApiOpId1";
 	private static final String DEVICE_ID2 = "DevApiOpId2";
+	private static final String MANAGED_DEV_ID = "manDev1";
 
 	/**
 	 * Split the elements into multiple lines, so that we can showcase the use of multiple constructors
@@ -71,34 +73,32 @@ public class DeviceAPIOperationsTest {
 		
 		Properties appProps = TestEnv.getAppProperties(APP_ID, false, DEVICE_TYPE, null);
 		apiClient = new APIClient(appProps);
-
-		if (apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID)) {
-			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
-		}
-		if (apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID2)) {
-			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
+		
+		boolean exist = false;
+		
+		try {
+			exist = apiClient.isDeviceTypeExist(DEVICE_TYPE);
+		} catch (IoTFCReSTException e) {
+			e.printStackTrace();
 		}
 		
-		if (apiClient.isDeviceTypeExist(DEVICE_TYPE) == false) {
-			apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+		if (!exist) {
+			TestHelper.addDeviceType(apiClient, DEVICE_TYPE);
 		}
 
+		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID);
+		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID2);
+		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, MANAGED_DEV_ID);
+
+		
 	}
 	
 	@AfterClass
-	public static void oneTimeCleanup() throws Exception {
-		
-		if (apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID)) {
-			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID);
-		}
-		
-		if (apiClient.isDeviceExist(DEVICE_TYPE, DEVICE_ID2)) {
-			apiClient.deleteDevice(DEVICE_TYPE, DEVICE_ID2);
-		}
-		
-		if (apiClient.isDeviceTypeExist(DEVICE_TYPE)) {
-			apiClient.deleteDeviceType(DEVICE_TYPE);
-		}
+	public static void oneTimeCleanup() throws Exception {	
+		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID);
+		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID2);
+		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, MANAGED_DEV_ID);
+		apiClient.deleteDeviceType(DEVICE_TYPE);
 	}
 	
 	/**
@@ -219,20 +219,20 @@ public class DeviceAPIOperationsTest {
 	 */
 	@Test
 	public void test06getDeviceManagementInformation() {
-		
-		String managedDevId = "manDev1";
-		
-		// Register a new managed device
-		
+		final String METHOD = "test06getDeviceManagementInformation";
+
 		try {
-			apiClient.registerDevice(DEVICE_TYPE, managedDevId, TestEnv.getDeviceToken(), null, null, null);
+			TestHelper.registerDevice(apiClient, DEVICE_TYPE, MANAGED_DEV_ID, TestEnv.getDeviceToken());
 		} catch (IoTFCReSTException e) {
-			fail("Device register failed for device ID " + managedDevId + " HTTP Error " + e.getHttpCode() );
+			e.printStackTrace();
+			String failMsg = "Register device failed. HTTP code " + e.getHttpCode()
+								+ " Response: " + e.getResponse();
+			fail(failMsg);
 			return;
 		}
 		
-		
-		Properties props = TestEnv.getDeviceProperties(DEVICE_TYPE, managedDevId);
+
+		Properties props = TestEnv.getDeviceProperties(DEVICE_TYPE, MANAGED_DEV_ID);
 		
 		ManagedDevice dmClient = null;
 		try {
@@ -245,20 +245,17 @@ public class DeviceAPIOperationsTest {
 		}
 		
 		try {
-			JsonObject response = apiClient.getDeviceManagementInformation(DEVICE_TYPE, managedDevId);
+			JsonObject response = apiClient.getDeviceManagementInformation(DEVICE_TYPE, MANAGED_DEV_ID);
 			assertFalse("Response must not be null", response.isJsonNull());
+			LoggerUtility.info(CLASS_NAME, METHOD, response.toString());
 		} catch(IoTFCReSTException e) {
-			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
-
+			e.printStackTrace();
+			String failMsg = METHOD + " HTTP Code :" + e.getHttpCode() +" Reponse :: "+ e.getResponse();
+			fail(failMsg);
 		} finally {
 			dmClient.disconnect();
 		}
 		
-		try {
-			apiClient.deleteDevice(DEVICE_TYPE, managedDevId);
-		} catch (IoTFCReSTException e) {
-			fail("Delete failed for device ID " + managedDevId + " HTTP Error " + e.getHttpCode() );
-		}
 	}
 
 	/**
