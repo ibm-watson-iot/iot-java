@@ -1720,9 +1720,8 @@ public class APIClient {
 	 * 
 	 * @param gatewayType Gateway device type
 	 * @param gatewayId Gateway device ID
-	 * @see https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/org-admin.html#!/Device_Configuration/get_device_types_typeId_devices_deviceId_devices
 	 * @return JSON object describes devices connected through the gateway
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException if failed
 	 */
 	public JsonObject getDevicesConnectedThroughGateway(String gatewayType, String gatewayId) throws IoTFCReSTException {
 		List<NameValuePair> queryParms = null;
@@ -1734,10 +1733,9 @@ public class APIClient {
 	 * 
 	 * @param gatewayType Gateway device type
 	 * @param gatewayId Gateway device ID
-	 * @param bookmark 
-	 * @see https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/org-admin.html#!/Device_Configuration/get_device_types_typeId_devices_deviceId_devices
+	 * @param bookmark Bookmark for next query
 	 * @return JSON object describes devices connected through the gateway
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException if failed
 	 */
 	public JsonObject getDevicesConnectedThroughGateway(String gatewayType, String gatewayId, String bookmark) throws IoTFCReSTException {
 		List<NameValuePair> queryParms = null;
@@ -1755,7 +1753,7 @@ public class APIClient {
 	 * @param gatewayId Gateway device ID
 	 * @param queryParameters Query parameters such as _bookmark
 	 * @return JSON object describes devices connected through the gateway
-	 * @throws IoTFCReSTException
+	 * @throws IoTFCReSTException if failed
 	 */
 	public JsonObject getDevicesConnectedThroughGateway(String gatewayType, String gatewayId, List<NameValuePair> queryParameters) throws IoTFCReSTException {
 		final String METHOD = "getDevicesConnectedThroughGateway";
@@ -7539,7 +7537,7 @@ public class APIClient {
 	 * Get devices in resource group
 	 * 
 	 * @param groupId Resource group ID
-	 * @param bookmark Bookmark for next page
+	 * @param bookmark Bookmark for next query
 	 * @return JsonObject JSON object describes devices in the resource group
 	 * @throws IoTFCReSTException Thrown if an HTTP error occurs
 	 * @throws UnsupportedEncodingException Thrown if an error occurs when parsing group ID
@@ -7940,8 +7938,8 @@ public class APIClient {
 	 * @param deviceId Unique device identifier e.g. g:orgid:gwType:gwID
 	 * @param jsonRoles Roles to be updated
 	 * @return JSON object describes roles updated
-	 * @throws IoTFCReSTException
-	 * @throws UnsupportedEncodingException
+	 * @throws IoTFCReSTException if failed
+	 * @throws UnsupportedEncodingException if encountered encoding error
 	 */
 	public JsonObject updateDeviceRoles(String deviceId, JsonObject jsonRoles) throws IoTFCReSTException, UnsupportedEncodingException {
 		final String METHOD = "getAccessControlProperties";
