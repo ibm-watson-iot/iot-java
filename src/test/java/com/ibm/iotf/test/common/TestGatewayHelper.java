@@ -101,7 +101,7 @@ public class TestGatewayHelper extends TestHelper {
 
 	public void publishEvent(String devType, String devId, String event, JsonObject jsonData) {
 		final String METHOD = "publishEvent";
-		gwClient.publishDeviceEvent(devId, devId, event, jsonData);
+		gwClient.publishDeviceEvent(devType, devId, event, jsonData);
 		LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " publish event to device type " + devType + " device ID " + devId + " Event " + event);
 	}
 

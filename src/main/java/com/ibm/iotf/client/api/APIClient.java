@@ -1091,69 +1091,6 @@ public class APIClient {
 		return retrieveDevices(deviceType, (ArrayList)null);
 	}
 	
-	/**
-	 * This method returns all devices that are connected through the specified gateway(typeId, deviceId) to Watson IoT Platform.
-	 * 
-	 * 
-	 * <p> Refer to the
-	 * <a href="https://docs.internetofthings.ibmcloud.com/swagger/v0002.html#!/Devices/get_device_types_typeId_devices_deviceId_devices">link</a>
-	 * for more information about how to control the response.</p>
-	 * 
-	 * @param gatewayType Gateway Device type ID 
-	 * @param gatewayId Gateway Device ID
-	 * 
-	 * @return JSON response containing the list of devices.
-	 * <p> The response will contain more parameters that can be used to issue the next request. 
-	 * The result element will contain the current list of devices.</p>
-	 * 	 *  
-	 * @throws IoTFCReSTException failure in getting the devices 
-	 */
-	public JsonObject getDevicesConnectedThroughGateway(String gatewayType, String gatewayId) throws IoTFCReSTException {
-		final String METHOD = "getDevicesConnectedThroughGateway(typeID, deviceId)";
-		/**
-		 * Form the url based on this swagger documentation
-		 * 
-		 */
-		StringBuilder sb = new StringBuilder("https://");
-		sb.append(orgId).
-		   append('.').
-		   append(this.domain).append(BASIC_API_V0002_URL).
-		   append("/device/types/").
-		   append(gatewayType).
-		   append("/devices/").
-		   append(gatewayId).append("/devices");
-				   
-		int code = 0;
-		HttpResponse response = null;
-		JsonElement jsonResponse = null;
-		try {
-			response = connect("get", sb.toString(), null, null);
-			code = response.getStatusLine().getStatusCode();
-			String result = this.readContent(response, METHOD);
-			jsonResponse = new JsonParser().parse(result);
-			if(code == 200) {
-				// success
-				return jsonResponse.getAsJsonObject();
-			}
-		} catch(Exception e) {
-			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the device information "
-					+ "that are connected through the specified gateway, "
-					+ ":: "+e.getMessage());
-			ex.initCause(e);
-			throw ex;
-		}
-		if(code == 403) {
-			throw new IoTFCReSTException(code, "Request is only allowed if the classId of the device type is 'Gateway'", jsonResponse);
-		} else if(code == 404) {
-			throw new IoTFCReSTException(code, "Device type or device not found", jsonResponse);
-		} else if (code == 500) {
-			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
-		}
-		throwException(response, METHOD);
-		return null;
-	}
-
-
 
 	/**
 	 * This method returns all the device types belonging to the organization, This method
@@ -1776,6 +1713,93 @@ public class APIClient {
 		}
 		
 		return jsonDevice;
+	}
+
+	/**
+	 * Get devices that are connected through the gateway
+	 * 
+	 * @param gatewayType Gateway device type
+	 * @param gatewayId Gateway device ID
+	 * @see https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/org-admin.html#!/Device_Configuration/get_device_types_typeId_devices_deviceId_devices
+	 * @return JSON object describes devices connected through the gateway
+	 * @throws IoTFCReSTException
+	 */
+	public JsonObject getDevicesConnectedThroughGateway(String gatewayType, String gatewayId) throws IoTFCReSTException {
+		List<NameValuePair> queryParms = null;
+		return getDevicesConnectedThroughGateway(gatewayType, gatewayId, queryParms);
+	}
+	
+	/**
+	 * Get devices that are connected through the gateway
+	 * 
+	 * @param gatewayType Gateway device type
+	 * @param gatewayId Gateway device ID
+	 * @param bookmark 
+	 * @see https://docs.internetofthings.ibmcloud.com/apis/swagger/v0002/org-admin.html#!/Device_Configuration/get_device_types_typeId_devices_deviceId_devices
+	 * @return JSON object describes devices connected through the gateway
+	 * @throws IoTFCReSTException
+	 */
+	public JsonObject getDevicesConnectedThroughGateway(String gatewayType, String gatewayId, String bookmark) throws IoTFCReSTException {
+		List<NameValuePair> queryParms = null;
+		if (bookmark != null) {
+			queryParms = new ArrayList<>();
+			queryParms.add(new BasicNameValuePair("_bookmark", bookmark));
+		}
+		return getDevicesConnectedThroughGateway(gatewayType, gatewayId, queryParms);	
+	}
+	
+	/**
+	 * Get devices that are connected through the gateway
+	 * 
+	 * @param gatewayType  Gateway device type
+	 * @param gatewayId Gateway device ID
+	 * @param queryParameters Query parameters such as _bookmark
+	 * @return JSON object describes devices connected through the gateway
+	 * @throws IoTFCReSTException
+	 */
+	public JsonObject getDevicesConnectedThroughGateway(String gatewayType, String gatewayId, List<NameValuePair> queryParameters) throws IoTFCReSTException {
+		final String METHOD = "getDevicesConnectedThroughGateway";
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/device/types/").
+		   append(gatewayType).
+		   append("/devices/").
+		   append(gatewayId).
+		   append("/devices");
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+
+		try {
+			response = connect("get", sb.toString(), null, queryParameters);
+			code = response.getStatusLine().getStatusCode();
+			if (response != null) {
+				String result = this.readContent(response, METHOD);
+				if (result != null) {
+					jsonResponse = new JsonParser().parse(result);
+				}
+			}
+			if (code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving devices under gateway "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 403) {
+			throw new IoTFCReSTException(code, "The request is only allowed if the classId of the device type is Gateway", jsonResponse);
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "Device type or device not found", jsonResponse);
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
 	}
 	
 	/**
@@ -3372,7 +3396,7 @@ public class APIClient {
 		return this.registerDeviceUnderGateway(deviceType, gwDeviceId, gwTypeId, jsonDevice);
 	}
 	
-	        /**
+	/**
 	 * This method retrieves all last events for a specific device
 	 * 
 	 * <p>
@@ -7908,6 +7932,65 @@ public class APIClient {
 		throwException(response, METHOD);
 		return null;
 		
+	}
+	
+	/**
+	 * Assign or update a role or list of roles to the given device or gateway
+	 * 
+	 * @param deviceId Unique device identifier e.g. g:orgid:gwType:gwID
+	 * @param jsonRoles Roles to be updated
+	 * @return JSON object describes roles updated
+	 * @throws IoTFCReSTException
+	 * @throws UnsupportedEncodingException
+	 */
+	public JsonObject updateDeviceRoles(String deviceId, JsonObject jsonRoles) throws IoTFCReSTException, UnsupportedEncodingException {
+		final String METHOD = "getAccessControlProperties";
+		String sDeviceId = URLEncoder.encode(deviceId, "UTF-8");
+		StringBuilder sb = new StringBuilder("https://");
+		sb.append(orgId).
+		   append('.').
+		   append(this.domain).append(BASIC_API_V0002_URL).
+		   append("/authorization/devices/").
+		   append(sDeviceId).
+		   append("/roles");
+		
+		int code = 0;
+		HttpResponse response = null;
+		JsonElement jsonResponse = null;
+
+		try {
+			response = connect("put", sb.toString(), jsonRoles.toString(), null);
+			code = response.getStatusLine().getStatusCode();
+			if (response != null) {
+				String result = this.readContent(response, METHOD);
+				if (result != null) {
+					jsonResponse = new JsonParser().parse(result);
+				}
+			}
+			if (code == 200) {
+				return jsonResponse.getAsJsonObject();
+			}
+
+		} catch(Exception e) {
+			IoTFCReSTException ex = new IoTFCReSTException("Failure in retrieving the access control properties for device ID (" + deviceId + ") Exception: "
+					+ "::"+e.getMessage());
+			ex.initCause(e);
+			throw ex;
+		}
+		if (code == 400) {
+			throw new IoTFCReSTException(code, "Invalid request (invalid resource id specified in the path)", jsonResponse);
+		} else if(code == 401) {
+			throw new IoTFCReSTException(code, "The authentication token is empty or invalid", jsonResponse);
+		} else if (code == 403) {
+			throw new IoTFCReSTException(code, "The authentication method is invalid or the API key used does not exist", jsonResponse);
+		} else if (code == 404) {
+			throw new IoTFCReSTException(code, "Invalid request", jsonResponse);
+		} else if(code == 500) {
+			throw new IoTFCReSTException(code, "Unexpected error", jsonResponse);
+		}
+		throwException(response, METHOD);
+		return null;
+				
 	}
 
 }
