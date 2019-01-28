@@ -794,10 +794,7 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 	}
 
 	/**
-	 * <p>This method is called by the MQTT library when the connection to the 
-	 * IBM Watson Platform is lost. </p> 
-	 * 
-	 * This Watson IoT library will start the reconnect process, and application doesn't need to worry 
+	 * Simply log error when connection is lost
 	 */
 	public void connectionLost(Throwable e) {
 		final String METHOD = "connectionLost";
@@ -809,31 +806,7 @@ public class GatewayClient extends AbstractClient implements MqttCallbackExtende
 		} else {
 			LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
 		}
-		try {
-			if (isAutomaticReconnect() == false) {
-				LoggerUtility.info(CLASS_NAME, METHOD, "Reconnecting gateway device client (" + this.clientId + ")");
-				connect();
-				if (isCleanSession() && isConnected()) {
-					if (this.isCleanSession() == true) {
-					    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
-					    while (iterator.hasNext()) {
-					        Entry<String, Integer> pairs = iterator.next();
-					        String topic = pairs.getKey();
-					        Integer qos = pairs.getValue();
-					        LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing topic(" +topic + ") QoS:" + qos);
-					        try {
-					        	mqttAsyncClient.subscribe(topic, qos.intValue());
-							} catch (NumberFormatException | MqttException e1) {
-								e1.printStackTrace();
-							}
-					    }
-					}
-				}				
-			}
-		} catch (MqttException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
+		
 	}
 	
 	/**
