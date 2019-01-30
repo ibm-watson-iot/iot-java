@@ -190,7 +190,7 @@ public class DeviceCommandSubscriptionTest {
 		}
 		
 		try {
-			testHelper.appPublishCommand(testHelper.getDeviceType(), testHelper.getDeviceId(), null, null);
+			testHelper.publishCommand(testHelper.getDeviceType(), testHelper.getDeviceId(), null, null);
 		} catch (TestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

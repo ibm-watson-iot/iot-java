@@ -326,7 +326,7 @@ public class GatewayCommandSubscriptionTest {
 				null, null, null, null);
 				*/
 		try {
-			testHelper.appPublishCommand(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId(), 
+			testHelper.publishCommand(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId(), 
 					null, null, null, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -382,7 +382,7 @@ public class GatewayCommandSubscriptionTest {
 				null, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					null, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -440,7 +440,7 @@ public class GatewayCommandSubscriptionTest {
 				cmd, null);
 		*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -503,7 +503,7 @@ public class GatewayCommandSubscriptionTest {
 				*/
 		
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -654,7 +654,7 @@ public class GatewayCommandSubscriptionTest {
 				cmd, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -713,7 +713,7 @@ public class GatewayCommandSubscriptionTest {
 				cmd, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -773,7 +773,7 @@ public class GatewayCommandSubscriptionTest {
 				null, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					null, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -803,7 +803,7 @@ public class GatewayCommandSubscriptionTest {
 				*/
 		
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					null, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -860,7 +860,7 @@ public class GatewayCommandSubscriptionTest {
 				cmd, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -890,7 +890,7 @@ public class GatewayCommandSubscriptionTest {
 				cmd, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -948,7 +948,7 @@ public class GatewayCommandSubscriptionTest {
 				cmd, null);
 		*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -975,7 +975,7 @@ public class GatewayCommandSubscriptionTest {
 				cmd, null);
 		*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();

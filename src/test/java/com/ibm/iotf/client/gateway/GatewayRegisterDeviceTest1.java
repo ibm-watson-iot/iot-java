@@ -286,7 +286,7 @@ public class GatewayRegisterDeviceTest1 {
 				null, null, null, null);
 				*/
 		try {
-			testHelper.appPublishCommand(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId(), 
+			testHelper.publishCommand(testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId(), 
 					null, null, null, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -342,7 +342,7 @@ public class GatewayRegisterDeviceTest1 {
 				null, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					null, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -400,7 +400,7 @@ public class GatewayRegisterDeviceTest1 {
 				cmd, null);
 		*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -463,7 +463,7 @@ public class GatewayRegisterDeviceTest1 {
 				*/
 		
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -614,7 +614,7 @@ public class GatewayRegisterDeviceTest1 {
 				cmd, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -673,7 +673,7 @@ public class GatewayRegisterDeviceTest1 {
 				cmd, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -733,7 +733,7 @@ public class GatewayRegisterDeviceTest1 {
 				null, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					null, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -763,7 +763,7 @@ public class GatewayRegisterDeviceTest1 {
 				*/
 		
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					null, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -820,7 +820,7 @@ public class GatewayRegisterDeviceTest1 {
 				cmd, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -850,7 +850,7 @@ public class GatewayRegisterDeviceTest1 {
 				cmd, null);
 				*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -908,7 +908,7 @@ public class GatewayRegisterDeviceTest1 {
 				cmd, null);
 		*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();
@@ -935,7 +935,7 @@ public class GatewayRegisterDeviceTest1 {
 				cmd, null);
 		*/
 		try {
-			testHelper.appPublishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
+			testHelper.publishCommand(null, null, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId(),
 					cmd, null);
 		} catch (TestException e) {
 			e.printStackTrace();

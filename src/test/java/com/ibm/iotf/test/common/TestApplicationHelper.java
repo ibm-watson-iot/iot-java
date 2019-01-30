@@ -426,7 +426,7 @@ public class TestApplicationHelper {
 	}
 	
 	
-	public void connectApplication() throws MqttException, TestException {
+	public void connect() throws MqttException, TestException {
 		final String METHOD = "connectApplication";
 		if (mqttAppClient == null) {
 			throw new TestException(TestException.MQTT_APP_CLIENT_NOT_INITIALIZED);
@@ -435,7 +435,7 @@ public class TestApplicationHelper {
 		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " connected " + mqttAppClient.isConnected());
 	}
 	
-	public void disconnectApplication() throws TestException {
+	public void disconnect() throws TestException {
 		final String METHOD = "disconnectApplication";
 		if (mqttAppClient == null) {
 			throw new TestException(TestException.MQTT_APP_CLIENT_NOT_INITIALIZED);
@@ -444,12 +444,12 @@ public class TestApplicationHelper {
 		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " connected " + mqttAppClient.isConnected());
 	}
 	
-	public JsonObject appPublishCommand(String devType, String devId, 
+	public JsonObject publishCommand(String devType, String devId, 
 			String cmdName, JsonObject jsonCmd) throws TestException {
-		return appPublishCommand(null, null, devType, devId, cmdName, jsonCmd);
+		return publishCommand(null, null, devType, devId, cmdName, jsonCmd);
 	}
 	
-	public JsonObject appPublishCommand(
+	public JsonObject publishCommand(
 			String gwType, String gwDevId, 
 			String devType, String devId, 
 			String cmdName, JsonObject jsonCmd) throws TestException {
