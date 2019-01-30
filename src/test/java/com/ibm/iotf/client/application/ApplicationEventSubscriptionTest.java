@@ -41,7 +41,7 @@ import com.ibm.iotf.client.app.StatusCallback;
 import com.ibm.iotf.client.device.DeviceClient;
 import com.ibm.iotf.test.common.TestDeviceHelper;
 import com.ibm.iotf.test.common.TestEnv;
-import com.ibm.iotf.test.common.TestHelper;
+import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.util.LoggerUtility;
 
 import junit.framework.TestCase;
@@ -101,7 +101,7 @@ public class ApplicationEventSubscriptionTest {
 		
 		if (!exist) {
 			try {
-				TestHelper.addDeviceType(apiClient, DEVICE_TYPE);
+				TestApplicationHelper.addDeviceType(apiClient, DEVICE_TYPE);
 				LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " has been created.");
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
@@ -115,7 +115,7 @@ public class ApplicationEventSubscriptionTest {
 		}
 		
 		try {
-			TestHelper.registerDevice(apiClient, DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken());
+			TestApplicationHelper.registerDevice(apiClient, DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken());
 		} catch (IoTFCReSTException e) {
 			e.printStackTrace();
 		}

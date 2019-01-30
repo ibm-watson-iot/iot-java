@@ -24,7 +24,7 @@ import com.ibm.iotf.devicemgmt.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestGatewayHelper;
-import com.ibm.iotf.test.common.TestHelper;
+import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.test.common.TestPropertyChangeListener;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -73,7 +73,7 @@ public class GatewayManagementTest2 {
 		
 		if (!exist) {
 			try {
-				TestHelper.addGatewayType(apiClient, GW_DEVICE_TYPE);
+				TestApplicationHelper.addGatewayType(apiClient, GW_DEVICE_TYPE);
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
 				return;

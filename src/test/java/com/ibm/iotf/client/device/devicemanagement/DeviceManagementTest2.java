@@ -26,7 +26,7 @@ import com.ibm.iotf.devicemgmt.DeviceInfo;
 import com.ibm.iotf.devicemgmt.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.test.common.TestEnv;
-import com.ibm.iotf.test.common.TestHelper;
+import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.util.LoggerUtility;;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -112,7 +112,7 @@ public class DeviceManagementTest2 {
 		
 		if (!exist) {
 			try {
-				TestHelper.addDeviceType(apiClient, DEVICE_TYPE);
+				TestApplicationHelper.addDeviceType(apiClient, DEVICE_TYPE);
 				LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " has been created.");
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
@@ -120,13 +120,13 @@ public class DeviceManagementTest2 {
 		}
 		
 		try {
-			TestHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID);
+			TestApplicationHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID);
 		} catch (IoTFCReSTException e) {
 			e.printStackTrace();
 		}
 		
 		try {
-			TestHelper.registerDevice(apiClient, DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken());
+			TestApplicationHelper.registerDevice(apiClient, DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken());
 		} catch (IoTFCReSTException e) {
 			e.printStackTrace();
 		}
@@ -146,7 +146,7 @@ public class DeviceManagementTest2 {
 		final String METHOD = "oneTimeCleanup";
 		
 		if (apiClient != null) {
-			TestHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID);
+			TestApplicationHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID);
 		}
 		LoggerUtility.info(CLASS_NAME, METHOD, "completed."); 
 	}	

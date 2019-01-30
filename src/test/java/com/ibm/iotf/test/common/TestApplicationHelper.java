@@ -18,13 +18,13 @@ import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.util.LoggerUtility;
 
-public class TestHelper {
-	static final String CLASS_NAME = TestHelper.class.getName();
+public class TestApplicationHelper {
+	static final String CLASS_NAME = TestApplicationHelper.class.getName();
 	Properties appProps = null;
 	ApplicationClient mqttAppClient = null;
 	
 	
-	public TestHelper(Properties appProperties) throws Exception {
+	public TestApplicationHelper(Properties appProperties) throws Exception {
 		this.appProps = appProperties;
 	}
 	

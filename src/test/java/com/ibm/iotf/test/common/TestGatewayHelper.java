@@ -8,7 +8,7 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.gateway.GatewayClient;
 import com.ibm.iotf.util.LoggerUtility;
 
-public class TestGatewayHelper extends TestHelper {
+public class TestGatewayHelper extends TestApplicationHelper {
 
 	String gwDevType = null;
 	String gwDevId = null;
