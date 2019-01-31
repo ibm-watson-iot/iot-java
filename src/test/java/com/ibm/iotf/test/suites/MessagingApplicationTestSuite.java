@@ -5,6 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import com.ibm.iotf.client.application.ApplicationEventSubscriptionTest;
+import com.ibm.iotf.client.application.ApplicationNonDurableSubscriptionTest1;
 import com.ibm.iotf.client.application.ApplicationCommandStatusSubscriptionTest1;
 import com.ibm.iotf.client.application.ApplicationEventStatusSubscriptionTest1;
 import com.ibm.iotf.client.application.ApplicationEventStatusSubscriptionTest2;
@@ -20,6 +21,7 @@ import com.ibm.iotf.client.application.ApplicationEventStatusSubscriptionTest4;
 	ApplicationEventStatusSubscriptionTest2.class,
 	ApplicationEventStatusSubscriptionTest3.class,
 	ApplicationEventStatusSubscriptionTest4.class,
+	ApplicationNonDurableSubscriptionTest1.class
 })
 public class MessagingApplicationTestSuite {
 

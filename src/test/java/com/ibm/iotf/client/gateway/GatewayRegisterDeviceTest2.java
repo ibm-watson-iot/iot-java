@@ -39,7 +39,7 @@ import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestEventCallback;
 import com.ibm.iotf.test.common.TestGatewayHelper;
-import com.ibm.iotf.test.common.TestHelper;
+import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.test.common.TestStatusCallback;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -95,7 +95,7 @@ public class GatewayRegisterDeviceTest2 {
 		
 		if (!exist) {
 			try {
-				TestHelper.addGatewayType(apiClient, GW_DEVICE_TYPE);
+				TestApplicationHelper.addGatewayType(apiClient, GW_DEVICE_TYPE);
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
 				return;
@@ -142,7 +142,7 @@ public class GatewayRegisterDeviceTest2 {
 				}
 				testMap.put(iTest, gwHelper);
 
-				JsonArray arrayGroups = TestHelper.getResourceGroups(apiClient, gwHelper.getClientID());
+				JsonArray arrayGroups = TestApplicationHelper.getResourceGroups(apiClient, gwHelper.getClientID());
 				if (arrayGroups != null) {
 					String sPrivilegedGW = "PD_PRIVILEGED_GW_DEVICE";
 					JsonObject jsonRoles = new JsonObject();
@@ -192,7 +192,7 @@ public class GatewayRegisterDeviceTest2 {
 				ArrayList<String> roles = new ArrayList<String>();
 				String roleId = "PD_STANDARD_APP";
 				roles.add(roleId);
-				Properties newApiClientProps = TestHelper.createAPIKey(apiClient, CLASS_NAME, roles);
+				Properties newApiClientProps = TestApplicationHelper.createAPIKey(apiClient, CLASS_NAME, roles);
 
 				try {
 					testHelper.setAppProperties(newApiClientProps);
@@ -220,8 +220,8 @@ public class GatewayRegisterDeviceTest2 {
 				
 				if (testHelper != null) {
 					try {
-						TestHelper.deleteDevice(apiClient, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId());
-						TestHelper.deleteDevice(apiClient, testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
+						TestApplicationHelper.deleteDevice(apiClient, testHelper.getAttachedDeviceType(), testHelper.getAttachedDeviceId());
+						TestApplicationHelper.deleteDevice(apiClient, testHelper.getGatewayDeviceType(), testHelper.getGatewayDeviceId());
 					} catch (IoTFCReSTException e) {
 						e.printStackTrace();
 					}
@@ -235,7 +235,7 @@ public class GatewayRegisterDeviceTest2 {
 				e.printStackTrace();
 			}
     		try {
-    			TestHelper.deleteDeviceType(apiClient, DEVICE_TYPE);
+    			TestApplicationHelper.deleteDeviceType(apiClient, DEVICE_TYPE);
     			LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " deleted.");
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();

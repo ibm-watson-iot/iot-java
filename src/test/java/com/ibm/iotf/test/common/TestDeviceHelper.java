@@ -4,7 +4,7 @@ import java.util.Properties;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 
-import com.ibm.iotf.test.common.TestHelper;
+import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.util.LoggerUtility;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestCommandCallback;
@@ -12,8 +12,9 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.api.APIClient.ContentType;
 import com.ibm.iotf.client.device.DeviceClient;
 
-public class TestDeviceHelper extends TestHelper {
+public class TestDeviceHelper extends TestApplicationHelper {
 
+	static final String CLASS_NAME = TestDeviceHelper.class.getName();
 	private String devType = null;
 	private String deviceId = null;
 	DeviceClient devClient = null;
@@ -43,6 +44,10 @@ public class TestDeviceHelper extends TestHelper {
 		final String METHOD = "disconnect";
 		devClient.disconnect();
 		LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " connected ? " + devClient.isConnected());
+	}
+	
+	public DeviceClient getDeviceClient() {
+		return devClient;
 	}
 	
 	public boolean commandReceived() {

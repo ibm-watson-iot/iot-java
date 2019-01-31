@@ -25,7 +25,7 @@ import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.device.ManagedDevice;
 import com.ibm.iotf.test.common.TestEnv;
-import com.ibm.iotf.test.common.TestHelper;
+import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -83,21 +83,21 @@ public class DeviceAPIOperationsTest {
 		}
 		
 		if (!exist) {
-			TestHelper.addDeviceType(apiClient, DEVICE_TYPE);
+			TestApplicationHelper.addDeviceType(apiClient, DEVICE_TYPE);
 		}
 
-		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID);
-		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID2);
-		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, MANAGED_DEV_ID);
+		TestApplicationHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID);
+		TestApplicationHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID2);
+		TestApplicationHelper.deleteDevice(apiClient, DEVICE_TYPE, MANAGED_DEV_ID);
 
 		
 	}
 	
 	@AfterClass
 	public static void oneTimeCleanup() throws Exception {	
-		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID);
-		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID2);
-		TestHelper.deleteDevice(apiClient, DEVICE_TYPE, MANAGED_DEV_ID);
+		TestApplicationHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID);
+		TestApplicationHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID2);
+		TestApplicationHelper.deleteDevice(apiClient, DEVICE_TYPE, MANAGED_DEV_ID);
 		apiClient.deleteDeviceType(DEVICE_TYPE);
 	}
 	
@@ -222,7 +222,7 @@ public class DeviceAPIOperationsTest {
 		final String METHOD = "test06getDeviceManagementInformation";
 
 		try {
-			TestHelper.registerDevice(apiClient, DEVICE_TYPE, MANAGED_DEV_ID, TestEnv.getDeviceToken());
+			TestApplicationHelper.registerDevice(apiClient, DEVICE_TYPE, MANAGED_DEV_ID, TestEnv.getDeviceToken());
 		} catch (IoTFCReSTException e) {
 			e.printStackTrace();
 			String failMsg = "Register device failed. HTTP code " + e.getHttpCode()

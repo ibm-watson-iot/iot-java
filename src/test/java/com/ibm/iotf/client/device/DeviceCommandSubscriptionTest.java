@@ -32,7 +32,7 @@ import com.ibm.iotf.test.common.TestDeviceHelper;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestException;
 import com.ibm.iotf.test.common.TestGatewayHelper;
-import com.ibm.iotf.test.common.TestHelper;
+import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**
@@ -85,7 +85,7 @@ public class DeviceCommandSubscriptionTest {
 		
 		if (!exist) {
 			try {
-				TestHelper.addDeviceType(apiClient, DEVICE_TYPE);
+				TestApplicationHelper.addDeviceType(apiClient, DEVICE_TYPE);
 				LoggerUtility.info(CLASS_NAME, METHOD, "Device type " + DEVICE_TYPE + " has been created.");
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
@@ -103,7 +103,7 @@ public class DeviceCommandSubscriptionTest {
 			}
 			
 			try {
-				TestHelper.registerDevice(apiClient, DEVICE_TYPE, devId, TestEnv.getDeviceToken());
+				TestApplicationHelper.registerDevice(apiClient, DEVICE_TYPE, devId, TestEnv.getDeviceToken());
 				Integer iTest = new Integer(i);
 				try {
 					TestDeviceHelper testHelper = new TestDeviceHelper(DEVICE_TYPE, devId);
@@ -125,7 +125,7 @@ public class DeviceCommandSubscriptionTest {
 				ArrayList<String> roles = new ArrayList<String>();
 				String roleId = "PD_STANDARD_APP";
 				roles.add(roleId);
-				Properties newApiClientProps = TestHelper.createAPIKey(apiClient, CLASS_NAME, roles);
+				Properties newApiClientProps = TestApplicationHelper.createAPIKey(apiClient, CLASS_NAME, roles);
 				
 				if (newApiClientProps != null) {
 					newApiClientProps.setProperty("id", APP_ID + iTest);
@@ -156,7 +156,7 @@ public class DeviceCommandSubscriptionTest {
 				TestDeviceHelper testHelper = testMap.get(iTest);
 				
 				if (testHelper != null) {
-					TestHelper.deleteDevice(apiClient, testHelper.getDeviceType(), testHelper.getDeviceId());
+					TestApplicationHelper.deleteDevice(apiClient, testHelper.getDeviceType(), testHelper.getDeviceId());
 				}
 			}
 			LoggerUtility.info(CLASS_NAME, METHOD, "Cleanup is complete.");			
@@ -190,7 +190,7 @@ public class DeviceCommandSubscriptionTest {
 		}
 		
 		try {
-			testHelper.appPublishCommand(testHelper.getDeviceType(), testHelper.getDeviceId(), null, null);
+			testHelper.publishCommand(testHelper.getDeviceType(), testHelper.getDeviceId(), null, null);
 		} catch (TestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

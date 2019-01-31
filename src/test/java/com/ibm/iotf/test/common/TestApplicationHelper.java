@@ -18,14 +18,19 @@ import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.util.LoggerUtility;
 
-public class TestHelper {
-	static final String CLASS_NAME = TestHelper.class.getName();
+public class TestApplicationHelper {
+	static final String CLASS_NAME = TestApplicationHelper.class.getName();
 	Properties appProps = null;
 	ApplicationClient mqttAppClient = null;
+	TestEventCallback eventCallback = null;
 	
 	
-	public TestHelper(Properties appProperties) throws Exception {
+	public TestApplicationHelper(Properties appProperties) throws Exception {
 		this.appProps = appProperties;
+		
+		if (this.appProps != null) {
+			mqttAppClient = new ApplicationClient(this.appProps);
+		}
 	}
 	
 	/**
@@ -425,8 +430,12 @@ public class TestHelper {
 		return mqttAppClient;
 	}
 	
+	public TestEventCallback getCallback() {
+		return eventCallback;
+	}
 	
-	public void connectApplication() throws MqttException, TestException {
+	
+	public void connect() throws MqttException, TestException {
 		final String METHOD = "connectApplication";
 		if (mqttAppClient == null) {
 			throw new TestException(TestException.MQTT_APP_CLIENT_NOT_INITIALIZED);
@@ -435,7 +444,7 @@ public class TestHelper {
 		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " connected " + mqttAppClient.isConnected());
 	}
 	
-	public void disconnectApplication() throws TestException {
+	public void disconnect() throws TestException {
 		final String METHOD = "disconnectApplication";
 		if (mqttAppClient == null) {
 			throw new TestException(TestException.MQTT_APP_CLIENT_NOT_INITIALIZED);
@@ -444,12 +453,12 @@ public class TestHelper {
 		LoggerUtility.info(CLASS_NAME, METHOD, mqttAppClient.getClientID() + " connected " + mqttAppClient.isConnected());
 	}
 	
-	public JsonObject appPublishCommand(String devType, String devId, 
+	public JsonObject publishCommand(String devType, String devId, 
 			String cmdName, JsonObject jsonCmd) throws TestException {
-		return appPublishCommand(null, null, devType, devId, cmdName, jsonCmd);
+		return publishCommand(null, null, devType, devId, cmdName, jsonCmd);
 	}
 	
-	public JsonObject appPublishCommand(
+	public JsonObject publishCommand(
 			String gwType, String gwDevId, 
 			String devType, String devId, 
 			String cmdName, JsonObject jsonCmd) throws TestException {
@@ -493,5 +502,28 @@ public class TestHelper {
 		return jsonCmd;
 	}
 	
+	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, String format, int qos) throws TestException {
+		final String METHOD = "subscribeEvents";
+		if (mqttAppClient == null) {
+			throw new TestException(TestException.MQTT_APP_CLIENT_NOT_INITIALIZED);
+		}
+
+		if (mqttAppClient.isConnected() == false) {
+			try {
+				connect();
+			} catch (MqttException e) {
+				e.printStackTrace();
+				LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
+				return;
+			}
+		}
+		
+		eventCallback = new TestEventCallback();
+		
+		mqttAppClient.setEventCallback(eventCallback);
+		
+		mqttAppClient.subscribeToDeviceEvents(deviceType, deviceId, event, format, qos);
+		
+	}
 
 }

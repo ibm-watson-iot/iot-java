@@ -31,7 +31,7 @@ import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.test.common.TestDeviceHelper;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestEventCallback;
-import com.ibm.iotf.test.common.TestHelper;
+import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.util.LoggerUtility;
 
 
@@ -80,7 +80,7 @@ public class ApplicationCommandStatusSubscriptionTest1 {
 		
 		if (!exist) {
 			try {
-				TestHelper.addDeviceType(apiClient, DEVICE_TYPE);
+				TestApplicationHelper.addDeviceType(apiClient, DEVICE_TYPE);
 			} catch (IoTFCReSTException e) {
 				e.printStackTrace();
 			}
@@ -93,18 +93,18 @@ public class ApplicationCommandStatusSubscriptionTest1 {
 		}
 		
 		try {
-			TestHelper.registerDevice(apiClient, DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken());
+			TestApplicationHelper.registerDevice(apiClient, DEVICE_TYPE, DEVICE_ID, TestEnv.getDeviceToken());
 		} catch (IoTFCReSTException e) {
 			e.printStackTrace();
 		}
 	
-		app1Props = TestHelper.createAPIKey(apiClient, CLASS_NAME);
+		app1Props = TestApplicationHelper.createAPIKey(apiClient, CLASS_NAME);
 		
 		if (app1Props != null) {
 			app1Props.setProperty("id", APP1_ID);
 		}
 
-		app2Props = TestHelper.createAPIKey(apiClient, CLASS_NAME);
+		app2Props = TestApplicationHelper.createAPIKey(apiClient, CLASS_NAME);
 		
 		if (app2Props != null) {
 			app2Props.setProperty("id", APP2_ID);
@@ -121,7 +121,7 @@ public class ApplicationCommandStatusSubscriptionTest1 {
 				e.printStackTrace();
 			}
 			
-			TestHelper.deleteAPIKeys(apiClient, CLASS_NAME);
+			TestApplicationHelper.deleteAPIKeys(apiClient, CLASS_NAME);
 		}
 	}
 	
