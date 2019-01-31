@@ -14,6 +14,7 @@ import com.ibm.iotf.client.device.DeviceClient;
 
 public class TestDeviceHelper extends TestApplicationHelper {
 
+	static final String CLASS_NAME = TestDeviceHelper.class.getName();
 	private String devType = null;
 	private String deviceId = null;
 	DeviceClient devClient = null;
@@ -43,6 +44,10 @@ public class TestDeviceHelper extends TestApplicationHelper {
 		final String METHOD = "disconnect";
 		devClient.disconnect();
 		LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " connected ? " + devClient.isConnected());
+	}
+	
+	public DeviceClient getDeviceClient() {
+		return devClient;
 	}
 	
 	public boolean commandReceived() {

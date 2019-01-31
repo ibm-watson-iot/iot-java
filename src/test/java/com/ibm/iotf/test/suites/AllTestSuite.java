@@ -7,6 +7,7 @@ import org.junit.runners.Suite.SuiteClasses;
 //import com.ibm.iotf.client.gateway.GatewayManagementTest;
 import com.ibm.iotf.client.gateway.GatewayManagementTest2;
 import com.ibm.iotf.client.application.ApplicationEventSubscriptionTest;
+import com.ibm.iotf.client.application.ApplicationNonDurableSubscriptionTest1;
 import com.ibm.iotf.client.application.ApplicationCommandStatusSubscriptionTest1;
 import com.ibm.iotf.client.application.ApplicationEventStatusSubscriptionTest1;
 import com.ibm.iotf.client.application.ApplicationEventStatusSubscriptionTest2;
@@ -37,6 +38,7 @@ import com.ibm.iotf.client.gateway.GatewayRegisterDeviceTest2;
 	ApplicationEventStatusSubscriptionTest3.class,
 	ApplicationEventStatusSubscriptionTest4.class,
 	ApplicationEventSubscriptionTest.class,
+	ApplicationNonDurableSubscriptionTest1.class,
 	DeviceManagementTest1.class,
 	DeviceManagementTest2.class,
 	DeviceManagementTest3.class,

@@ -22,10 +22,15 @@ public class TestApplicationHelper {
 	static final String CLASS_NAME = TestApplicationHelper.class.getName();
 	Properties appProps = null;
 	ApplicationClient mqttAppClient = null;
+	TestEventCallback eventCallback = null;
 	
 	
 	public TestApplicationHelper(Properties appProperties) throws Exception {
 		this.appProps = appProperties;
+		
+		if (this.appProps != null) {
+			mqttAppClient = new ApplicationClient(this.appProps);
+		}
 	}
 	
 	/**
@@ -425,6 +430,10 @@ public class TestApplicationHelper {
 		return mqttAppClient;
 	}
 	
+	public TestEventCallback getCallback() {
+		return eventCallback;
+	}
+	
 	
 	public void connect() throws MqttException, TestException {
 		final String METHOD = "connectApplication";
@@ -493,5 +502,28 @@ public class TestApplicationHelper {
 		return jsonCmd;
 	}
 	
+	public void subscribeToDeviceEvents(String deviceType, String deviceId, String event, String format, int qos) throws TestException {
+		final String METHOD = "subscribeEvents";
+		if (mqttAppClient == null) {
+			throw new TestException(TestException.MQTT_APP_CLIENT_NOT_INITIALIZED);
+		}
+
+		if (mqttAppClient.isConnected() == false) {
+			try {
+				connect();
+			} catch (MqttException e) {
+				e.printStackTrace();
+				LoggerUtility.warn(CLASS_NAME, METHOD, e.getMessage());
+				return;
+			}
+		}
+		
+		eventCallback = new TestEventCallback();
+		
+		mqttAppClient.setEventCallback(eventCallback);
+		
+		mqttAppClient.subscribeToDeviceEvents(deviceType, deviceId, event, format, qos);
+		
+	}
 
 }

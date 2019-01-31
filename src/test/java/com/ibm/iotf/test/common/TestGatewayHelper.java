@@ -10,6 +10,7 @@ import com.ibm.iotf.util.LoggerUtility;
 
 public class TestGatewayHelper extends TestApplicationHelper {
 
+	static final String CLASS_NAME = TestGatewayHelper.class.getName();
 	String gwDevType = null;
 	String gwDevId = null;
 	String devType = null;
