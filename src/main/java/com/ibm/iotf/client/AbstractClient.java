@@ -26,13 +26,11 @@ import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.Security;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Security;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -452,6 +450,15 @@ public abstract class AbstractClient {
 	
 	private void connectUsingCertificate() {
 		final String METHOD = "connectUsingCertificate";
+
+		/**
+		 * Add BouncyCastleProvider to the security provider list
+		 * Note: the position is returned if it was added
+		 *       or -1 if it was not added because it is already installed.
+		 */
+		int position = Security.addProvider(new BouncyCastleProvider());
+	    LoggerUtility.info(CLASS_NAME, METHOD, "Security provider position " + position);
+		
 		String protocol = null;
 		int port = getPortNumber();
 		if (isWebSocket()) {
@@ -478,53 +485,52 @@ public abstract class AbstractClient {
 		
 		try {
 			mqttAsyncClient = new MqttAsyncClient(serverURI, clientId, null);
-			mqttAsyncClient.setCallback(mqttCallback);
-			mqttClientOptions = new MqttConnectOptions();
-			if (clientUsername != null) {
-				mqttClientOptions.setUserName(clientUsername);
-			}
-			if (clientPassword != null) {
-				mqttClientOptions.setPassword(clientPassword.toCharArray());
-			}
-			mqttClientOptions.setCleanSession(this.isCleanSession());
-			if(this.keepAliveInterval != -1) {
-				mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
-			}
-			
-			mqttClientOptions.setMaxInflight(getMaxInflight());
-			mqttClientOptions.setAutomaticReconnect(isAutomaticReconnect());
-			
-			/* This isn't needed as the production messaging.internetofthings.ibmcloud.com 
-			 * certificate should already be in trust chain.
-			 * 
-			 * See: 
-			 *   http://stackoverflow.com/questions/859111/how-do-i-accept-a-self-signed-certificate-with-a-java-httpsurlconnection
-			 *   https://gerrydevstory.com/2014/05/01/trusting-x509-base64-pem-ssl-certificate-in-java/
-			 *   http://stackoverflow.com/questions/12501117/programmatically-obtain-keystore-from-pem
-			 *   https://gist.github.com/sharonbn/4104301
-			 * 
-			 * CertificateFactory cf = CertificateFactory.getInstance("X.509");
-			 * InputStream certFile = AbstractClient.class.getResourceAsStream("messaging.pem");
-			 * Certificate ca = cf.generateCertificate(certFile);
-			 *
-			 * KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			 * keyStore.load(null, null);
-			 * keyStore.setCertificateEntry("ca", ca);
-			 * TrustManager trustManager = TrustManagerUtils.getDefaultTrustManager(keyStore);
-			 * SSLContext sslContext = SSLContextUtils.createSSLContext("TLSv1.2", null, trustManager);
-			 * 
-			 */
-
-			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+		} catch (MqttException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Create MqttAsynClient failed, exception: " + e.getMessage());
+		}
+		mqttAsyncClient.setCallback(mqttCallback);
+		mqttClientOptions = new MqttConnectOptions();
+		if (clientUsername != null) {
+			mqttClientOptions.setUserName(clientUsername);
+		}
+		if (clientPassword != null) {
+			mqttClientOptions.setPassword(clientPassword.toCharArray());
+		}
+		mqttClientOptions.setCleanSession(this.isCleanSession());
+		if(this.keepAliveInterval != -1) {
+			mqttClientOptions.setKeepAliveInterval(this.keepAliveInterval);
+		}
+		
+		mqttClientOptions.setMaxInflight(getMaxInflight());
+		mqttClientOptions.setAutomaticReconnect(isAutomaticReconnect());
+		
+		SSLContext sslContext = null;
+		try {
+			sslContext = SSLContext.getInstance("TLSv1.2");
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Could not get SSLContext object. Exception: " + e.getMessage());
+		}
+		try {
 			sslContext.init(null, null, null);
-			
-			String serverCert = null;
-			String clientCert = null;
-			String clientCertKey = null;
-			String certPassword = null;
-			
+		} catch (KeyManagementException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Failed initializing SSLContext object. Exception: " + e.getMessage());
+		}
+		
+		String serverCert = null;
+		String clientCert = null;
+		String clientCertKey = null;
+		String certPassword = null;
+		
+		String trustStorePath = options.getProperty("TrustStorePath");
+		String trustStorePassword = options.getProperty("TrustStorePassword");
+		String keyStorePath = options.getProperty("KeyStorePath");
+		String keyStorePassword = options.getProperty("KeyStorePassword");
+		
+		if (trustStorePath == null) {
 			//Validate the availability of Server Certificate
-			
 			if (trimedValue(options.getProperty("Server-Certificate")) != null){
 				if (trimedValue(options.getProperty("Server-Certificate")).contains(".pem")||trimedValue(options.getProperty("Server-Certificate")).contains(".der")||trimedValue(options.getProperty("Server-Certificate")).contains(".cer")){
 					serverCert = trimedValue(options.getProperty("Server-Certificate"));
@@ -535,7 +541,9 @@ public abstract class AbstractClient {
 			} else{
 				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Server Certificate is missing, using default one");
 			}
-			
+		}
+		
+		if (keyStorePath == null) {
 			//Validate the availability of Client Certificate
 			if (trimedValue(options.getProperty("Client-Certificate")) != null){
 				if (trimedValue(options.getProperty("Client-Certificate")).contains(".pem")||trimedValue(options.getProperty("Client-Certificate")).contains(".der")||trimedValue(options.getProperty("Client-Certificate")).contains(".cer")){
@@ -544,43 +552,69 @@ public abstract class AbstractClient {
 					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only PEM, DER & CER certificate formats are supported at this point of time");
 					throw new RuntimeException("Only PEM, DER & CER certificate formats are supported at this point of time");
 				}
-			} else {
-				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Certificate is missing");
-				throw new RuntimeException("Value for Client Certificate is missing");
-			}
+			} 
 
 			//Validate the availability of Client Certificate Key
-			if (trimedValue(options.getProperty("Client-Key")) != null){
+			if (trimedValue(options.getProperty("Client-Key")) != null) {
 				if (trimedValue(options.getProperty("Client-Key")).contains(".key")){
 					clientCertKey = trimedValue(options.getProperty("Client-Key"));
 				} else {
 					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Only Certificate key in .key format is supported at this point of time");
 					return;
 				}
-			} else {
-				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Key is missing");
-				return;
 			}
-			
 			//Validate the availability of Certificate Password
-			try{
+			try {
 				if (trimedValue(options.getProperty("Certificate-Password")) != null){
 					certPassword = trimedValue(options.getProperty("Certificate-Password"));
 				} else {
 					certPassword = "";
 				}
-			} catch (RuntimeException e){
+			} catch (RuntimeException e) {
 					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Certificate Password is missing", e);
 					throw e;
-				}
-			
-			mqttClientOptions.setSocketFactory(getSocketFactory(serverCert, clientCert, clientCertKey, certPassword));
-
-		} catch (Exception e) {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "Unable to configure TLSv1.2 connection: " + e.getMessage());
-			e.printStackTrace();
-			throw new RuntimeException(e.getMessage());
+			}				
 		}
+		
+		
+		SSLSocketFactory sslSocketFactory = null;
+		
+		// Using both trust store and client key store 
+		if (trustStorePath != null && trustStorePassword != null && keyStorePath != null && keyStorePassword != null) {
+			try {
+				sslSocketFactory = getSocketFactoryFromTrustStoreKeyStore(trustStorePath, trustStorePassword, keyStorePath, keyStorePassword);
+			} catch (UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
+					| KeyStoreException | CertificateException | IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Error getting SocketFactory. Exception: " + e.getMessage());
+			}
+		}
+		
+		// Using only trust store
+		if (sslSocketFactory == null  && trustStorePath != null && trustStorePassword != null 
+				&& keyStorePath == null && keyStorePassword == null) {
+			try {
+				sslSocketFactory = getSocketFactoryFromTrustStore(trustStorePath, trustStorePassword);
+			} catch (UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
+					| KeyStoreException | CertificateException | IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Error getting SocketFactory. Exception: " + e.getMessage());
+			}
+		}
+		
+		if (sslSocketFactory == null) {
+			// Using certificate PEM files
+			try {
+				sslSocketFactory = getSocketFactory(serverCert, clientCert, clientCertKey, certPassword);
+			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | KeyStoreException
+					| NoSuchAlgorithmException | IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Error getting SocketFactory. Exception: " + e.getMessage());
+			}
+		}
+		
+		mqttClientOptions.setSocketFactory(sslSocketFactory);
+			
 	}
 	
 	public void setKeepAliveInterval(int keepAliveInterval) {
@@ -612,6 +646,14 @@ public abstract class AbstractClient {
 			enabled = Boolean.parseBoolean(trimedValue(value));
 		}
 		return enabled;
+	}
+	
+	private String getKeystoreType() {
+		String type = options.getProperty("Keystore-Type");
+		if (type == null) {
+			type = KeyStore.getDefaultType();
+		}
+		return type;
 	}
 	
 	public boolean isAutomaticReconnect() {
@@ -1006,61 +1048,202 @@ public abstract class AbstractClient {
 		}
 	}
 
-	static SSLSocketFactory getSocketFactory (final String caCrtFile, final String crtFile, 
-			final String keyFile, final String password) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException { 
-		Security.addProvider(new BouncyCastleProvider());
-	    X509Certificate caCert = null;
-	    	    
-	    if(caCrtFile != null) {
+	/**
+	 * Get SSLSocketFactory object from CA certificate file, client Certificate file and Key file.
+	 * 
+	 * @param caCrtFile Path to CA certificate, can be null (default messaging.pem will be used)
+	 * @param clientCertFile Path to client certificate
+	 * @param clientKeyFile Path to client key file
+	 * @param password Password to access client key
+	 * @return SSLSocketFactory
+	 * @throws IOException
+	 * @throws CertificateException
+	 * @throws UnrecoverableKeyException
+	 * @throws KeyManagementException
+	 * @throws KeyStoreException
+	 * @throws NoSuchAlgorithmException
+	 */
+	private SSLSocketFactory getSocketFactory (String caCrtFile, String clientCertFile, 
+			String clientKeyFile, String password) throws IOException, CertificateException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException { 
+
+		final String METHOD = "getSocketFactory";
+		
+		X509Certificate caCert = null;
+
+		if (clientCertFile == null) {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Certificate is missing");
+			throw new RuntimeException("Value for Client Certificate is missing");
+		}
+		
+		if (clientKeyFile == null) {
+			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Value for Client Key is missing");
+			throw new RuntimeException("Value for Client Key is missing");
+		}
+
+		if (caCrtFile != null) {
 		    // load CA certificate
 		    PEMReader reader = new PEMReader(new InputStreamReader(new ByteArrayInputStream(Files.readAllBytes(Paths.get(caCrtFile)))));
 		    caCert = (X509Certificate)reader.readObject();
 		    reader.close();
 	    } else {
+	    	// Use the default messaging.pem
 	    	 ClassLoader classLoader = AbstractClient.class.getClassLoader();
 	    	 PEMReader reader = new PEMReader(new InputStreamReader(classLoader.getResource(SERVER_MESSAGING_PEM).openStream()));
 			    caCert = (X509Certificate)reader.readObject();
 			    reader.close();
 	    }
 	    
-	    PEMReader reader = new PEMReader(new InputStreamReader(new ByteArrayInputStream(Files.readAllBytes(Paths.get(crtFile)))));
+	    PEMReader reader = new PEMReader(new InputStreamReader(new ByteArrayInputStream(Files.readAllBytes(Paths.get(clientCertFile)))));
 	    X509Certificate cert = (X509Certificate)reader.readObject();
 	    reader.close();
 	    
 	    // load client private key
 	    reader = new PEMReader(
-	            new InputStreamReader(new ByteArrayInputStream(Files.readAllBytes(Paths.get(keyFile))))
+	            new InputStreamReader(new ByteArrayInputStream(Files.readAllBytes(Paths.get(clientKeyFile))))
 	    );
 	    KeyPair key = (KeyPair)reader.readObject();
 	    reader.close();
 	    	    
 	    TrustManagerFactory tmf = null;
-	    if(caCert != null) {
+	    if (caCert != null) {
 		    // CA certificate is used to authenticate server
-		    KeyStore caKs = KeyStore.getInstance("JKS");
-		    //caKs.load(null, null);
-		    caKs.load(null, null);
-		    caKs.setCertificateEntry("ca-certificate", caCert);
-		    tmf = TrustManagerFactory.getInstance("PKIX");
+		    KeyStore caKs = KeyStore.getInstance(getKeystoreType());
+			caKs.load(null, null);
+		    KeyStore.TrustedCertificateEntry caEntry = new KeyStore.TrustedCertificateEntry(caCert);
+		    caKs.setCertificateEntry("ca-certificate", caEntry.getTrustedCertificate());
+		    try {
+				tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			} catch (NoSuchAlgorithmException e) {
+				if (TrustManagerFactory.getDefaultAlgorithm().equalsIgnoreCase("PKIX") == false) {
+					tmf = TrustManagerFactory.getInstance("PKIX");
+				} else {
+					throw e;
+				}
+			}
 		    tmf.init(caKs);
 	    } 
+	    
 	    // client key and certificates are sent to server so it can authenticate us
-	    KeyStore ks = KeyStore.getInstance("JKS");
-	    ks.load(null, null);
+	    KeyStore ks = KeyStore.getInstance(getKeystoreType());
+		ks.load(null, null);
 	    ks.setCertificateEntry("certificate", cert);
 	    ks.setKeyEntry("private-key", key.getPrivate(), password.toCharArray(), new java.security.cert.Certificate[]{cert});
-	    KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
+	    KeyManagerFactory kmf;
+		try {
+			kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		} catch (NoSuchAlgorithmException e) {
+			if (KeyManagerFactory.getDefaultAlgorithm().equalsIgnoreCase("PKIX") == false) {
+				kmf = KeyManagerFactory.getInstance("PKIX");
+			} else {
+				throw e;
+			}
+		}
+	    
 	    kmf.init(ks, password.toCharArray());
 
 	    // finally, create SSL socket factory
 	    SSLContext context = SSLContext.getInstance("TLSv1.2");
-	    if(tmf != null) {
+	    LoggerUtility.info(CLASS_NAME, METHOD, "Using security provider: " + context.getProvider().getName());
+	    if (tmf != null) {
 	    	context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 	    } else {
 	    	context.init(kmf.getKeyManagers(), null, null);
 	    }
 
 	    return context.getSocketFactory();
+	}
+
+	/**
+	 * Load and return the KeyStore object from the specified trust store or client key store
+	 * @param path Path to the key store file
+	 * @param password Password to access the key store file
+	 * @return KeyStore
+	 * @throws KeyStoreException
+	 * @throws NoSuchAlgorithmException
+	 * @throws CertificateException
+	 * @throws IOException
+	 */
+	private KeyStore getKeyStore(String path, String password) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+		
+		KeyStore ks = KeyStore.getInstance(getKeystoreType());
+
+	    java.io.FileInputStream fis = null;
+	    try {
+	        fis = new java.io.FileInputStream(path);
+	        ks.load(fis, password.toCharArray());
+	    } finally {
+	        if (fis != null) {
+	            fis.close();
+	        }
+	    }
+	    return ks;
+	}
+
+	/**
+	 * Use this method to obtain a SSLSocketFactory object when client certificate is used.
+	 * 
+	 * @param trustStorePath Path to trust store
+	 * @param trustStorePassword Password to access the trust store
+	 * @param keyStorePath Path to client key store
+	 * @param keyStorePassword Password to access the client key store
+	 * @return SSLSocketFactory
+	 * @throws NoSuchAlgorithmException
+	 * @throws KeyStoreException
+	 * @throws CertificateException
+	 * @throws IOException
+	 * @throws UnrecoverableKeyException
+	 * @throws KeyManagementException
+	 */
+	private SSLSocketFactory getSocketFactoryFromTrustStoreKeyStore(
+			String trustStorePath, String trustStorePassword,
+			String keyStorePath, String keyStorePassword) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
+		final String METHOD = "getSocketFactoryFromTrustStoreKeyStore";
+
+		TrustManagerFactory tmf = null;
+		KeyManagerFactory kmf = null;
+	    
+		tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		KeyStore trustStore = getKeyStore(trustStorePath, trustStorePassword);
+		tmf.init(trustStore);	    
+		
+		kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		KeyStore keyStore = getKeyStore(keyStorePath, keyStorePassword);
+		kmf.init(keyStore, keyStorePassword.toCharArray());
+
+		SSLContext context = SSLContext.getInstance("TLSv1.2");
+	    LoggerUtility.info(CLASS_NAME, METHOD, "Using security provider: " + context.getProvider().getName());
+		context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+		return context.getSocketFactory();
+	}
+
+	/**
+	 * Use this method to obtain a SSLSocketFactory object when client certificate is not used.
+	 * 
+	 * @param trustStorePath Path to trust store
+	 * @param trustStorePassword Password to access the trust store
+	 * @return SSLSocketFactory
+	 * @throws NoSuchAlgorithmException
+	 * @throws KeyStoreException
+	 * @throws CertificateException
+	 * @throws IOException
+	 * @throws UnrecoverableKeyException
+	 * @throws KeyManagementException
+	 */
+	private SSLSocketFactory getSocketFactoryFromTrustStore(
+			String trustStorePath, String trustStorePassword) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
+		final String METHOD = "getSocketFactoryFromTrustStore";
+
+		TrustManagerFactory tmf = null;
+	    
+		tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		KeyStore trustStore = getKeyStore(trustStorePath, trustStorePassword);
+		tmf.init(trustStore);	    
+
+		// Get a SSLContext that implements the specified secure socket protocol (TLSv1.2)
+		SSLContext context = SSLContext.getInstance("TLSv1.2");
+	    LoggerUtility.info(CLASS_NAME, METHOD, "Using security provider: " + context.getProvider().getName());
+		context.init(null, tmf.getTrustManagers(), null);
+		return context.getSocketFactory();
 	}
 	
 }

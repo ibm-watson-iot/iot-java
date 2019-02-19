@@ -29,6 +29,15 @@ public class TestDeviceHelper extends TestApplicationHelper {
 		callback = new TestCommandCallback();
 		devClient.setCommandCallback(callback);
 	}
+
+	public TestDeviceHelper(String devType, String deviceId, Properties props) throws Exception {
+		super(null);
+		this.devType = devType;
+		this.deviceId = deviceId;
+		devClient = new DeviceClient(props);
+		callback = new TestCommandCallback();
+		devClient.setCommandCallback(callback);
+	}
 	
 	public String getDeviceType() { return devType; }
 	public String getDeviceId() { return deviceId; }
