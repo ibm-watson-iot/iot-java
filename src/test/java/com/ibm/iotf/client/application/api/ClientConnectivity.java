@@ -104,7 +104,7 @@ public class ClientConnectivity {
 	 * @throws UnsupportedEncodingException 
 	 */
 	@Test
-	public void test04getRecentDasyAcitivyStates() throws IoTFCReSTException, UnsupportedEncodingException {
+	public void test04getRecentDasyActivityStates() throws IoTFCReSTException, UnsupportedEncodingException {
 		try {
 			Date date = new Date();
 			Calendar cal = Calendar.getInstance();
@@ -116,6 +116,23 @@ public class ClientConnectivity {
 					DateFormatUtils.ISO_DATETIME_FORMAT.getPattern());
 
 			JsonObject response = apiClient.getActiveInRecentDaysConnectionStates(utcTime);
+			assertFalse("Response must not be null", response.isJsonNull());
+		} catch(IoTFCReSTException e) {
+			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+		} catch(UnsupportedEncodingException e) {
+			fail("ErrorMessage :: "+e.getMessage());
+		}
+		
+	}
+	
+	/**
+	 * This test-case tests how to get a custom query using the Java Client Library.
+	 * @throws UnsupportedEncodingException 
+	 */
+	@Test
+	public void test05getCustomConnectionState() throws IoTFCReSTException, UnsupportedEncodingException {
+		try {
+	     	JsonObject response = apiClient.getCustomConnectionState("?connectionStatus=disconnected");
 			assertFalse("Response must not be null", response.isJsonNull());
 		} catch(IoTFCReSTException e) {
 			fail("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());

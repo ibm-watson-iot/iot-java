@@ -32,35 +32,11 @@ import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 
 /**
- * This sample showcases various bulk ReST operations that can be performed on Watson IoT Platform.
+ * This sample showcases various client connectivity status operations that can be performed
  */
 public class SampleClientConnectivity {
 	
 	private final static String PROPERTIES_FILE_NAME = "/application.properties";
-	
-	// Example Json format to add a device
-	/*
-	 * {
-		    "typeId": "SampleDT",
-		    "deviceId": "RasPi100",
-		    "authToken": "password",
-		    "deviceInfo": {
-		        "serialNumber": "10087",
-		        "manufacturer": "IBM",
-		        "model": "7865",
-		        "deviceClass": "A",
-		        "description": "My RasPi01 Device",
-		        "fwVersion": "1.0.0",
-		        "hwVersion": "1.0",
-		        "descriptiveLocation": "EGL C"
-		    },
-		    "location": {
-		        "measuredDateTime": "2015-23-07T11:23:23+00:00"
-		    },
-		    "metadata": {}
-		}
-	 */
-
 
 	private final static String clientIdToQuery = "client:id:here";
 	
@@ -95,6 +71,7 @@ public class SampleClientConnectivity {
 		sample.getConnectionState();
 		sample.getConnectedConnectionStates();
 		sample.getRecentConnectionStates();
+		sample.getCustomConnectionState();
 	}
 
 	/**
@@ -173,6 +150,27 @@ public class SampleClientConnectivity {
 
 		try {
 			JsonObject responseJson = this.apiClient.getActiveInRecentDaysConnectionStates(utcTime);
+			System.out.println(responseJson);
+		} catch(IoTFCReSTException e) {
+			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
+			
+			// Print if there is a partial response
+			System.out.println(e.getResponse());
+		}
+	}
+	
+	/**
+	 * This sample showcases how to call a custom query for the connection state api
+	 * defaults to {orgId}.internetofthings.ibmcloud.com/api/v0002/clientconnectionstates when empty
+	 * 
+	 * @throws Exception 
+	 */
+	private void getCustomConnectionState() throws IoTFCReSTException {
+		
+	    String query = "?connectionStatus=disconnected";
+
+		try {
+			JsonObject responseJson = this.apiClient.getCustomConnectionState(query);
 			System.out.println(responseJson);
 		} catch(IoTFCReSTException e) {
 			System.out.println("HttpCode :" + e.getHttpCode() +" ErrorMessage :: "+ e.getMessage());
