@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.ibm.internal.iotf.devicemgmt.DMServerTopic;
-import com.ibm.internal.iotf.devicemgmt.device.DeviceDMAgentTopic.Topic;
 
 /**
  * List of Service topics where the IBM Watson IoT Platform server

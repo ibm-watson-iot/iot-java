@@ -11,24 +11,18 @@
 package com.ibm.internal.iotf.devicemgmt.handler;
 
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.ibm.iotf.devicemgmt.DeviceAction;
-import com.ibm.internal.iotf.devicemgmt.ManagedClient;
 import com.ibm.internal.iotf.devicemgmt.DMAgentTopic;
+import com.ibm.internal.iotf.devicemgmt.ManagedClient;
 import com.ibm.iotf.util.LoggerUtility;
 
 

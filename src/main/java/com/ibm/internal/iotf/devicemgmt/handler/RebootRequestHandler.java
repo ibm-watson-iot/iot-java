@@ -17,13 +17,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.ibm.internal.iotf.devicemgmt.ConcreteDeviceAction;
-import com.ibm.internal.iotf.devicemgmt.ManagedClient;
 import com.ibm.internal.iotf.devicemgmt.DMServerTopic;
+import com.ibm.internal.iotf.devicemgmt.ManagedClient;
+import com.ibm.internal.iotf.devicemgmt.ResponseCode;
 import com.ibm.iotf.devicemgmt.DeviceAction;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
-import com.ibm.internal.iotf.devicemgmt.ResponseCode;
-import com.ibm.iotf.devicemgmt.resource.Resource;
-import com.ibm.iotf.devicemgmt.resource.Resource.ChangeListenerType;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**

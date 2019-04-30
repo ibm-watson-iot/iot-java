@@ -30,8 +30,6 @@ import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.util.LoggerUtility;
-
-import junit.framework.TestCase;
 /**
  * This sample showcases various ReST operations that can be performed on Watson IoT Platform to
  * add/update/get/Gateway device(s)

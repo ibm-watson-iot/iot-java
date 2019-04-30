@@ -18,13 +18,11 @@ import com.google.gson.JsonObject;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.devicemgmt.DeviceData;
-import com.ibm.iotf.devicemgmt.DeviceFirmware;
-import com.ibm.iotf.devicemgmt.DeviceInfo;
 import com.ibm.iotf.devicemgmt.DeviceMetadata;
 import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
+import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestGatewayHelper;
-import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.test.common.TestPropertyChangeListener;
 import com.ibm.iotf.util.LoggerUtility;
 

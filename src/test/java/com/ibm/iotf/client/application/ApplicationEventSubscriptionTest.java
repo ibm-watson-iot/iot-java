@@ -14,7 +14,6 @@
 package com.ibm.iotf.client.application;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -24,27 +23,16 @@ import java.util.logging.Logger;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
-import com.ibm.iotf.client.AbstractClient;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.app.ApplicationClient;
-import com.ibm.iotf.client.app.ApplicationStatus;
-import com.ibm.iotf.client.app.Command;
-import com.ibm.iotf.client.app.DeviceStatus;
-import com.ibm.iotf.client.app.Event;
-import com.ibm.iotf.client.app.EventCallback;
-import com.ibm.iotf.client.app.StatusCallback;
 import com.ibm.iotf.client.device.DeviceClient;
+import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.test.common.TestDeviceHelper;
 import com.ibm.iotf.test.common.TestEnv;
-import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.util.LoggerUtility;
-
-import junit.framework.TestCase;
 
 
 /**

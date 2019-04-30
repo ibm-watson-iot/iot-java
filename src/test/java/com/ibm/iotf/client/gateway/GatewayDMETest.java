@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import junit.framework.TestCase;
-
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;

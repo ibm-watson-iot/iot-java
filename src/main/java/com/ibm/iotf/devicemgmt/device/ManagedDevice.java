@@ -23,8 +23,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -38,19 +36,19 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.ibm.internal.iotf.devicemgmt.DMAgentTopic;
+import com.ibm.internal.iotf.devicemgmt.DMServerTopic;
+import com.ibm.internal.iotf.devicemgmt.ManagedClient;
+import com.ibm.internal.iotf.devicemgmt.ResponseCode;
+import com.ibm.internal.iotf.devicemgmt.device.DeviceDMAgentTopic;
+import com.ibm.internal.iotf.devicemgmt.device.DeviceDMServerTopic;
+import com.ibm.internal.iotf.devicemgmt.handler.DMRequestHandler;
 import com.ibm.iotf.client.device.DeviceClient;
 import com.ibm.iotf.devicemgmt.CustomActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceActionHandler;
 import com.ibm.iotf.devicemgmt.DeviceData;
 import com.ibm.iotf.devicemgmt.DeviceFirmwareHandler;
 import com.ibm.iotf.devicemgmt.LogSeverity;
-import com.ibm.internal.iotf.devicemgmt.device.DeviceDMAgentTopic;
-import com.ibm.internal.iotf.devicemgmt.device.DeviceDMServerTopic;
-import com.ibm.internal.iotf.devicemgmt.handler.DMRequestHandler;
-import com.ibm.internal.iotf.devicemgmt.DMAgentTopic;
-import com.ibm.internal.iotf.devicemgmt.DMServerTopic;
-import com.ibm.internal.iotf.devicemgmt.ManagedClient;
-import com.ibm.internal.iotf.devicemgmt.ResponseCode;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**

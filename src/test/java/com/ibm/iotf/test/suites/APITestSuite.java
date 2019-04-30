@@ -6,11 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 import com.ibm.iotf.client.application.api.BulkAPIOperationsTest;
 import com.ibm.iotf.client.application.api.DeviceAPIOperationsTest;
-import com.ibm.iotf.client.application.api.DeviceDiagnosticsAPIOperationsTest;
-import com.ibm.iotf.client.application.api.DeviceManagementAPIOperationsTest;
-import com.ibm.iotf.client.application.api.DeviceManagementExtensionsTest;
 import com.ibm.iotf.client.application.api.DeviceTypeAPIOperationsTest;
-import com.ibm.iotf.client.application.api.EventCacheAPITests;
 import com.ibm.iotf.client.application.api.GatewayAPIOperationsTest;
 import com.ibm.iotf.client.application.api.UsageManagementAPIOperationsTest;
 

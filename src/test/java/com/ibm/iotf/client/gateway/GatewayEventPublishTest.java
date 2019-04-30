@@ -26,8 +26,6 @@ import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
 import com.ibm.iotf.client.gateway.GatewayClient;
 
-import junit.framework.TestCase;
-
 /**
  * This Test verifies whether one can publish event successfully to the quickstart 
  * and registered service (if property file is provided).

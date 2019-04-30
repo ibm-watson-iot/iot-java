@@ -14,8 +14,6 @@ import java.io.UnsupportedEncodingException;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import com.ibm.iotf.client.Message;
-
 /**
  * The Notification class  
  */

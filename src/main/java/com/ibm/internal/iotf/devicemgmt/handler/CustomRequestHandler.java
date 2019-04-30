@@ -13,17 +13,14 @@ package com.ibm.internal.iotf.devicemgmt.handler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-
-//import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.ibm.internal.iotf.devicemgmt.ConcreteCustomAction;
 import com.ibm.internal.iotf.devicemgmt.ConcreteDeviceAction;
-import com.ibm.internal.iotf.devicemgmt.ManagedClient;
 import com.ibm.internal.iotf.devicemgmt.DMServerTopic;
-import com.ibm.iotf.client.CustomAction;
-import com.ibm.iotf.devicemgmt.CustomActionHandler;
+import com.ibm.internal.iotf.devicemgmt.ManagedClient;
 import com.ibm.internal.iotf.devicemgmt.ResponseCode;
+import com.ibm.iotf.devicemgmt.CustomActionHandler;
 import com.ibm.iotf.util.LoggerUtility;
 
 /**

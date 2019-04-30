@@ -10,8 +10,6 @@
  */
 package com.ibm.iotf.devicemgmt;
 
-import java.util.Date;
-
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.ibm.iotf.devicemgmt.resource.Resource;

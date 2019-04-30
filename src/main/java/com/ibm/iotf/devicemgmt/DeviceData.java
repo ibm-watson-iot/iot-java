@@ -10,7 +10,6 @@
  */
 package com.ibm.iotf.devicemgmt;
 
-import com.google.gson.JsonObject;
 import com.ibm.internal.iotf.devicemgmt.ConcreteCustomAction;
 import com.ibm.internal.iotf.devicemgmt.ConcreteDeviceAction;
 import com.ibm.internal.iotf.devicemgmt.DeviceMgmt;

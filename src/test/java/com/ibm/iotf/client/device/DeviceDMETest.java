@@ -6,8 +6,6 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.util.Properties;
 
-import junit.framework.TestCase;
-
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
