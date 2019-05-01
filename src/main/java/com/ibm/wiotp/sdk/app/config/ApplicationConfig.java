@@ -122,5 +122,15 @@ public class ApplicationConfig implements AbstractConfig {
 		return auth.token;
 	}
 	
+	@Override
+	public String getDeviceId() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public String getTypeId() {
+		throw new UnsupportedOperationException();
+	}
+
 }
 

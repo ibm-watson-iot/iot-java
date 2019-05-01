@@ -41,13 +41,11 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	private static final String CLASS_NAME = DeviceClient.class.getName();
 	private static final Pattern COMMAND_PATTERN = Pattern.compile("iot-2/cmd/(.+)/fmt/(.+)");
 	
-	private CommandCallback commandCallback = null;
+	protected CommandCallback commandCallback = null;
 	
 	public DeviceClient() throws Exception {
 		this(DeviceConfig.generateFromEnv());
 	}
-	
-	
 	
 	/**
 	 * Create a device client for the IBM Watson IoT Platform. <br>

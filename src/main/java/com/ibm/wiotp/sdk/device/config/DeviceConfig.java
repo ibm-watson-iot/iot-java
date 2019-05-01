@@ -89,5 +89,15 @@ public class DeviceConfig implements AbstractConfig {
 	public String getMqttPassword() {
 		return auth.token;
 	}
+
+	@Override
+	public String getDeviceId() {
+		return identity.deviceId;
+	}
+
+	@Override
+	public String getTypeId() {
+		return identity.typeId;
+	}
 	
 }

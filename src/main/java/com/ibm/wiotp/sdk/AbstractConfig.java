@@ -14,6 +14,9 @@ public interface AbstractConfig {
 	
 	public MqttConnectOptions getMqttConnectOptions() throws NoSuchAlgorithmException, KeyManagementException;
 
+	public String getDeviceId();
+	public String getTypeId();
+	
 	public String getClientId();
 	public String getMqttUsername();
 	public String getMqttPassword();
