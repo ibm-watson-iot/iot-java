@@ -11,7 +11,12 @@
 - HTTP API support is provided by [swagger-codegen](https://github.com/swagger-api/swagger-codegen): 
 
 
-## Usage
+## Documentation
+
+https://ibm-watson-iot.github.io/iot-java/
+
+
+## Basic Usage
 
 ### Applications
 
