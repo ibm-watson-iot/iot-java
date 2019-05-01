@@ -11,6 +11,8 @@
 package com.ibm.wiotp.sdk.gateway;
 
 import java.io.UnsupportedEncodingException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -50,6 +52,7 @@ import com.ibm.wiotp.sdk.devicemgmt.internal.ResponseCode;
 import com.ibm.wiotp.sdk.devicemgmt.internal.gateway.GatewayDMAgentTopic;
 import com.ibm.wiotp.sdk.devicemgmt.internal.gateway.GatewayDMServerTopic;
 import com.ibm.wiotp.sdk.devicemgmt.internal.handler.DMRequestHandler;
+import com.ibm.wiotp.sdk.gateway.config.GatewayConfig;
 import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 /**
@@ -116,54 +119,15 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
      * @param deviceData   The Device Model
      * @throws Exception   If the essential parameters are not set
      */
-	public ManagedGateway(Properties options, DeviceData deviceData) throws Exception {
-		super(options);
-		final String METHOD = "constructor";
-		if(deviceData == null) {
-			LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Could not create Managed Client "
-					+ "without DeviceInformations !");
-			throw new Exception("Could not create Managed Client without DeviceInformations !");
-		}
-		String typeId = this.getGWDeviceType();
-		String deviceId = this.getGWDeviceId();
+	public ManagedGateway(GatewayConfig config, DeviceData deviceData) throws Exception {
+		super(config);
 		
-		if(typeId == null || deviceId == null) {
-			LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Could not create Managed Client "
-					+ "without Device Type or Device ID !");
-			throw new Exception("Could not create Managed Client without Device Type or Device ID!, "
-					+ "Please specify the same in properties");
-		}
-		deviceData.setTypeId(typeId);
-		deviceData.setDeviceId(deviceId);
+		deviceData.setTypeId(config.identity.typeId);
+		deviceData.setDeviceId(config.identity.deviceId);
+		
 		ManagedClient mc = new ManagedGatewayDevice(this, deviceData);
 		this.gateway = (ManagedGatewayDevice) mc;
-		this.gatewayKey = typeId + ':' + deviceId;
-	}
-	
-	
-	/**
-	 * <p>This method connects the Gateway to the IBM IBM Watson IoT Platform.</p>
-	 * <p>Note that the Gateway needs to make a call manage() to participate in Device
-	 * Management activities.</p> 
-	 * 
-	 * <p> This method does nothing if the Gateway is already connected.
-	 * This method does not retry when the following exceptions occur.</p>
-	 * 
-	 * <ul class="simple">
-	 *  <li> MqttSecurityException - One or more credentials are wrong
-	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
-	 * </ul>
-	 * 
-	 * @throws MqttException refer above
-	 * 
-	 */	
-	public void connect() throws MqttException {
-		final String METHOD = "connect";
-		if (this.isConnected()) {
-			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Gateway device client (" + this.config.getClientId() + ") is already connected");
-			return;
-		}
-		super.connect();
+		this.gatewayKey = config.identity.typeId + ':' + config.identity.deviceId;
 	}
 	
 	/**
@@ -304,14 +268,6 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			this.bManaged = bManaged;
 		}
 
-		public String getTypeId() {
-			return this.deviceData.getTypeId();
-		}
-		
-		public String getDeviceId() {
-			return this.deviceData.getDeviceId();
-		}
-
 		public void setSupportsFirmwareActions(boolean supportsFirmwareActions) {
 			this.firmwareActions = supportsFirmwareActions;
 		}
@@ -372,7 +328,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		if(!this.devicesMap.containsKey(this.gatewayKey)) {
 			this.devicesMap.put(gatewayKey, this.gateway);
 		}
-		return this.sendDeviceManageRequest(this.getGWDeviceType(), getGWDeviceId(), gateway.getDeviceData(),
+		return this.sendDeviceManageRequest(config.getTypeId(), config.getDeviceId(), gateway.getDeviceData(),
 				lifetime, supportFirmwareActions, supportDeviceActions, (List<String>)null);
 	}
 	
@@ -410,7 +366,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		if(!this.devicesMap.containsKey(this.gatewayKey)) {
 			this.devicesMap.put(gatewayKey, this.gateway);
 		}
-		return this.sendDeviceManageRequest(this.getGWDeviceType(), getGWDeviceId(), gateway.getDeviceData(),
+		return this.sendDeviceManageRequest(config.getTypeId(), config.getDeviceId(), gateway.getDeviceData(),
 				lifetime, supportFirmwareActions, supportDeviceActions, bundleIds);
 	}
 	
@@ -610,8 +566,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 		String topic = mc.getDMAgentTopic().getManageTopic();
 		
 		if (!this.isConnected()) {
-			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Gateway device client (" + this.config.getClientId() + ") is not connected.");
-			this.connect();
+			throw new RuntimeException("You need to connect the gateway before manage()");
 		}
 		
 		JsonObject jsonPayload = new JsonObject();
@@ -683,7 +638,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 
 	 */
 	public int updateGatewayLocation(Double latitude, Double longitude, Double elevation) {
-		return updateDeviceLocation(this.getGWDeviceType(), getGWDeviceId(), latitude, 
+		return updateDeviceLocation(config.getTypeId(), config.getDeviceId(), latitude, 
 				longitude, elevation, new Date(), null, null);
 	}
 	
@@ -700,10 +655,8 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful)
 
 	 */
-	public int updateDeviceLocation(String typeId, String deviceId, 
-							Double latitude, Double longitude, Double elevation) {
-		return updateDeviceLocation(typeId, deviceId, latitude, 
-				longitude, elevation, new Date(), null, null);
+	public int updateDeviceLocation(String typeId, String deviceId, Double latitude, Double longitude, Double elevation) {
+		return updateDeviceLocation(typeId, deviceId, latitude, longitude, elevation, new Date(), null, null);
 	}
 
 	/**
@@ -720,8 +673,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 
 	 */
 	public int updateGatewayLocation(Double latitude, Double longitude, Double elevation, Date measuredDateTime) {
-		return updateDeviceLocation(getGWDeviceType(), getGWDeviceId(), latitude, 
-				longitude, elevation, measuredDateTime, null, null);
+		return updateDeviceLocation(config.getTypeId(), config.getDeviceId(), latitude, longitude, elevation, measuredDateTime, null, null);
 	}
 	
 	/**
@@ -739,11 +691,8 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful)
 
 	 */
-	public int updateDeviceLocation(String typeId, String deviceId, Double latitude, 
-							Double longitude, Double elevation, Date measuredDateTime) {
-		
-		return updateDeviceLocation(typeId, deviceId, latitude,	
-				longitude, elevation, measuredDateTime, null, null);
+	public int updateDeviceLocation(String typeId, String deviceId, Double latitude, Double longitude, Double elevation, Date measuredDateTime) {
+		return updateDeviceLocation(typeId, deviceId, latitude,	longitude, elevation, measuredDateTime, null, null);
 	}
 	
 	/**
@@ -768,8 +717,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 							 Date updatedDateTime,
 							 Double accuracy) {
 		
-		return updateDeviceLocation(getGWDeviceType(), getGWDeviceId(), latitude, 
-				longitude, elevation, measuredDateTime, updatedDateTime, accuracy);
+		return updateDeviceLocation(config.getTypeId(), config.getDeviceId(), latitude, longitude, elevation, measuredDateTime, updatedDateTime, accuracy);
 	}
 	
 	/**
@@ -852,7 +800,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful)
 	 */
 	public int clearGatewayErrorCodes() {
-		return clearDeviceErrorCodes(getGWDeviceType(), getGWDeviceId());
+		return clearDeviceErrorCodes(config.getTypeId(), config.getDeviceId());
 	}
 	
 	/**
@@ -893,7 +841,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful).
 	 */
 	public int clearGatewayLogs() {
-		return clearDeviceLogs(getGWDeviceType(), getGWDeviceId());
+		return clearDeviceLogs(config.getTypeId(), config.getDeviceId());
 	}
 	
 	/**
@@ -936,7 +884,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful).
 	 */
 	public int addGatewayErrorCode(int errorCode) {
-		return addDeviceErrorCode(getGWDeviceType(), getGWDeviceId(), errorCode);
+		return addDeviceErrorCode(config.getTypeId(), config.getDeviceId(), errorCode);
 	}
 	
 	/**
@@ -988,7 +936,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful).
 	 */
 	public int addGatewayLog(String message, Date timestamp, LogSeverity severity) {
-		return addDeviceLog(getGWDeviceType(), getGWDeviceId(), message, timestamp, severity, null);
+		return addDeviceLog(config.getTypeId(), config.getDeviceId(), message, timestamp, severity, null);
 	}
 	
 	/**
@@ -1004,7 +952,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 *        (200 means success, otherwise unsuccessful).
 	 */
 	public int addGatewayLog(String message, Date timestamp, LogSeverity severity, String data) {
-		return addDeviceLog(getGWDeviceType(), getGWDeviceId(), message, timestamp, severity, data);
+		return addDeviceLog(config.getTypeId(), config.getDeviceId(), message, timestamp, severity, data);
 	}
 	
 	/**
@@ -1099,7 +1047,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * @throws MqttException When failure
 	 */
 	public boolean sendGatewayUnmanageRequet() throws MqttException {
-		return sendDeviceUnmanageRequet(getGWDeviceType(), getGWDeviceId());
+		return sendDeviceUnmanageRequet(config.getTypeId(), config.getDeviceId());
 	}
 	
 	/**
@@ -1453,10 +1401,12 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * This method does the following activities,
 	 * 1. Calculates the lifetime remaining
 	 * 2. Sends the manage request for those devices/Gateway which are in managed state before disconnecting
+	 * @throws NoSuchAlgorithmException 
+	 * @throws KeyManagementException 
 	 *  
 	 */
 	@Override
-	protected void reconnect() {
+	protected void reconnect() throws KeyManagementException, NoSuchAlgorithmException {
 		String METHOD = "reconnect";
 		
 		IMqttDeliveryToken[] tokens = this.mqttAsyncClient.getPendingDeliveryTokens();
@@ -1485,7 +1435,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 							}
 						}
 						LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "lifetime (" + lifetime + ")");
-						this.sendDeviceManageRequest(mc.getTypeId(), mc.getDeviceId(), 
+						this.sendDeviceManageRequest(mc.getDeviceData().getTypeId(), mc.getDeviceData().getDeviceId(), 
 								lifetime, mc.isFirmwareActions(), mc.isDeviceActions(), mc.getCustomActions());
 					} catch (MqttException e) {
 						// TODO Auto-generated catch block
