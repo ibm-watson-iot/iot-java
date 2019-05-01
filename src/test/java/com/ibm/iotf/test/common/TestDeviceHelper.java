@@ -5,12 +5,11 @@ import java.util.Properties;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.ibm.iotf.test.common.TestApplicationHelper;
-import com.ibm.iotf.util.LoggerUtility;
+import com.ibm.wiotp.sdk.device.DeviceClient;
+import com.ibm.wiotp.sdk.util.LoggerUtility;
 import com.ibm.iotf.test.common.TestEnv;
-import com.ibm.iotf.test.common.TestCommandCallback;
+import com.ibm.iotf.test.common.callbacks.TestDeviceCommandCallback;
 import com.google.gson.JsonObject;
-import com.ibm.iotf.client.api.APIClient.ContentType;
-import com.ibm.iotf.client.device.DeviceClient;
 
 public class TestDeviceHelper extends TestApplicationHelper {
 
@@ -18,7 +17,7 @@ public class TestDeviceHelper extends TestApplicationHelper {
 	private String devType = null;
 	private String deviceId = null;
 	DeviceClient devClient = null;
-	TestCommandCallback callback = null;
+	TestDeviceCommandCallback callback = null;
 	
 	public TestDeviceHelper(String devType, String deviceId) throws Exception {
 		super(null);
@@ -26,7 +25,7 @@ public class TestDeviceHelper extends TestApplicationHelper {
 		this.deviceId = deviceId;
 		Properties props = TestEnv.getDeviceProperties(this.devType, this.deviceId);
 		devClient = new DeviceClient(props);
-		callback = new TestCommandCallback();
+		callback = new TestDeviceCommandCallback();
 		devClient.setCommandCallback(callback);
 	}
 
@@ -35,7 +34,7 @@ public class TestDeviceHelper extends TestApplicationHelper {
 		this.devType = devType;
 		this.deviceId = deviceId;
 		devClient = new DeviceClient(props);
-		callback = new TestCommandCallback();
+		callback = new TestDeviceCommandCallback();
 		devClient.setCommandCallback(callback);
 	}
 	
@@ -95,27 +94,6 @@ public class TestDeviceHelper extends TestApplicationHelper {
 		final String METHOD = "publishEvent";
 		boolean rc = devClient.publishEvent(eventName, event, format, qos);
 		LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " QOS=" + qos + " success ? " + rc);
-		return rc;
-	}
-
-	public boolean publishDeviceEventOverHTTP(String eventName, JsonObject event) throws Exception {
-		final String METHOD = "publishDeviceEventOverHTTP";
-		boolean rc = devClient.api().publishDeviceEventOverHTTP(eventName, event);
-		LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " success ? " + rc);
-		return rc;
-	}
-
-	public boolean publishDeviceEventOverHTTP(String eventName, Object event) throws Exception {
-		final String METHOD = "publishDeviceEventOverHTTP";
-		boolean rc = devClient.api().publishDeviceEventOverHTTP(eventName, event);
-		LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " success ? " + rc);
-		return rc;
-	}
-	
-	public boolean publishDeviceEventOverHTTP(String eventName, JsonObject payload, ContentType contenttype) throws Exception {
-		final String METHOD = "publishDeviceEventOverHTTP";
-		boolean rc = devClient.api().publishDeviceEventOverHTTP(eventName, payload, contenttype);
-		LoggerUtility.info(CLASS_NAME, METHOD, getClientID() + " success ? " + rc);
 		return rc;
 	}
 

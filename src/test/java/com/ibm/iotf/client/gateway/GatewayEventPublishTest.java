@@ -22,9 +22,9 @@ import java.io.IOException;
 import java.util.Properties;
 
 import com.google.gson.JsonObject;
-import com.ibm.iotf.client.IoTFCReSTException;
-import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.gateway.GatewayClient;
+import com.ibm.wiotp.sdk.IoTFCReSTException;
+import com.ibm.wiotp.sdk.api.APIClient;
+import com.ibm.wiotp.sdk.gateway.GatewayClient;
 
 /**
  * This Test verifies whether one can publish event successfully to the quickstart 

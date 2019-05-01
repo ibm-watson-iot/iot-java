@@ -5,8 +5,9 @@ import java.util.Properties;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonObject;
-import com.ibm.iotf.client.gateway.GatewayClient;
-import com.ibm.iotf.util.LoggerUtility;
+import com.ibm.iotf.test.common.callbacks.TestGatewayCallback;
+import com.ibm.wiotp.sdk.gateway.GatewayClient;
+import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 public class TestGatewayHelper extends TestApplicationHelper {
 

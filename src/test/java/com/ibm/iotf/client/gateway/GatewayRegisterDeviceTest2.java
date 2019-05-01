@@ -33,15 +33,15 @@ import org.junit.runners.MethodSorters;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.ibm.iotf.client.IoTFCReSTException;
-import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.app.ApplicationClient;
 import com.ibm.iotf.test.common.TestEnv;
-import com.ibm.iotf.test.common.TestEventCallback;
+import com.ibm.iotf.test.common.TestDeviceEventCallback;
 import com.ibm.iotf.test.common.TestGatewayHelper;
+import com.ibm.iotf.test.common.callbacks.TestStatusCallback;
 import com.ibm.iotf.test.common.TestApplicationHelper;
-import com.ibm.iotf.test.common.TestStatusCallback;
-import com.ibm.iotf.util.LoggerUtility;
+import com.ibm.wiotp.sdk.IoTFCReSTException;
+import com.ibm.wiotp.sdk.api.APIClient;
+import com.ibm.wiotp.sdk.app.ApplicationClient;
+import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 /**
  * This test verifies that the device receives the command published by the application
@@ -273,7 +273,7 @@ public class GatewayRegisterDeviceTest2 {
 		
 		
 		TestStatusCallback statusCallback = new TestStatusCallback();
-		TestEventCallback eventCallback = new TestEventCallback();
+		TestDeviceEventCallback eventCallback = new TestDeviceEventCallback();
 
 		try {
 			appClient.connect();
@@ -325,7 +325,7 @@ public class GatewayRegisterDeviceTest2 {
 				Thread.sleep(1000); // Sleep 1 second
 				if (eventCallback.getEvent() != null) {
 					LoggerUtility.info(CLASS_NAME, METHOD, "Device last event: " + eventCallback.getEvent().toString());
-					if (eventCallback.getEvent().getEvent().equals(event)) {
+					if (eventCallback.getEvent().getEventId().equals(event)) {
 						eventReceived = true;
 					}
 				}

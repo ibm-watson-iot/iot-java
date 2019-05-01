@@ -2,7 +2,7 @@ package com.ibm.iotf.test.common;
 
 import java.beans.PropertyChangeEvent;
 
-import com.ibm.iotf.util.LoggerUtility;
+import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 public class TestPropertyChangeListener implements java.beans.PropertyChangeListener{
 	static final String CLASS_NAME = TestPropertyChangeListener.class.getName();

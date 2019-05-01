@@ -23,15 +23,15 @@ import java.util.Properties;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.ibm.iotf.client.IoTFCReSTException;
-import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.devicemgmt.DeviceData;
-import com.ibm.iotf.devicemgmt.DeviceFirmware;
-import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
-import com.ibm.iotf.devicemgmt.DeviceInfo;
-import com.ibm.iotf.devicemgmt.DeviceLocation;
-import com.ibm.iotf.devicemgmt.DeviceMetadata;
-import com.ibm.iotf.devicemgmt.device.ManagedDevice;
+import com.ibm.wiotp.sdk.IoTFCReSTException;
+import com.ibm.wiotp.sdk.api.APIClient;
+import com.ibm.wiotp.sdk.devicemgmt.DeviceData;
+import com.ibm.wiotp.sdk.devicemgmt.DeviceFirmware;
+import com.ibm.wiotp.sdk.devicemgmt.DeviceInfo;
+import com.ibm.wiotp.sdk.devicemgmt.DeviceLocation;
+import com.ibm.wiotp.sdk.devicemgmt.DeviceMetadata;
+import com.ibm.wiotp.sdk.devicemgmt.DeviceFirmware.FirmwareState;
+import com.ibm.wiotp.sdk.devicemgmt.device.ManagedDevice;
 
 /**
  * A sample device code that listens for the update message from IBM Watson IoT Platform. 

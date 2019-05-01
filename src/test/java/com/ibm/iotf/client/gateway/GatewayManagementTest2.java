@@ -15,16 +15,16 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.google.gson.JsonObject;
-import com.ibm.iotf.client.IoTFCReSTException;
-import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.devicemgmt.DeviceData;
-import com.ibm.iotf.devicemgmt.DeviceMetadata;
-import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
 import com.ibm.iotf.test.common.TestApplicationHelper;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.test.common.TestGatewayHelper;
 import com.ibm.iotf.test.common.TestPropertyChangeListener;
-import com.ibm.iotf.util.LoggerUtility;
+import com.ibm.wiotp.sdk.IoTFCReSTException;
+import com.ibm.wiotp.sdk.api.APIClient;
+import com.ibm.wiotp.sdk.devicemgmt.DeviceData;
+import com.ibm.wiotp.sdk.devicemgmt.DeviceMetadata;
+import com.ibm.wiotp.sdk.devicemgmt.gateway.ManagedGateway;
+import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GatewayManagementTest2 {

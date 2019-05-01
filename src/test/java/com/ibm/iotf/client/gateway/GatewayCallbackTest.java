@@ -6,9 +6,10 @@ package com.ibm.iotf.client.gateway;
 import java.util.Properties;
 import java.util.logging.Level;
 
-import com.ibm.iotf.client.gateway.Notification;
-import com.ibm.iotf.client.gateway.Command;
-import com.ibm.iotf.util.LoggerUtility;
+import com.ibm.wiotp.sdk.gateway.Command;
+import com.ibm.wiotp.sdk.gateway.GatewayCallback;
+import com.ibm.wiotp.sdk.gateway.Notification;
+import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 /**
  * @author MIKETRAN

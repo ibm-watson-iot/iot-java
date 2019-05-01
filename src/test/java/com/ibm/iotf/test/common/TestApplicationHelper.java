@@ -13,16 +13,16 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.ibm.iotf.client.IoTFCReSTException;
-import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.client.app.ApplicationClient;
-import com.ibm.iotf.util.LoggerUtility;
+import com.ibm.wiotp.sdk.IoTFCReSTException;
+import com.ibm.wiotp.sdk.api.APIClient;
+import com.ibm.wiotp.sdk.app.ApplicationClient;
+import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 public class TestApplicationHelper {
 	static final String CLASS_NAME = TestApplicationHelper.class.getName();
 	Properties appProps = null;
 	ApplicationClient mqttAppClient = null;
-	TestEventCallback eventCallback = null;
+	TestDeviceEventCallback eventCallback = null;
 	
 	
 	public TestApplicationHelper(Properties appProperties) throws Exception {
@@ -430,7 +430,7 @@ public class TestApplicationHelper {
 		return mqttAppClient;
 	}
 	
-	public TestEventCallback getCallback() {
+	public TestDeviceEventCallback getCallback() {
 		return eventCallback;
 	}
 	
@@ -518,7 +518,7 @@ public class TestApplicationHelper {
 			}
 		}
 		
-		eventCallback = new TestEventCallback();
+		eventCallback = new TestDeviceEventCallback();
 		
 		mqttAppClient.setEventCallback(eventCallback);
 		

@@ -17,15 +17,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.ibm.iotf.client.CustomAction;
-import com.ibm.iotf.client.CustomAction.Status;
-import com.ibm.iotf.client.IoTFCReSTException;
-import com.ibm.iotf.client.api.APIClient;
-import com.ibm.iotf.devicemgmt.CustomActionHandler;
-import com.ibm.iotf.devicemgmt.DeviceData;
-import com.ibm.iotf.devicemgmt.DeviceFirmware;
-import com.ibm.iotf.devicemgmt.DeviceFirmware.FirmwareState;
-import com.ibm.iotf.devicemgmt.gateway.ManagedGateway;
+import com.ibm.wiotp.sdk.CustomAction;
+import com.ibm.wiotp.sdk.IoTFCReSTException;
+import com.ibm.wiotp.sdk.CustomAction.Status;
+import com.ibm.wiotp.sdk.api.APIClient;
+import com.ibm.wiotp.sdk.devicemgmt.CustomActionHandler;
+import com.ibm.wiotp.sdk.devicemgmt.DeviceData;
+import com.ibm.wiotp.sdk.devicemgmt.DeviceFirmware;
+import com.ibm.wiotp.sdk.devicemgmt.DeviceFirmware.FirmwareState;
+import com.ibm.wiotp.sdk.devicemgmt.gateway.ManagedGateway;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GatewayDMETest {
