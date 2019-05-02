@@ -25,11 +25,11 @@ public class Command extends Message {
 	
 	/**
 	 * Note that this class does not have a default constructor
-	 * @param type
+	 * @param typeId
 	 * 			Object of String which denotes command type
-	 * @param id
+	 * @param deviceId
 	 * 			Object of String which denotes command id
-	 * @param command
+	 * @param commandId
 	 * 			Object of String which denotes actual command type
 	 * @param format
 	 * 			Object of String which denotes command format, say json

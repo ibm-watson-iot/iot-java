@@ -26,14 +26,14 @@ import com.ibm.wiotp.sdk.device.config.DeviceConfig;
 import com.ibm.wiotp.sdk.device.config.DeviceConfigAuth;
 import com.ibm.wiotp.sdk.device.config.DeviceConfigIdentity;
 import com.ibm.wiotp.sdk.device.config.DeviceConfigOptions;
+import com.ibm.wiotp.sdk.swagger.ApiClient;
+import com.ibm.wiotp.sdk.swagger.Configuration;
+import com.ibm.wiotp.sdk.swagger.api.DeviceConfigurationApi;
+import com.ibm.wiotp.sdk.swagger.auth.HttpBasicAuth;
+import com.ibm.wiotp.sdk.swagger.model.DeviceAdditionRequest;
+import com.ibm.wiotp.sdk.swagger.model.DeviceAdditionResponse;
 import com.ibm.wiotp.sdk.test.util.AbstractTest;
 import com.ibm.wiotp.sdk.test.util.callbacks.TestAppEventCallback;
-import com.ibm.wiotp.swagger.ApiClient;
-import com.ibm.wiotp.swagger.Configuration;
-import com.ibm.wiotp.swagger.api.DeviceConfigurationApi;
-import com.ibm.wiotp.swagger.auth.HttpBasicAuth;
-import com.ibm.wiotp.swagger.model.DeviceAdditionRequest;
-import com.ibm.wiotp.swagger.model.DeviceAdditionResponse;
 
 public class DeviceTest extends AbstractTest {
 	

@@ -63,7 +63,7 @@ public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
 	 * <li>auth-method - Method of authentication (The only value currently supported is "token").
 	 * <li>auth-token - API key token.
 	 * </ul>
-	 * @param options The Properties object creates definitions which are used to interact 
+	 * @param config Configuration object for the gateway client 
 	 * with the Watson Internet of Things Platform module.
 	 * 
 	 * @throws Exception Failure in parsing the properties passed 
@@ -79,25 +79,23 @@ public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
 	/**
 	 * Publish an event on the behalf of a device to the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param deviceType
+	 * @param typeId
 	 *            object of String which denotes deviceType 
 	 * @param deviceId
 	 *            object of String which denotes deviceId
-	 * @param event
+	 * @param eventId
 	 *            object of String which denotes event
 	 * @param data
 	 *            Payload data
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
-	 * @param timeout
-	 * 		The maximum amount of time to wait for the action, in milliseconds, to complete
 	 * 
 	 * @return Whether the send was successful.
 	 */
-	public boolean publishDeviceEvent(String deviceType, String deviceId, String event, Object data, int qos) {
+	public boolean publishDeviceEvent(String typeId, String deviceId, String eventId, Object data, int qos) {
 		final String METHOD = "publishEvent(5)";
 		Object payload = null;
-		String topic = "iot-2/type/" + deviceType + "/id/" + deviceId + "/evt/" + event + "/fmt/json";
+		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/json";
 		// Handle null object
 		if(data == null) {
 			data = new JsonObject();
@@ -126,22 +124,20 @@ public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
 	/**
 	 * Subscribe to device commands, on the behalf of a device, to the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param deviceType
+	 * @param tpyeId
 	 *            object of String which denotes deviceType 
 	 * @param deviceId
 	 *            object of String which denotes deviceId
-	 * @param command
+	 * @param commandId
 	 *            object of String which denotes command
 	 * @param format
 	 *            object of String which denotes format, typical example of format could be json
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
-	 * @param timeout
-	 * 		The maximum amount of time to wait for the action, in milliseconds, to complete
 	 */
-	public void subscribeToDeviceCommands(String deviceType, String deviceId, String command, String format, int qos) {
+	public void subscribeToDeviceCommands(String tpyeId, String deviceId, String commandId, String format, int qos) {
 		try {
-			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/"+ command +"/fmt/" + format;
+			String newTopic = "iot-2/type/"+tpyeId+"/id/"+deviceId+"/cmd/"+ commandId +"/fmt/" + format;
 			mqttAsyncClient.subscribe(newTopic, qos).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
 		} catch (MqttException e) {
 			e.printStackTrace();
@@ -151,20 +147,16 @@ public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
 	/**
 	 * Unsubscribe from device commands, on the behalf of a device, from the IBM Watson IoT Platform.
 	 * 
-	 * @param deviceType
+	 * @param typeId
 	 *            object of String which denotes deviceType 
 	 * @param deviceId
 	 *            object of String which denotes deviceId
-	 * @param command
+	 * @param commandId
 	 *            object of String which denotes command name
-	 * @param format
-	 *            object of String which denotes format, typical example of format could be json
-	 * @param timeout
-	 * 		The maximum amount of time to wait for the action, in milliseconds, to complete
 	 */
-	public void unsubscribeFromDeviceCommands(String deviceType, String deviceId, String command) {
+	public void unsubscribeFromDeviceCommands(String typeId, String deviceId, String commandId) {
 		try {
-			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/cmd/"+ command +"/fmt/json";
+			String newTopic = "iot-2/type/"+typeId+"/id/"+deviceId+"/cmd/"+ commandId +"/fmt/json";
 			mqttAsyncClient.unsubscribe(newTopic).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
 		} catch (MqttException e) {
 			e.printStackTrace();

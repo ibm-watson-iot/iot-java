@@ -30,13 +30,16 @@ public class Event extends Message {
 	
 	/**
 	 * 
-	 * @param type
+	 * @param typeId
 	 * 			object of String which denotes event type
-	 * @param id
+	 * @param deviceId
 	 * 			object of String which denotes the event id
-	 * @param event
+	 * @param eventId
 	 * 			object of String which denotes the event 
-	 * @param msg The MQTT message
+	 * @param format 
+	 * 			Format (encoding) of the event
+	 * @param msg 
+	 * 			The MQTT message
 	 * @throws UnsupportedEncodingException when the encoding is not UTF-8
 	 */
 	public Event(String typeId, String deviceId, String eventId, String format, MqttMessage msg) throws UnsupportedEncodingException{

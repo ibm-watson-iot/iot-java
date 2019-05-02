@@ -40,8 +40,9 @@ public class Message {
 	
 	/**
 	 * 
-	 * @param msg
-	 * 				MqttMessage
+	 * @param msg The underlying Paho MqttMessage
+	 * @param format the format (encoding) of the message
+	 *  
 	 * @throws UnsupportedEncodingException If encoding is other than UTF8
 	 */
 	public Message(MqttMessage msg, String format) throws UnsupportedEncodingException{

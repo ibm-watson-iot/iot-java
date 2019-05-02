@@ -11,14 +11,9 @@
 package com.ibm.wiotp.sdk.app;
 
 import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,7 +25,6 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.AbstractClient;
 import com.ibm.wiotp.sdk.app.callbacks.CommandCallback;
@@ -70,8 +64,9 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	/**
 	 * Create an application client for the IBM Watson IoT Platform. 
 	 * Connecting to specific org on IBM Watson IoT Platform
-	 * @param options
-	 * 					An object of the class Properties
+	 * 
+	 * @param config Configuration object for the client
+	 * 
 	 * @throws Exception Failure in parsing the properties 
 	 */
 	public ApplicationClient(ApplicationConfig config) throws Exception {
@@ -84,18 +79,17 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 * Publish event, on the behalf of a device, to the IBM Watson IoT Platform. <br>
 	 * This method will attempt to create a JSON obejct out of the payload
 	 * 
-	 * @param deviceType
+	 * @param typeId
 	 *            object of String which denotes deviceType 
 	 * @param deviceId
 	 *            object of String which denotes deviceId
-	 * @param event
+	 * @param eventId
 	 *            object of String which denotes event
 	 * @param data
 	 *            Payload data
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
-	 * @param timeout
-	 *            Timeout value in milliseconds waiting for publish token to complete
+	 *            
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishEvent(String typeId, String deviceId, String eventId, Object data, int qos) {
@@ -148,8 +142,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 *            Payload data
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
-	 * @param timeout
-	 * 		The maximum amount of time to wait for the action, in milliseconds, to complete
+	 *            
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishCommand(String typeId, String deviceId, String commandId, Object data, int qos) {
@@ -189,18 +182,14 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	/**
 	 * Subscribe to device events of the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param deviceType
+	 * @param typeId
 	 *            object of String which denotes deviceType 
 	 * @param deviceId
 	 *            object of String which denotes deviceId
-	 * @param event
+	 * @param eventId
 	 *            object of String which denotes event
-	 * @param format
-	 *            object of String which denotes format, typical example of format could be json
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
-	 * @param timeout
-	 *            Timeout value in milliseconds to wait for subscribe token to complete 
 	 */
 	public void subscribeToDeviceEvents(String typeId, String deviceId, String eventId, int qos) {
 		String newTopic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/json";
@@ -231,20 +220,16 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	/**
 	 * Unsubscribe from device events of the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param deviceType
+	 * @param typeId
 	 *            object of String which denotes deviceType 
 	 * @param deviceId
 	 *            object of String which denotes deviceId
-	 * @param event
+	 * @param eventId
 	 *            object of String which denotes event
-	 * @param format
-	 *            object of String which denotes format, typical example of format could be json
-	 * @param timeout
-	 * 		The maximum amount of time to wait for the action, in milliseconds, to complete
 	 */
-	public void unsubscribeFromDeviceEvents(String deviceType, String deviceId, String event) {
+	public void unsubscribeFromDeviceEvents(String typeId, String deviceId, String eventId) {
 		try {
-			String topic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/evt/"+event+"/fmt/json";
+			String topic = "iot-2/type/"+typeId+"/id/"+deviceId+"/evt/"+eventId+"/fmt/json";
 			subscriptions.remove(topic);
 			mqttAsyncClient.unsubscribe(topic).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
 		} catch (MqttException e) {
@@ -262,12 +247,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 *            object of String which denotes deviceId
 	 * @param commandId
 	 *            object of String which denotes command
-	 * @param format
-	 *            object of String which denotes format, typical example of format could be json
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
-	 * @param timeout
-	 * 		The maximum amount of time to wait for the action, in milliseconds, to complete
 	 */
 	public void subscribeToDeviceCommands(String typeId, String deviceId, String commandId, int qos) {
 		String newTopic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/json";
@@ -295,16 +276,14 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	/**
 	 * Subscribe to device status of the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param deviceType
+	 * @param typeId
 	 *            object of String which denotes deviceType 
 	 * @param deviceId
 	 *            object of String which denotes deviceId
-	 * @param timeout
-	 * 		The maximum amount of time to wait for the action, in milliseconds, to complete
 	 */
-	public void subscribeToDeviceStatus(String deviceType, String deviceId) {
+	public void subscribeToDeviceStatus(String typeId, String deviceId) {
 		try {
-			String newTopic = "iot-2/type/"+deviceType+"/id/"+deviceId+"/mon";
+			String newTopic = "iot-2/type/"+typeId+"/id/"+deviceId+"/mon";
 			subscriptions.put(newTopic, new Integer(0));			
 			mqttAsyncClient.subscribe(newTopic, 0).waitForCompletion(DEFAULT_ACTION_TIMEOUT);;
 		} catch (MqttException e) {
@@ -318,8 +297,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 * 
 	 * @param appId 
 	 * 		object of String which denotes the application uniquely in the organization
-	 * @param timeout
-	 * 		The maximum amount of time to wait for the action, in milliseconds, to complete
 	 */
 	public void subscribeToApplicationStatus(String appId) {
 		try {
@@ -336,8 +313,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 * 
 	 * @param appId 
 	 * 		object of String which denotes the application uniquely in the organization
-	 * @param timeout
-	 * 		The maximum amount of time to wait for the action, in milliseconds, to complete
 	 */
 	public void unSubscribeFromApplicationStatus(String appId) {
 		try {

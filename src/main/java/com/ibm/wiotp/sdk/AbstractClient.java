@@ -79,8 +79,7 @@ public abstract class AbstractClient {
 	
 	/**
 	 * Note that this class does not have a default constructor <br>
-	 * @param options
-	 * 			Properties object which contains different artifacts such as auth-key
+	 * @param config Configuration object for the client
 	 * 
 	 */		
 	
@@ -99,11 +98,9 @@ public abstract class AbstractClient {
 	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
 	 * </ul>
 	 * 
-	 * @param numberOfRetryAttempts - How many number of times to retry when there is a failure in connecting to Watson
-	 * IoT Platform.
-	 * @throws MqttException see above
-	 * @throws NoSuchAlgorithmException 
-	 * @throws KeyManagementException 
+	 * @throws MqttException One or more credentials are wrong
+	 * @throws NoSuchAlgorithmException Problems with TLS
+	 * @throws KeyManagementException Problems with TLS
 	 **/
 	public void connect() throws MqttException, KeyManagementException, NoSuchAlgorithmException {
 		final String METHOD = "connect";
@@ -153,8 +150,11 @@ public abstract class AbstractClient {
 	 * configureMqtt() is called when the User does not provide an Organization value and intends
 	 * to connect to Watson IoT Platform using the QUICKSTART mode. This type of connection is 
 	 * In-secure in nature and is usually done over the 1883 Port Number.
-	 * @throws NoSuchAlgorithmException 
-	 * @throws KeyManagementException 
+	 * 
+	 * @param callback The handler for MQTT callbacks
+	 * 
+	 * @throws NoSuchAlgorithmException Problems with TLS
+	 * @throws KeyManagementException Problems with TLS
 	 */
 	protected void configureMqttClient(MqttCallbackExtended callback) throws KeyManagementException, NoSuchAlgorithmException {
 		mqttAsyncClient = null;

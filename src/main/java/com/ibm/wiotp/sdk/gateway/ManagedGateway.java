@@ -115,7 +115,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * <li>auth-token - API key token.
 	 * </ul>
      * 
-     * @param options      List of options to connect to IBM Watson IoT Platform
+     * @param config       Configuration object for the gateway device
      * @param deviceData   The Device Model
      * @throws Exception   If the essential parameters are not set
      */
@@ -1401,8 +1401,8 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	 * This method does the following activities,
 	 * 1. Calculates the lifetime remaining
 	 * 2. Sends the manage request for those devices/Gateway which are in managed state before disconnecting
-	 * @throws NoSuchAlgorithmException 
-	 * @throws KeyManagementException 
+	 * @throws NoSuchAlgorithmException TLS issues
+	 * @throws KeyManagementException TLS issues
 	 *  
 	 */
 	@Override

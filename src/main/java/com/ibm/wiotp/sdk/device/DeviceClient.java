@@ -50,7 +50,7 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	/**
 	 * Create a device client for the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param options the list of options containing the device registration details
+	 * @param config Configuration object for the client
 	 * @throws Exception When there is a failure in parsing the properties passed 
 	 */
 	public DeviceClient(DeviceConfig config) throws Exception {
@@ -68,9 +68,9 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	 * 	<li>UnKnownHostException - Host doesn't exist. For example, a wrong organization name is used to connect.
 	 * </ul>
 	 * 
-	 * @throws MqttException see above
-	 * @throws NoSuchAlgorithmException 
-	 * @throws KeyManagementException 
+	 * @throws MqttException One or more credentials are wrong
+	 * @throws NoSuchAlgorithmException TLS issues
+	 * @throws KeyManagementException TLS issues
 	 **/
 	public void connect() throws MqttException, KeyManagementException, NoSuchAlgorithmException {
 		super.connect();
@@ -103,20 +103,18 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	/**
 	 * Publish data to the IBM Watson IoT Platform.<br>
 	 * 
-	 * @param event
+	 * @param eventId
 	 *            object of String which denotes event
 	 * @param data
 	 *            Payload data
-	 * @param format
-	 * 			The message format
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
 	 * @return Whether the send was successful.
 	 * @throws Exception when the publish operation fails
 	 */	
-	public boolean publishEvent(String event, Object data, int qos) throws Exception {
+	public boolean publishEvent(String eventId, Object data, int qos) throws Exception {
 		final String METHOD = "publishEvent";
-		String topic = "iot-2/evt/" + event + "/fmt/json";
+		String topic = "iot-2/evt/" + eventId + "/fmt/json";
 		Object payload = null;
 		MqttMessage msg = null;
 		// Handle null object

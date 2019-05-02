@@ -109,7 +109,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
      * Constructor that creates a ManagedDevice object, but does not connect to
      * IBM Watson IoT Platform connect yet
      *
-     * @param options      List of options to connect to IBM Watson IoT Platform Connect
+     * @param config      Configuration for the device
      * @param deviceData   The Device Model
      * @throws Exception   If the essential parameters are not set
      */
@@ -146,8 +146,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * </ul>
 	 * 
 	 * @throws MqttException see above
-	 * @throws NoSuchAlgorithmException 
-	 * @throws KeyManagementException 
+	 * @throws NoSuchAlgorithmException TLS issues
+	 * @throws KeyManagementException TLS issues
 	 *
 	 *
 	 */
