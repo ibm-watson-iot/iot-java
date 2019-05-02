@@ -54,7 +54,7 @@ class simpleTest {
 		JsonObject data = new JsonObject();
 		data.addProperty("distance", 10);
 		deviceClient.publishEvent("myevent", data);
-		appClient.disconnect();
+		deviceClient.disconnect();
 	}
 }
 ```

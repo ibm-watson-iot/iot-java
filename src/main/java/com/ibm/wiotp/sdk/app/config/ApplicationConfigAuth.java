@@ -1,5 +1,7 @@
 package com.ibm.wiotp.sdk.app.config;
 
+import com.ibm.wiotp.sdk.util.LoggerUtility;
+
 public class ApplicationConfigAuth {
 	public String key;
 	public String token;
@@ -14,6 +16,8 @@ public class ApplicationConfigAuth {
 	public static ApplicationConfigAuth generateFromEnv() {
 		ApplicationConfigAuth auth = new ApplicationConfigAuth();
 
+		LoggerUtility.info("", "", "API_KEY = " + System.getenv("WIOTP_API_KEY"));
+		LoggerUtility.info("", "", "API_TOKEN = " + System.getenv("WIOTP_API_TOKEN"));
 	    // Also support WIOTP_API_KEY / WIOTP_API_TOKEN usage
 		if (System.getenv("WIOTP_AUTH_KEY") != null) {
 			auth.key = System.getenv("WIOTP_AUTH_KEY");
