@@ -94,6 +94,15 @@
             <version>${threetenbp-version}</version>
         </dependency>
         
+        <!-- Temporary solution until maven publishing is in place just so we can build for now -->
+	    <dependency>
+	      <groupId>com.ibm.wiotp</groupId>
+	      <artifactId>com.ibm.wiotp.sdk.swagger</artifactId>
+	      <version>1.0.0</version>
+	      <scope>system</scope>
+	      <systemPath>${project.basedir}/lib/com.ibm.wiotp.sdk.swagger-1.0.0.jar</systemPath>
+	    </dependency>
+    
         <!-- Our own dependencies -->
         <dependency>
             <groupId>org.eclipse.paho</groupId>
@@ -221,7 +230,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>-Djava.library.path=./lib</argLine>
 				<!-- 
 					<systemProperties>
 						<property>
