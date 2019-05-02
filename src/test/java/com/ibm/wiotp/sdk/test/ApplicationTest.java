@@ -1,18 +1,16 @@
 /**
  *****************************************************************************
- Copyright (c) 2016 IBM Corporation and other Contributors.
+ Copyright (c) 2019 IBM Corporation and other Contributors.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
  http://www.eclipse.org/legal/epl-v10.html
- Contributors:
- Sathiskumar Palaniappan - Initial Contribution
- Prasanna A Mathada - Initial Contribution
  *****************************************************************************
  *
  */
 package com.ibm.wiotp.sdk.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
@@ -76,13 +74,13 @@ public class ApplicationTest extends AbstractTest {
 				Thread.sleep(1000);
 			} catch(InterruptedException e) {}
 		}
-		
 		assertTrue("Command is received by application", (cmd != null));
+		assertEquals(10, cmd.getData().get("distance").getAsInt());
 	}	
 
 	@Test
-	public void testSendAndSubscribeToEvent() throws Exception {
-		logTestStart("testSendAndSubscribeToEvent");
+	public void testSendAndSubscribeToEvents() throws Exception {
+		logTestStart("testSendAndSubscribeToEvents");
 		app1Client = new ApplicationClient();
 		app1Client.connect();
 		assertTrue("Client is connected", app1Client.isConnected());
@@ -108,6 +106,7 @@ public class ApplicationTest extends AbstractTest {
 		}
 		
 		assertTrue("Event is received by application", (evt != null));
+		assertEquals(10, evt.getData().get("distance").getAsInt());
 	}	
 
 }

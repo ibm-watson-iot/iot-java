@@ -114,25 +114,17 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	 * @return Whether the send was successful.
 	 * @throws Exception when the publish operation fails
 	 */	
-	public boolean publishEvent(String event, Object data, String format, int qos) throws Exception {
+	public boolean publishEvent(String event, Object data, int qos) throws Exception {
 		final String METHOD = "publishEvent";
-		String topic = "iot-2/evt/" + event + "/fmt/" + format;
+		String topic = "iot-2/evt/" + event + "/fmt/json";
 		Object payload = null;
 		MqttMessage msg = null;
 		// Handle null object
 		if(data == null) {
 			data = new JsonObject();
 		}
-		if(data.getClass() == String.class) {
-			payload = data;
-			msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
-		} else if(data.getClass().getName().equals("[B")) { // checking for byte array
-			payload = Arrays.toString((byte[]) data);
-			msg = new MqttMessage((byte[]) data);
-		} else {
-			payload = gson.toJsonTree(data);
-			msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
-		}
+		payload = gson.toJsonTree(data);
+		msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
 		
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic   = " + topic);
 		LoggerUtility.fine(CLASS_NAME, METHOD, "Payload = " + payload.toString());

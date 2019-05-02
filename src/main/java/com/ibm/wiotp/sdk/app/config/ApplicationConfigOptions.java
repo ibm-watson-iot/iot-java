@@ -11,6 +11,8 @@ public class ApplicationConfigOptions {
 	public ApplicationConfigOptions() {
 		domain = "internetofthings.ibmcloud.com";
 		logLevel = Level.INFO;
+		this.mqtt = new ApplicationConfigOptionsMqtt();
+		this.http = new ApplicationConfigOptionsHttp();
 	}
 	
 	public ApplicationConfigOptions(String domain, Level logLevel, ApplicationConfigOptionsMqtt mqtt) {

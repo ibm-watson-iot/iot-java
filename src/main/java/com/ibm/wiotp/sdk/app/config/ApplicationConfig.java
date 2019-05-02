@@ -131,6 +131,12 @@ public class ApplicationConfig implements AbstractConfig {
 	public String getTypeId() {
 		throw new UnsupportedOperationException();
 	}
+	
+	@Override
+	public String getHttpApiBasePath() {
+		return "https://" + getOrgId() + "." + options.domain + "/api/v0002";
+	}
+
 
 }
 

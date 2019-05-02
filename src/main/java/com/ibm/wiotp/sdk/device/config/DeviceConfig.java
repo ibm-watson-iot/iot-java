@@ -20,7 +20,7 @@ public class DeviceConfig implements AbstractConfig {
     	this.auth = auth;
     	this.options = options;
     }
-    
+
 	public static DeviceConfig generateFromEnv() {
 		DeviceConfig cfg = new DeviceConfig(
 				DeviceConfigIdentity.generateFromEnv(), 
@@ -29,7 +29,7 @@ public class DeviceConfig implements AbstractConfig {
 		
 		return cfg;
 	}
-	
+
 	public MqttConnectOptions getMqttConnectOptions() throws NoSuchAlgorithmException, KeyManagementException {
 		MqttConnectOptions connectOptions = new MqttConnectOptions();
 		
@@ -69,12 +69,12 @@ public class DeviceConfig implements AbstractConfig {
 		}
 		return protocol + getOrgId() + ".messaging." + options.domain + ":" + String.valueOf(options.mqtt.port);
 	}
-	
+
 	@Override
 	public boolean isCleanSession() {
 		return !options.mqtt.cleanStart;
 	}
-	
+
 	@Override
 	public boolean isCleanStart() {
 		return options.mqtt.cleanStart;
@@ -99,5 +99,10 @@ public class DeviceConfig implements AbstractConfig {
 	public String getTypeId() {
 		return identity.typeId;
 	}
-	
+
+	@Override
+	public String getHttpApiBasePath() {
+		return "https://" + getOrgId() + "." + options.domain + "/api/v0002";
+	}
+
 }

@@ -9,7 +9,7 @@ public interface AbstractConfig {
 	public static final int DEFAULT_MAX_INFLIGHT_MESSAGES = 100;
 
 	public String getOrgId();
-	
+	public String getHttpApiBasePath();
 	public String getMqttServerURI();
 	
 	public MqttConnectOptions getMqttConnectOptions() throws NoSuchAlgorithmException, KeyManagementException;
@@ -23,4 +23,5 @@ public interface AbstractConfig {
 	
 	public boolean isCleanSession();
 	public boolean isCleanStart();
+
 }
