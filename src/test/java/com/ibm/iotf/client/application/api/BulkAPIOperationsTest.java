@@ -289,7 +289,8 @@ public class BulkAPIOperationsTest {
 		 */
 		
 		ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>();
-		parameters.add(new BasicNameValuePair("_sort","deviceId"));
+		parameters.add(new BasicNameValuePair("_sort", "deviceId"));
+		parameters.add(new BasicNameValuePair("typeId", DEVICE_TYPE));
 		
 		//parameters.add(new BasicNameValuePair("_limit","2"));
 		
