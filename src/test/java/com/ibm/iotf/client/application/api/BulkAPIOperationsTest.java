@@ -80,7 +80,13 @@ public class BulkAPIOperationsTest {
 
     */
 	private final static String deviceToBeAdded1 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
-			+ "\"" + DEVICE_ID1 + "\",\"authToken\": \"password\"}";
+			+ "\"" + DEVICE_ID1 + "\",\"authToken\": \"password\",\"deviceInfo\": {\"serialNumber\": "
+			+ "\"10087\",\"manufacturer\": \"IBM\",\"model\": \"7865\",\"deviceClass\": "
+			+ "\"A\",\"description\": \"My RasPi01 Device\",\"fwVersion\": \"1.0.0\","
+			+ "\"hwVersion\": \"1.0\",\"descriptiveLocation\": \"EGL C\"    },    "
+			+ "\"location\": {\"measuredDateTime\": \"2015-23-07T11:23:23+00:00\"    "
+			+ "} }";
+
 	private final static String deviceToBeAdded2 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
 			+ "\"" + DEVICE_ID2 + "\",\"authToken\": \"password\"}";
 	private final static String deviceToBeAdded3 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
