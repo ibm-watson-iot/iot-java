@@ -37,6 +37,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.iotf.client.IoTFCReSTException;
 import com.ibm.iotf.client.api.APIClient;
+import com.ibm.iotf.test.common.TestDeviceHelper;
 import com.ibm.iotf.test.common.TestEnv;
 import com.ibm.iotf.util.LoggerUtility;
 
@@ -113,21 +114,37 @@ public class BulkAPIOperationsTest {
 		
 		if (typeExist) {
 			
+			// Delete devices left from previous test run
 			try {
-				apiClient.deleteDeviceType(DEVICE_TYPE);
-				LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + " deleted.");
+				TestDeviceHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID1);
+				LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_ID1 + " deleted.");
 			} catch (IoTFCReSTException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
+			try {
+				TestDeviceHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID2);
+				LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_ID2 + " deleted.");
+			} catch (IoTFCReSTException e) {
+				e.printStackTrace();
+			}
+
+			try {
+				TestDeviceHelper.deleteDevice(apiClient, DEVICE_TYPE, DEVICE_ID3);
+				LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_ID3 + " deleted.");
+			} catch (IoTFCReSTException e) {
+				e.printStackTrace();
+			}
+			
+		} else {
+			try {
+				apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
+				LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + " added.");
+			} catch (IoTFCReSTException e) {
+				e.printStackTrace();
+			}			
 		}
 		
-		try {
-			apiClient.addDeviceType(DEVICE_TYPE, null, null, null);
-			LoggerUtility.info(CLASS_NAME, METHOD, DEVICE_TYPE + " added.");
-		} catch (IoTFCReSTException e) {
-			e.printStackTrace();
-		}
 		
 		
 		propsWrongToken.setProperty("Authentication-Token", "Wrong");
