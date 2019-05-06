@@ -57,6 +57,7 @@ public class BulkAPIOperationsTest {
 	private final static String DEVICE_NOT_EXIST = "devnotexist";
 	private final static String TYPE_NOT_EXIST = "typenotexist";
 	
+	/*
 	private final static String deviceToBeAdded1 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
 			+ "\"" + DEVICE_ID1 + "\",\"authToken\": \"password\",\"deviceInfo\": {\"serialNumber\": "
 			+ "\"10087\",\"manufacturer\": \"IBM\",\"model\": \"7865\",\"deviceClass\": "
@@ -77,6 +78,15 @@ public class BulkAPIOperationsTest {
 			+ "\"" + DEVICE_ID3 + "\",\"authToken\": \"password\"}";
 
 
+    */
+	private final static String deviceToBeAdded1 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
+			+ "\"" + DEVICE_ID1 + "\",\"authToken\": \"password\"}";
+	private final static String deviceToBeAdded2 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
+			+ "\"" + DEVICE_ID2 + "\",\"authToken\": \"password\"}";
+	private final static String deviceToBeAdded3 = "{\"typeId\": \""+ DEVICE_TYPE + "\",\"deviceId\": "
+			+ "\"" + DEVICE_ID3 + "\",\"authToken\": \"password\"}";
+	
+	
 	private final static String deviceToBeDeleted1 = "{\"typeId\": \""+ DEVICE_TYPE + "\", \"deviceId\": \"" + DEVICE_ID1 + "\"}";
 	private final static String deviceToBeDeleted2 = "{\"typeId\": \"" + DEVICE_TYPE + "\", \"deviceId\": \"" + DEVICE_ID2 + "\"}";
 	private final static String deviceToBeDeleted3 = "{\"typeId\": \"" + DEVICE_TYPE + "\", \"deviceId\": \"" + DEVICE_ID3 + "\"}";
