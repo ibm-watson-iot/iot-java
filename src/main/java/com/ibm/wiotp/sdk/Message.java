@@ -55,14 +55,18 @@ public class Message {
 			throw new RuntimeException("Sorry, Java SDK is only able to support JSON encoded events and commands currently: " + format);
 		}
 		
-		
-		final String payloadInString = new String(msg.getPayload(), "UTF8");
-		try {
-			data = JSON_PARSER.parse(payloadInString).getAsJsonObject();
-		} catch (JsonSyntaxException e) {
-			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "JsonSyntaxException thrown", e);
-		} catch (JsonParseException jpe) {
-			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "JsonParseException thrown", jpe);							
+		if (msg.getPayload() == null) {
+			data = null;
+		}
+		else {
+			try {
+				final String payloadInString = new String(msg.getPayload(), "UTF8");
+				data = JSON_PARSER.parse(payloadInString).getAsJsonObject();
+			} catch (JsonSyntaxException e) {
+				LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "JsonSyntaxException thrown", e);
+			} catch (JsonParseException jpe) {
+				LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "JsonParseException thrown", jpe);							
+			}	
 		}
 	}
 	
