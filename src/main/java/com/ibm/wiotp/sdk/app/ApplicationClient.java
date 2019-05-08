@@ -98,16 +98,12 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 
 		LoggerUtility.info(CLASS_NAME, METHOD, "Publishing event to " + topic);
 		
-		JsonObject payload = null;
-		// Handle null object
-		if(data == null) {
-			data = new JsonObject();
+		MqttMessage msg = new MqttMessage();
+		if (data != null) {
+			JsonObject payload = (JsonObject) gson.toJsonTree(data);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Event payload = " + payload.toString());
+			msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
 		}
-		payload = (JsonObject) gson.toJsonTree(data);
-		
-		LoggerUtility.info(CLASS_NAME, METHOD, "Event payload = " + payload.toString());
-		
-		MqttMessage msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
 		msg.setQos(qos);
 		msg.setRetained(false);
 		
@@ -151,15 +147,12 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/json";
 		LoggerUtility.info(CLASS_NAME, METHOD, "Publishing command to " + topic);
 
-		Object payload = null;
-		// Handle null object
-		if(data == null) {
-			data = new JsonObject();
+		MqttMessage msg = new MqttMessage();
+		if (data != null) {
+			JsonObject payload = (JsonObject) gson.toJsonTree(data);
+			LoggerUtility.info(CLASS_NAME, METHOD, "Command payload = " + payload.toString());
+			msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
 		}
-		payload = gson.toJsonTree(data);
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Command Payload = " + payload.toString());
-		
-		MqttMessage msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
 		msg.setQos(qos);
 		msg.setRetained(false);
 		
@@ -207,13 +200,13 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		subscribeToDeviceEvents(typeId, deviceId, eventId, 0);
 	}
 	public void subscribeToDeviceEvents(String typeId, String deviceId) {
-		subscribeToDeviceEvents(typeId, deviceId, "+", 0);
+		subscribeToDeviceEvents(typeId, deviceId, "+");
 	}
 	public void subscribeToDeviceEvents(String typeId) {
-		subscribeToDeviceEvents(typeId, "+", "+", 0);
+		subscribeToDeviceEvents(typeId, "+");
 	}
 	public void subscribeToDeviceEvents() {
-		subscribeToDeviceEvents("+", "+", "+", 0);
+		subscribeToDeviceEvents("+");
 	}
 	
 	
@@ -236,8 +229,17 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 			e.printStackTrace();
 		}
 	}
-	
-	
+
+	public void unsubscribeFromDeviceEvents(String typeId, String deviceId) {
+		unsubscribeFromDeviceEvents(typeId, deviceId, "+");
+	}
+	public void unsubscribeFromDeviceEvents(String typeId) {
+		unsubscribeFromDeviceEvents(typeId, "+");
+	}
+	public void unsubscribeFromDeviceEvents() {
+		unsubscribeFromDeviceEvents("+");
+	}
+
 	/**
 	 * Subscribe to device commands, on the behalf of a device, of the IBM Watson IoT Platform. <br>
 	 * 
@@ -264,13 +266,42 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	public void subscribeToDeviceCommands(String typeId, String deviceId, String commandId) {
 		subscribeToDeviceCommands(typeId, deviceId, commandId, 1);
 	}
-	
 	public void subscribeToDeviceCommands(String typeId, String deviceId) {
-		subscribeToDeviceCommands(typeId, deviceId, "+", 1);
+		subscribeToDeviceCommands(typeId, deviceId, "+");
 	}
-	
 	public void subscribeToDeviceCommands(String typeId) {
-		subscribeToDeviceCommands(typeId, "+", "+", 1);
+		subscribeToDeviceCommands(typeId, "+");
+	}
+
+
+	/**
+	 * Unsubscribe from device commands of the IBM Watson IoT Platform. <br>
+	 * 
+	 * @param typeId
+	 *            object of String which denotes deviceType 
+	 * @param deviceId
+	 *            object of String which denotes deviceId
+	 * @param commandId
+	 *            object of String which denotes command
+	 */
+	public void unsubscribeFromDeviceCommands(String typeId, String deviceId, String commandId) {
+		try {
+			String topic = "iot-2/type/"+typeId+"/id/"+deviceId+"/cmd/"+commandId+"/fmt/json";
+			subscriptions.remove(topic);
+			mqttAsyncClient.unsubscribe(topic).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void unsubscribeFromDeviceCommands(String typeId, String commandId) {
+		unsubscribeFromDeviceCommands(typeId, commandId, "+");
+	}
+	public void unsubscribeFromDeviceCommands(String typeId) {
+		unsubscribeFromDeviceCommands(typeId, "+");
+	}
+	public void unsubscribeFromDeviceCommands() {
+		unsubscribeFromDeviceCommands("+");
 	}
 
 	/**

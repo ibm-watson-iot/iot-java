@@ -75,8 +75,45 @@ public class ApplicationTest extends AbstractTest {
 			} catch(InterruptedException e) {}
 		}
 		assertTrue("Command is received by application", (cmd != null));
+		assertEquals(DEVICE_TYPE, cmd.getTypeId());
+		assertEquals(DEVICE_ID, cmd.getDeviceId());
 		assertEquals(10, cmd.getData().get("distance").getAsInt());
+
+		app1Client.unsubscribeFromDeviceCommands(DEVICE_TYPE, DEVICE_ID);
 	}	
+
+	@Test
+	public void testSendAndSubscribeToNullCommand() throws Exception {
+		logTestStart("testSendAndSubscribeToNullCommand");
+		app1Client = new ApplicationClient();
+		app1Client.connect();
+		assertTrue("Client is connected", app1Client.isConnected());
+
+		// Create the subscription
+		TestAppCommandCallback cmdCallback = new TestAppCommandCallback();
+		app1Client.setCommandCallback(cmdCallback);
+		
+		app1Client.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID);
+		
+		// Send a command
+		boolean success = app1Client.publishCommand(DEVICE_TYPE, DEVICE_ID, "run", null);
+		assertTrue("Null publish was a success", success);
+
+		int count = 0;
+		Command cmd = cmdCallback.getCommand();
+		while( cmd == null && count++ <= 10) {
+			try {
+				cmd = cmdCallback.getCommand();
+				Thread.sleep(1000);
+			} catch(InterruptedException e) {}
+		}
+		assertTrue("Null command is received by application", (cmd != null));
+		assertEquals(DEVICE_TYPE, cmd.getTypeId());
+		assertEquals(DEVICE_ID, cmd.getDeviceId());
+		assertEquals(null, cmd.getData());
+
+		app1Client.unsubscribeFromDeviceCommands(DEVICE_TYPE, DEVICE_ID);
+	}
 
 	@Test
 	public void testSendAndSubscribeToEvents() throws Exception {
@@ -106,7 +143,43 @@ public class ApplicationTest extends AbstractTest {
 		}
 		
 		assertTrue("Event is received by application", (evt != null));
+		assertEquals(DEVICE_TYPE, evt.getTypeId());
+		assertEquals(DEVICE_ID, evt.getDeviceId());
 		assertEquals(10, evt.getData().get("distance").getAsInt());
+		
+		app1Client.unsubscribeFromDeviceEvents(DEVICE_TYPE, DEVICE_ID);
 	}	
 
+	@Test
+	public void testSendAndSubscribeToNullEvent() throws Exception {
+		logTestStart("testSendAndSubscribeToNullEvent");
+		app1Client = new ApplicationClient();
+		app1Client.connect();
+		assertTrue("Client is connected", app1Client.isConnected());
+
+		// Create the subscription
+		TestAppEventCallback evtCallback = new TestAppEventCallback();
+		app1Client.setEventCallback(evtCallback);
+		app1Client.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID);
+		
+		// Send an event
+		boolean success = app1Client.publishEvent(DEVICE_TYPE, DEVICE_ID, "run", null);
+		assertTrue("Publish null event was a success", success);
+		
+		int count = 0;
+		Event evt = evtCallback.getEvent();
+		while( evt == null && count++ <= 10) {
+			try {
+				evt = evtCallback.getEvent();
+				Thread.sleep(1000);
+			} catch(InterruptedException e) {}
+		}
+		
+		assertTrue("NUull Event is received by application", (evt != null));
+		assertEquals(DEVICE_TYPE, evt.getTypeId());
+		assertEquals(DEVICE_ID, evt.getDeviceId());
+		assertEquals(null, evt.getData());
+
+		app1Client.unsubscribeFromDeviceEvents(DEVICE_TYPE, DEVICE_ID);
+	}
 }
