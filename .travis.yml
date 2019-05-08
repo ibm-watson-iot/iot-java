@@ -1,5 +1,5 @@
 language: java
 
-# See: https://github.com/trautonen/coveralls-maven-plugin
-after_success:
-  - mvn clean test jacoco:report coveralls:report
+script:
+  - mvn -q -B -f pom.xml clean test jacoco:report coveralls:report
+  - mvn -q -B -f samples/sigar/pom.xml clean
