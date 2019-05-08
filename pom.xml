@@ -49,18 +49,6 @@
         </license>
     </licenses>
 
-    <distributionManagement>
-  		<snapshotRepository>
-	    	<id>ossrh</id>
-	    	<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-	  	</snapshotRepository>
-  		<repository>
-    		<id>ossrh</id>
-    		<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-  		</repository>
-	</distributionManagement>
-
-
     <dependencies>
     	<!-- Dependencies from swagger generated code -->
         <dependency>
@@ -135,6 +123,7 @@
     </dependencies>
 
     <build>
+        <!-- Include properties files -->
     	<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -145,8 +134,36 @@
 		</resources>
     
         <plugins>
+            <!-- Launch the tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					 <parallel>classes</parallel>
+					 <threadCount>100</threadCount>
+					 <includes>
+					 	<include>${runSuite}</include>
+					 </includes>
+				</configuration>
+			</plugin>
+
+            <!-- Generate a code coverage report from the tests -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.6.201602180812</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
             <!-- 
-                Generate and submit code coverage report to coveralls.io
+                Submit code coverage report to coveralls.io
                 https://coveralls.io/github/ibm-watson-iot/iot-java
 
                 See: https://github.com/trautonen/coveralls-maven-plugin 
@@ -160,6 +177,7 @@
                 </configuration>
             </plugin>
 
+            <!-- Configure compiler options -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.5.1</version>
@@ -173,174 +191,8 @@
                 </configuration>
             </plugin>
             
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.7</version>
-                <configuration>
-                    <delimiters>
-                        <delimiter>@</delimiter>
-                    </delimiters>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.6</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-			<!--
-	        <plugin>
-	            <groupId>org.apache.maven.plugins</groupId>
-	            <artifactId>maven-gpg-plugin</artifactId>
-	            <version>1.5</version>
-	            <executions>
-	                <execution>
-	                    <id>sign-artifacts</id>
-	                    <phase>verify</phase>
-	                    <goals>
-	                        <goal>sign</goal>
-	                    </goals>
-	                </execution>
-	            </executions>
-	        </plugin>
-			-->
-			
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					 <parallel>classes</parallel>
-					 <threadCount>100</threadCount>
-					 <includes>
-					 	<include>${runSuite}</include>
-					 </includes>
-				</configuration>
-			</plugin>
-
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.3</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                    <useReleaseProfile>false</useReleaseProfile>
-                    <releaseProfiles>release</releaseProfiles>
-                    <goals>deploy</goals>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>with-deps</shadedClassifierName>
-                        </configuration>
-                    </execution>
-                </executions>
-                <configuration>
-    				<filters>
-        			<filter>
-            			<artifact>*:*</artifact>
-            			<excludes>	
-                			<exclude>META-INF/*.SF</exclude>
-                			<exclude>META-INF/*.DSA</exclude>
-                			<exclude>META-INF/*.RSA</exclude>
-            			</excludes>
-        			</filter>
-    				</filters>
-                </configuration>
-            </plugin>
-
         </plugins>
-    </build>
 
-	<profiles>
-		<profile>
-			<!-- this profile generates GPG signatures -->
-			<id>create_gpg_signature</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-				<property>
-					<name>createGPGSignature</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.6</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
-	
+    </build>
 </project>
 
