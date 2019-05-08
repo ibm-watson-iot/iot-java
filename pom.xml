@@ -145,6 +145,21 @@
 		</resources>
     
         <plugins>
+            <!-- 
+                Generate and submit code coverage report to coveralls.io
+                https://coveralls.io/github/ibm-watson-iot/iot-java
+
+                See: https://github.com/trautonen/coveralls-maven-plugin 
+            -->
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>4.3.0</version>
+                <configuration>
+                    <repoToken>${env.COVERALLS_TOKEN}</repoToken>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.5.1</version>
@@ -157,6 +172,7 @@
                     </compilerArgs>
                 </configuration>
             </plugin>
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -181,6 +197,7 @@
                     </archive>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -194,6 +211,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -207,6 +225,7 @@
                     </execution>
                 </executions>
             </plugin>
+
 			<!--
 	        <plugin>
 	            <groupId>org.apache.maven.plugins</groupId>
@@ -224,20 +243,10 @@
 	        </plugin>
 			-->
 			
-			<!-- Plugin for setting properties for the tests-->
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-				<!-- 
-					<systemProperties>
-						<property>
-							<name>javax.net.debug</name>
-							<value>ssl,handshake,verbose</value>
-						</property>
-					</systemProperties>
-					 -->
 					 <parallel>classes</parallel>
 					 <threadCount>100</threadCount>
 					 <includes>
@@ -257,6 +266,7 @@
                     <autoReleaseAfterClose>false</autoReleaseAfterClose>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
@@ -268,6 +278,7 @@
                     <goals>deploy</goals>
                 </configuration>
             </plugin>
+
             <plugin>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>2.4</version>
@@ -296,6 +307,7 @@
     				</filters>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 
