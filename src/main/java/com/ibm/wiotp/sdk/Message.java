@@ -45,7 +45,7 @@ public class Message {
 	 *  
 	 * @throws UnsupportedEncodingException If encoding is other than UTF8
 	 */
-	public Message(MqttMessage msg, String format) throws UnsupportedEncodingException{
+	public Message(MqttMessage msg, String format) throws UnsupportedEncodingException {
 		final String METHOD = "Message";
 		
 		this.format = format;
@@ -54,8 +54,7 @@ public class Message {
 		if (! format.equals("json")) {
 			throw new RuntimeException("Sorry, Java SDK is only able to support JSON encoded events and commands currently: " + format);
 		}
-		
-		if (msg.getPayload() == null) {
+		if (msg.getPayload().length == 0) {
 			data = null;
 		}
 		else {
@@ -87,6 +86,8 @@ public class Message {
 	 * Provides a human readable String representation of message, including timestamp and data.
 	 */
 	public String toString() {
+		if (data == null)
+			return "<no content>";
 		return data.toString(); 
 	}
 

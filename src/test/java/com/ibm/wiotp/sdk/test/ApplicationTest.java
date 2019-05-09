@@ -116,8 +116,8 @@ public class ApplicationTest extends AbstractTest {
 	}
 
 	@Test
-	public void testSendAndSubscribeToEvents() throws Exception {
-		logTestStart("testSendAndSubscribeToEvents");
+	public void testSendAndSubscribeToEvent() throws Exception {
+		logTestStart("testSendAndSubscribeToEvent");
 		app1Client = new ApplicationClient();
 		app1Client.connect();
 		assertTrue("Client is connected", app1Client.isConnected());
