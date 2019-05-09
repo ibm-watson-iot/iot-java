@@ -23,9 +23,9 @@ import com.ibm.wiotp.sdk.app.messages.Event;
 import com.ibm.wiotp.sdk.codecs.JsonCodec;
 import com.ibm.wiotp.sdk.codecs.Utf8Codec;
 import com.ibm.wiotp.sdk.test.util.AbstractTest;
-import com.ibm.wiotp.sdk.test.util.callbacks.TestAppCommandCallbackJson;
-import com.ibm.wiotp.sdk.test.util.callbacks.TestAppEventCallbackJson;
-import com.ibm.wiotp.sdk.test.util.callbacks.TestAppEventCallbackUtf8;
+import com.ibm.wiotp.sdk.test.util.callbacks.AppCommandCallbackJson;
+import com.ibm.wiotp.sdk.test.util.callbacks.AppEventCallbackJson;
+import com.ibm.wiotp.sdk.test.util.callbacks.AppEventCallbackUtf8;
 
 public class ApplicationTest extends AbstractTest {
 	
@@ -58,7 +58,7 @@ public class ApplicationTest extends AbstractTest {
 		assertTrue("Client is connected", app1Client.isConnected());
 
 		// Create the subscription
-		TestAppCommandCallbackJson cmdCallback = new TestAppCommandCallbackJson();
+		AppCommandCallbackJson cmdCallback = new AppCommandCallbackJson();
 		app1Client.registerCodec(new JsonCodec());
 		app1Client.registerCommandCallback(cmdCallback);
 		
@@ -94,7 +94,7 @@ public class ApplicationTest extends AbstractTest {
 		assertTrue("Client is connected", app1Client.isConnected());
 
 		// Create the subscription
-		TestAppCommandCallbackJson cmdCallback = new TestAppCommandCallbackJson();
+		AppCommandCallbackJson cmdCallback = new AppCommandCallbackJson();
 		app1Client.registerCodec(new JsonCodec());
 		app1Client.registerCommandCallback(cmdCallback);
 		
@@ -131,7 +131,7 @@ public class ApplicationTest extends AbstractTest {
 		assertTrue("Client is connected", app1Client.isConnected());
 
 		// Create the subscription
-		TestAppEventCallbackJson evtCallback = new TestAppEventCallbackJson();
+		AppEventCallbackJson evtCallback = new AppEventCallbackJson();
 		app1Client.registerCodec(new JsonCodec());
 		app1Client.registerEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID);
@@ -167,7 +167,7 @@ public class ApplicationTest extends AbstractTest {
 		assertTrue("Client is connected", app1Client.isConnected());
 
 		// Create the subscription
-		TestAppEventCallbackUtf8 evtCallback = new TestAppEventCallbackUtf8();
+		AppEventCallbackUtf8 evtCallback = new AppEventCallbackUtf8();
 		app1Client.registerCodec(new Utf8Codec());
 		app1Client.registerEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID);
@@ -202,7 +202,7 @@ public class ApplicationTest extends AbstractTest {
 		assertTrue("Client is connected", app1Client.isConnected());
 
 		// Create the subscription
-		TestAppEventCallbackJson evtCallback = new TestAppEventCallbackJson();
+		AppEventCallbackJson evtCallback = new AppEventCallbackJson();
 		app1Client.registerCodec(new JsonCodec());
 		app1Client.registerEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID);

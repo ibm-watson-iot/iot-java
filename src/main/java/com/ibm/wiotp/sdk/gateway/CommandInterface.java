@@ -1,4 +1,6 @@
-package com.ibm.wiotp.sdk.codecs;
+package com.ibm.wiotp.sdk.gateway;
+
+import com.ibm.wiotp.sdk.MessageInterface;
 
 public interface CommandInterface<T> extends MessageInterface<T> {
 	public String getTypeId();

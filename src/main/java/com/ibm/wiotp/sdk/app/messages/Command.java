@@ -14,8 +14,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.joda.time.DateTime;
 
-import com.ibm.wiotp.sdk.codecs.CommandInterface;
-import com.ibm.wiotp.sdk.codecs.MessageInterface;
+import com.ibm.wiotp.sdk.MessageInterface;
 
 
 public class Command<T> implements CommandInterface<T> {

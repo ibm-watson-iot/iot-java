@@ -26,6 +26,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 
 import com.ibm.wiotp.sdk.AbstractClient;
+import com.ibm.wiotp.sdk.MessageInterface;
 import com.ibm.wiotp.sdk.app.callbacks.CommandCallback;
 import com.ibm.wiotp.sdk.app.callbacks.EventCallback;
 import com.ibm.wiotp.sdk.app.callbacks.StatusCallback;
@@ -35,7 +36,6 @@ import com.ibm.wiotp.sdk.app.messages.Command;
 import com.ibm.wiotp.sdk.app.messages.DeviceStatus;
 import com.ibm.wiotp.sdk.app.messages.Event;
 import com.ibm.wiotp.sdk.codecs.MessageCodec;
-import com.ibm.wiotp.sdk.codecs.MessageInterface;
 import com.ibm.wiotp.sdk.exceptions.MissingMessageEncoderException;
 import com.ibm.wiotp.sdk.util.LoggerUtility;
 

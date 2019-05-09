@@ -21,19 +21,21 @@ import org.junit.Test;
 import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.app.ApplicationClient;
 import com.ibm.wiotp.sdk.app.messages.Event;
+import com.ibm.wiotp.sdk.codecs.JsonCodec;
 import com.ibm.wiotp.sdk.device.DeviceClient;
 import com.ibm.wiotp.sdk.device.config.DeviceConfig;
 import com.ibm.wiotp.sdk.device.config.DeviceConfigAuth;
 import com.ibm.wiotp.sdk.device.config.DeviceConfigIdentity;
 import com.ibm.wiotp.sdk.device.config.DeviceConfigOptions;
 import com.ibm.wiotp.sdk.swagger.ApiClient;
+import com.ibm.wiotp.sdk.swagger.ApiException;
 import com.ibm.wiotp.sdk.swagger.Configuration;
 import com.ibm.wiotp.sdk.swagger.api.DeviceConfigurationApi;
 import com.ibm.wiotp.sdk.swagger.auth.HttpBasicAuth;
 import com.ibm.wiotp.sdk.swagger.model.DeviceAdditionRequest;
 import com.ibm.wiotp.sdk.swagger.model.DeviceAdditionResponse;
 import com.ibm.wiotp.sdk.test.util.AbstractTest;
-import com.ibm.wiotp.sdk.test.util.callbacks.TestAppEventCallbackJson;
+import com.ibm.wiotp.sdk.test.util.callbacks.AppEventCallbackJson;
 
 public class DeviceTest extends AbstractTest {
 	
@@ -55,13 +57,7 @@ public class DeviceTest extends AbstractTest {
 		}
 	}
 	
-	@Test
-	public void testConnect() throws Exception {
-		logTestStart("testConnect");
-		app1Client = new ApplicationClient();
-		app1Client.connect();
-		assertTrue("Client is connected", app1Client.isConnected());
-		
+	private DeviceConfig registerDeviceAndSaveCfg() throws ApiException {
 		// This is temporary until fully integrate swaggergen client into the library
 		ApiClient defaultClient = Configuration.getDefaultApiClient();
 		defaultClient.setBasePath(app1Client.getConfig().getHttpApiBasePath());
@@ -85,13 +81,28 @@ public class DeviceTest extends AbstractTest {
         DeviceConfigOptions cfgOptions= new DeviceConfigOptions();
         DeviceConfig cfg = new DeviceConfig(cfgIdentity, cfgAuth, cfgOptions);
         
+        return cfg;
+	}
+	
+	
+	@Test
+	public void testPublishEvent() throws Exception {
+		logTestStart("testConnect");
+		app1Client = new ApplicationClient();
+		app1Client.connect();
+		assertTrue("Client is connected", app1Client.isConnected());
+		
+        DeviceConfig cfg = registerDeviceAndSaveCfg();
+        
         device1Client = new DeviceClient(cfg);
+        device1Client.registerCodec(new JsonCodec());
         device1Client.connect();
 		assertTrue("Client is connected", device1Client.isConnected());
 		
 		// Create the subscription
-		TestAppEventCallbackJson evtCallback = new TestAppEventCallbackJson();
-		app1Client.setEventCallback(evtCallback);
+		AppEventCallbackJson evtCallback = new AppEventCallbackJson();
+		app1Client.registerCodec(new JsonCodec());
+		app1Client.registerEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(TYPE_ID, DEVICE_ID);
 		
 		// Send an event
@@ -101,7 +112,7 @@ public class DeviceTest extends AbstractTest {
 		assertTrue("Publish was a success", success);
 		
 		int count = 0;
-		Event evt = evtCallback.getEvent();
+		Event<JsonObject> evt = evtCallback.getEvent();
 		while( evt == null && count++ <= 10) {
 			try {
 				evt = evtCallback.getEvent();

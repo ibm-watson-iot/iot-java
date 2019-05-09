@@ -7,12 +7,12 @@ import com.ibm.wiotp.sdk.app.callbacks.EventCallback;
 import com.ibm.wiotp.sdk.app.messages.Event;
 import com.ibm.wiotp.sdk.util.LoggerUtility;
 
-public class TestAppEventCallbackJson implements EventCallback<JsonObject> {
+public class AppEventCallbackJson implements EventCallback<JsonObject> {
 
 	Event<JsonObject> event = null;
 	ArrayList<Event<JsonObject>> allEvents = new ArrayList<Event<JsonObject>>();
 	
-	private static final String CLASS_NAME = TestDeviceCommandCallback.class.getName();
+	private static final String CLASS_NAME = DeviceCommandCallbackJson.class.getName();
 	
 	@Override
 	public void processEvent(Event<JsonObject> evt) {

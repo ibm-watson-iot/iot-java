@@ -13,7 +13,8 @@ package com.ibm.wiotp.sdk.device;
 import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,7 +28,10 @@ import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 
 import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.AbstractClient;
+import com.ibm.wiotp.sdk.MessageInterface;
+import com.ibm.wiotp.sdk.codecs.MessageCodec;
 import com.ibm.wiotp.sdk.device.config.DeviceConfig;
+import com.ibm.wiotp.sdk.exceptions.MissingMessageEncoderException;
 import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 
@@ -41,7 +45,14 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	private static final String CLASS_NAME = DeviceClient.class.getName();
 	private static final Pattern COMMAND_PATTERN = Pattern.compile("iot-2/cmd/(.+)/fmt/(.+)");
 	
-	protected CommandCallback commandCallback = null;
+	@SuppressWarnings("rawtypes")
+	protected Map<Class, MessageCodec> messageCodecs = new HashMap<Class, MessageCodec>();
+	@SuppressWarnings("rawtypes")
+	protected Map<String, MessageCodec> messageCodecsByFormat = new HashMap<String, MessageCodec>();
+	
+	@SuppressWarnings("rawtypes")
+	protected Map<Class, CommandCallback> commandCallbacks = new HashMap<Class, CommandCallback>();
+
 	
 	public DeviceClient() throws Exception {
 		this(DeviceConfig.generateFromEnv());
@@ -112,21 +123,27 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	 * @return Whether the send was successful.
 	 * @throws Exception when the publish operation fails
 	 */	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public boolean publishEvent(String eventId, Object data, int qos) throws Exception {
 		final String METHOD = "publishEvent";
-		String topic = "iot-2/evt/" + eventId + "/fmt/json";
-		Object payload = null;
-		MqttMessage msg = null;
-		// Handle null object
-		if(data == null) {
-			data = new JsonObject();
+		
+		if (data == null) {
+			throw new NullPointerException("Data object for event publish can not be null");
 		}
-		payload = gson.toJsonTree(data);
-		msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
 		
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic   = " + topic);
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Payload = " + payload.toString());
+		// Find the codec for the data class
+		MessageCodec codec = messageCodecs.get(data.getClass());
 		
+		// Check that a codec is registered
+		if (codec == null) {
+			throw new MissingMessageEncoderException(data.getClass().getName());
+		}
+		byte[] payload = codec.encode(data, null);
+		String topic = "iot-2/evt/" + eventId + "/fmt/" + codec.getMessageFormat();
+
+		LoggerUtility.info(CLASS_NAME, METHOD, "Publishing event to " + topic);
+		
+		MqttMessage msg = new MqttMessage(payload);
 		msg.setQos(qos);
 		msg.setRetained(false);
 		
@@ -140,11 +157,6 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 			return false;
 		}
 		return true;
-	}
-
-	
-	public void setCommandCallback(CommandCallback callback) {
-		this.commandCallback  = callback;
 	}
 	
 
@@ -183,9 +195,10 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	/**
 	 * The Device client does not currently support subscriptions.
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void messageArrived(String topic, MqttMessage msg) throws Exception {
 		final String METHOD = "messageArrived";
-		if (commandCallback != null) {
+		if (! commandCallbacks.isEmpty()) {
 			/* Only check whether the message is a command if a callback 
 			 * has been defined, otherwise it is a waste of time
 			 * as without a callback there is nothing to process the generated
@@ -195,9 +208,18 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 			if (matcher.matches()) {
 				String command = matcher.group(1);
 				String format = matcher.group(2);
-				Command cmd = new Command(command, format, msg);
-				LoggerUtility.fine(CLASS_NAME, METHOD, "Event received: " + cmd.toString());
-				commandCallback.processCommand(cmd);
+				
+				MessageCodec codec = messageCodecsByFormat.get(format);
+				MessageInterface message = codec.decode(msg);
+				Command cmd = new Command(command, format, message);
+				
+
+				LoggerUtility.fine(CLASS_NAME, METHOD, "Command received: " + cmd.toString());
+				
+				CommandCallback callback = commandCallbacks.get(codec.getMessageClass());
+				if (callback != null) {
+					callback.processCommand(cmd);
+				}
 		    }
 		}
 	}
@@ -216,5 +238,17 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 			}
 		}
 	}
+	
+	@SuppressWarnings("rawtypes")
+	public void registerCodec(MessageCodec codec) {
+		this.messageCodecs.put(codec.getMessageClass(), codec);
+		this.messageCodecsByFormat.put(codec.getMessageFormat(), codec);
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public void registerCommandCallback(CommandCallback callback) {
+		this.commandCallbacks.put(callback.getMessageClass(), callback);
+	}
+
 	
 }

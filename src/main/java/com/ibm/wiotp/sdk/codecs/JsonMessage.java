@@ -3,6 +3,7 @@ package com.ibm.wiotp.sdk.codecs;
 import org.joda.time.DateTime;
 
 import com.google.gson.JsonObject;
+import com.ibm.wiotp.sdk.MessageInterface;
 
 public class JsonMessage implements MessageInterface<JsonObject>{
 	

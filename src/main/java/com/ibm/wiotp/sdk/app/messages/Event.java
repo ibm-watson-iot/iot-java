@@ -15,8 +15,7 @@ import java.io.UnsupportedEncodingException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.joda.time.DateTime;
 
-import com.ibm.wiotp.sdk.codecs.EventInterface;
-import com.ibm.wiotp.sdk.codecs.MessageInterface;
+import com.ibm.wiotp.sdk.MessageInterface;
 
 //messagehannlder(Event<T>)
 //sn

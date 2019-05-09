@@ -6,12 +6,12 @@ import com.ibm.wiotp.sdk.app.callbacks.EventCallback;
 import com.ibm.wiotp.sdk.app.messages.Event;
 import com.ibm.wiotp.sdk.util.LoggerUtility;
 
-public class TestAppEventCallbackUtf8 implements EventCallback<String> {
+public class AppEventCallbackUtf8 implements EventCallback<String> {
 
 	Event<String> event = null;
 	ArrayList<Event<String>> allEvents = new ArrayList<Event<String>>();
 	
-	private static final String CLASS_NAME = TestDeviceCommandCallback.class.getName();
+	private static final String CLASS_NAME = DeviceCommandCallbackJson.class.getName();
 	
 	@Override
 	public void processEvent(Event<String> evt) {

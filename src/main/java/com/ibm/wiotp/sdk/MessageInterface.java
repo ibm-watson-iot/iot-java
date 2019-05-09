@@ -1,4 +1,4 @@
-package com.ibm.wiotp.sdk.codecs;
+package com.ibm.wiotp.sdk;
 
 import org.joda.time.DateTime;
 

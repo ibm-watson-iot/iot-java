@@ -15,7 +15,7 @@ package com.ibm.wiotp.sdk.device;
  * This can be used by devices to subscribe to commands
  * 
  */
-public interface CommandCallback {
+public interface CommandCallback<T> {
 
 	
 	/**
@@ -24,5 +24,7 @@ public interface CommandCallback {
 	 * @param cmd
 	 *               The command upon receiving an action is triggered in a device 
 	 */	
-	public void processCommand(Command cmd);
+	public void processCommand(Command<T> cmd);
+	
+	public Class<T> getMessageClass();
 }

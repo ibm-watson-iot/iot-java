@@ -11,9 +11,10 @@
 package com.ibm.wiotp.sdk.device;
 
 import java.io.UnsupportedEncodingException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.joda.time.DateTime;
 
-import com.ibm.wiotp.sdk.Message;
+import com.ibm.wiotp.sdk.MessageInterface;
+
 
 /**
  * The objects of this class hold the command and the format of the command sent to a device <br>
@@ -21,10 +22,11 @@ import com.ibm.wiotp.sdk.Message;
  * 
  */
 
-public class Command extends Message{
+public class Command<T> implements MessageInterface<T>{
 
 	private String commandId;
 	private String format;
+	private MessageInterface<T> message;
 
 	/**
 	 * Note that this class does not have a default constructor <br>
@@ -41,10 +43,10 @@ public class Command extends Message{
 	 * 			UnsupportedEncodingException When the Format is not UTF-8
 	 * 
 	 */	
-	public Command(String command, String format, MqttMessage msg) throws UnsupportedEncodingException{
-		super(msg, format);
+	public Command(String command, String format, MessageInterface<T> message) throws UnsupportedEncodingException{
 		this.commandId = command;
 		this.format = format;
+		this.message = message;
 	}
 	
 	/**
@@ -57,5 +59,15 @@ public class Command extends Message{
 	
 	public String getFormat() {
 		return format.toString();
+	}
+
+	@Override
+	public T getData() {
+		return message.getData();
+	}
+
+	@Override
+	public DateTime getTimestamp() {
+		return message.getTimestamp();
 	}
 }

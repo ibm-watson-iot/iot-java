@@ -3,6 +3,7 @@ package com.ibm.wiotp.sdk.codecs;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.joda.time.DateTime;
 
+import com.ibm.wiotp.sdk.MessageInterface;
 import com.ibm.wiotp.sdk.exceptions.MalformedMessageException;
 
 

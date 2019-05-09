@@ -7,11 +7,11 @@ import com.ibm.wiotp.sdk.app.callbacks.CommandCallback;
 import com.ibm.wiotp.sdk.app.messages.Command;
 import com.ibm.wiotp.sdk.util.LoggerUtility;
 
-public class TestAppCommandCallbackJson implements CommandCallback<JsonObject> {
+public class AppCommandCallbackJson implements CommandCallback<JsonObject> {
 	Command<JsonObject> command = null;
 	ArrayList<Command<JsonObject>> allCommands = null;
 	
-	private static final String CLASS_NAME = TestAppCommandCallbackJson.class.getName();
+	private static final String CLASS_NAME = AppCommandCallbackJson.class.getName();
 	
 	@Override
 	public void processCommand(Command<JsonObject> cmd) {

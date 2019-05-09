@@ -12,7 +12,6 @@
 package com.ibm.wiotp.sdk.gateway;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,7 +21,10 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 
 import com.google.gson.JsonObject;
+import com.ibm.wiotp.sdk.MessageInterface;
+import com.ibm.wiotp.sdk.codecs.MessageCodec;
 import com.ibm.wiotp.sdk.device.Command;
+import com.ibm.wiotp.sdk.device.CommandCallback;
 import com.ibm.wiotp.sdk.device.DeviceClient;
 import com.ibm.wiotp.sdk.gateway.config.GatewayConfig;
 import com.ibm.wiotp.sdk.util.LoggerUtility;
@@ -169,17 +171,32 @@ public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
 	 * The message(command) will be processed by this class and corresponding callback method will be called if
 	 * registered.
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void messageArrived(String topic, MqttMessage msg) throws Exception {
 		final String METHOD = "messageArrived";
-		if (commandCallback != null) {
+		if (! commandCallbacks.isEmpty()) {
+			/* Only check whether the message is a command if a callback 
+			 * has been defined, otherwise it is a waste of time
+			 * as without a callback there is nothing to process the generated
+			 * command.
+			 */
 			Matcher matcher = GATEWAY_COMMAND_PATTERN.matcher(topic);
 			if (matcher.matches()) {
 				String command = matcher.group(1);
 				String format = matcher.group(2);
-				Command cmd = new Command(command, format, msg);
+				
+				MessageCodec codec = messageCodecsByFormat.get(format);
+				MessageInterface message = codec.decode(msg);
+				Command cmd = new Command(command, format, message);
+				
+
 				LoggerUtility.fine(CLASS_NAME, METHOD, "Command received: " + cmd.toString());
-				commandCallback.processCommand(cmd);
+				
+				CommandCallback callback = commandCallbacks.get(codec.getMessageClass());
+				if (callback != null) {
+					callback.processCommand(cmd);
+				}
 		    }
 		}
 	}

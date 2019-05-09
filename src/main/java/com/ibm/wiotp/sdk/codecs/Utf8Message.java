@@ -2,6 +2,8 @@ package com.ibm.wiotp.sdk.codecs;
 
 import org.joda.time.DateTime;
 
+import com.ibm.wiotp.sdk.MessageInterface;
+
 public class Utf8Message implements MessageInterface<String>{
 	
 	private String data;

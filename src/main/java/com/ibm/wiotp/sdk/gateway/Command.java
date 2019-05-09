@@ -10,21 +10,20 @@
  */
 package com.ibm.wiotp.sdk.gateway;
 
-import java.io.UnsupportedEncodingException;
+import org.joda.time.DateTime;
 
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-
-import com.ibm.wiotp.sdk.Message;
+import com.ibm.wiotp.sdk.MessageInterface;
 
 /**
  * The Command class  
  */
-public class Command extends Message {
+public class Command<T> implements CommandInterface<T> {
 
-	private String type;
-	private String id;
-	private String command;
+	private String typeId;
+	private String deviceId;
+	private String commandId;
 	private String format;
+	private MessageInterface<T> message;
 	
 	/**
 	 * Note that this class does not have a default constructor
@@ -42,28 +41,42 @@ public class Command extends Message {
 	 * @throws UnsupportedEncodingException when the format is not UTF-8
 	 * 
 	 */	
-	public Command(String type, String id, String command, String format, MqttMessage msg) throws UnsupportedEncodingException{
-		super(msg, format);
-		this.type = type;
-		this.id = id;
-		this.command = command;
+	public Command(String typeId, String deviceId, String commandId, String format, MessageInterface<T> message) {
+		this.typeId = typeId;
+		this.deviceId = deviceId;
+		this.commandId = commandId;
 		this.format = format;
+		this.message = message;
 	}
-	
-	public String getDeviceType() {
-		return type;
-	}
-
-	public String getDeviceId() {
-		return id;
-	}
-	
-	public String getCommand() {
-		return command;
-	}
-	
+			
 	public String getFormat() {
 		return format;
+	}
+
+
+	@Override
+	public DateTime getTimestamp() {
+		return message.getTimestamp();
+	}
+
+	@Override
+	public String getTypeId() {
+		return typeId;
+	}
+
+	@Override
+	public String getCommandId() {
+		return commandId;
+	}
+
+	@Override
+	public String getDeviceId() {
+		return deviceId;
+	}
+
+	@Override
+	public T getData() {
+		return message.getData();
 	}
 	
 }

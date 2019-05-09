@@ -21,7 +21,7 @@ package com.ibm.wiotp.sdk.gateway;
  * method is invoked whenever any command is published on the subscribed criteria.</p>
  *
  */
-public interface GatewayCallback {
+public interface GatewayCallback<T> {
 	
 	/**
 	 * Method to be called by the {@link com.ibm.wiotp.sdk.gateway.GatewayClient} when any 
@@ -29,7 +29,7 @@ public interface GatewayCallback {
 	 * 
 	 * @param cmd an instance of {@link com.ibm.wiotp.sdk.gateway.Command}.
 	 */
-	public void processCommand(Command cmd);
+	public void processCommand(Command<T> cmd);
 	
 	/**
 	 * <p> If a gateways subscribes to a topic of a device or sends data on behalf of a device 
