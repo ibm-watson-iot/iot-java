@@ -20,9 +20,12 @@ import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.app.ApplicationClient;
 import com.ibm.wiotp.sdk.app.messages.Command;
 import com.ibm.wiotp.sdk.app.messages.Event;
+import com.ibm.wiotp.sdk.codecs.JsonCodec;
+import com.ibm.wiotp.sdk.codecs.Utf8Codec;
 import com.ibm.wiotp.sdk.test.util.AbstractTest;
-import com.ibm.wiotp.sdk.test.util.callbacks.TestAppCommandCallback;
-import com.ibm.wiotp.sdk.test.util.callbacks.TestAppEventCallback;
+import com.ibm.wiotp.sdk.test.util.callbacks.TestAppCommandCallbackJson;
+import com.ibm.wiotp.sdk.test.util.callbacks.TestAppEventCallbackJson;
+import com.ibm.wiotp.sdk.test.util.callbacks.TestAppEventCallbackUtf8;
 
 public class ApplicationTest extends AbstractTest {
 	
@@ -55,8 +58,9 @@ public class ApplicationTest extends AbstractTest {
 		assertTrue("Client is connected", app1Client.isConnected());
 
 		// Create the subscription
-		TestAppCommandCallback cmdCallback = new TestAppCommandCallback();
-		app1Client.setCommandCallback(cmdCallback);
+		TestAppCommandCallbackJson cmdCallback = new TestAppCommandCallbackJson();
+		app1Client.registerCodec(new JsonCodec());
+		app1Client.registerCommandCallback(cmdCallback);
 		
 		app1Client.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID);
 		
@@ -67,7 +71,7 @@ public class ApplicationTest extends AbstractTest {
 		assertTrue("Publish was a success", success);
 
 		int count = 0;
-		Command cmd = cmdCallback.getCommand();
+		Command<JsonObject> cmd = cmdCallback.getCommand();
 		while( cmd == null && count++ <= 10) {
 			try {
 				cmd = cmdCallback.getCommand();
@@ -90,41 +94,46 @@ public class ApplicationTest extends AbstractTest {
 		assertTrue("Client is connected", app1Client.isConnected());
 
 		// Create the subscription
-		TestAppCommandCallback cmdCallback = new TestAppCommandCallback();
-		app1Client.setCommandCallback(cmdCallback);
+		TestAppCommandCallbackJson cmdCallback = new TestAppCommandCallbackJson();
+		app1Client.registerCodec(new JsonCodec());
+		app1Client.registerCommandCallback(cmdCallback);
 		
 		app1Client.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID);
 		
 		// Send a command
-		boolean success = app1Client.publishCommand(DEVICE_TYPE, DEVICE_ID, "run", null);
-		assertTrue("Null publish was a success", success);
-
+		boolean exceptionCaught = false;
+		try {
+			app1Client.publishCommand(DEVICE_TYPE, DEVICE_ID, "run", null);
+			assertTrue("Publish null object failed", false);
+		} catch (NullPointerException e) {
+			exceptionCaught = true;
+		}
+		assertTrue("Publish null commandwas a failure", exceptionCaught);
+		
 		int count = 0;
-		Command cmd = cmdCallback.getCommand();
-		while( cmd == null && count++ <= 10) {
+		Command<JsonObject> evt = cmdCallback.getCommand();
+		while( evt == null && count++ <= 5) {
 			try {
-				cmd = cmdCallback.getCommand();
+				evt = cmdCallback.getCommand();
 				Thread.sleep(1000);
 			} catch(InterruptedException e) {}
 		}
-		assertTrue("Null command is received by application", (cmd != null));
-		assertEquals(DEVICE_TYPE, cmd.getTypeId());
-		assertEquals(DEVICE_ID, cmd.getDeviceId());
-		assertEquals(null, cmd.getData());
-
-		app1Client.unsubscribeFromDeviceCommands(DEVICE_TYPE, DEVICE_ID);
+		
+		assertTrue("Null command is not received by application", (evt == null));
+		app1Client.unsubscribeFromDeviceEvents(DEVICE_TYPE, DEVICE_ID);
 	}
 
 	@Test
-	public void testSendAndSubscribeToEvent() throws Exception {
-		logTestStart("testSendAndSubscribeToEvent");
+	public void testSendAndSubscribeToJSONEvent() throws Exception {
+		logTestStart("testSendAndSubscribeToJSONEvent");
 		app1Client = new ApplicationClient();
 		app1Client.connect();
 		assertTrue("Client is connected", app1Client.isConnected());
 
 		// Create the subscription
-		TestAppEventCallback evtCallback = new TestAppEventCallback();
-		app1Client.setEventCallback(evtCallback);
+		TestAppEventCallbackJson evtCallback = new TestAppEventCallbackJson();
+		app1Client.registerCodec(new JsonCodec());
+		app1Client.registerEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID);
 		
 		// Send an event
@@ -134,7 +143,7 @@ public class ApplicationTest extends AbstractTest {
 		assertTrue("Publish was a success", success);
 		
 		int count = 0;
-		Event evt = evtCallback.getEvent();
+		Event<JsonObject> evt = evtCallback.getEvent();
 		while( evt == null && count++ <= 10) {
 			try {
 				evt = evtCallback.getEvent();
@@ -151,23 +160,25 @@ public class ApplicationTest extends AbstractTest {
 	}	
 
 	@Test
-	public void testSendAndSubscribeToNullEvent() throws Exception {
-		logTestStart("testSendAndSubscribeToNullEvent");
+	public void testSendAndSubscribeToUTF8Event() throws Exception {
+		logTestStart("testSendAndSubscribeToUTF8Event");
 		app1Client = new ApplicationClient();
 		app1Client.connect();
 		assertTrue("Client is connected", app1Client.isConnected());
 
 		// Create the subscription
-		TestAppEventCallback evtCallback = new TestAppEventCallback();
-		app1Client.setEventCallback(evtCallback);
+		TestAppEventCallbackUtf8 evtCallback = new TestAppEventCallbackUtf8();
+		app1Client.registerCodec(new Utf8Codec());
+		app1Client.registerEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID);
 		
 		// Send an event
-		boolean success = app1Client.publishEvent(DEVICE_TYPE, DEVICE_ID, "run", null);
-		assertTrue("Publish null event was a success", success);
+		String data = "Hi Dave, this is fun, isn't it?";
+		boolean success = app1Client.publishEvent(DEVICE_TYPE, DEVICE_ID, "run", data);
+		assertTrue("Publish was a success", success);
 		
 		int count = 0;
-		Event evt = evtCallback.getEvent();
+		Event<String> evt = evtCallback.getEvent();
 		while( evt == null && count++ <= 10) {
 			try {
 				evt = evtCallback.getEvent();
@@ -175,11 +186,47 @@ public class ApplicationTest extends AbstractTest {
 			} catch(InterruptedException e) {}
 		}
 		
-		assertTrue("NUull Event is received by application", (evt != null));
+		assertTrue("Event is received by application", (evt != null));
 		assertEquals(DEVICE_TYPE, evt.getTypeId());
 		assertEquals(DEVICE_ID, evt.getDeviceId());
-		assertEquals(null, evt.getData());
+		assertEquals(data, evt.getData());
+		
+		app1Client.unsubscribeFromDeviceEvents(DEVICE_TYPE, DEVICE_ID);
+	}	
 
+	@Test
+	public void testSendAndSubscribeToNullEvent() throws Exception {
+		logTestStart("testSendAndSubscribeToNullEvent");
+		app1Client = new ApplicationClient();
+		app1Client.connect();
+		assertTrue("Client is connected", app1Client.isConnected());
+
+		// Create the subscription
+		TestAppEventCallbackJson evtCallback = new TestAppEventCallbackJson();
+		app1Client.registerCodec(new JsonCodec());
+		app1Client.registerEventCallback(evtCallback);
+		app1Client.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID);
+		
+		// Send an event
+		boolean exceptionCaught = false;
+		try {
+			app1Client.publishEvent(DEVICE_TYPE, DEVICE_ID, "run", null);
+			assertTrue("Publish null object failed", false);
+		} catch (NullPointerException e) {
+			exceptionCaught = true;
+		}
+		assertTrue("Publish null event was a failure", exceptionCaught);
+		
+		int count = 0;
+		Event<JsonObject> evt = evtCallback.getEvent();
+		while( evt == null && count++ <= 5) {
+			try {
+				evt = evtCallback.getEvent();
+				Thread.sleep(1000);
+			} catch(InterruptedException e) {}
+		}
+		
+		assertTrue("Null Event is not received by application", (evt == null));
 		app1Client.unsubscribeFromDeviceEvents(DEVICE_TYPE, DEVICE_ID);
 	}
 }

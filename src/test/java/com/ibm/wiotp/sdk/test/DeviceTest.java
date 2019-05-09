@@ -33,7 +33,7 @@ import com.ibm.wiotp.sdk.swagger.auth.HttpBasicAuth;
 import com.ibm.wiotp.sdk.swagger.model.DeviceAdditionRequest;
 import com.ibm.wiotp.sdk.swagger.model.DeviceAdditionResponse;
 import com.ibm.wiotp.sdk.test.util.AbstractTest;
-import com.ibm.wiotp.sdk.test.util.callbacks.TestAppEventCallback;
+import com.ibm.wiotp.sdk.test.util.callbacks.TestAppEventCallbackJson;
 
 public class DeviceTest extends AbstractTest {
 	
@@ -90,7 +90,7 @@ public class DeviceTest extends AbstractTest {
 		assertTrue("Client is connected", device1Client.isConnected());
 		
 		// Create the subscription
-		TestAppEventCallback evtCallback = new TestAppEventCallback();
+		TestAppEventCallbackJson evtCallback = new TestAppEventCallbackJson();
 		app1Client.setEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(TYPE_ID, DEVICE_ID);
 		

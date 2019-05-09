@@ -12,7 +12,7 @@ package com.ibm.wiotp.sdk.app.callbacks;
 
 import com.ibm.wiotp.sdk.app.messages.Command;
 
-public interface CommandCallback {
+public interface CommandCallback<T> {
 
 	/**
 	 * 
@@ -22,5 +22,7 @@ public interface CommandCallback {
 	 *               Application subscribes to this command on the behalf of a device
 	 */	
 
-	public void processCommand(Command cmd);
+	public void processCommand(Command<T> cmd);
+	
+	public Class<T> getMessageClass();
 }
