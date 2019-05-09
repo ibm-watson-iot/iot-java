@@ -173,7 +173,7 @@ public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public void messageArrived(String topic, MqttMessage msg) throws Exception {
+	public void messageArrived(String topic, MqttMessage msg) {
 		final String METHOD = "messageArrived";
 		if (! commandCallbacks.isEmpty()) {
 			/* Only check whether the message is a command if a callback 
@@ -187,10 +187,13 @@ public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
 				String format = matcher.group(2);
 				
 				MessageCodec codec = messageCodecsByFormat.get(format);
+				// Check that a codec is registered
+				if (codec == null) {
+					LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to decode command from format " + format);
+				}
 				MessageInterface message = codec.decode(msg);
 				Command cmd = new Command(command, format, message);
 				
-
 				LoggerUtility.fine(CLASS_NAME, METHOD, "Command received: " + cmd.toString());
 				
 				CommandCallback callback = commandCallbacks.get(codec.getMessageClass());

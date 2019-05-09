@@ -11,11 +11,14 @@
 package com.ibm.wiotp.sdk.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.UUID;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
@@ -40,10 +43,15 @@ import com.ibm.wiotp.sdk.test.util.callbacks.AppEventCallbackJson;
 public class DeviceTest extends AbstractTest {
 	
 	private final static String TYPE_ID = "AppCmdSubTestType1";
-	private final static String DEVICE_ID = UUID.randomUUID().toString();
+	private final String DEVICE_ID = UUID.randomUUID().toString();
 	
 	private ApplicationClient app1Client;
 	private DeviceClient device1Client;
+	
+	@Before
+	public void setupClient() throws Exception {
+		app1Client = new ApplicationClient();
+	}
 	
 	@After
 	public void cleanupClient() {
@@ -88,7 +96,6 @@ public class DeviceTest extends AbstractTest {
 	@Test
 	public void testPublishEvent() throws Exception {
 		logTestStart("testConnect");
-		app1Client = new ApplicationClient();
 		app1Client.connect();
 		assertTrue("Client is connected", app1Client.isConnected());
 		
@@ -122,6 +129,57 @@ public class DeviceTest extends AbstractTest {
 		
 		assertTrue("Event is received by application", (evt != null));
 		assertEquals(10, evt.getData().get("distance").getAsInt());
+		assertNull(evt.getTimestamp());
+		
+	}
+	
+	@Test
+	public void testMissingEncoder() throws Exception {
+		logTestStart("testMissingEncoder");
+        DeviceConfig cfg = registerDeviceAndSaveCfg();
+
+        device1Client = new DeviceClient(cfg);
+        device1Client.connect();
+		assertTrue("Client is connected", device1Client.isConnected());
+
+		// Send an event (without registering a codec)
+		boolean success = device1Client.publishEvent("run", new JsonObject());
+		assertFalse("Publish without a known codec failed", success);
+	}
+	
+	@Test
+	public void testMissingDecoderInApp() throws Exception {
+		logTestStart("testMissingDecoderInApp");
+		app1Client.connect();
+		assertTrue("Client is connected", app1Client.isConnected());
+		
+        DeviceConfig cfg = registerDeviceAndSaveCfg();
+        
+        device1Client = new DeviceClient(cfg);
+        device1Client.registerCodec(new JsonCodec());
+        device1Client.connect();
+		assertTrue("Client is connected", device1Client.isConnected());
+		
+		// Create the subscription
+		AppEventCallbackJson evtCallback = new AppEventCallbackJson();
+		app1Client.registerEventCallback(evtCallback);
+		app1Client.subscribeToDeviceEvents(TYPE_ID, DEVICE_ID);
+		
+		// Send an event
+		JsonObject data = new JsonObject();
+		data.addProperty("distance", 10);
+		boolean success = device1Client.publishEvent("run", data, 1);
+		assertTrue("Publish was a success", success);
+		
+		int count = 0;
+		Event<JsonObject> evt = evtCallback.getEvent();
+		while( evt == null && count++ <= 10) {
+			try {
+				evt = evtCallback.getEvent();
+				Thread.sleep(1000);
+			} catch(InterruptedException e) {}
+		}
+		assertEquals(null, evt);
 	}
 	
 }

@@ -1,6 +1,6 @@
 package com.ibm.wiotp.sdk.exceptions;
 
-public class MalformedMessageException extends Exception {
+public class MalformedMessageException extends RuntimeException {
 
 	private static final long serialVersionUID = 1122911093866778851L;
 	

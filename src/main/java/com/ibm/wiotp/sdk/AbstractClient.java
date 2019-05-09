@@ -23,7 +23,6 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
-import org.eclipse.paho.client.mqttv3.logging.LoggerFactory;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import com.google.gson.Gson;
@@ -36,7 +35,6 @@ import com.ibm.wiotp.sdk.util.LoggerUtility;
 public abstract class AbstractClient {
 	
 	private static final String CLASS_NAME = AbstractClient.class.getName();
-	private static final String QUICK_START = "quickstart";
 	
 	public static final int DEFAULT_MAX_CONNECT_ATTEMPTS = 10;
 	public static final long DEFAULT_ACTION_TIMEOUT = 5 * 1000L;
@@ -164,7 +162,6 @@ public abstract class AbstractClient {
 			persistence = new MemoryPersistence();
 			mqttAsyncClient = new MqttAsyncClient(config.getMqttServerURI(), config.getClientId(), persistence);
 			mqttAsyncClient.setCallback(mqttCallback);
-			
 			DisconnectedBufferOptions disconnectedOpts = new DisconnectedBufferOptions();
 			disconnectedOpts.setBufferEnabled(true);
 			disconnectedOpts.setBufferSize(DEFAULT_DISCONNECTED_BUFFER_SIZE);

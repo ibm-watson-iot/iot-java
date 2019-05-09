@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -1460,7 +1459,7 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 	}
 	
 	@Override
-	public void messageArrived(String topic, MqttMessage message) throws Exception {
+	public void messageArrived(String topic, MqttMessage message) {
 		final String METHOD = "messageArrived";
 		
 		Matcher matcher = GATEWAY_RESPONSE_PATTERN.matcher(topic);
@@ -1468,22 +1467,27 @@ public class ManagedGateway extends GatewayClient implements IMqttMessageListene
 			LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, 
 					"Received response from IBM Watson IoT Platform, topic (" + topic + ")");
 			
-			String responsePayload = new String (message.getPayload(), "UTF-8");
-			JsonObject jsonResponse = new JsonParser().parse(responsePayload).getAsJsonObject();
 			try {
-				String reqId = jsonResponse.get("reqId").getAsString();
-				LoggerUtility.fine(CLASS_NAME, METHOD, "reqId (" + reqId + "): " + jsonResponse.toString() );
-				MqttMessage sentMsg = requests.remove(reqId);
-				if (sentMsg != null) {
-					queue.put(jsonResponse);
-				} 
-			} catch (Exception e) {
-				if (jsonResponse.get("reqId") == null) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, "The response "
-							+ "does not contain 'reqId' field (" + responsePayload + ")");
-				} else {
-					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Unexpected exception", e);
+				String responsePayload = new String (message.getPayload(), "UTF-8");
+				JsonObject jsonResponse = new JsonParser().parse(responsePayload).getAsJsonObject();
+				try {
+					String reqId = jsonResponse.get("reqId").getAsString();
+					LoggerUtility.fine(CLASS_NAME, METHOD, "reqId (" + reqId + "): " + jsonResponse.toString() );
+					MqttMessage sentMsg = requests.remove(reqId);
+					if (sentMsg != null) {
+						queue.put(jsonResponse);
+					} 
+				} catch (Exception e) {
+					if (jsonResponse.get("reqId") == null) {
+						LoggerUtility.warn(CLASS_NAME, METHOD, "The response "
+								+ "does not contain 'reqId' field (" + responsePayload + ")");
+					} else {
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Unexpected exception", e);
+					}
 				}
+			} catch (UnsupportedEncodingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 		} else {
 			// check if its the command for gateway/device

@@ -10,36 +10,9 @@
  */
 package com.ibm.wiotp.sdk.app.messages;
 
-import java.io.UnsupportedEncodingException;
-
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.joda.time.DateTime;
 
 import com.ibm.wiotp.sdk.MessageInterface;
-
-//messagehannlder(Event<T>)
-//sn
-//
-//
-//appclient.subscribe("+", "+", "+")
-//appclient.registerMessageFormat(new JsonCodec(), myCallback)
-//appclient.registerMessageFormat("utf8", new UTF8Codec(), myCallback)
-//
-//
-//myCallback(Event<JsonObject> evt) {
-//	JsonObject o = evt.getData()
-//}
-//
-//myCallback(Event<String> evt) {
-//	String o = evt.getData()
-//}
-//
-//myCallback(Event<T> evt) {
-//	if evt instanceof(jsonovbject)
-//	JsonObject o = evt.getData()
-//}
-
-
 
 /**
  * This class inherits from Message and denotes the device event <br>
@@ -66,9 +39,8 @@ public class Event<T> implements EventInterface<T> {
 	 * 			Format (encoding) of the event
 	 * @param msg 
 	 * 			The MQTT message
-	 * @throws UnsupportedEncodingException when the encoding is not UTF-8
 	 */
-	public Event(String typeId, String deviceId, String eventId, String format, MessageInterface<T> message) throws UnsupportedEncodingException{
+	public Event(String typeId, String deviceId, String eventId, String format, MessageInterface<T> message) {
 		this.typeId = typeId;
 		this.deviceId = deviceId;
 		this.eventId = eventId;

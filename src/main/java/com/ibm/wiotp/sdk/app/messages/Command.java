@@ -10,8 +10,6 @@
  */
 package com.ibm.wiotp.sdk.app.messages;
 
-import java.io.UnsupportedEncodingException;
-
 import org.joda.time.DateTime;
 
 import com.ibm.wiotp.sdk.MessageInterface;
@@ -38,10 +36,9 @@ public class Command<T> implements CommandInterface<T> {
 	 * @param msg
 	 * 			MqttMessage
 	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
-	 * @throws UnsupportedEncodingException When the encoding format id not UTF-8 
 	 * 
 	 */	
-	public Command(String typeId, String deviceId, String commandId, String format, MessageInterface<T> message) throws UnsupportedEncodingException{
+	public Command(String typeId, String deviceId, String commandId, String format, MessageInterface<T> message) {
 		this.typeId = typeId;
 		this.deviceId = deviceId;
 		this.commandId = commandId;

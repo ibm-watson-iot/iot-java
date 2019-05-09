@@ -10,6 +10,7 @@
  */
 package com.ibm.wiotp.sdk.app;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -23,7 +24,6 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 
 import com.ibm.wiotp.sdk.AbstractClient;
 import com.ibm.wiotp.sdk.MessageInterface;
@@ -36,7 +36,6 @@ import com.ibm.wiotp.sdk.app.messages.Command;
 import com.ibm.wiotp.sdk.app.messages.DeviceStatus;
 import com.ibm.wiotp.sdk.app.messages.Event;
 import com.ibm.wiotp.sdk.codecs.MessageCodec;
-import com.ibm.wiotp.sdk.exceptions.MissingMessageEncoderException;
 import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 /**
@@ -101,10 +100,9 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 *            Quality of Service, in int - can have values 0,1,2
 	 *            
 	 * @return Whether the send was successful.
-	 * @throws MissingMessageEncoderException 
 	 */
 	@SuppressWarnings("unchecked")
-	public boolean publishEvent(String typeId, String deviceId, String eventId, Object data, int qos) throws MissingMessageEncoderException {
+	public boolean publishEvent(String typeId, String deviceId, String eventId, Object data, int qos) {
 		final String METHOD = "publishEvent";
 
 		if (data == null) {
@@ -117,8 +115,10 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		
 		// Check that a codec is registered
 		if (codec == null) {
-			throw new MissingMessageEncoderException(data.getClass().getName());
+			LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to encode event data of class " + data.getClass().getName());
+			return false;
 		}
+		
 		byte[] payload = codec.encode(data, null);
 		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/" + codec.getMessageFormat();
 
@@ -130,9 +130,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		
 		try {
 			mqttAsyncClient.publish(topic, msg);
-		} catch (MqttPersistenceException e) {
-			e.printStackTrace();
-			return false;
 		} catch (MqttException e) {
 			e.printStackTrace();
 			return false;
@@ -140,7 +137,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		return true;
 	}
 	
-	public boolean publishEvent(String typeId, String deviceId, String eventId, Object data) throws MissingMessageEncoderException {
+	public boolean publishEvent(String typeId, String deviceId, String eventId, Object data) {
 		return publishEvent(typeId, deviceId, eventId, data, 0);
 	}
 
@@ -176,8 +173,10 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		
 		// Check that a codec is registered
 		if (codec == null) {
-			throw new MissingMessageEncoderException(data.getClass().getName());
+			LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to encode command data of class " + data.getClass().getName());
+			return false;
 		}
+		
 		byte[] payload = codec.encode(data, null);
 
 		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/" + codec.getMessageFormat();
@@ -189,9 +188,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 				
 		try {
 			mqttAsyncClient.publish(topic, msg);
-		} catch (MqttPersistenceException e) {
-			e.printStackTrace();
-			return false;
 		} catch (MqttException e) {
 			e.printStackTrace();
 			return false;
@@ -444,7 +440,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void messageArrived(String topic, MqttMessage msg) throws Exception {
+	public void messageArrived(String topic, MqttMessage msg) {
 		final String METHOD = "messageArrived";
 		if (! eventCallbacks.isEmpty()) {
 			/* Only check whether the message is a device event if a callback 
@@ -460,6 +456,11 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 				String format = matcher.group(4);
 				
 				MessageCodec codec = messageCodecsByFormat.get(format);
+				if (codec == null) {
+					LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to decode event of format " + format);
+					// We don't throw an exception, as doing so will cause the underlying MQTT Paho client to disconnect.
+					return;
+				}
 				MessageInterface message = codec.decode(msg);
 				Event evt = new Event(type, id, event, format, message);
 
@@ -482,6 +483,11 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 				String format = matcher.group(4);
 				
 				MessageCodec codec = messageCodecsByFormat.get(format);
+				if (codec == null) {
+					LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to decode command of format " + format);
+					// We don't throw an exception, as doing so will cause the underlying MQTT Paho client to disconnect.
+					return;
+				}
 				MessageInterface message = codec.decode(msg);
 				Command cmd = new Command(type, id, command, format, message);
 
@@ -506,17 +512,27 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 			if (matcher.matches()) {
 				String type = matcher.group(1);
 				String id = matcher.group(2);
-				DeviceStatus status = new DeviceStatus(type, id, msg);
-				LoggerUtility.fine(CLASS_NAME, METHOD, "Device status received: " + status.toString());
-				statusCallback.processDeviceStatus(status);
+				try {
+					DeviceStatus status = new DeviceStatus(type, id, msg);
+					LoggerUtility.fine(CLASS_NAME, METHOD, "Device status received: " + status.toString());
+					statusCallback.processDeviceStatus(status);
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 		    }
 			
 			matcher = APP_STATUS_PATTERN.matcher(topic);
 			if (matcher.matches()) {
 				String id = matcher.group(1);
-				ApplicationStatus status = new ApplicationStatus(id, msg);
-				LoggerUtility.fine(CLASS_NAME, METHOD, "Application status received: " + status.toString());
-				statusCallback.processApplicationStatus(status);
+				try {
+					ApplicationStatus status = new ApplicationStatus(id, msg);
+					LoggerUtility.fine(CLASS_NAME, METHOD, "Application status received: " + status.toString());
+					statusCallback.processApplicationStatus(status);
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 		    }
 		}
 	}

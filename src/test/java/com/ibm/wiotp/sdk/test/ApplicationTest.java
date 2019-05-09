@@ -11,6 +11,8 @@
 package com.ibm.wiotp.sdk.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
@@ -82,6 +84,7 @@ public class ApplicationTest extends AbstractTest {
 		assertEquals(DEVICE_TYPE, cmd.getTypeId());
 		assertEquals(DEVICE_ID, cmd.getDeviceId());
 		assertEquals(10, cmd.getData().get("distance").getAsInt());
+		assertNull(cmd.getTimestamp());
 
 		app1Client.unsubscribeFromDeviceCommands(DEVICE_TYPE, DEVICE_ID);
 	}	
@@ -155,6 +158,7 @@ public class ApplicationTest extends AbstractTest {
 		assertEquals(DEVICE_TYPE, evt.getTypeId());
 		assertEquals(DEVICE_ID, evt.getDeviceId());
 		assertEquals(10, evt.getData().get("distance").getAsInt());
+		assertNull(evt.getTimestamp());
 		
 		app1Client.unsubscribeFromDeviceEvents(DEVICE_TYPE, DEVICE_ID);
 	}	
@@ -190,6 +194,7 @@ public class ApplicationTest extends AbstractTest {
 		assertEquals(DEVICE_TYPE, evt.getTypeId());
 		assertEquals(DEVICE_ID, evt.getDeviceId());
 		assertEquals(data, evt.getData());
+		assertNull(evt.getTimestamp());
 		
 		app1Client.unsubscribeFromDeviceEvents(DEVICE_TYPE, DEVICE_ID);
 	}	
@@ -228,5 +233,17 @@ public class ApplicationTest extends AbstractTest {
 		
 		assertTrue("Null Event is not received by application", (evt == null));
 		app1Client.unsubscribeFromDeviceEvents(DEVICE_TYPE, DEVICE_ID);
+	}
+	
+	@Test
+	public void testMissingEncoder() throws Exception {
+		logTestStart("testSendAndSubscribeToNullEvent");
+		app1Client = new ApplicationClient();
+		app1Client.connect();
+		assertTrue("Client is connected", app1Client.isConnected());
+
+		// Send an event (without registering a codec)
+		boolean success = app1Client.publishEvent(DEVICE_TYPE, DEVICE_ID, "run", new JsonObject());
+		assertFalse("Publish without a known codec failed", success);
 	}
 }

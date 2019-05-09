@@ -10,7 +10,6 @@
  */
 package com.ibm.wiotp.sdk.device;
 
-import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -24,14 +23,11 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 
-import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.AbstractClient;
 import com.ibm.wiotp.sdk.MessageInterface;
 import com.ibm.wiotp.sdk.codecs.MessageCodec;
 import com.ibm.wiotp.sdk.device.config.DeviceConfig;
-import com.ibm.wiotp.sdk.exceptions.MissingMessageEncoderException;
 import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 
@@ -124,7 +120,7 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	 * @throws Exception when the publish operation fails
 	 */	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public boolean publishEvent(String eventId, Object data, int qos) throws Exception {
+	public boolean publishEvent(String eventId, Object data, int qos) {
 		final String METHOD = "publishEvent";
 		
 		if (data == null) {
@@ -136,7 +132,8 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 		
 		// Check that a codec is registered
 		if (codec == null) {
-			throw new MissingMessageEncoderException(data.getClass().getName());
+			LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to encode event of class " + data.getClass().getName());
+			return false;
 		}
 		byte[] payload = codec.encode(data, null);
 		String topic = "iot-2/evt/" + eventId + "/fmt/" + codec.getMessageFormat();
@@ -149,14 +146,15 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 		
 		try {
 			mqttAsyncClient.publish(topic, msg);
-		} catch (MqttPersistenceException e) {
-			e.printStackTrace();
-			return false;
 		} catch (MqttException e) {
 			e.printStackTrace();
 			return false;
 		}
 		return true;
+	}
+	
+	public boolean publishEvent(String eventId, Object data) {
+		return publishEvent(eventId, data, 0);
 	}
 	
 
@@ -194,9 +192,10 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	
 	/**
 	 * The Device client does not currently support subscriptions.
+	 * @throws  
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void messageArrived(String topic, MqttMessage msg) throws Exception {
+	public void messageArrived(String topic, MqttMessage msg) {
 		final String METHOD = "messageArrived";
 		if (! commandCallbacks.isEmpty()) {
 			/* Only check whether the message is a command if a callback 
@@ -210,6 +209,10 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 				String format = matcher.group(2);
 				
 				MessageCodec codec = messageCodecsByFormat.get(format);
+				// Check that a codec is registered
+				if (codec == null) {
+					LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to decode command from format " + format);
+				}
 				MessageInterface message = codec.decode(msg);
 				Command cmd = new Command(command, format, message);
 				

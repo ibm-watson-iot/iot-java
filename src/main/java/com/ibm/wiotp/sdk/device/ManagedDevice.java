@@ -855,28 +855,33 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 
 	@Override
-	public void messageArrived(String topic, MqttMessage message) throws Exception {
+	public void messageArrived(String topic, MqttMessage message) {
 		final String METHOD = "messageArrived";
 		if (topic.equals(this.client.getDMServerTopic().getDMServerTopic())) {
 			LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD,
 					"Received response from Watson IoT Platform, topic (" + topic + ")");
 
-			String responsePayload = new String (message.getPayload(), "UTF-8");
-			JsonObject jsonResponse = new JsonParser().parse(responsePayload).getAsJsonObject();
 			try {
-				String reqId = jsonResponse.get("reqId").getAsString();
-				LoggerUtility.fine(CLASS_NAME, METHOD, "reqId (" + reqId + "): " + jsonResponse.toString() );
-				MqttMessage sentMsg = requests.remove(reqId);
-				if (sentMsg != null) {
-					queue.put(jsonResponse);
+				String responsePayload = new String (message.getPayload(), "UTF-8");
+				JsonObject jsonResponse = new JsonParser().parse(responsePayload).getAsJsonObject();
+				try {
+					String reqId = jsonResponse.get("reqId").getAsString();
+					LoggerUtility.fine(CLASS_NAME, METHOD, "reqId (" + reqId + "): " + jsonResponse.toString() );
+					MqttMessage sentMsg = requests.remove(reqId);
+					if (sentMsg != null) {
+						queue.put(jsonResponse);
+					}
+				} catch (Exception e) {
+					if (jsonResponse.get("reqId") == null) {
+						LoggerUtility.warn(CLASS_NAME, METHOD, "The response "
+								+ "does not contain 'reqId' field (" + responsePayload + ")");
+					} else {
+						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Unexpected exception", e);
+					}
 				}
-			} catch (Exception e) {
-				if (jsonResponse.get("reqId") == null) {
-					LoggerUtility.warn(CLASS_NAME, METHOD, "The response "
-							+ "does not contain 'reqId' field (" + responsePayload + ")");
-				} else {
-					LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Unexpected exception", e);
-				}
+			} catch (UnsupportedEncodingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 		} else {
 			LoggerUtility.warn(CLASS_NAME, METHOD, "Unknown topic (" + topic + ")");
