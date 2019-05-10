@@ -9,11 +9,13 @@ import java.util.logging.LogManager;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 
+import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.app.ApplicationClient;
 import com.ibm.wiotp.sdk.app.messages.ApplicationStatus;
 import com.ibm.wiotp.sdk.app.messages.Command;
 import com.ibm.wiotp.sdk.app.messages.DeviceStatus;
 import com.ibm.wiotp.sdk.app.messages.Event;
+import com.ibm.wiotp.sdk.codecs.JsonCodec;
 import com.ibm.wiotp.sdk.app.callbacks.CommandCallback;
 import com.ibm.wiotp.sdk.app.callbacks.EventCallback;
 import com.ibm.wiotp.sdk.app.callbacks.StatusCallback;
@@ -22,16 +24,10 @@ import com.ibm.wiotp.sdk.app.config.ApplicationConfig;
 
 public class SigarIoTApp implements Runnable {
 	
-	private final static String PROPERTIES_FILE_NAME = "/application.properties";
-	
 	private volatile boolean quit = false;
 	protected ApplicationClient client;
 
-	public SigarIoTApp(String filename) throws Exception {
-		
-		/**
-		  * Load device properties
-		  */
+	public SigarIoTApp() throws Exception {
 		ApplicationConfig config = ApplicationConfig.generateFromEnv();
 		this.client = new ApplicationClient(config);
 	}
@@ -45,13 +41,14 @@ public class SigarIoTApp implements Runnable {
 			client.connect();
 			
 			// Register callbacks
-			client.setCommandCallback(new MyCommandCallback());
-			client.setEventCallback(new MyEventCallback());
+			client.registerCommandCallback(new MyCommandCallback());
+			client.registerEventCallback(new MyEventCallback());
 			client.setStatusCallback(new MyStatusCallback());
+			client.registerCodec(new JsonCodec());
 			
-			// Create subscriptions
-			client.subscribeToDeviceCommands("+");
-			client.subscribeToDeviceEvents();
+			// Create subscriptions for json events and commands only because we only have a json codec registered
+			client.subscribeToDeviceCommands("+", "+", "+", "json");
+			client.subscribeToDeviceEvents("+", "+", "+", "json");
 			client.subscribeToDeviceStatus("+", "+");
 			
 			while (!quit) {
@@ -66,17 +63,27 @@ public class SigarIoTApp implements Runnable {
 		}
 	}
 	
-	private class MyEventCallback implements EventCallback {
+	private class MyEventCallback implements EventCallback<JsonObject> {
 		@Override
-		public void processEvent(Event evt) {
+		public void processEvent(Event<JsonObject> evt) {
 			System.out.println(evt.toString());
+		}
+
+		@Override
+		public Class<JsonObject> getMessageClass() {
+			return JsonObject.class;
 		}
 	}
 
-	private class MyCommandCallback implements CommandCallback {
+	private class MyCommandCallback implements CommandCallback<JsonObject> {
 		@Override
-		public void processCommand(Command cmd) {
+		public void processCommand(Command<JsonObject> cmd) {
 			System.out.println(cmd.toString());			
+		}
+		
+		@Override
+		public Class<JsonObject> getMessageClass() {
+			return JsonObject.class;
 		}
 	}
 
@@ -99,13 +106,11 @@ public class SigarIoTApp implements Runnable {
 	    try {
 			FileInputStream fis =  new FileInputStream("logging.properties");
 			LogManager.getLogManager().readConfiguration(fis);
-		} catch (SecurityException e) {
-		} catch (IOException e) {
+		} catch (SecurityException | IOException e) {
 		}
 	    
 	    // Start the application thread
-		SigarIoTApp a = new SigarIoTApp(PROPERTIES_FILE_NAME);
-		
+		SigarIoTApp a = new SigarIoTApp();
 		
 		Thread t1 = new Thread(a);
 		t1.start();

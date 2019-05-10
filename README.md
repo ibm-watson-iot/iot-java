@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/ibm-watson-iot/iot-java.svg?branch=master)](https://travis-ci.org/ibm-watson-iot/iot-java)
 [![GitHub issues](https://img.shields.io/github/issues/ibm-watson-iot/iot-java.svg)](https://github.com/ibm-watson-iot/iot-java/issues)
 [![GitHub](https://img.shields.io/github/license/ibm-watson-iot/iot-java.svg)](https://github.com/ibm-watson-iot/iot-java/blob/master/LICENSE)
+[![Coverage Status](https://coveralls.io/repos/github/ibm-watson-iot/iot-java/badge.svg?branch=master)](https://coveralls.io/github/ibm-watson-iot/iot-java?branch=master)
 
 
 ## Overview

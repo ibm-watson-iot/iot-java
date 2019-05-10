@@ -284,8 +284,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
 	 */
-	public void subscribeToDeviceCommands(String typeId, String deviceId, String commandId, int qos) {
-		String newTopic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/json";
+	public void subscribeToDeviceCommands(String typeId, String deviceId, String commandId, String format, int qos) {
+		String newTopic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/" + format;
 		LoggerUtility.info(CLASS_NAME, "subscribeToDeviceCommands", "Subscribing to " + newTopic);
 		try {
 			subscriptions.put(newTopic, new Integer(qos));
@@ -295,8 +295,11 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		}
 	}
 	
+	public void subscribeToDeviceCommands(String typeId, String deviceId, String commandId, String format) {
+		subscribeToDeviceCommands(typeId, deviceId, commandId, format, 1);
+	}
 	public void subscribeToDeviceCommands(String typeId, String deviceId, String commandId) {
-		subscribeToDeviceCommands(typeId, deviceId, commandId, 1);
+		subscribeToDeviceCommands(typeId, deviceId, commandId, "+");
 	}
 	public void subscribeToDeviceCommands(String typeId, String deviceId) {
 		subscribeToDeviceCommands(typeId, deviceId, "+");
