@@ -9,17 +9,10 @@ import java.util.logging.LogManager;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 
-import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.app.ApplicationClient;
-import com.ibm.wiotp.sdk.app.messages.ApplicationStatus;
-import com.ibm.wiotp.sdk.app.messages.Command;
-import com.ibm.wiotp.sdk.app.messages.DeviceStatus;
-import com.ibm.wiotp.sdk.app.messages.Event;
-import com.ibm.wiotp.sdk.codecs.JsonCodec;
-import com.ibm.wiotp.sdk.app.callbacks.CommandCallback;
 import com.ibm.wiotp.sdk.app.callbacks.EventCallback;
-import com.ibm.wiotp.sdk.app.callbacks.StatusCallback;
 import com.ibm.wiotp.sdk.app.config.ApplicationConfig;
+import com.ibm.wiotp.sdk.app.messages.Event;
 
 
 public class SigarIoTApp implements Runnable {
@@ -39,17 +32,11 @@ public class SigarIoTApp implements Runnable {
 	public void run() {
 		try {
 			client.connect();
-			
-			// Register callbacks
-			client.registerCommandCallback(new MyCommandCallback());
 			client.registerEventCallback(new MyEventCallback());
-			client.setStatusCallback(new MyStatusCallback());
-			client.registerCodec(new JsonCodec());
+			client.registerCodec(new SigarJsonCodec());
 			
-			// Create subscriptions for json events and commands only because we only have a json codec registered
-			client.subscribeToDeviceCommands("+", "+", "+", "json");
-			client.subscribeToDeviceEvents("+", "+", "+", "json");
-			client.subscribeToDeviceStatus("+", "+");
+			// Create subscriptions for json-sigar events only because we only have a json codec registered
+			client.subscribeToDeviceEvents("+", "+", "+", "json-sigar");
 			
 			while (!quit) {
 				Thread.sleep(1000);
@@ -63,43 +50,18 @@ public class SigarIoTApp implements Runnable {
 		}
 	}
 	
-	private class MyEventCallback implements EventCallback<JsonObject> {
+	private class MyEventCallback implements EventCallback<SigarData> {
 		@Override
-		public void processEvent(Event<JsonObject> evt) {
+		public void processEvent(Event<SigarData> evt) {
 			System.out.println(evt.toString());
 		}
 
 		@Override
-		public Class<JsonObject> getMessageClass() {
-			return JsonObject.class;
+		public Class<SigarData> getMessageClass() {
+			return SigarData.class;
 		}
 	}
 
-	private class MyCommandCallback implements CommandCallback<JsonObject> {
-		@Override
-		public void processCommand(Command<JsonObject> cmd) {
-			System.out.println(cmd.toString());			
-		}
-		
-		@Override
-		public Class<JsonObject> getMessageClass() {
-			return JsonObject.class;
-		}
-	}
-
-	private class MyStatusCallback implements StatusCallback {
-
-		@Override
-		public void processApplicationStatus(ApplicationStatus status) {
-			System.out.println(status.toString());
-		}
-
-		@Override
-		public void processDeviceStatus(DeviceStatus status) {
-			System.out.println(status.toString());
-		}
-	}
-	
 	public static void main(String[] args) throws Exception {
 		createShutDownHook();
 		// Load custom logging properties file

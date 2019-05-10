@@ -24,6 +24,7 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.joda.time.DateTime;
 
 import com.ibm.wiotp.sdk.AbstractClient;
 import com.ibm.wiotp.sdk.MessageInterface;
@@ -119,9 +120,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 			return false;
 		}
 		
-		byte[] payload = codec.encode(data, null);
+		byte[] payload = codec.encode(data, new DateTime());
 		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/" + codec.getMessageFormat();
-
 		LoggerUtility.info(CLASS_NAME, METHOD, "Publishing event to " + topic);
 		
 		MqttMessage msg = new MqttMessage(payload);
@@ -177,8 +177,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 			return false;
 		}
 		
-		byte[] payload = codec.encode(data, null);
-
+		byte[] payload = codec.encode(data, new DateTime());
 		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/" + codec.getMessageFormat();
 		LoggerUtility.info(CLASS_NAME, METHOD, "Publishing command to " + topic);
 

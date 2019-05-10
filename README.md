@@ -30,6 +30,7 @@ import com.ibm.wiotp.sdk.app.ApplicationClient;
 class simpleTest {
 	public static void main(String[] args) {
 		ApplicationClient appClient = new ApplicationClient();
+		appClient.registerCodec(new JsonCodec());
 		appClient.connect();
 		JsonObject data = new JsonObject();
 		data.addProperty("distance", 10);
@@ -51,6 +52,7 @@ import com.ibm.wiotp.sdk.app.DeviceClient;
 class simpleTest {
 	public static void main(String[] args) {
 		DeviceClient deviceClient = new DeviceClient();
+		deviceClient.registerCodec(new JsonCodec());
 		deviceClient.connect();
 		JsonObject data = new JsonObject();
 		data.addProperty("distance", 10);
