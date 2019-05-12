@@ -23,6 +23,7 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.joda.time.DateTime;
 
 import com.ibm.wiotp.sdk.AbstractClient;
 import com.ibm.wiotp.sdk.MessageInterface;
@@ -135,9 +136,8 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 			LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to encode event of class " + data.getClass().getName());
 			return false;
 		}
-		byte[] payload = codec.encode(data, null);
+		byte[] payload = codec.encode(data, new DateTime());
 		String topic = "iot-2/evt/" + eventId + "/fmt/" + codec.getMessageFormat();
-
 		LoggerUtility.info(CLASS_NAME, METHOD, "Publishing event to " + topic);
 		
 		MqttMessage msg = new MqttMessage(payload);
