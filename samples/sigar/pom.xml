@@ -4,24 +4,24 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.ibm.wiotp</groupId>
 	<artifactId>com.ibm.wiotp.sdk.samples.sigar</artifactId>
-	<version>1.0.0</version>
+	<version>0.1.0</version>
 	<name>com.ibm.wiotp.sdk.samples.sigar</name>
 
 	<scm>
-		<url>git@github.com:ibm-messaging/iot-application-samples.git</url>
-		<connection>scm:git:git@github.com:ibm-messaging/iot-application-samples.git</connection>
-		<developerConnection>scm:git:git@github.com:ibm-messaging/iot-application-samples.git</developerConnection>
+		<url>git@github.com:ibm-watson-iot/iot-java.git</url>
+		<connection>scm:git:git@github.com:ibm-watson-iot/iot-java.git</connection>
+		<developerConnection>scm:git:git@github.com:ibm-watson-iot/iot-java.git</developerConnection>
 	</scm>
 
 	<issueManagement>
-		<url>https://github.com/ibm-messaging/iot-application-samples/issues</url>
+		<url>https://github.com/ibm-watson-iot/iot-java/issues</url>
 		<system>Issues @ GitHub</system>
 	</issueManagement>
 
 	<licenses>
 		<license>
 			<name>Eclipse Public License - v 1.0</name>
-			<url>https://github.com/ibm-messaging/iot-application-samples/blob/master/LICENSE</url>
+			<url>https://github.com/ibm-watson-iot/iot-java/blob/master/LICENSE</url>
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
@@ -39,45 +39,19 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	
 	<dependencies>
-		<!-- Temporary solution until maven publishing is in place just so we can 
-			build for now -->
 		<dependency>
 			<groupId>com.ibm.wiotp</groupId>
 			<artifactId>com.ibm.wiotp.sdk</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/lib/com.ibm.wiotp.sdk-1.0.0.jar</systemPath>
-		</dependency>
-		<!-- And all the dependencies that sdk needs -->
-		<dependency>
-			<groupId>org.eclipse.paho</groupId>
-			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-			<version>1.2.1</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-			<version>1.10</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>3.4</version>
-		</dependency>
-		<dependency>
-			<groupId>joda-time</groupId>
-			<artifactId>joda-time</artifactId>
-			<version>2.9.2</version>
+			<version>0.1.0</version>
 		</dependency>
 
-		<!-- Actual dependencies -->
 		<dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.8.1</version>
         </dependency>
-		
 		<dependency>
 			<groupId>org.fusesource</groupId>
 			<artifactId>sigar</artifactId>

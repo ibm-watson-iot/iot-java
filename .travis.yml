@@ -2,4 +2,4 @@ language: java
 
 script:
   - mvn -q -B -f pom.xml clean test jacoco:report coveralls:report
-  - mvn -q -B -f samples/sigar/pom.xml clean
+  - mvn -q -B -f samples/sigar/pom.xml clean install
