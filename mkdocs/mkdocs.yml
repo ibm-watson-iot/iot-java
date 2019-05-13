@@ -1,0 +1,30 @@
+# mkdocs build -d ../docs
+
+# https://console.bluemix.net/docs/services/IoT/getting-started.html#getting-started-with-iotp
+
+site_name: IBM Watson IoT Platform
+nav:
+  - 'Java SDK': index.md
+
+theme: readthedocs
+
+markdown_extensions:
+  - toc:
+      permalink: 
+  - admonition
+  # Add this to support expandable sections
+  #- pymdownx.details
+
+# https://squidfunk.github.io/mkdocs-material/extensions/admonition/
+# Note
+# Abstract
+# Info
+# Tip
+# Success
+# Question
+# Warning
+# Failure
+# Danger
+# Bug
+# Example
+# Quote
