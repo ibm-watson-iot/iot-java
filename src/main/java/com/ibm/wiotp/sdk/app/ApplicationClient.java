@@ -280,6 +280,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 *            object of String which denotes deviceId
 	 * @param commandId
 	 *            object of String which denotes command
+	 * @param format
+	 *            object of String which denotes format
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
 	 */

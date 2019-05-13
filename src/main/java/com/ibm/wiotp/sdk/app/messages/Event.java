@@ -37,8 +37,8 @@ public class Event<T> implements EventInterface<T> {
 	 * 			object of String which denotes the event 
 	 * @param format 
 	 * 			Format (encoding) of the event
-	 * @param msg 
-	 * 			The MQTT message
+	 * @param message
+	 * 			Object implementing MessageInterface
 	 */
 	public Event(String typeId, String deviceId, String eventId, String format, MessageInterface<T> message) {
 		this.typeId = typeId;

@@ -118,7 +118,6 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	 * @param qos
 	 *            Quality of Service, in int - can have values 0,1,2
 	 * @return Whether the send was successful.
-	 * @throws Exception when the publish operation fails
 	 */	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public boolean publishEvent(String eventId, Object data, int qos) {
@@ -192,7 +191,6 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	
 	/**
 	 * The Device client does not currently support subscriptions.
-	 * @throws  
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void messageArrived(String topic, MqttMessage msg) {

@@ -33,8 +33,8 @@ public class Command<T> implements CommandInterface<T> {
 	 * 			Object of String which denotes actual command type
 	 * @param format
 	 * 			Object of String which denotes command format, say json
-	 * @param msg
-	 * 			MqttMessage
+	 * @param message
+	 * 			Object implementing MessageInterface
 	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
 	 * 
 	 */	

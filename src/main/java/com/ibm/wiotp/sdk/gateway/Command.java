@@ -27,18 +27,17 @@ public class Command<T> implements CommandInterface<T> {
 	
 	/**
 	 * Note that this class does not have a default constructor
-	 * @param type
+	 * @param typeId
 	 * 			Object of String which denotes command type
-	 * @param id
+	 * @param deviceId
 	 * 			Object of String which denotes command id
-	 * @param command
+	 * @param commandId
 	 * 			Object of String which denotes actual command type
 	 * @param format
 	 * 			Object of String which denotes command format, say json
-	 * @param msg
-	 * 			MqttMessage
+	 * @param message
+	 * 			Object implementing MessageInterface
 	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
-	 * @throws UnsupportedEncodingException when the format is not UTF-8
 	 * 
 	 */	
 	public Command(String typeId, String deviceId, String commandId, String format, MessageInterface<T> message) {

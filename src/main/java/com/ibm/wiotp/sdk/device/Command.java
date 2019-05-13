@@ -35,8 +35,8 @@ public class Command<T> implements MessageInterface<T>{
 	 * 			Actual command in the form of String passed
 	 * @param format
 	 * 			Format is a String which can contain values such as "json"
-	 * @param msg
-	 * 			MqttMessage 
+	 * @param message
+	 * 			Object implementing MessageInterface
 	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
 	 * 
 	 */	
