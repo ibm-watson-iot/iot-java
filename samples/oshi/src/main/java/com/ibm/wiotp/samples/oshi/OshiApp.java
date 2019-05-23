@@ -1,4 +1,4 @@
-package com.ibm.wiotp.sdk.samples.sigar;
+package com.ibm.wiotp.samples.oshi;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,14 +13,15 @@ import com.ibm.wiotp.sdk.app.ApplicationClient;
 import com.ibm.wiotp.sdk.app.callbacks.EventCallback;
 import com.ibm.wiotp.sdk.app.config.ApplicationConfig;
 import com.ibm.wiotp.sdk.app.messages.Event;
+import com.ibm.wiotp.sdk.codecs.JsonCodec;
 
 
-public class SigarIoTApp implements Runnable {
+public class OshiApp implements Runnable {
 	
 	private volatile boolean quit = false;
 	protected ApplicationClient client;
 
-	public SigarIoTApp() throws Exception {
+	public OshiApp() throws Exception {
 		ApplicationConfig config = ApplicationConfig.generateFromEnv();
 		this.client = new ApplicationClient(config);
 	}
@@ -33,7 +34,7 @@ public class SigarIoTApp implements Runnable {
 		try {
 			client.connect();
 			client.registerEventCallback(new MyEventCallback());
-			client.registerCodec(new SigarJsonCodec());
+			client.registerCodec(new JsonCodec());
 			
 			// Create subscriptions for json-sigar events only because we only have a json codec registered
 			client.subscribeToDeviceEvents("+", "+", "+", "json-sigar");
@@ -50,15 +51,15 @@ public class SigarIoTApp implements Runnable {
 		}
 	}
 	
-	private class MyEventCallback implements EventCallback<SigarData> {
+	private class MyEventCallback implements EventCallback<OshiData> {
 		@Override
-		public void processEvent(Event<SigarData> evt) {
+		public void processEvent(Event<OshiData> evt) {
 			System.out.println(evt.toString());
 		}
 
 		@Override
-		public Class<SigarData> getMessageClass() {
-			return SigarData.class;
+		public Class<OshiData> getMessageClass() {
+			return OshiData.class;
 		}
 	}
 
@@ -72,7 +73,7 @@ public class SigarIoTApp implements Runnable {
 		}
 	    
 	    // Start the application thread
-		SigarIoTApp a = new SigarIoTApp();
+		OshiApp a = new OshiApp();
 		
 		Thread t1 = new Thread(a);
 		t1.start();

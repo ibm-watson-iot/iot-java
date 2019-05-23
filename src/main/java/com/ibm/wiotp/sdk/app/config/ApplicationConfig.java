@@ -57,7 +57,7 @@ public class ApplicationConfig implements AbstractConfig {
 		connectOptions.setUserName(getMqttUsername());
 		connectOptions.setPassword(getMqttPassword().toCharArray());
 		
-		connectOptions.setCleanSession(!this.options.mqtt.cleanStart);
+		connectOptions.setCleanSession(this.options.mqtt.cleanStart);
 		connectOptions.setKeepAliveInterval(this.options.mqtt.keepAlive);
 		connectOptions.setMaxInflight(DEFAULT_MAX_INFLIGHT_MESSAGES);
 		connectOptions.setAutomaticReconnect(true);
