@@ -4,6 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/ibm-watson-iot/iot-java/badge.svg?branch=master)](https://coveralls.io/github/ibm-watson-iot/iot-java?branch=master)
 [![GitHub issues](https://img.shields.io/github/issues/ibm-watson-iot/iot-java.svg)](https://github.com/ibm-watson-iot/iot-java/issues)
 [![GitHub](https://img.shields.io/github/license/ibm-watson-iot/iot-java.svg)](https://github.com/ibm-watson-iot/iot-java/blob/master/LICENSE)
+[![Maven Central](https://img.shields.io/maven-central/v/com.ibm.wiotp/com.ibm.wiotp.sdk.svg)](https://search.maven.org/search?q=g:com.ibm.wiotp)
 
 
 ## Overview
