@@ -15,10 +15,20 @@
 
 ## Documentation
 
-https://ibm-watson-iot.github.io/iot-java/
+[https://ibm-watson-iot.github.io/iot-java/](https://ibm-watson-iot.github.io/iot-java/)
 
 
-## Basic Usage
+## Usage
+
+Add a dependency on `com.ibm.wiotp.sdk` to your project's `pom.xml`:
+
+```xml
+<dependency>
+  <groupId>com.ibm.wiotp</groupId>
+  <artifactId>com.ibm.wiotp.sdk</artifactId>
+  <version>0.2.0</version>
+</dependency>
+```
 
 ### Applications
 
