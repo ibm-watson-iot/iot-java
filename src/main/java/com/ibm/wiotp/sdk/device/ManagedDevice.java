@@ -23,7 +23,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -31,6 +30,8 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -48,7 +49,6 @@ import com.ibm.wiotp.sdk.devicemgmt.internal.ResponseCode;
 import com.ibm.wiotp.sdk.devicemgmt.internal.device.DeviceDMAgentTopic;
 import com.ibm.wiotp.sdk.devicemgmt.internal.device.DeviceDMServerTopic;
 import com.ibm.wiotp.sdk.devicemgmt.internal.handler.DMRequestHandler;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 /**
  * A managed device class, used by device, that connects the device as managed device to IBM Watson IoT Platform and
@@ -78,7 +78,7 @@ import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 public class ManagedDevice extends DeviceClient implements IMqttMessageListener, Runnable {
 
-	private static final String CLASS_NAME = ManagedDevice.class.getName();
+	private static final Logger LOG = LoggerFactory.getLogger(ManagedDevice.class);
 	private static final int REGISTER_TIMEOUT_VALUE = 60 * 1000 * 2; // wait for 2 minute
 
 	private final SynchronousQueue<JsonObject> queue = new SynchronousQueue<JsonObject>();
@@ -97,10 +97,14 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	//Device specific information
 	private DeviceData deviceData = null;
 
+	@SuppressWarnings("unused")
 	private boolean supportDeviceActions = false;
+	@SuppressWarnings("unused")
 	private boolean supportFirmwareActions = false;
+	@SuppressWarnings("unused")
 	private List<String> bundleIds;
 	private boolean bManaged = false;
+	@SuppressWarnings("unused")
 	private Date dormantTime;
 	private String responseSubscription = null;
 	private ManagedDeviceClient client;
@@ -115,11 +119,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
      */
 	public ManagedDevice(DeviceConfig config, DeviceData deviceData) throws Exception {
 		super(config);
-		final String METHOD = "constructor";
 		if(deviceData == null) {
-			LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Could not create Managed Client "
-					+ "without DeviceInformations !");
-			throw new Exception("Could not create Managed Client without DeviceInformations !");
+			LOG.info("Could not create Managed Client without DeviceInformation !");
+			throw new Exception("Could not create Managed Client without DeviceInformation !");
 		}
 
 		deviceData.setTypeId(config.identity.typeId);
@@ -153,9 +155,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 */
 	@Override
     public void connect() throws MqttException, KeyManagementException, NoSuchAlgorithmException {
-		final String METHOD = "connect";
 		if (this.isConnected()) {
-			LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "Device is already connected");
+			LOG.warn("Device is already connected");
 			return;
 		}
 		super.connect();
@@ -192,11 +193,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
 			boolean supportDeviceActions, List<String> bundleIds) throws MqttException {
 
-		final String METHOD = "manage";
-
-		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "lifetime(" + lifetime + "), " +
-				"supportFirmwareActions("+ supportFirmwareActions + "), "+
-				"supportDeviceActions("+supportDeviceActions+")");
+		LOG.debug("lifetime(" + lifetime + "), supportFirmwareActions("+ supportFirmwareActions + "), supportDeviceActions("+supportDeviceActions+")");
 
 		boolean success = false;
 		String topic = client.getDMAgentTopic().getManageTopic();
@@ -253,7 +250,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			}
 			success = true;
 		}
-		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Success (" + success + ")");
+		LOG.debug("Success (" + success + ")");
 
 		bManaged = success;
 		return success;
@@ -286,9 +283,11 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @return boolean response containing the status of the manage request
 	 * @throws MqttException When there is a failure
 	 */
+	@SuppressWarnings("unchecked")
 	public boolean sendManageRequest(long lifetime, boolean supportFirmwareActions,
 			boolean supportDeviceActions, String bundleId) throws MqttException {
 
+		@SuppressWarnings("rawtypes")
 		List bundleList = new ArrayList();
 		bundleList.add(bundleId);
 		return sendManageRequest(lifetime, supportFirmwareActions, supportDeviceActions, bundleList);
@@ -374,7 +373,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 	 */
 	public int updateLocation(Double latitude, Double longitude, Double elevation, Date measuredDateTime, Double accuracy) {
-		final String METHOD = "updateLocation";
 		JsonObject jsonData = new JsonObject();
 
 		JsonObject json = new JsonObject();
@@ -400,7 +398,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				return response.get("rc").getAsInt();
 			}
 		} catch (MqttException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.toString());
+			LOG.warn(e.toString());
 		}
 
 		return 0;
@@ -412,7 +410,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 *        (200 means success, otherwise unsuccessful)
 	 */
 	public int clearErrorCodes() {
-		final String METHOD = "clearErrorCodes";
 		JsonObject jsonData = new JsonObject();
 		try {
 			JsonObject response = sendAndWait(client.getDMAgentTopic().getClearDiagErrorCodesTopic(),
@@ -421,7 +418,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				return response.get("rc").getAsInt();
 			}
 		} catch (MqttException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.toString());
+			LOG.warn(e.toString());
 		}
 		return 0;
 	}
@@ -432,7 +429,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 *        (200 means success, otherwise unsuccessful)
 	 */
 	public int clearLogs() {
-		final String METHOD = "clearLogs";
 		JsonObject jsonData = new JsonObject();
 		try {
 			JsonObject response = sendAndWait(client.getDMAgentTopic().getClearDiagLogsTopic(),
@@ -441,7 +437,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				return response.get("rc").getAsInt();
 			}
 		} catch (MqttException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.toString());
+			LOG.warn(e.toString());
 		}
 		return 0;
 	}
@@ -456,7 +452,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 *        (200 means success, otherwise unsuccessful)
 	 */
 	public int addErrorCode(int errorCode) {
-		final String METHOD = "addErrorCode";
 		JsonObject jsonData = new JsonObject();
 		JsonObject errorObj = new JsonObject();
 		errorObj.addProperty("errorCode", errorCode);
@@ -469,7 +464,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				return response.get("rc").getAsInt();
 			}
 		} catch (MqttException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.toString());
+			LOG.warn(e.toString());
 		}
 		return 0;
 	}
@@ -499,7 +494,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 *        (200 means success, otherwise unsuccessful)
 	 */
 	public int addLog(String message, Date timestamp, LogSeverity severity, String data) {
-		final String METHOD = "addLog";
 		JsonObject jsonData = new JsonObject();
 		JsonObject log = new JsonObject();
 		log.add("message", new JsonPrimitive(message));
@@ -521,7 +515,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				return response.get("rc").getAsInt();
 			}
 		} catch (MqttException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.toString());
+			LOG.warn(e.toString());
 		}
 		return 0;
 	}
@@ -540,8 +534,6 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @throws MqttException When failure
 	 */
 	public boolean sendUnmanageRequest() throws MqttException {
-
-		final String METHOD = "unmanage";
 		boolean success = false;
 		String topic = client.getDMAgentTopic().getUnmanageTopic();
 
@@ -561,7 +553,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			responseSubscription = null;
 		}
 
-		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Success (" + success + ")");
+		LOG.debug("Success (" + success + ")");
 		if(success) {
 			bManaged = false;
 		}
@@ -581,8 +573,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @throws MqttException When subscription fails
 	 */
 	public void subscribe(String topic, int qos, IMqttMessageListener listener) throws MqttException {
-		final String METHOD = "subscribe";
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic(" + topic + ")");
+		LOG.debug("Topic(" + topic + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
 				mqttAsyncClient.subscribe(topic, qos, listener).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
@@ -590,8 +581,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				mqttClient.subscribe(topic, qos, listener);
 			}
 		} else {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "Will not subscribe to topic(" + topic +
-					") because MQTT client is not connected.");
+			LOG.warn("Will not subscribe to topic(" + topic + ") because MQTT client is not connected.");
 		}
 	}
 
@@ -607,8 +597,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @throws MqttException When subscription fails
 	 */
 	public void subscribe(String[] topics, int[] qos, IMqttMessageListener[] listeners) throws MqttException {
-		final String METHOD = "subscribe#2";
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Topics(" + topics + ")");
+		LOG.debug("Topics(" + topics + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
 				mqttAsyncClient.subscribe(topics, qos, listeners).waitForCompletion();
@@ -616,8 +605,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				mqttClient.subscribe(topics, qos, listeners);
 			}
 		} else {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "Will not subscribe to topics(" + topics +
-					") because MQTT client is not connected.");
+			LOG.warn("Will not subscribe to topics(" + topics + ") because MQTT client is not connected.");
 		}
 	}
 
@@ -631,8 +619,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @throws MqttException when unsubscribe fails
 	 */
 	public void unsubscribe(String topic) throws MqttException {
-		final String METHOD = "unsubscribe";
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic(" + topic + ")");
+		LOG.debug("Topic(" + topic + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
 				mqttAsyncClient.unsubscribe(topic).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
@@ -640,8 +627,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				mqttClient.unsubscribe(topic);
 			}
 		} else {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "Will not unsubscribe from topic(" +
-										topic + ") because MQTT client is not connected.");
+			LOG.warn("Will not unsubscribe from topic(" + topic + ") because MQTT client is not connected.");
 		}
 	}
 
@@ -655,8 +641,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @throws MqttException when unsubscribe fails
 	 */
 	public void unsubscribe(String[] topics) throws MqttException {
-		final String METHOD = "unsubscribe#2";
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Topics(" + topics + ")");
+		LOG.debug("Topics(" + topics + ")");
 		if (isConnected()) {
 			if (mqttAsyncClient != null) {
 				mqttAsyncClient.unsubscribe(topics).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
@@ -664,15 +649,13 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				mqttClient.unsubscribe(topics);
 			}
 		} else {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "Will not unsubscribe from topics(" +
-										topics + ") because MQTT client is not connected.");
+			LOG.warn("Will not unsubscribe from topics(" + topics + ") because MQTT client is not connected.");
 		}
 	}
 
 	protected IMqttDeliveryToken publish(String topic, MqttMessage message) throws MqttException {
-		final String METHOD = "publish";
 		IMqttDeliveryToken token = null;
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic(" + topic + ")");
+		LOG.debug("Topic(" + topic + ")");
 		while(true) {
 			if (isConnected()) {
 				try {
@@ -687,8 +670,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 					case MqttException.REASON_CODE_CLIENT_NOT_CONNECTED:
 					case MqttException.REASON_CODE_CLIENT_DISCONNECTING:
 						try {
-							LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, " Connection Lost retrying to publish MSG :"+
-									new String(message.getPayload(), "UTF-8") + " on topic "+topic+" every 5 seconds");
+							LOG.warn(" Connection Lost retrying to publish MSG :" + new String(message.getPayload(), "UTF-8") + " on topic "+topic+" every 5 seconds");
 						} catch (UnsupportedEncodingException e1) {
 							e1.printStackTrace();
 						}
@@ -708,13 +690,11 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				}
 
 				if (isConnected() == false) {
-					LoggerUtility.log(Level.WARNING, CLASS_NAME, METHOD, "MQTT got disconnected "
-							+ "after publish to Topic(" + topic + ")");
+					LOG.warn("MQTT got disconnected after publish to Topic(" + topic + ")");
 				}
 				return token;
 			} else {
-				LoggerUtility.warn(CLASS_NAME, METHOD, ": Will not publish to topic(" +
-									topic + ") because MQTT client is not connected.");
+				LOG.warn("Will not publish to topic(" + topic + ") because MQTT client is not connected.");
 				try {
 					Thread.sleep(5 * 1000);
 					continue;
@@ -736,14 +716,12 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @throws MqttException When MQTT operation fails
 	 */
 	public void publish(String topic, JsonObject payload, int qos) throws MqttException {
-		final String METHOD = "publish3";
 		JsonObject jsonPubMsg = new JsonObject();
 		jsonPubMsg.addProperty("topic", topic);
 		jsonPubMsg.add("qos", new JsonPrimitive(qos));
 		jsonPubMsg.add("payload", payload);
 		publishQueue.add(jsonPubMsg);
-		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, ": Queued Topic(" + topic + ") qos=" +
-													qos + " payload (" + payload.toString() + ")");
+		LOG.debug("Queued Topic(" + topic + ") qos=" + qos + " payload (" + payload.toString() + ")");
 	}
 	
 	public void publish(String topic, JsonObject payload) throws MqttException {
@@ -751,11 +729,10 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	}
 
 	private void publish(JsonObject jsonPubMsg) throws MqttException, UnsupportedEncodingException {
-		final String METHOD = "publish1";
 		String topic = jsonPubMsg.get("topic").getAsString();
 		int qos = jsonPubMsg.get("qos").getAsInt();
 		JsonObject payload = jsonPubMsg.getAsJsonObject("payload");
-		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, ": Topic(" + topic + ") qos=" + qos + " payload (" + payload.toString() + ")");
+		LOG.debug("Topic(" + topic + ") qos=" + qos + " payload (" + payload.toString() + ")");
 		MqttMessage message = new MqttMessage();
 		message.setPayload(payload.toString().getBytes("UTF-8"));
 		message.setQos(qos);
@@ -782,14 +759,10 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @throws MqttException when MQTT operation fails
 	 */
 	public JsonObject sendAndWait(String topic, JsonObject jsonPayload, long timeout) throws MqttException {
-
-		final String METHOD = "sendAndWait";
-
 		String uuid = UUID.randomUUID().toString();
 		jsonPayload.add("reqId", new JsonPrimitive(uuid));
 
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic (" + topic +
-				") payload (" + jsonPayload.toString() + ") reqId (" + uuid + ")" );
+		LOG.debug("Topic (" + topic + ") payload (" + jsonPayload.toString() + ") reqId (" + uuid + ")" );
 
 		if (responseSubscription == null) {
 			responseSubscription = client.getDMServerTopic().getDMServerTopic();
@@ -800,7 +773,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 		try {
 			message.setPayload(jsonPayload.toString().getBytes("UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Error setting payload for topic: " + topic, e);
+			LOG.warn("Error setting payload for topic: " + topic, e);
 			return null;
 		}
 
@@ -818,12 +791,11 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 					break;
 				}
 				if (jsonResponse.get("reqId").getAsString().equals(uuid)) {
-					LoggerUtility.fine(CLASS_NAME, METHOD, ""
-							+ "This response is for me reqId:" + jsonResponse.toString() );
+					LOG.debug("This response is for me reqId:" + jsonResponse.toString() );
 					break;
 				} else {
 					// This response is not for our request, put it back to the queue.
-					LoggerUtility.warn(CLASS_NAME, METHOD, "This response is NOT for me reqId:" + jsonResponse.toString() );
+					LOG.warn("This response is NOT for me reqId:" + jsonResponse.toString() );
 					queue.add(jsonResponse);
 					jsonResponse = null;
 				}
@@ -832,8 +804,8 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 			}
 		}
 		if (jsonResponse == null) {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "NO RESPONSE from Watson IoT Platform for request: " + jsonPayload.toString());
-			LoggerUtility.warn(CLASS_NAME, METHOD, "Connected(" + isConnected() + ")");
+			LOG.warn("NO RESPONSE from Watson IoT Platform for request: " + jsonPayload.toString());
+			LOG.warn("Connected(" + isConnected() + ")");
 		}
 		return jsonResponse;
 	}
@@ -856,27 +828,24 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 
 	@Override
 	public void messageArrived(String topic, MqttMessage message) {
-		final String METHOD = "messageArrived";
 		if (topic.equals(this.client.getDMServerTopic().getDMServerTopic())) {
-			LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD,
-					"Received response from Watson IoT Platform, topic (" + topic + ")");
+			LOG.debug("Received response from Watson IoT Platform, topic (" + topic + ")");
 
 			try {
 				String responsePayload = new String (message.getPayload(), "UTF-8");
 				JsonObject jsonResponse = new JsonParser().parse(responsePayload).getAsJsonObject();
 				try {
 					String reqId = jsonResponse.get("reqId").getAsString();
-					LoggerUtility.fine(CLASS_NAME, METHOD, "reqId (" + reqId + "): " + jsonResponse.toString() );
+					LOG.debug("reqId (" + reqId + "): " + jsonResponse.toString() );
 					MqttMessage sentMsg = requests.remove(reqId);
 					if (sentMsg != null) {
 						queue.put(jsonResponse);
 					}
 				} catch (Exception e) {
 					if (jsonResponse.get("reqId") == null) {
-						LoggerUtility.warn(CLASS_NAME, METHOD, "The response "
-								+ "does not contain 'reqId' field (" + responsePayload + ")");
+						LOG.warn("The response does not contain 'reqId' field (" + responsePayload + ")");
 					} else {
-						LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Unexpected exception", e);
+						LOG.warn("Unexpected exception", e);
 					}
 				}
 			} catch (UnsupportedEncodingException e1) {
@@ -884,30 +853,29 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 				e1.printStackTrace();
 			}
 		} else {
-			LoggerUtility.warn(CLASS_NAME, METHOD, "Unknown topic (" + topic + ")");
+			LOG.warn("Unknown topic (" + topic + ")");
 		}
 	}
 
 	@Override
 	public void run() {
-		final String METHOD = "run";
 		running = true;
-		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Running...");
+		LOG.debug("Running...");
 		while (running) {
 			try {
 				JsonObject o = publishQueue.take();
 				if (o.equals(dummy)) {
-					LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "It is time to quit.");
+					LOG.debug("It is time to quit.");
 				} else {
 					publish(o);
 				}
 			} catch (Exception e) {
-				LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, e.toString());
+				LOG.warn(e.toString());
 				e.printStackTrace();
 				running = false;
 			}
 		}
-		LoggerUtility.log(Level.FINE, CLASS_NAME, METHOD, "Exiting...");
+		LOG.debug("Exiting...");
 	}
 
 	private void terminate() {
@@ -1016,13 +984,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 *
 	 */
 	public void addFirmwareHandler(DeviceFirmwareHandler fwHandler) throws Exception {
-		final String METHOD = "addFirmwareHandler";
 		if(this.fwHandler != null) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Firmware Handler is already set, "
-					+ "so can not add the new firmware handler !");
-
-			throw new Exception("Firmware Handler is already set, "
-					+ "so can not add the new firmware handler !");
+			LOG.warn("Firmware Handler is already set, so can not add the new firmware handler !");
+			throw new Exception("Firmware Handler is already set, so can not add the new firmware handler !");
 		}
 		this.fwHandler = fwHandler;
 	}
@@ -1040,13 +1004,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @throws Exception throws an exception if a handler is already added
 	 */
 	public void addDeviceActionHandler(DeviceActionHandler actionHandler) throws Exception {
-		final String METHOD = "addDeviceActionHandler";
 		if(this.actionHandler != null) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Action Handler is already set, "
-					+ "so can not add the new Action handler !");
-
-			throw new Exception("Action Handler is already set, "
-					+ "so can not add the new Action handler !");
+			LOG.warn("Action Handler is already set, so can not add the new Action handler !");
+			throw new Exception("Action Handler is already set, so can not add the new Action handler !");
 		}
 		this.actionHandler = actionHandler;
 	}
@@ -1064,12 +1024,9 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	 * @throws Exception Thrown if an error occurs when setting action handler
 	 */
 	public void addCustomActionHandler(CustomActionHandler actionHandler) throws Exception {
-		final String METHOD = "addDeviceActionHandler";
 		if(this.actionHandler != null) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Custom Action Handler is already set, "
-					+ "so can not add the new Custom Action handler !");
-			throw new Exception("Custom Action Handler is already set, "
-						+ "so can not add the new Custom Action handler !");
+			LOG.warn("Custom Action Handler is already set, so can not add the new Custom Action handler !");
+			throw new Exception("Custom Action Handler is already set, so can not add the new Custom Action handler !");
 		}
 		this.customActionHandler = actionHandler;
 	}

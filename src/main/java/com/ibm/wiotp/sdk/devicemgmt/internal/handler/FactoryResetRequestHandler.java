@@ -13,6 +13,9 @@ package com.ibm.wiotp.sdk.devicemgmt.internal.handler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -22,7 +25,7 @@ import com.ibm.wiotp.sdk.devicemgmt.internal.ConcreteDeviceAction;
 import com.ibm.wiotp.sdk.devicemgmt.internal.DMServerTopic;
 import com.ibm.wiotp.sdk.devicemgmt.internal.ManagedClient;
 import com.ibm.wiotp.sdk.devicemgmt.internal.ResponseCode;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
+
 
 /**
  * Request handler for <code>MMqttClient.SERVER_TOPIC_INITIATE_FACTORY_RESET</code>
@@ -35,6 +38,7 @@ import com.ibm.wiotp.sdk.util.LoggerUtility;
  */	
 public class FactoryResetRequestHandler extends DMRequestHandler implements PropertyChangeListener {
 
+	private static final Logger LOG = LoggerFactory.getLogger(FactoryResetRequestHandler.class);
 	private static final String REQ_ID = "reqId";
 	
 	private JsonElement reqId;
@@ -58,8 +62,6 @@ public class FactoryResetRequestHandler extends DMRequestHandler implements Prop
 	 */
 	@Override
 	protected void handleRequest(JsonObject jsonRequest, String topic) {
-		final String METHOD = "handleRequest";
-		
 		DeviceAction action = getDMClient().getDeviceData().getDeviceAction();
 		if (action == null || getDMClient().getActionHandler() == null) {
 			JsonObject response = new JsonObject();
@@ -67,7 +69,7 @@ public class FactoryResetRequestHandler extends DMRequestHandler implements Prop
 			response.add("rc", new JsonPrimitive(ResponseCode.DM_FUNCTION_NOT_IMPLEMENTED.getCode()));
 			respond(response);
 		} else {
-			LoggerUtility.fine(CLASS_NAME, METHOD, " start Factory Reset action ");
+			LOG.debug("Start Factory Reset action ");
 			// remove any other listener that are listening for the status update
 			((ConcreteDeviceAction)action).clearListener();
 			((ConcreteDeviceAction)action).addPropertyChangeListener(this);
@@ -86,7 +88,7 @@ public class FactoryResetRequestHandler extends DMRequestHandler implements Prop
 				response.add(REQ_ID, reqId);
 				respond(response);
 			} catch(Exception e) {
-				LoggerUtility.warn(CLASS_NAME, "propertyChange", e.getMessage());
+				LOG.warn(e.getMessage());
 			}
 		}
 	}

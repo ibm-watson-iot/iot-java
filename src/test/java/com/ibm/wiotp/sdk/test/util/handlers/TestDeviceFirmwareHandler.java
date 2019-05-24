@@ -1,14 +1,16 @@
 package com.ibm.wiotp.sdk.test.util.handlers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ibm.wiotp.sdk.device.ManagedDevice;
 import com.ibm.wiotp.sdk.devicemgmt.DeviceFirmware;
 import com.ibm.wiotp.sdk.devicemgmt.DeviceFirmwareHandler;
 import com.ibm.wiotp.sdk.devicemgmt.DeviceFirmware.FirmwareState;
 import com.ibm.wiotp.sdk.devicemgmt.DeviceFirmware.FirmwareUpdateStatus;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 public class TestDeviceFirmwareHandler extends DeviceFirmwareHandler {
-	private static final String CLASS_NAME = TestDeviceFirmwareHandler.class.getName();
+	private static final Logger LOG = LoggerFactory.getLogger(TestDeviceActionHandler.class);
 	private volatile String name = null;
 	private volatile String version = null;
 	private volatile String url = null;
@@ -33,8 +35,7 @@ public class TestDeviceFirmwareHandler extends DeviceFirmwareHandler {
 	
 	@Override
 	public void downloadFirmware(final DeviceFirmware deviceFirmware) {
-		final String METHOD = "downloadFirmware";
-		LoggerUtility.info(CLASS_NAME, METHOD, "download firmware initiated for client ID " + dmClient.getConfig().getClientId());
+		LOG.info("download firmware initiated for client ID " + dmClient.getConfig().getClientId());
 		new Thread() {
 			public void run() {
 			
@@ -63,8 +64,7 @@ public class TestDeviceFirmwareHandler extends DeviceFirmwareHandler {
 
 	@Override
 	public void updateFirmware(final DeviceFirmware deviceFirmware) {
-		final String METHOD = "updateFirmware";
-		LoggerUtility.info(CLASS_NAME, METHOD, "update firmware initiated for client ID " + dmClient.getConfig().getClientId());
+		LOG.info("update firmware initiated for client ID " + dmClient.getConfig().getClientId());
 		new Thread() {
 			public void run() {
 				try {

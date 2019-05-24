@@ -34,6 +34,7 @@ import com.ibm.wiotp.sdk.devicemgmt.resource.StringResource;
  *   <li>descriptiveLocation
  *</ul>
  */
+@SuppressWarnings("rawtypes")
 public class DeviceInfo extends Resource {
 	
 	private static final String SERIAL_NUMBER = "serialNumber";

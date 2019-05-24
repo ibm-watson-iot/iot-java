@@ -58,6 +58,7 @@ public abstract class Resource<T> {
 	
 	private T value;
 	
+	@SuppressWarnings("rawtypes")
 	private Resource parent;
 	
 	private boolean responseRequired = true;
@@ -65,12 +66,14 @@ public abstract class Resource<T> {
 
 	/* The child resources.
 	 */
+	@SuppressWarnings("rawtypes")
 	private HashMap<String, Resource> children;
 	
 	public Resource(String resourceResourceName) {
 		this(resourceResourceName, null);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public Resource(String resourceResourceName, T value) {
 		this.resourceName = resourceResourceName;
 		this.value = value;
@@ -108,6 +111,7 @@ public abstract class Resource<T> {
 		pcsExternal.firePropertyChange(this.canonicalName, null, this);
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void add(Resource child) {
 		if (child.resourceName == null)
 			throw new NullPointerException("Child must have a resourceResourceName");
@@ -120,12 +124,7 @@ public abstract class Resource<T> {
 		}
 	}
 	
-	private void setCanonicalResourceName(String canonicalName) {
-		this.canonicalName = canonicalName; 
-		
-	}
-
-
+	@SuppressWarnings("rawtypes")
 	public boolean remove(Resource child) {
 		Resource removed = remove(child.resourceName);
 		if (removed == child) {
@@ -142,6 +141,7 @@ public abstract class Resource<T> {
 	 * @param resourceResourceName the resourceResourceName
 	 * @return the removed resource or null
 	 */
+	@SuppressWarnings("rawtypes")
 	public Resource remove(String resourceResourceName) {
 		return children.remove(resourceResourceName);
 	}
@@ -151,6 +151,7 @@ public abstract class Resource<T> {
 	 * Returns the parent of this resource
 	 */
 	
+	@SuppressWarnings("rawtypes")
 	public Resource getParent() {
 		return parent;
 	}
@@ -158,6 +159,7 @@ public abstract class Resource<T> {
 	/*
 	 * Sets the parent of this resource to the given value
 	 */
+	@SuppressWarnings("rawtypes")
 	public void setParent(Resource parent) {
 		this.parent = parent;
 	}
@@ -166,6 +168,7 @@ public abstract class Resource<T> {
 	 * Returns the child with the given resourceResourceName
 	 */
 	
+	@SuppressWarnings("rawtypes")
 	public Resource getChild(String resourceResourceName) {
 		return children.get(resourceResourceName);
 	}
@@ -183,6 +186,7 @@ public abstract class Resource<T> {
 	}
 
 	// should be used for read-only
+	@SuppressWarnings("rawtypes")
 	public Collection<Resource> getChildren() {
 		return children.values();
 	}

@@ -28,6 +28,7 @@ import com.ibm.wiotp.sdk.devicemgmt.resource.Resource;
  * the IBM Watson IoT Platform will be notified.
  *
  */
+@SuppressWarnings("rawtypes")
 public class DeviceLocation extends Resource {
 	
 	public DeviceLocation() {
@@ -101,6 +102,7 @@ public class DeviceLocation extends Resource {
 	 * @return code indicating whether the update is successful or not 
 	 *        (200 means success, otherwise unsuccessful)
 	 */
+	@SuppressWarnings("deprecation")
 	public int update(JsonElement fromLocation, boolean fireEvent) {
 		JsonObject json = (JsonObject) fromLocation;
 		Iterator <Map.Entry<String,JsonElement>>iter = json.entrySet().iterator();

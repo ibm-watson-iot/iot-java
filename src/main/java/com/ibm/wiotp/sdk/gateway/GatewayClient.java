@@ -19,6 +19,8 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.MessageInterface;
@@ -27,7 +29,6 @@ import com.ibm.wiotp.sdk.device.Command;
 import com.ibm.wiotp.sdk.device.CommandCallback;
 import com.ibm.wiotp.sdk.device.DeviceClient;
 import com.ibm.wiotp.sdk.gateway.config.GatewayConfig;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 /**
  * A client, used by Gateway, that simplifies the Gateway interactions with IBM Watson IoT Platform. <br>
@@ -49,9 +50,7 @@ import com.ibm.wiotp.sdk.util.LoggerUtility;
  * This is a derived class from AbstractClient.
  */
 public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
-	
-	private static final String CLASS_NAME = GatewayClient.class.getName();
-	
+	private static final Logger LOG = LoggerFactory.getLogger(GatewayClient.class);
 	private static final Pattern GATEWAY_COMMAND_PATTERN = Pattern.compile("iot-2/type/(.+)/id/(.+)/cmd/(.+)/fmt/(.+)");
 	
 	/**
@@ -95,7 +94,6 @@ public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
 	 * @return Whether the send was successful.
 	 */
 	public boolean publishDeviceEvent(String typeId, String deviceId, String eventId, Object data, int qos) {
-		final String METHOD = "publishEvent(5)";
 		Object payload = null;
 		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/json";
 		// Handle null object
@@ -104,8 +102,8 @@ public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
 		}
 		payload = gson.toJsonTree(data);
 		
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Topic   = " + topic);
-		LoggerUtility.fine(CLASS_NAME, METHOD, "Payload = " + payload.toString());
+		LOG.debug("Topic   = " + topic);
+		LOG.debug("Payload = " + payload.toString());
 		
 		MqttMessage msg = new MqttMessage(payload.toString().getBytes(Charset.forName("UTF-8")));
 		msg.setQos(qos);
@@ -174,7 +172,6 @@ public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void messageArrived(String topic, MqttMessage msg) {
-		final String METHOD = "messageArrived";
 		if (! commandCallbacks.isEmpty()) {
 			/* Only check whether the message is a command if a callback 
 			 * has been defined, otherwise it is a waste of time
@@ -189,12 +186,12 @@ public class GatewayClient extends DeviceClient implements MqttCallbackExtended{
 				MessageCodec codec = messageCodecsByFormat.get(format);
 				// Check that a codec is registered
 				if (codec == null) {
-					LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to decode command from format " + format);
+					LOG.warn("Unable to decode command from format " + format);
 				}
 				MessageInterface message = codec.decode(msg);
 				Command cmd = new Command(command, format, message);
 				
-				LoggerUtility.fine(CLASS_NAME, METHOD, "Command received: " + cmd.toString());
+				LOG.debug("Command received: " + cmd.toString());
 				
 				CommandCallback callback = commandCallbacks.get(codec.getMessageClass());
 				if (callback != null) {

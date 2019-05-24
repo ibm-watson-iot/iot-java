@@ -28,8 +28,6 @@ import com.ibm.wiotp.sdk.devicemgmt.resource.StringResource;
  * the device database is updated, making the information available to applications.</p>
  */
 public class DeviceData {
-	private static String CLASS_NAME = DeviceData.class.getName();
-	
 	private String typeId = null;
 	private String deviceId = null;
 	private DeviceInfo deviceInfo = null;
@@ -39,6 +37,7 @@ public class DeviceData {
 	private DeviceAction deviceAction = null;
 	private CustomAction customAction = null;
 	
+	@SuppressWarnings("rawtypes")
 	private Resource root = new StringResource(Resource.ROOT_RESOURCE_NAME, "");
 	
 	private DeviceData(Builder builder) {
@@ -219,6 +218,7 @@ public class DeviceData {
 	 * @param name - the name of the resource to be returned
 	 * @return Resource or null
 	 */
+	@SuppressWarnings("rawtypes")
 	public Resource getResource(String name) {
 		String[] token = name.split("\\.");
 		Resource resource = this.root;

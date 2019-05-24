@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +24,8 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.wiotp.sdk.AbstractClient;
 import com.ibm.wiotp.sdk.MessageInterface;
@@ -37,7 +38,6 @@ import com.ibm.wiotp.sdk.app.messages.Command;
 import com.ibm.wiotp.sdk.app.messages.DeviceStatus;
 import com.ibm.wiotp.sdk.app.messages.Event;
 import com.ibm.wiotp.sdk.codecs.MessageCodec;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 /**
  * A client, used by application, that handles connections with the IBM Watson IoT Platform. <br>
@@ -45,8 +45,7 @@ import com.ibm.wiotp.sdk.util.LoggerUtility;
  * This is a derived class from AbstractClient and can be used by end-applications to handle connections with IBM Watson IoT Platform.
  */
 public class ApplicationClient extends AbstractClient implements MqttCallbackExtended {
-	
-	private static final String CLASS_NAME = ApplicationClient.class.getName();
+	private static final Logger LOG = LoggerFactory.getLogger(ApplicationClient.class);
 	
 	private static final Pattern DEVICE_EVENT_PATTERN = Pattern.compile("iot-2/type/(.+)/id/(.+)/evt/(.+)/fmt/(.+)");
 	private static final Pattern DEVICE_STATUS_PATTERN = Pattern.compile("iot-2/type/(.+)/id/(.+)/mon");
@@ -104,8 +103,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 */
 	@SuppressWarnings("unchecked")
 	public boolean publishEvent(String typeId, String deviceId, String eventId, Object data, int qos) {
-		final String METHOD = "publishEvent";
-
 		if (data == null) {
 			throw new NullPointerException("Data object for event publish can not be null");
 		}
@@ -116,13 +113,13 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		
 		// Check that a codec is registered
 		if (codec == null) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to encode event data of class " + data.getClass().getName());
+			LOG.warn("Unable to encode event data of class " + data.getClass().getName());
 			return false;
 		}
 		
 		byte[] payload = codec.encode(data, new DateTime());
 		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/" + codec.getMessageFormat();
-		LoggerUtility.info(CLASS_NAME, METHOD, "Publishing event to " + topic);
+		LOG.info("Publishing event to " + topic);
 		
 		MqttMessage msg = new MqttMessage(payload);
 		msg.setQos(qos);
@@ -161,8 +158,6 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 */
 	@SuppressWarnings("unchecked")
 	public boolean publishCommand(String typeId, String deviceId, String commandId, Object data, int qos) {
-		final String METHOD = "publishCommand";
-
 		if (data == null) {
 			throw new NullPointerException("Data object for event publish can not be null");
 		}
@@ -173,13 +168,13 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		
 		// Check that a codec is registered
 		if (codec == null) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to encode command data of class " + data.getClass().getName());
+			LOG.warn("Unable to encode command data of class " + data.getClass().getName());
 			return false;
 		}
 		
 		byte[] payload = codec.encode(data, new DateTime());
 		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/" + codec.getMessageFormat();
-		LoggerUtility.info(CLASS_NAME, METHOD, "Publishing command to " + topic);
+		LOG.info("Publishing command to " + topic);
 
 		MqttMessage msg = new MqttMessage(payload);
 		msg.setQos(qos);
@@ -214,7 +209,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 */
 	public void subscribeToDeviceEvents(String typeId, String deviceId, String eventId, String format, int qos) {
 		String newTopic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/" + format;
-		LoggerUtility.info(CLASS_NAME, "subscribeToDeviceEvents", "Subscribing to " + newTopic);
+		LOG.info("Subscribing to " + newTopic);
 
 		try {
 			subscriptions.put(newTopic, new Integer(qos));
@@ -287,7 +282,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 */
 	public void subscribeToDeviceCommands(String typeId, String deviceId, String commandId, String format, int qos) {
 		String newTopic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/" + format;
-		LoggerUtility.info(CLASS_NAME, "subscribeToDeviceCommands", "Subscribing to " + newTopic);
+		LOG.info("Subscribing to " + newTopic);
 		try {
 			subscriptions.put(newTopic, new Integer(qos));
 			mqttAsyncClient.subscribe(newTopic, qos).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
@@ -395,30 +390,27 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 * Simply log error when connection is lost
 	 */
 	public void connectionLost(Throwable e) {
-		final String METHOD = "connectionLost";
-		LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Lost connection client (" + config.getClientId() + ") : " + e.getMessage(), e);
+		LOG.warn("Lost connection client (" + config.getClientId() + ") : " + e.getMessage(), e);
 		if (e instanceof MqttException) {
 			MqttException e2 = (MqttException) e;
-			LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: Reason Code: " 
-					+ e2.getReasonCode() + " Cause: " + ExceptionUtils.getRootCauseMessage(e2));
+			LOG.info("Connection lost: Reason Code: " + e2.getReasonCode() + " Cause: " + ExceptionUtils.getRootCauseMessage(e2));
 		} else {
-			LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
+			LOG.info("Connection lost: " + e.getMessage());
 		}
 		
 	}
 	
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		final String METHOD = "connectComplete";
 		if (reconnect) {
-			LoggerUtility.info(CLASS_NAME, METHOD, "Reconnected to " + serverURI );
+			LOG.info("Reconnected to " + serverURI );
 			if (config.isCleanSession() == true) {
 			    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
 			    while (iterator.hasNext()) {
 			        Entry<String, Integer> pairs = iterator.next();
 			        String topic = pairs.getKey();
 			        Integer qos = pairs.getValue();
-			        LoggerUtility.info(CLASS_NAME, METHOD, "Resubscribing topic(" +topic + ") QoS:" + qos);
+			        LOG.info("Resubscribing topic(" +topic + ") QoS:" + qos);
 			        try {
 			        	mqttAsyncClient.subscribe(topic, qos.intValue());
 					} catch (NumberFormatException | MqttException e1) {
@@ -438,14 +430,12 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 * from the perspective of the device.
 	 */
 	public void deliveryComplete(IMqttDeliveryToken token) {
-		final String METHOD = "deliveryComplete";
-		LoggerUtility.fine(CLASS_NAME, METHOD, "token = "+token.getMessageId());
+		LOG.debug("token = "+token.getMessageId());
 		messageCount++;
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void messageArrived(String topic, MqttMessage msg) {
-		final String METHOD = "messageArrived";
 		if (! eventCallbacks.isEmpty()) {
 			/* Only check whether the message is a device event if a callback 
 			 * has been defined for events, otherwise it is a waste of time
@@ -461,14 +451,14 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 				
 				MessageCodec codec = messageCodecsByFormat.get(format);
 				if (codec == null) {
-					LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to decode event of format " + format);
+					LOG.warn("Unable to decode event of format " + format);
 					// We don't throw an exception, as doing so will cause the underlying MQTT Paho client to disconnect.
 					return;
 				}
 				MessageInterface message = codec.decode(msg);
 				Event evt = new Event(type, id, event, format, message);
 
-				LoggerUtility.fine(CLASS_NAME, METHOD, "Event received: " + evt.toString());
+				LOG.debug("Event received: " + evt.toString());
 				
 				EventCallback callback = eventCallbacks.get(codec.getMessageClass());
 				if (callback != null) {
@@ -488,14 +478,14 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 				
 				MessageCodec codec = messageCodecsByFormat.get(format);
 				if (codec == null) {
-					LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to decode command of format " + format);
+					LOG.warn("Unable to decode command of format " + format);
 					// We don't throw an exception, as doing so will cause the underlying MQTT Paho client to disconnect.
 					return;
 				}
 				MessageInterface message = codec.decode(msg);
 				Command cmd = new Command(type, id, command, format, message);
 
-				LoggerUtility.fine(CLASS_NAME, METHOD, "Command received: " + cmd.toString());
+				LOG.debug("Command received: " + cmd.toString());
 				
 				CommandCallback callback = commandCallbacks.get(codec.getMessageClass());
 				if (callback != null) {
@@ -518,7 +508,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 				String id = matcher.group(2);
 				try {
 					DeviceStatus status = new DeviceStatus(type, id, msg);
-					LoggerUtility.fine(CLASS_NAME, METHOD, "Device status received: " + status.toString());
+					LOG.debug("Device status received: " + status.toString());
 					statusCallback.processDeviceStatus(status);
 				} catch (UnsupportedEncodingException e) {
 					// TODO Auto-generated catch block
@@ -531,7 +521,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 				String id = matcher.group(1);
 				try {
 					ApplicationStatus status = new ApplicationStatus(id, msg);
-					LoggerUtility.fine(CLASS_NAME, METHOD, "Application status received: " + status.toString());
+					LOG.debug("Application status received: " + status.toString());
 					statusCallback.processApplicationStatus(status);
 				} catch (UnsupportedEncodingException e) {
 					// TODO Auto-generated catch block

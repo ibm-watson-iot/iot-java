@@ -13,6 +13,9 @@ package com.ibm.wiotp.sdk.devicemgmt.internal.handler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.ibm.wiotp.sdk.devicemgmt.CustomActionHandler;
@@ -21,7 +24,6 @@ import com.ibm.wiotp.sdk.devicemgmt.internal.ConcreteDeviceAction;
 import com.ibm.wiotp.sdk.devicemgmt.internal.DMServerTopic;
 import com.ibm.wiotp.sdk.devicemgmt.internal.ManagedClient;
 import com.ibm.wiotp.sdk.devicemgmt.internal.ResponseCode;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 /**
  * Request handler for <code>MMqttClient.SERVER_TOPIC_INITIATE_CUSTOM</code>
@@ -34,8 +36,8 @@ import com.ibm.wiotp.sdk.util.LoggerUtility;
  */
 public class CustomRequestHandler extends DMRequestHandler implements PropertyChangeListener {
 
+	private static final Logger LOG = LoggerFactory.getLogger(CustomRequestHandler.class);
 	private static final String REQ_ID = "reqId";
-	//private JsonElement reqId;
 
 	public CustomRequestHandler(ManagedClient dmClient) {
 		setDMClient(dmClient);
@@ -55,8 +57,6 @@ public class CustomRequestHandler extends DMRequestHandler implements PropertyCh
 	 */
 	@Override
 	protected void handleRequest(JsonObject jsonRequest, String topic) {
-		final String METHOD = "handleRequest";
-		
 		ConcreteCustomAction action = (ConcreteCustomAction) getDMClient().getDeviceData().getCustomAction();
 		if (action == null || getDMClient().getCustomActionHandler() == null) {
 			// this should never happen
@@ -65,7 +65,7 @@ public class CustomRequestHandler extends DMRequestHandler implements PropertyCh
 			response.add("rc", new JsonPrimitive(ResponseCode.DM_FUNCTION_NOT_IMPLEMENTED.getCode()));
 			respond(response);
 		} else {
-			LoggerUtility.fine(CLASS_NAME, METHOD, " start custom action ");
+			LOG.debug("Start custom action ");
 			// remove any other listener that are listening for the status update
 			
 			// iotdm-1/mgmt/custom/bundleId/actionId
@@ -95,7 +95,7 @@ public class CustomRequestHandler extends DMRequestHandler implements PropertyCh
 				//response.add(REQ_ID, reqId);
 				respond(response);
 			} catch(Exception e) {
-				LoggerUtility.warn(CLASS_NAME, "propertyChange", e.getMessage());
+				LOG.warn(e.getMessage());
 			}
 		}
 	}
