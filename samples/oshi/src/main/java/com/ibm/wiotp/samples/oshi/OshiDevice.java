@@ -28,7 +28,7 @@ public class OshiDevice implements Runnable {
 		this.client.registerCodec(new JsonCodec());
 	}
 
-    public JsonObject createSigarData() throws InterruptedException {
+    public JsonObject createOshiData() {
         HardwareAbstractionLayer hal = si.getHardware();
         CentralProcessor processor = hal.getProcessor();
         double loadAverage = processor.getSystemCpuLoad() * 100;
@@ -54,8 +54,8 @@ public class OshiDevice implements Runnable {
 			client.connect();
 			// Send a dataset every 1 second, until we are told to quit
 			while (!quit) {
-				JsonObject data = createSigarData();
-				client.publishEvent("sigar", data, 0);
+				JsonObject data = createOshiData();
+				client.publishEvent("oshi", data, 0);
 				Thread.sleep(1000);
 			}
 			
@@ -70,7 +70,10 @@ public class OshiDevice implements Runnable {
 	public static void main(String[] args) throws Exception {
 		DeviceConfig config = null;
 		if (args[0].equals("--quickstart")) {
-			DeviceConfigIdentity identity = new DeviceConfigIdentity("quickstart", "iotsigar", UUID.randomUUID().toString());
+			SystemInfo si = new SystemInfo();
+			String macAddress = si.getHardware().getNetworkIFs()[0].getMacaddr().replace(":", "");
+			String alternateDeviceId = UUID.randomUUID().toString();
+			DeviceConfigIdentity identity = new DeviceConfigIdentity("quickstart", "iotsigar", macAddress);
 			DeviceConfigOptions options = new DeviceConfigOptions();
 			options.mqtt.port = 1883;
 			
@@ -95,7 +98,11 @@ public class OshiDevice implements Runnable {
 
 		// Wait for <enter>
 		Scanner sc = new Scanner(System.in);
-		sc.nextLine();
+		try {
+			sc.nextLine();
+		} catch (java.util.NoSuchElementException e) {
+			// It's okay, it just means that you can't press <enter> to disconnect because we can't read from System.in
+		}
 		sc.close();
 		System.out.println("Closed connection to IBM Watson IoT Platform");
 		
