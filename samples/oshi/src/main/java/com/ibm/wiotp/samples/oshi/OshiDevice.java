@@ -1,7 +1,6 @@
 package com.ibm.wiotp.samples.oshi;
 
 import java.util.Scanner;
-import java.util.UUID;
 
 import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.codecs.JsonCodec;
@@ -69,10 +68,9 @@ public class OshiDevice implements Runnable {
 	
 	public static void main(String[] args) throws Exception {
 		DeviceConfig config = null;
-		if (args[0].equals("--quickstart")) {
+		if (args.length > 0 && args[0].equals("--quickstart")) {
 			SystemInfo si = new SystemInfo();
 			String macAddress = si.getHardware().getNetworkIFs()[0].getMacaddr().replace(":", "");
-			String alternateDeviceId = UUID.randomUUID().toString();
 			DeviceConfigIdentity identity = new DeviceConfigIdentity("quickstart", "iotsigar", macAddress);
 			DeviceConfigOptions options = new DeviceConfigOptions();
 			options.mqtt.port = 1883;
@@ -89,7 +87,7 @@ public class OshiDevice implements Runnable {
 		Thread t1 = new Thread(d);
 		t1.start();
 
-		if (args[0].equals("--quickstart")) {
+		if (args.length > 0 && args[0].equals("--quickstart")) {
 			System.out.println("Welcome to IBM Watson IoT Platform Quickstart, view a vizualization of live data from this device at the URL below:");
 			System.out.println("https://quickstart.internetofthings.ibmcloud.com/#/device/" + config.identity.deviceId + "/sensor/");
 			System.out.println("");
