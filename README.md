@@ -26,7 +26,7 @@ Add a dependency on `com.ibm.wiotp.sdk` to your project's `pom.xml`:
 <dependency>
   <groupId>com.ibm.wiotp</groupId>
   <artifactId>com.ibm.wiotp.sdk</artifactId>
-  <version>0.2.0</version>
+  <version>0.2.1</version>
 </dependency>
 ```
 
@@ -59,7 +59,7 @@ Simple example that initialises a device client from environment variables, conn
 
 ```java
 import com.google.gson.JsonObject;
-import com.ibm.wiotp.sdk.app.DeviceClient;
+import com.ibm.wiotp.sdk.device.DeviceClient;
 import com.ibm.wiotp.sdk.codecs.JsonCodec;
 
 class simpleTest {
