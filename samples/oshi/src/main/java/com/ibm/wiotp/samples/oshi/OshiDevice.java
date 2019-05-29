@@ -1,6 +1,7 @@
 package com.ibm.wiotp.samples.oshi;
 
-import java.util.Scanner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.codecs.JsonCodec;
@@ -15,19 +16,14 @@ import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
 
 
-public class OshiDevice implements Runnable {
+public class OshiDevice {
 	
-	private boolean quit = false;
-	private SystemInfo si = null;
-	protected DeviceClient client;
+	private static final Logger LOG = LoggerFactory.getLogger(OshiDevice.class);
 	
-	public OshiDevice(DeviceConfig config) throws Exception {
-		this.si = new SystemInfo();
-		this.client = new DeviceClient(config);
-		this.client.registerCodec(new JsonCodec());
-	}
-
-    public JsonObject createOshiData() {
+	private static DeviceClient client;
+	private static SystemInfo si = new SystemInfo();
+	
+    private static JsonObject createOshiData() {
         HardwareAbstractionLayer hal = si.getHardware();
         CentralProcessor processor = hal.getProcessor();
         double loadAverage = processor.getSystemCpuLoad() * 100;
@@ -44,29 +40,20 @@ public class OshiDevice implements Runnable {
         return json;
     }
 
-	public void quit() {
-		this.quit = true;
-	}
-	
-	public void run() {
-		try {
-			client.connect();
-			// Send a dataset every 1 second, until we are told to quit
-			while (!quit) {
-				JsonObject data = createOshiData();
-				client.publishEvent("oshi", data, 0);
-				Thread.sleep(1000);
-			}
-			
-			// Once told to stop, cleanly disconnect from the service
-			client.disconnect();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	
 	public static void main(String[] args) throws Exception {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+        	@Override
+            public void run() {
+        		LOG.info("Closing connection to IBM Watson IoT Platform ...");
+        		// Once told to stop, cleanly disconnect from the service
+        		client.disconnect();
+        		// Allow 3 seconds for disconnect to complete
+        		try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {}
+            }   
+        }); 
+        
 		DeviceConfig config = null;
 		if (args.length > 0 && args[0].equals("--quickstart")) {
 			SystemInfo si = new SystemInfo();
@@ -80,32 +67,28 @@ public class OshiDevice implements Runnable {
 		else {
 			config = DeviceConfig.generateFromEnv();
 		}
-	    // Start the device thread
-		OshiDevice d;
-
-		d = new OshiDevice(config);
-		Thread t1 = new Thread(d);
-		t1.start();
+		
+		client = new DeviceClient(config);
+		client.registerCodec(new JsonCodec());
 
 		if (args.length > 0 && args[0].equals("--quickstart")) {
-			System.out.println("Welcome to IBM Watson IoT Platform Quickstart, view a vizualization of live data from this device at the URL below:");
-			System.out.println("https://quickstart.internetofthings.ibmcloud.com/#/device/" + config.identity.deviceId + "/sensor/");
-			System.out.println("");
+			LOG.info("Welcome to IBM Watson IoT Platform Quickstart, view a vizualization of live data from this device at the URL below:");
+			LOG.info("https://quickstart.internetofthings.ibmcloud.com/#/device/" + config.identity.deviceId + "/sensor/");
+			LOG.info("");
 		}
-		System.out.println("(Press <enter> to disconnect)");
+		LOG.info("IBM Watson IoT Platform OSHI Device Client");
+		LOG.info("https://github.com/ibm-watson-iot/iot-java/tree/master/samples/oshi");
+		LOG.info("");
+		LOG.info("(Press <Ctrl+C> to quit)");
 
-		// Wait for <enter>
-		Scanner sc = new Scanner(System.in);
-		try {
-			sc.nextLine();
-		} catch (java.util.NoSuchElementException e) {
-			// It's okay, it just means that you can't press <enter> to disconnect because we can't read from System.in
+		client.connect();
+		// Send a dataset every 1 second, until we are told to quit
+		while (true) {
+			JsonObject data = createOshiData();
+			client.publishEvent("oshi", data, 0);
+			Thread.sleep(5000);
 		}
-		sc.close();
-		System.out.println("Closing connection to IBM Watson IoT Platform");
 		
-		// Let the device thread know it can terminate
-		d.quit();
 	}
 	
 }

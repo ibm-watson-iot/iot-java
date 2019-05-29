@@ -7,13 +7,13 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
-resources:
-  limits:
-    cpu: 4m
-    memory: 24Mi
-  requests:
-    cpu: 2m
-    memory: 18Mi
+#resources:
+#  limits:
+#    cpu: 4m
+#    memory: 24Mi
+#  requests:
+#    cpu: 2m
+#    memory: 18Mi
 
 
 # WIoTP device configuration properties -- override these to connect
