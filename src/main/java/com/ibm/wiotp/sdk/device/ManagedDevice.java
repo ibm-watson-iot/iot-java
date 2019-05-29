@@ -120,7 +120,7 @@ public class ManagedDevice extends DeviceClient implements IMqttMessageListener,
 	public ManagedDevice(DeviceConfig config, DeviceData deviceData) throws Exception {
 		super(config);
 		if(deviceData == null) {
-			LOG.info("Could not create Managed Client without DeviceInformation !");
+			LOG.warn("Could not create Managed Client without DeviceInformation !");
 			throw new Exception("Could not create Managed Client without DeviceInformation !");
 		}
 

@@ -64,8 +64,6 @@ public abstract class AbstractClient {
 	
 	protected AbstractConfig config;
 	
-	protected int messageCount = 0;
-	
 	protected MqttAsyncClient mqttAsyncClient = null;
 	protected MqttConnectOptions mqttClientOptions;
 	protected MqttCallback mqttCallback;
@@ -112,7 +110,7 @@ public abstract class AbstractClient {
 		
 		while (tryAgain && disconnectRequested == false) {
 			connectAttempts++;
-			LOG.info("Connecting client "+ config.getClientId() + " to " + mqttAsyncClient.getServerURI() + " (attempt #" + connectAttempts + ")...");
+			LOG.debug("Connecting client "+ config.getClientId() + " to " + mqttAsyncClient.getServerURI() + " (attempt #" + connectAttempts + ")");
 			
 			try {
 				MqttConnectOptions options = config.getMqttConnectOptions();
@@ -132,9 +130,7 @@ public abstract class AbstractClient {
 			}
 			
 			if (mqttAsyncClient.isConnected()) {
-				LOG.info(mqttAsyncClient.getClientId() + " successfully connected to the IBM Watson IoT Platform");
-				LOG.debug(" * Connection attempts: " + connectAttempts);
-				
+				LOG.info("Successfully connected to IBM Watson IoT Platform");
 				tryAgain = false;
 			} else {
 				waitBeforeNextConnectAttempt(connectAttempts);
@@ -210,9 +206,9 @@ public abstract class AbstractClient {
 		try {
 			this.disconnectRequested = true;
 			if (mqttAsyncClient != null) {
-				LOG.info(mqttAsyncClient.getClientId() + " is disconnecting from the IBM Watson IoT Platform ...");
+				LOG.debug("Disconnecting from IBM Watson IoT Platform");
 				mqttAsyncClient.disconnect().waitForCompletion(DEFAULT_ACTION_TIMEOUT);
-				LOG.info(mqttAsyncClient.getClientId() + " successfully disconnected from the IBM Watson IoT Platform");
+				LOG.info("Successfully disconnected from IBM Watson IoT Platform");
 			}
 		} catch (MqttException e) {
 			e.printStackTrace();
@@ -224,7 +220,7 @@ public abstract class AbstractClient {
 	 * @throws MqttException Thrown if an error occurs
 	 */
 	public void close() throws MqttException {
-		LOG.info("Closing MQTT client (" + config.getClientId() + ")");
+		LOG.debug("Closing MQTT client (" + config.getClientId() + ")");
 		if (mqttAsyncClient != null) {
 			mqttAsyncClient.close(true);
 			mqttAsyncClient = null;
@@ -261,7 +257,7 @@ public abstract class AbstractClient {
 	 * @return String representation of the Device.
 	 */
 	public String toString() {
-		return "[" + config.getClientId() + "] " + messageCount + " messages sent - Connected = " + String.valueOf(isConnected());
+		return "[" + config.getClientId() + "] Connected = " + String.valueOf(isConnected());
 	}
 
 }

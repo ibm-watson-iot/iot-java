@@ -134,7 +134,7 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 		}
 		byte[] payload = codec.encode(data, new DateTime());
 		String topic = "iot-2/evt/" + eventId + "/fmt/" + codec.getMessageFormat();
-		LOG.info("Publishing event to " + topic);
+		LOG.debug("Publishing event to " + topic);
 		
 		MqttMessage msg = new MqttMessage(payload);
 		msg.setQos(qos);
@@ -158,34 +158,18 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	 * Simply log error when connection is lost
 	 */
 	public void connectionLost(Throwable e) {
-		LOG.warn("Lost connection client (" + config.getClientId() + ") : " + e.getMessage());
 		if (e instanceof MqttException) {
 			MqttException e2 = (MqttException) e;
-			LOG.info("Connection lost: Reason Code: " + e2.getReasonCode() + " Cause: " + ExceptionUtils.getRootCauseMessage(e2));
+			LOG.warn("Connection lost: Reason Code: " + e2.getReasonCode() + " Cause: " + ExceptionUtils.getRootCauseMessage(e2));
 		} else {
-			LOG.info("Connection lost: " + e.getMessage());
+			LOG.warn("Connection lost: " + e.getMessage());
 		}
 		
 	}
 	
-	/**
-	 * A completed deliver does not guarantee that the message is received by the service
-	 * because devices send messages with Quality of Service (QoS) 0. <br>
-	 * 
-	 * The message count
-	 * represents the number of messages that were sent by the device without an error on
-	 * from the perspective of the device.
-	 * @param token
-	 *            MQTT delivery token
-	 */
-	public void deliveryComplete(IMqttDeliveryToken token) {
-		LOG.debug("token " + token.getMessageId());
-		messageCount++;
-	}
-	
-	/**
-	 * The Device client does not currently support subscriptions.
-	 */
+	@Override
+	public void deliveryComplete(IMqttDeliveryToken token) {}
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void messageArrived(String topic, MqttMessage msg) {
 		if (! commandCallbacks.isEmpty()) {
@@ -220,8 +204,8 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		LOG.info(config.getClientId() + " reconnected (" + reconnect + ") URI: " + serverURI);
 		if (reconnect) {
+			LOG.info("Reconnected to " + serverURI);
 			if (!config.getOrgId().equals("quickstart")) {
 				try {
 					subscribeToCommands();
@@ -242,6 +226,5 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	public void registerCommandCallback(CommandCallback callback) {
 		this.commandCallbacks.put(callback.getMessageClass(), callback);
 	}
-
 	
 }

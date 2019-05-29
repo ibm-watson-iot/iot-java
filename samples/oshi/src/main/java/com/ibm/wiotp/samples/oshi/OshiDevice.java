@@ -102,7 +102,7 @@ public class OshiDevice implements Runnable {
 			// It's okay, it just means that you can't press <enter> to disconnect because we can't read from System.in
 		}
 		sc.close();
-		System.out.println("Closed connection to IBM Watson IoT Platform");
+		System.out.println("Closing connection to IBM Watson IoT Platform");
 		
 		// Let the device thread know it can terminate
 		d.quit();

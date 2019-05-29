@@ -119,7 +119,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		
 		byte[] payload = codec.encode(data, new DateTime());
 		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/" + codec.getMessageFormat();
-		LOG.info("Publishing event to " + topic);
+		LOG.debug("Publishing event to " + topic);
 		
 		MqttMessage msg = new MqttMessage(payload);
 		msg.setQos(qos);
@@ -174,7 +174,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		
 		byte[] payload = codec.encode(data, new DateTime());
 		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/" + codec.getMessageFormat();
-		LOG.info("Publishing command to " + topic);
+		LOG.debug("Publishing command to " + topic);
 
 		MqttMessage msg = new MqttMessage(payload);
 		msg.setQos(qos);
@@ -209,7 +209,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 */
 	public void subscribeToDeviceEvents(String typeId, String deviceId, String eventId, String format, int qos) {
 		String newTopic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/" + format;
-		LOG.info("Subscribing to " + newTopic);
+		LOG.debug("Subscribing to " + newTopic);
 
 		try {
 			subscriptions.put(newTopic, new Integer(qos));
@@ -282,7 +282,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 */
 	public void subscribeToDeviceCommands(String typeId, String deviceId, String commandId, String format, int qos) {
 		String newTopic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/" + format;
-		LOG.info("Subscribing to " + newTopic);
+		LOG.debug("Subscribing to " + newTopic);
 		try {
 			subscriptions.put(newTopic, new Integer(qos));
 			mqttAsyncClient.subscribe(newTopic, qos).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
@@ -390,12 +390,11 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	 * Simply log error when connection is lost
 	 */
 	public void connectionLost(Throwable e) {
-		LOG.warn("Lost connection client (" + config.getClientId() + ") : " + e.getMessage(), e);
 		if (e instanceof MqttException) {
 			MqttException e2 = (MqttException) e;
-			LOG.info("Connection lost: Reason Code: " + e2.getReasonCode() + " Cause: " + ExceptionUtils.getRootCauseMessage(e2));
+			LOG.warn("Connection lost: Reason Code: " + e2.getReasonCode() + " Cause: " + ExceptionUtils.getRootCauseMessage(e2));
 		} else {
-			LOG.info("Connection lost: " + e.getMessage());
+			LOG.warn("Connection lost: " + e.getMessage());
 		}
 		
 	}
@@ -410,7 +409,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 			        Entry<String, Integer> pairs = iterator.next();
 			        String topic = pairs.getKey();
 			        Integer qos = pairs.getValue();
-			        LOG.info("Resubscribing topic(" +topic + ") QoS:" + qos);
+			        LOG.debug("Resubscribing topic(" +topic + ") QoS:" + qos);
 			        try {
 			        	mqttAsyncClient.subscribe(topic, qos.intValue());
 					} catch (NumberFormatException | MqttException e1) {
@@ -423,16 +422,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	}
 	
 	
-	/**
-	 * A completed deliver does not guarantee that the message is recieved by the service
-	 * because devices send messages with Quality of Service (QoS) 0. The message count
-	 * represents the number of messages that were sent by the device without an error on
-	 * from the perspective of the device.
-	 */
-	public void deliveryComplete(IMqttDeliveryToken token) {
-		LOG.debug("token = "+token.getMessageId());
-		messageCount++;
-	}
+	public void deliveryComplete(IMqttDeliveryToken token) {}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void messageArrived(String topic, MqttMessage msg) {
