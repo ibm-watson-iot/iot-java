@@ -66,16 +66,18 @@ public class ApplicationTest extends AbstractTest {
 		
 		app1Client.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID);
 		
-		// Send a command
-		JsonObject data = new JsonObject();
-		data.addProperty("distance", 10);
-		boolean success = app1Client.publishCommand(DEVICE_TYPE, DEVICE_ID, "run", data);
-		assertTrue("Publish was a success", success);
 
 		int count = 0;
 		Command<JsonObject> cmd = cmdCallback.getCommand();
 		while( cmd == null && count++ <= 10) {
 			try {
+				// Send command
+				JsonObject data = new JsonObject();
+				data.addProperty("distance", 10);
+				boolean success = app1Client.publishCommand(DEVICE_TYPE, DEVICE_ID, "run", data);
+				assertTrue("Publish was a success", success);
+
+				// Check for command
 				cmd = cmdCallback.getCommand();
 				Thread.sleep(1000);
 			} catch(InterruptedException e) {}
@@ -103,19 +105,21 @@ public class ApplicationTest extends AbstractTest {
 		
 		app1Client.subscribeToDeviceCommands(DEVICE_TYPE, DEVICE_ID);
 		
-		// Send a command
-		boolean exceptionCaught = false;
-		try {
-			app1Client.publishCommand(DEVICE_TYPE, DEVICE_ID, "run", null);
-			assertTrue("Publish null object failed", false);
-		} catch (NullPointerException e) {
-			exceptionCaught = true;
-		}
-		assertTrue("Publish null commandwas a failure", exceptionCaught);
 		
 		int count = 0;
 		Command<JsonObject> evt = cmdCallback.getCommand();
 		while( evt == null && count++ <= 5) {
+			// Send command
+			boolean exceptionCaught = false;
+			try {
+				app1Client.publishCommand(DEVICE_TYPE, DEVICE_ID, "run", null);
+				assertTrue("Publish null object failed", false);
+			} catch (NullPointerException e) {
+				exceptionCaught = true;
+			}
+			assertTrue("Publish null command was a failure", exceptionCaught);
+			
+			// Check for command
 			try {
 				evt = cmdCallback.getCommand();
 				Thread.sleep(1000);
@@ -139,16 +143,18 @@ public class ApplicationTest extends AbstractTest {
 		app1Client.registerEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID);
 		
-		// Send an event
-		JsonObject data = new JsonObject();
-		data.addProperty("distance", 10);
-		boolean success = app1Client.publishEvent(DEVICE_TYPE, DEVICE_ID, "run", data);
-		assertTrue("Publish was a success", success);
 		
 		int count = 0;
 		Event<JsonObject> evt = evtCallback.getEvent();
 		while( evt == null && count++ <= 10) {
 			try {
+				// Send event
+				JsonObject data = new JsonObject();
+				data.addProperty("distance", 10);
+				boolean success = app1Client.publishEvent(DEVICE_TYPE, DEVICE_ID, "run", data);
+				assertTrue("Publish was a success", success);
+				
+				// Check for event
 				evt = evtCallback.getEvent();
 				Thread.sleep(1000);
 			} catch(InterruptedException e) {}
@@ -176,15 +182,16 @@ public class ApplicationTest extends AbstractTest {
 		app1Client.registerEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID);
 		
-		// Send an event
 		String data = "Hi Dave, this is fun, isn't it?";
-		boolean success = app1Client.publishEvent(DEVICE_TYPE, DEVICE_ID, "run", data);
-		assertTrue("Publish was a success", success);
-		
 		int count = 0;
 		Event<String> evt = evtCallback.getEvent();
 		while( evt == null && count++ <= 10) {
 			try {
+				// Send event
+				boolean success = app1Client.publishEvent(DEVICE_TYPE, DEVICE_ID, "run", data);
+				assertTrue("Publish was a success", success);
+				
+				// Check for event
 				evt = evtCallback.getEvent();
 				Thread.sleep(1000);
 			} catch(InterruptedException e) {}
@@ -212,19 +219,20 @@ public class ApplicationTest extends AbstractTest {
 		app1Client.registerEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(DEVICE_TYPE, DEVICE_ID);
 		
-		// Send an event
-		boolean exceptionCaught = false;
-		try {
-			app1Client.publishEvent(DEVICE_TYPE, DEVICE_ID, "run", null);
-			assertTrue("Publish null object failed", false);
-		} catch (NullPointerException e) {
-			exceptionCaught = true;
-		}
-		assertTrue("Publish null event was a failure", exceptionCaught);
-		
 		int count = 0;
 		Event<JsonObject> evt = evtCallback.getEvent();
 		while( evt == null && count++ <= 5) {
+			// Send an event
+			boolean exceptionCaught = false;
+			try {
+				app1Client.publishEvent(DEVICE_TYPE, DEVICE_ID, "run", null);
+				assertTrue("Publish null object failed", false);
+			} catch (NullPointerException e) {
+				exceptionCaught = true;
+			}
+			assertTrue("Publish null event was a failure", exceptionCaught);
+			
+			// Check for event
 			try {
 				evt = evtCallback.getEvent();
 				Thread.sleep(1000);
