@@ -15,6 +15,9 @@ import java.beans.PropertyChangeListener;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -23,7 +26,6 @@ import com.ibm.wiotp.sdk.devicemgmt.internal.DMServerTopic;
 import com.ibm.wiotp.sdk.devicemgmt.internal.ManagedClient;
 import com.ibm.wiotp.sdk.devicemgmt.internal.ResponseCode;
 import com.ibm.wiotp.sdk.devicemgmt.resource.Resource;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 /**
  * Request handler for <code>MMqttClient.SERVER_TOPIC_OBSERVE</code>
@@ -39,9 +41,12 @@ import com.ibm.wiotp.sdk.util.LoggerUtility;
  */
 public class ObserveRequestHandler extends DMRequestHandler implements PropertyChangeListener {
 
+	private static final Logger LOG = LoggerFactory.getLogger(FirmwareUpdateRequestHandler.class);
+	
 	private static final String FIELDS = "fields";
 	private static final String FIELD = "field";
 	
+	@SuppressWarnings("rawtypes")
 	private ConcurrentHashMap<String, Resource> fieldsMap = new ConcurrentHashMap<String, Resource>();
 	private ConcurrentHashMap<String, JsonElement> responseMap = new ConcurrentHashMap<String, JsonElement>();
 	
@@ -61,6 +66,7 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 	/**
 	 * Handles the observe request from IBM Watson IoT Platform
 	 */
+	@SuppressWarnings("rawtypes")
 	@Override
 	protected void handleRequest(JsonObject jsonRequest, String topic) {
 		JsonObject response = new JsonObject();
@@ -91,6 +97,7 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 		respond(response);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		
@@ -116,9 +123,9 @@ public class ObserveRequestHandler extends DMRequestHandler implements PropertyC
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	void cancel(JsonArray fields) {
-		final String METHOD = "cancel";
-		LoggerUtility.fine(CLASS_NAME, METHOD,  "Cancel observation for " + fields);
+		LOG.debug("Cancel observation for " + fields);
 		for (int i=0; i < fields.size(); i++) {
 			JsonObject obj = (JsonObject)fields.get(i);
 			String name = obj.get(FIELD).getAsString();

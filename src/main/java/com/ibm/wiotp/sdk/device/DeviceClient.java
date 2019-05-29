@@ -14,7 +14,6 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,12 +23,13 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.wiotp.sdk.AbstractClient;
 import com.ibm.wiotp.sdk.MessageInterface;
 import com.ibm.wiotp.sdk.codecs.MessageCodec;
 import com.ibm.wiotp.sdk.device.config.DeviceConfig;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 
 /**
@@ -38,8 +38,7 @@ import com.ibm.wiotp.sdk.util.LoggerUtility;
  * This is a derived class from AbstractClient and can be used by embedded devices to handle connections with IBM Watson IoT Platform.
  */
 public class DeviceClient extends AbstractClient implements MqttCallbackExtended {
-	
-	private static final String CLASS_NAME = DeviceClient.class.getName();
+	private static final Logger LOG = LoggerFactory.getLogger(DeviceClient.class);
 	private static final Pattern COMMAND_PATTERN = Pattern.compile("iot-2/cmd/(.+)/fmt/(.+)");
 	
 	@SuppressWarnings("rawtypes")
@@ -121,8 +120,6 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	 */	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public boolean publishEvent(String eventId, Object data, int qos) {
-		final String METHOD = "publishEvent";
-		
 		if (data == null) {
 			throw new NullPointerException("Data object for event publish can not be null");
 		}
@@ -132,12 +129,12 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 		
 		// Check that a codec is registered
 		if (codec == null) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to encode event of class " + data.getClass().getName());
+			LOG.warn("Unable to encode event of class " + data.getClass().getName());
 			return false;
 		}
 		byte[] payload = codec.encode(data, new DateTime());
 		String topic = "iot-2/evt/" + eventId + "/fmt/" + codec.getMessageFormat();
-		LoggerUtility.info(CLASS_NAME, METHOD, "Publishing event to " + topic);
+		LOG.debug("Publishing event to " + topic);
 		
 		MqttMessage msg = new MqttMessage(payload);
 		msg.setQos(qos);
@@ -161,40 +158,20 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	 * Simply log error when connection is lost
 	 */
 	public void connectionLost(Throwable e) {
-		final String METHOD = "connectionLost";
-		LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, "Lost connection client (" + config.getClientId() + ") : " + e.getMessage());
 		if (e instanceof MqttException) {
 			MqttException e2 = (MqttException) e;
-			LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: Reason Code: " 
-					+ e2.getReasonCode() + " Cause: " + ExceptionUtils.getRootCauseMessage(e2));
+			LOG.warn("Connection lost: Reason Code: " + e2.getReasonCode() + " Cause: " + ExceptionUtils.getRootCauseMessage(e2));
 		} else {
-			LoggerUtility.info(CLASS_NAME, METHOD, "Connection lost: " + e.getMessage());
+			LOG.warn("Connection lost: " + e.getMessage());
 		}
 		
 	}
 	
-	/**
-	 * A completed deliver does not guarantee that the message is received by the service
-	 * because devices send messages with Quality of Service (QoS) 0. <br>
-	 * 
-	 * The message count
-	 * represents the number of messages that were sent by the device without an error on
-	 * from the perspective of the device.
-	 * @param token
-	 *            MQTT delivery token
-	 */
-	public void deliveryComplete(IMqttDeliveryToken token) {
-		final String METHOD = "deliveryComplete";
-		LoggerUtility.fine(CLASS_NAME, METHOD, "token " + token.getMessageId());
-		messageCount++;
-	}
-	
-	/**
-	 * The Device client does not currently support subscriptions.
-	 */
+	@Override
+	public void deliveryComplete(IMqttDeliveryToken token) {}
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void messageArrived(String topic, MqttMessage msg) {
-		final String METHOD = "messageArrived";
 		if (! commandCallbacks.isEmpty()) {
 			/* Only check whether the message is a command if a callback 
 			 * has been defined, otherwise it is a waste of time
@@ -209,13 +186,13 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 				MessageCodec codec = messageCodecsByFormat.get(format);
 				// Check that a codec is registered
 				if (codec == null) {
-					LoggerUtility.severe(CLASS_NAME, METHOD, "Unable to decode command from format " + format);
+					LOG.warn("Unable to decode command from format " + format);
 				}
 				MessageInterface message = codec.decode(msg);
 				Command cmd = new Command(command, format, message);
 				
 
-				LoggerUtility.fine(CLASS_NAME, METHOD, "Command received: " + cmd.toString());
+				LOG.debug("Command received: " + cmd.toString());
 				
 				CommandCallback callback = commandCallbacks.get(codec.getMessageClass());
 				if (callback != null) {
@@ -227,9 +204,8 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		final String METHOD = "connectComplete";
-		LoggerUtility.info(CLASS_NAME, METHOD, config.getClientId() + " reconnected (" + reconnect + ") URI: " + serverURI);
 		if (reconnect) {
+			LOG.info("Reconnected to " + serverURI);
 			if (!config.getOrgId().equals("quickstart")) {
 				try {
 					subscribeToCommands();
@@ -250,6 +226,5 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	public void registerCommandCallback(CommandCallback callback) {
 		this.commandCallbacks.put(callback.getMessageClass(), callback);
 	}
-
 	
 }

@@ -18,6 +18,7 @@ import com.ibm.wiotp.sdk.devicemgmt.resource.Resource;
 /**
  * An internal class that encapsulated the Firmware Object
  */
+@SuppressWarnings("rawtypes")
 public class DeviceMgmt extends Resource {
 
 	public static final String RESOURCE_NAME = "mgmt";

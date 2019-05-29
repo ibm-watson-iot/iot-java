@@ -1,23 +1,34 @@
-# IBM Watson IoT Platform Java SDK
+# Java for IBM Watson IoT Platform
 
 [![Build Status](https://travis-ci.org/ibm-watson-iot/iot-java.svg?branch=master)](https://travis-ci.org/ibm-watson-iot/iot-java)
+[![Coverage Status](https://coveralls.io/repos/github/ibm-watson-iot/iot-java/badge.svg?branch=master)](https://coveralls.io/github/ibm-watson-iot/iot-java?branch=master)
 [![GitHub issues](https://img.shields.io/github/issues/ibm-watson-iot/iot-java.svg)](https://github.com/ibm-watson-iot/iot-java/issues)
 [![GitHub](https://img.shields.io/github/license/ibm-watson-iot/iot-java.svg)](https://github.com/ibm-watson-iot/iot-java/blob/master/LICENSE)
-[![Coverage Status](https://coveralls.io/repos/github/ibm-watson-iot/iot-java/badge.svg?branch=master)](https://coveralls.io/github/ibm-watson-iot/iot-java?branch=master)
+[![Maven Central](https://img.shields.io/maven-central/v/com.ibm.wiotp/com.ibm.wiotp.sdk.svg)](https://search.maven.org/search?q=g:com.ibm.wiotp)
 
 
 ## Overview
 
-- The clients only support handling of JSON formatted messages currently.
-- HTTP API support is provided by [swagger-codegen](https://github.com/swagger-api/swagger-codegen): 
+- Logging powered by [SLF4J](https://www.slf4j.org/manual.html)
+- HTTP API support is provided by [swagger-codegen](https://github.com/swagger-api/swagger-codegen). See [com.ibm.wiotp.sdk.swagger](https://github.ibm.com/ibm-watson-iot/swagger-java)
 
 
 ## Documentation
 
-https://ibm-watson-iot.github.io/iot-java/
+[https://ibm-watson-iot.github.io/iot-java/](https://ibm-watson-iot.github.io/iot-java/)
 
 
-## Basic Usage
+## Usage
+
+Add a dependency on `com.ibm.wiotp.sdk` to your project's `pom.xml`:
+
+```xml
+<dependency>
+  <groupId>com.ibm.wiotp</groupId>
+  <artifactId>com.ibm.wiotp.sdk</artifactId>
+  <version>0.2.1</version>
+</dependency>
+```
 
 ### Applications
 
@@ -26,6 +37,7 @@ Simple example that initialises an application client from environment variables
 ```java
 import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.app.ApplicationClient;
+import com.ibm.wiotp.sdk.codecs.JsonCodec;
 
 class simpleTest {
 	public static void main(String[] args) {
@@ -34,7 +46,7 @@ class simpleTest {
 		appClient.connect();
 		JsonObject data = new JsonObject();
 		data.addProperty("distance", 10);
-		appClient.publishCommand("myDeviceType", "myDeviceId", "mycommand", data);
+		appClient.publishCommand("myDeviceType", "myDeviceId", "myCommand", data);
 		appClient.disconnect();
 	}
 }
@@ -47,7 +59,8 @@ Simple example that initialises a device client from environment variables, conn
 
 ```java
 import com.google.gson.JsonObject;
-import com.ibm.wiotp.sdk.app.DeviceClient;
+import com.ibm.wiotp.sdk.device.DeviceClient;
+import com.ibm.wiotp.sdk.codecs.JsonCodec;
 
 class simpleTest {
 	public static void main(String[] args) {
@@ -56,7 +69,7 @@ class simpleTest {
 		deviceClient.connect();
 		JsonObject data = new JsonObject();
 		data.addProperty("distance", 10);
-		deviceClient.publishEvent("myevent", data);
+		deviceClient.publishEvent("myEvent", data);
 		deviceClient.disconnect();
 	}
 }

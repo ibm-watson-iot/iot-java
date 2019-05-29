@@ -18,17 +18,18 @@ import java.util.Map;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.wiotp.sdk.devicemgmt.internal.DMAgentTopic;
 import com.ibm.wiotp.sdk.devicemgmt.internal.ManagedClient;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 
 public abstract class DMRequestHandler implements IMqttMessageListener {
 	
-	protected static final String CLASS_NAME = DMRequestHandler.class.getName();
+	private static final Logger LOG = LoggerFactory.getLogger(DMRequestHandler.class);
 	
 	private ManagedClient dmClient = null;
 	
@@ -47,16 +48,14 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 	
 	@Override
 	public void messageArrived(String topic, MqttMessage message) {
-		final String METHOD = "messageArrived";
 		try {
 			String payload = new String (message.getPayload(), "UTF-8");
 			JsonObject jsonRequest = new JsonParser().parse(payload).getAsJsonObject();
-			LoggerUtility.fine(CLASS_NAME, METHOD, System.identityHashCode(this) + "Handler(" + this.getClass().getName() + 
-					") Received request on topic " + topic + ") " + jsonRequest.toString());
+			LOG.debug(System.identityHashCode(this) + "Handler(" + this.getClass().getName() + ") Received request on topic " + topic + ") " + jsonRequest.toString());
 			
 			handleRequest(jsonRequest, topic);
 		} catch (Exception e) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Unexpected Exception = " + e.getMessage());
+			LOG.warn("Unexpected Exception = " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -74,22 +73,20 @@ public abstract class DMRequestHandler implements IMqttMessageListener {
 	}
 	
 	protected void respond(JsonObject payload) {
-		final String METHOD = "respond";
 		try {
 			DMAgentTopic topic = dmClient.getDMAgentTopic();
 			dmClient.publish(topic.getDMServerTopic(), payload);
 		} catch (MqttException e) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Unexpected Mqtt Exception, code = " + e.getReasonCode());
+			LOG.warn("Unexpected Mqtt Exception, code = " + e.getReasonCode());
 		}
 	}
 
 	protected void notify(JsonObject payload) {
-		final String METHOD = "notify";
 		try {
 			DMAgentTopic topic = dmClient.getDMAgentTopic();
 			dmClient.publish(topic.getNotifyTopic(), payload);
 		} catch (MqttException e) {
-			LoggerUtility.severe(CLASS_NAME, METHOD, "Unexpected Mqtt Exception, code = " + e.getReasonCode());
+			LOG.warn("Unexpected Mqtt Exception, code = " + e.getReasonCode());
 		}
 	}
 	

@@ -18,10 +18,12 @@ import com.ibm.wiotp.sdk.devicemgmt.resource.Resource;
  * <p>This class represents the metadata information of a device.</p>
  * 
  */
+@SuppressWarnings("rawtypes")
 public class DeviceMetadata extends Resource {
 	
 	private static final String METADATA = "metadata";
 	
+	@SuppressWarnings("unchecked")
 	public DeviceMetadata(JsonObject metadata) {
 		super(METADATA);
 		this.setValue(metadata);
@@ -32,6 +34,7 @@ public class DeviceMetadata extends Resource {
 	 * Set the metadata to new value
 	 * @param metadata new metadata to be set
 	 */
+	@SuppressWarnings("unchecked")
 	public void setMetadata(JsonObject metadata) {
 		this.setValue(metadata);
 	}
@@ -66,6 +69,7 @@ public class DeviceMetadata extends Resource {
 	 * 
 	 * @return returns of the status of the update
 	 */
+	@SuppressWarnings("unchecked")
 	public int update(JsonElement json, boolean fireEvent) {
 		this.setValue((JsonObject)json, fireEvent);
 		return this.getRC();

@@ -6,7 +6,7 @@
 
     <groupId>com.ibm.wiotp</groupId>
     <artifactId>com.ibm.wiotp.sdk</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.2</version>
     <packaging>jar</packaging>
 
 	<!--
@@ -112,20 +112,15 @@
             <version>${junit-version}</version>
             <scope>test</scope>
         </dependency>
-                
+
+        <dependency>
+        	<groupId>org.slf4j</groupId>
+        	<artifactId>slf4j-api</artifactId>
+        	<version>1.7.26</version>
+        </dependency>
     </dependencies>
 
     <build>
-        <!-- Include properties files -->
-    	<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<includes>
-					<include>**/*.properties</include>
-				</includes>
-			</resource>
-		</resources>
-    
         <plugins>
             <!-- Launch the tests -->
 			<plugin>

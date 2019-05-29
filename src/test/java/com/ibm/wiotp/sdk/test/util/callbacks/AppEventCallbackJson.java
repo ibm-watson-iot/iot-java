@@ -2,23 +2,24 @@ package com.ibm.wiotp.sdk.test.util.callbacks;
 
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.JsonObject;
 import com.ibm.wiotp.sdk.app.callbacks.EventCallback;
 import com.ibm.wiotp.sdk.app.messages.Event;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 public class AppEventCallbackJson implements EventCallback<JsonObject> {
+	private static final Logger LOG = LoggerFactory.getLogger(AppEventCallbackJson.class);
 
 	Event<JsonObject> event = null;
 	ArrayList<Event<JsonObject>> allEvents = new ArrayList<Event<JsonObject>>();
-	
-	private static final String CLASS_NAME = DeviceCommandCallbackJson.class.getName();
 	
 	@Override
 	public void processEvent(Event<JsonObject> evt) {
 		event = evt;
 		allEvents.add(event);
-		LoggerUtility.info(CLASS_NAME, "processEvent", "Received event, name = "+evt.getEventId() + ", format = " + evt.getFormat() + ", Payload = "+evt.getData().toString());
+		LOG.info("Received event, name = "+evt.getEventId() + ", format = " + evt.getFormat() + ", Payload = "+evt.getData().toString());
 	}
 
 	public void clear() {

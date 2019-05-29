@@ -34,6 +34,7 @@ import com.ibm.wiotp.sdk.devicemgmt.resource.StringResource;
  * </ul>
  * 
  */
+@SuppressWarnings("rawtypes")
 public class DeviceFirmware extends Resource {
 	/**
 	 * <p>The firmware update process is separated into two distinct actions, Downloading Firmware, and Updating Firmware.

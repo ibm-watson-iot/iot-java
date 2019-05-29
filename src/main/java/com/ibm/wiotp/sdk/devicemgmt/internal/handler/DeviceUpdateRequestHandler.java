@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -23,7 +25,6 @@ import com.ibm.wiotp.sdk.devicemgmt.internal.DMServerTopic;
 import com.ibm.wiotp.sdk.devicemgmt.internal.ManagedClient;
 import com.ibm.wiotp.sdk.devicemgmt.internal.ResponseCode;
 import com.ibm.wiotp.sdk.devicemgmt.resource.Resource;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 /**
  * 
@@ -68,7 +69,8 @@ import com.ibm.wiotp.sdk.util.LoggerUtility;
  *
  */
 public class DeviceUpdateRequestHandler extends DMRequestHandler {
-	private static final String CLASS_NAME = DeviceUpdateRequestHandler.class.getName();
+	
+	private static final Logger LOG = LoggerFactory.getLogger(DeviceUpdateRequestHandler.class);
 	
 	private static final ExecutorService executor = Executors.newCachedThreadPool();
 	
@@ -88,9 +90,9 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 	/**
 	 * This method handles all the update requests from IBM Watson IoT Platform
 	 */
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void handleRequest(JsonObject jsonRequest, String topic) {
-		final String METHOD = "handleRequest";
 		List<Resource> fireRequiredResources = new ArrayList<Resource>();
 		JsonArray fields;
 		ResponseCode rc = ResponseCode.DM_UPDATE_SUCCESS;
@@ -118,10 +120,7 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 								fireRequiredResources.add(resource);
 							}
 						} catch(Exception e) {
-							LoggerUtility.log(Level.SEVERE, CLASS_NAME, METHOD, 
-									"Exception in updating field "+key +
-									" value "+value, e);
-							
+							LOG.warn("Exception in updating field " + key + " value " + value, e);
 							if(e.getMessage() != null)
 								response.add("message", new JsonPrimitive(e.getMessage()));
 						}
@@ -157,6 +156,7 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 	 * @param value - the new value
 	 * @return - true if the update is successful, false if not
 	 */
+	@SuppressWarnings("rawtypes")
 	private boolean updateField(Resource resource, JsonObject value) {
 		if(resource != null) {
 			// Update the properties but do not fire the change event
@@ -171,12 +171,15 @@ public class DeviceUpdateRequestHandler extends DMRequestHandler {
 	 * resources that are updated
 	 */
 	private class Task implements Runnable {
+		@SuppressWarnings("rawtypes")
 		private List<Resource> fireRequiredResources;
 		
+		@SuppressWarnings("rawtypes")
 		private Task(List<Resource> fireRequiredResources) {
 			this.fireRequiredResources = fireRequiredResources;
 		}
 
+		@SuppressWarnings("rawtypes")
 		@Override
 		public void run() {
 			for(int i = 0; i < fireRequiredResources.size(); i++) {

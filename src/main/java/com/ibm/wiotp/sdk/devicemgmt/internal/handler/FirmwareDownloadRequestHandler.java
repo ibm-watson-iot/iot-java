@@ -10,13 +10,15 @@
  */
 package com.ibm.wiotp.sdk.devicemgmt.internal.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.ibm.wiotp.sdk.devicemgmt.DeviceFirmware;
 import com.ibm.wiotp.sdk.devicemgmt.internal.DMServerTopic;
 import com.ibm.wiotp.sdk.devicemgmt.internal.ManagedClient;
 import com.ibm.wiotp.sdk.devicemgmt.internal.ResponseCode;
-import com.ibm.wiotp.sdk.util.LoggerUtility;
 
 /**
  * Request handler for <code>MMqttClient.SERVER_TOPIC_INITIATE_FIRMWARE_DOWNLOAD</code>
@@ -29,7 +31,7 @@ import com.ibm.wiotp.sdk.util.LoggerUtility;
  */	
 public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 
-	private static final String CLASS_NAME = FirmwareDownloadRequestHandler.class.getName();
+	private static final Logger LOG = LoggerFactory.getLogger(FirmwareDownloadRequestHandler.class);
 	
 	public FirmwareDownloadRequestHandler(ManagedClient dmClient) {
 		setDMClient(dmClient);
@@ -60,7 +62,6 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 	 */
 	@Override
 	public void handleRequest(JsonObject jsonRequest, String topic) {
-		final String METHOD = "handleRequest";
 		ResponseCode rc;
 		
 		JsonObject response = new JsonObject();
@@ -75,13 +76,13 @@ public class FirmwareDownloadRequestHandler extends DMRequestHandler {
 				rc = ResponseCode.DM_ACCEPTED;
 			} else {
 				rc = ResponseCode.DM_BAD_REQUEST;
-				LoggerUtility.severe(CLASS_NAME, METHOD, "No URL mentioned in the request");
+				LOG.warn("No URL mentioned in the request");
 			}
 		} 
 		response.add("rc", new JsonPrimitive(rc.getCode()));
 		respond(response);
 		if (rc == ResponseCode.DM_ACCEPTED) {
-			LoggerUtility.fine(CLASS_NAME, METHOD, "fire firmware download");
+			LOG.debug("fire firmware download");
 			getDMClient().getFirmwareHandler().downloadFirmware(deviceFirmware);			
 		}
 	}

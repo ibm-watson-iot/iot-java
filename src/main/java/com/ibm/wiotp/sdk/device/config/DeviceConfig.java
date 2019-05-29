@@ -2,6 +2,7 @@ package com.ibm.wiotp.sdk.device.config;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import javax.net.ssl.SSLContext;
 
@@ -16,6 +17,13 @@ public class DeviceConfig implements AbstractConfig {
     public DeviceConfigOptions options;
 
     public DeviceConfig(DeviceConfigIdentity identity, DeviceConfigAuth auth, DeviceConfigOptions options) {
+    	if (auth == null) {
+    		auth = new DeviceConfigAuth();
+    	}
+    	if (options == null) {
+    		options = new DeviceConfigOptions();
+    	}
+    	
     	this.identity = identity;
     	this.auth = auth;
     	this.options = options;
@@ -35,18 +43,22 @@ public class DeviceConfig implements AbstractConfig {
 		
 		connectOptions.setConnectionTimeout(60);
 		
-		connectOptions.setUserName(getMqttUsername());
-		connectOptions.setPassword(getMqttPassword().toCharArray());
+		if (getMqttPassword() != null) {
+			connectOptions.setUserName(getMqttUsername());
+			connectOptions.setPassword(getMqttPassword().toCharArray());
+		}
 		
-		connectOptions.setCleanSession(!this.options.mqtt.cleanStart);
+		connectOptions.setCleanSession(this.options.mqtt.cleanStart);
 		connectOptions.setKeepAliveInterval(this.options.mqtt.keepAlive);
 		connectOptions.setMaxInflight(DEFAULT_MAX_INFLIGHT_MESSAGES);
 		connectOptions.setAutomaticReconnect(true);
 		
-		SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-		sslContext.init(null, null, null);
-		
-		connectOptions.setSocketFactory(sslContext.getSocketFactory());
+		if (! Arrays.asList(1883, 80).contains(options.mqtt.port)) {
+			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+			sslContext.init(null, null, null);
+			
+			connectOptions.setSocketFactory(sslContext.getSocketFactory());
+		}
 		
 		return connectOptions; 
 	}
@@ -64,8 +76,15 @@ public class DeviceConfig implements AbstractConfig {
 	@Override
 	public String getMqttServerURI() {
 		String protocol = "ssl://";
-		if (options.mqtt.transport == "websockets") {
+		if (Arrays.asList(1883, 80).contains(options.mqtt.port)) {
+			protocol = "tcp://";
+		}
+
+		if (options.mqtt.transport.equals("websockets")) {
 			protocol = "wss://";
+			if (Arrays.asList(1883, 80).contains(options.mqtt.port)) {
+				protocol = "ws://";
+			}
 		}
 		return protocol + getOrgId() + ".messaging." + options.domain + ":" + String.valueOf(options.mqtt.port);
 	}
