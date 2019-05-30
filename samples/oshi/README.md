@@ -32,7 +32,7 @@ At the end of the registration process, make a note of the following parameters:
 
 The easiest way to test out the sample is via the [wiotp/oshi](https://cloud.docker.com/u/wiotp/repository/docker/wiotp/oshi) Docker image provided and the `--quickstart` command line option.
 
-The resource requirements for this container are tiny, if you use the accompanying helm chart it is by default confiugured with a request of 2m CPU + 18Mi memory, and  limits set to 4m cpu + 24Mi memory.
+The resource requirements for this container are relatively small, if you use the accompanying helm chart it is by default configured with a request of 4m CPU + 64Mi memory, and limits set to 8m cpu + 96Mi memory.
 
 ```
 $ docker run -d --name psutil wiotp/oshi --quickstart
