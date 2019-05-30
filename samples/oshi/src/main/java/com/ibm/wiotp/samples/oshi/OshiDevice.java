@@ -71,14 +71,15 @@ public class OshiDevice {
 		client = new DeviceClient(config);
 		client.registerCodec(new JsonCodec());
 
+
+		LOG.info("IBM Watson IoT Platform OSHI Device Client");
+		LOG.info("https://github.com/ibm-watson-iot/iot-java/tree/master/samples/oshi");
+		LOG.info("");
 		if (args.length > 0 && args[0].equals("--quickstart")) {
 			LOG.info("Welcome to IBM Watson IoT Platform Quickstart, view a vizualization of live data from this device at the URL below:");
 			LOG.info("https://quickstart.internetofthings.ibmcloud.com/#/device/" + config.identity.deviceId + "/sensor/");
 			LOG.info("");
 		}
-		LOG.info("IBM Watson IoT Platform OSHI Device Client");
-		LOG.info("https://github.com/ibm-watson-iot/iot-java/tree/master/samples/oshi");
-		LOG.info("");
 		LOG.info("(Press <Ctrl+C> to quit)");
 
 		client.connect();

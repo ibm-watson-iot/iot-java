@@ -38,8 +38,13 @@ The resource requirements for this container are tiny, if you use the accompanyi
 $ docker run -d --name psutil wiotp/oshi --quickstart
 oshi
 $ docker logs -tf oshi
-Welcome to IBM Watson IoT Platform Quickstart, view a vizualization of live data from this device at the URL below:
-https://quickstart.internetofthings.ibmcloud.com/#/device/3202968a743d/sensor/
+2019-05-30 10:52:36 INFO  OshiDevice           IBM Watson IoT Platform OSHI Device Client
+2019-05-30 10:52:36 INFO  OshiDevice           https://github.com/ibm-watson-iot/iot-java/tree/master/samples/oshi
+2019-05-30 10:52:36 INFO  OshiDevice
+2019-05-30 10:52:36 INFO  OshiDevice           Welcome to IBM Watson IoT Platform Quickstart, view a vizualization of live data from this device at the URL below:
+2019-05-30 10:52:36 INFO  OshiDevice           https://quickstart.internetofthings.ibmcloud.com/#/device/3202968a743d/sensor/
+2019-05-30 10:52:36 INFO  OshiDevice
+2019-05-30 10:52:36 INFO  OshiDevice           (Press <Ctrl+C> to quit)
 ```
 
 To connect as a registered device in your organization you must set the following environment variables in the container's environment. These variables correspond to the device parameters for your registered device: 
@@ -57,6 +62,11 @@ $ export WIOTP_IDENTITY_DEVICEID=mydeviceid
 $ export WIOTP_AUTH_TOKEN=myauthtoken
 $ docker run -d -e WIOTP_IDENTITY_ORGID -e WIOTP_IDENTITY_TYPEID -e WIOTP_IDENTITY_DEVICEID -e WIOTP_AUTH_TOKEN --name oshi wiotp/oshi
 oshi
+$ docker logs -tf oshi
+2019-05-30 10:52:36 INFO  OshiDevice           IBM Watson IoT Platform OSHI Device Client
+2019-05-30 10:52:36 INFO  OshiDevice           https://github.com/ibm-watson-iot/iot-java/tree/master/samples/oshi
+2019-05-30 10:52:36 INFO  OshiDevice
+2019-05-30 10:52:36 INFO  OshiDevice           (Press <Ctrl+C> to quit)
 ```
 
 ## Kubernetes & Helm
@@ -81,9 +91,14 @@ The pod consumes very little resource during operation, you can easily max out t
 ## Local Installation
 Installation across all OS's is pretty much the same:
 
+- Ensure you already have java installed
 - Download the `jar-with-dependencies` artifact from Maven Central
 - Run the sample
 
+```
+$ wget https://repo1.maven.org/maven2/com/ibm/wiotp/com.ibm.wiotp.samples.oshi/1.0.0/com.ibm.wiotp.samples.oshi-1.0.0-jar-with-dependencies.jar
+$ java -jar com.ibm.wiotp.samples.oshi-1.0.0-jar-with-dependencies.jar --quickstart
+```
 
-Note: Set the same environment variables detailed in the Docker section of this README (above) and ommit the `--quickstart` argument to connect your Raspberry Pi to IBM Watson IoT Platform as a registered device.
+Note: Set the same environment variables detailed in the Docker section of this README (above) and ommit the `--quickstart` argument to connect to IBM Watson IoT Platform as a registered device.
 

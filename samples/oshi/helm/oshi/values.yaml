@@ -5,15 +5,15 @@ replicaCount: 1
 image:
   repository: wiotp/oshi
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
-#resources:
-#  limits:
-#    cpu: 4m
-#    memory: 24Mi
-#  requests:
-#    cpu: 2m
-#    memory: 18Mi
+resources:
+  limits:
+    cpu: 8m
+    memory: 96Mi
+  requests:
+    cpu: 4m
+    memory: 64Mi
 
 
 # WIoTP device configuration properties -- override these to connect
