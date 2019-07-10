@@ -1,35 +1,42 @@
 package com.ibm.wiotp.sdk.app.config;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.yaml.snakeyaml.Yaml;
 
 import com.ibm.wiotp.sdk.AbstractConfig;
 
 public class ApplicationConfig implements AbstractConfig {
 
-//    identity:
-//        appId: myApp
-//      auth:
-//        key: a-23gh56-sdsdajhjnee
-//        token: Ab$76s)asj8_s5
-//      options:
-//        domain: internetofthings.ibmcloud.com
-//        logLevel: error|warning|info|debug
-//        mqtt:
-//          port: 8883
-//          transport: tcp
-//          cleanStart: false
-//          sessionExpiry: 3600
-//          keepAlive: 60
-//          sharedSubscription: false
-//          caFile: /path/to/certificateAuthorityFile.pem
-//        http:
-//          verify: true 
-	
+/*
+   identity:
+       appId: myApp
+     auth:
+       key: a-23gh56-sdsdajhjnee
+       token: Ab$76s)asj8_s5
+     options:
+       domain: internetofthings.ibmcloud.com
+       logLevel: error|warning|info|debug
+       mqtt:
+         port: 8883
+         transport: tcp
+         cleanStart: false
+         sessionExpiry: 3600
+         keepAlive: 60
+         sharedSubscription: false
+         caFile: /path/to/certificateAuthorityFile.pem
+       http:
+         verify: true 
+*/
+
 	public ApplicationConfigIdentity identity;
     public ApplicationConfigAuth auth;
     public ApplicationConfigOptions options;
@@ -45,8 +52,30 @@ public class ApplicationConfig implements AbstractConfig {
 				ApplicationConfigIdentity.generateFromEnv(), 
 				ApplicationConfigAuth.generateFromEnv(), 
 				ApplicationConfigOptions.generateFromEnv());
-		
 		return cfg;
+	}
+
+	public static ApplicationConfig generateFromConfig(String fileName) throws FileNotFoundException {
+		Yaml yaml = new Yaml();
+		InputStream inputStream = new FileInputStream(fileName);
+		Map<String, Object> yamlContents = yaml.load(inputStream);	
+
+		if(yamlContents.get("identity") instanceof Map<?, ?>) {
+			if(yamlContents.get("auth") instanceof Map<?, ?>) {
+				if(yamlContents.get("options") instanceof Map<?, ?>) {
+					ApplicationConfig cfg = new ApplicationConfig(
+					ApplicationConfigIdentity.generateFromConfig((Map<String, Object>) yamlContents.get("identity")), 
+					ApplicationConfigAuth.generateFromConfig((Map<String, Object>) yamlContents.get("auth")), 
+					ApplicationConfigOptions.generateFromConfig((Map<String, Object>) yamlContents.get("options")));
+					//potential green underlined type safety warning here but the casts are checked by the if statements
+					return cfg;
+				}
+				//else options is missing or in the wrong format			
+			}		
+			//else auth is missing or in the wrong format			
+		}
+		//else identity is missing or in the wrong format			
+		return null;
 	}
 	
 	public MqttConnectOptions getMqttConnectOptions() throws NoSuchAlgorithmException, KeyManagementException {

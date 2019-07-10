@@ -1,5 +1,6 @@
 package com.ibm.wiotp.sdk.device.config;
 
+import java.util.Map;
 import java.util.logging.Level;
 
 public class DeviceConfigOptions {
@@ -32,6 +33,25 @@ public class DeviceConfigOptions {
 		}
 		
 		options.mqtt = DeviceConfigOptionsMqtt.generateFromEnv();
+		
+		return options;
+	}
+
+	public static DeviceConfigOptions generateFromConfig(Map<String, Object> yamlOptions) {
+		DeviceConfigOptions options = new DeviceConfigOptions();
+		
+		if (yamlOptions.get("domain") != null)
+			options.domain = (String) yamlOptions.get("domain");
+		
+		if (yamlOptions.get("logLevel") != null) {
+			final String logLevelName = (String) yamlOptions.get("logLevel");
+			options.logLevel = Level.parse(logLevelName);
+		}
+		
+		if(yamlOptions.get("mqtt") instanceof Map<?, ?>) {
+			options.mqtt = DeviceConfigOptionsMqtt.generateFromConfig((Map<String, Object>) yamlOptions.get("mqtt"));
+		}
+		//else mqtt is missing or in the wrong format					
 		
 		return options;
 	}

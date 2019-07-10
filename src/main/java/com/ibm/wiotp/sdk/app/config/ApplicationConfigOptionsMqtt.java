@@ -1,5 +1,7 @@
 package com.ibm.wiotp.sdk.app.config;
 
+import java.util.Map;
+
 public class ApplicationConfigOptionsMqtt {
 	public int port;
 	public String transport = "tcp"; // or "websockets"
@@ -55,6 +57,34 @@ public class ApplicationConfigOptionsMqtt {
 			mqtt.sharedSubscription = Boolean.parseBoolean(System.getenv("WIOTP_OPTIONS_MQTT_SHAREDSUBSCRIPTION"));
 		
 		
+		return mqtt;
+	}
+
+	public static ApplicationConfigOptionsMqtt generateFromConfig(Map<String, Object> yamlMqtt) {
+		ApplicationConfigOptionsMqtt mqtt = new ApplicationConfigOptionsMqtt();
+		
+		final String portNumber = (String) yamlMqtt.get("port");
+		if (portNumber != null)
+			mqtt.port = Integer.parseInt(portNumber);
+		
+		if (yamlMqtt.get("transport") != null)
+			mqtt.transport = (String) yamlMqtt.get("transport");
+
+		if (yamlMqtt.get("caFile") != null)
+			mqtt.caFile = (String) yamlMqtt.get("caFile");
+		
+		if (yamlMqtt.get("cleanStart") != null)
+			mqtt.cleanStart = Boolean.parseBoolean((String) yamlMqtt.get("cleanStart"));
+		
+		if (yamlMqtt.get("sessionExpiry") != null)
+			mqtt.sessionExpiry = Integer.parseInt((String) yamlMqtt.get("sessionExpiry"));
+
+		if (yamlMqtt.get("keepAlive") != null)
+			mqtt.keepAlive = Integer.parseInt((String) yamlMqtt.get("keepAlive"));
+
+		if (yamlMqtt.get("sharedSubscription") != null)
+			mqtt.sharedSubscription = Boolean.parseBoolean((String) yamlMqtt.get("sharedSubscription"));
+
 		return mqtt;
 	}
 }

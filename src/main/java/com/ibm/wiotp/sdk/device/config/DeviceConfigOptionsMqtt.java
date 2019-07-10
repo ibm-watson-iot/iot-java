@@ -1,5 +1,7 @@
 package com.ibm.wiotp.sdk.device.config;
 
+import java.util.Map;
+
 public class DeviceConfigOptionsMqtt {
 	public int port = 8883;
 	public String transport = "tcp";  // or "websockets"
@@ -43,6 +45,31 @@ public class DeviceConfigOptionsMqtt {
 
 		if (System.getenv("WIOTP_OPTIONS_MQTT_KEEPALIVE") != null)
 			mqtt.keepAlive = Integer.parseInt(System.getenv("WIOTP_OPTIONS_MQTT_KEEPALIVE"));
+
+		return mqtt;
+	}
+
+	public static DeviceConfigOptionsMqtt generateFromConfig(Map<String, Object> yamlMqtt) {
+		DeviceConfigOptionsMqtt mqtt = new DeviceConfigOptionsMqtt();
+		
+		final String portNumber = (String) yamlMqtt.get("port");
+		if (portNumber != null)
+			mqtt.port = Integer.parseInt(portNumber);
+		
+		if (yamlMqtt.get("transport") != null)
+			mqtt.transport = (String) yamlMqtt.get("transport");
+
+		if (yamlMqtt.get("caFile") != null)
+			mqtt.caFile = (String) yamlMqtt.get("caFile");
+		
+		if (yamlMqtt.get("cleanStart") != null)
+			mqtt.cleanStart = Boolean.parseBoolean((String) yamlMqtt.get("cleanStart"));
+		
+		if (yamlMqtt.get("sessionExpiry") != null)
+			mqtt.sessionExpiry = Integer.parseInt((String) yamlMqtt.get("sessionExpiry"));
+
+		if (yamlMqtt.get("keepAlive") != null)
+			mqtt.keepAlive = Integer.parseInt((String) yamlMqtt.get("keepAlive"));
 
 		return mqtt;
 	}
