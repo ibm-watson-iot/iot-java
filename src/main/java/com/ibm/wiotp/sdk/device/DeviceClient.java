@@ -53,6 +53,10 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	public DeviceClient() throws Exception {
 		this(DeviceConfig.generateFromEnv());
 	}
+
+	public DeviceClient(String fileName) throws Exception {
+		this(DeviceConfig.generateFromConfig(fileName));
+	}
 	
 	/**
 	 * Create a device client for the IBM Watson IoT Platform. <br>

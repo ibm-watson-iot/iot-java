@@ -69,6 +69,10 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	public ApplicationClient() throws Exception {
 		this(ApplicationConfig.generateFromEnv());
 	}
+
+	public ApplicationClient(String fileName) throws Exception {
+		this(ApplicationConfig.generateFromConfig(fileName));
+	}
 		
 	/**
 	 * Create an application client for the IBM Watson IoT Platform. 

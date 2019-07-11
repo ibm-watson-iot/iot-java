@@ -1,9 +1,16 @@
 package com.ibm.wiotp.sdk.gateway.config;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Map;
+
 import com.ibm.wiotp.sdk.device.config.DeviceConfig;
 import com.ibm.wiotp.sdk.device.config.DeviceConfigAuth;
 import com.ibm.wiotp.sdk.device.config.DeviceConfigIdentity;
 import com.ibm.wiotp.sdk.device.config.DeviceConfigOptions;
+
+import org.yaml.snakeyaml.Yaml;
 
 public class GatewayConfig extends DeviceConfig {
 	
@@ -24,6 +31,29 @@ public class GatewayConfig extends DeviceConfig {
 				DeviceConfigOptions.generateFromEnv());
 		
 		return cfg;
+	}
+
+	public static GatewayConfig generateFromConfig(String fileName) throws FileNotFoundException {
+		Yaml yaml = new Yaml();
+		InputStream inputStream = new FileInputStream(fileName);
+		Map<String, Object> yamlContents = yaml.load(inputStream);	
+
+		if(yamlContents.get("identity") instanceof Map<?, ?>) {
+			if(yamlContents.get("auth") instanceof Map<?, ?>) {
+				if(yamlContents.get("options") instanceof Map<?, ?>) {
+					GatewayConfig cfg = new GatewayConfig(
+					DeviceConfigIdentity.generateFromConfig((Map<String, Object>) yamlContents.get("identity")), 
+					DeviceConfigAuth.generateFromConfig((Map<String, Object>) yamlContents.get("auth")), 
+					DeviceConfigOptions.generateFromConfig((Map<String, Object>) yamlContents.get("options")));
+					//potential green underlined type safety warning here but the casts are checked by the if statements
+					return cfg;
+				}
+				//else options is missing or in the wrong format			
+			}		
+			//else auth is missing or in the wrong format			
+		}
+		//else identity is missing or in the wrong format			
+		return null;
 	}
 
 }
