@@ -88,7 +88,7 @@ public class DeviceConfig implements AbstractConfig {
 	public MqttConnectOptions getMqttConnectOptions() throws NoSuchAlgorithmException, KeyManagementException {
 		MqttConnectOptions connectOptions = new MqttConnectOptions();
 		
-		connectOptions.setConnectionTimeout(60);
+		connectOptions.setConnectionTimeout(DEFAULT_CONNECTION_TIMEMOUT);
 		
 		if (getMqttPassword() != null) {
 			connectOptions.setUserName(getMqttUsername());

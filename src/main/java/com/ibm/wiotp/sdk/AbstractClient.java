@@ -36,7 +36,7 @@ public abstract class AbstractClient {
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
 		
 	public static final int DEFAULT_MAX_CONNECT_ATTEMPTS = 10;
-	public static final long DEFAULT_ACTION_TIMEOUT = 5 * 1000L;
+	public static final long DEFAULT_ACTION_TIMEOUT = 10 * 1000L;
 	public static final int DEFAULT_MAX_INFLIGHT_MESSAGES = 100;
 	public static final int DEFAULT_MESSAGING_QOS = 1;
 	public static final int DEFAULT_DISCONNECTED_BUFFER_SIZE = 5000;
