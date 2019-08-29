@@ -7,6 +7,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 
 public interface AbstractConfig {
 	public static final int DEFAULT_MAX_INFLIGHT_MESSAGES = 100;
+	public static final int DEFAULT_CONNECTION_TIMEMOUT = 80;
 
 	public String getOrgId();
 	public String getHttpApiBasePath();
