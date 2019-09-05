@@ -35,7 +35,6 @@ import com.ibm.wiotp.sdk.device.config.DeviceConfig;
 /**
  * A client, used by device, that handles connections with the IBM Watson IoT Platform. <br>
  * 
- * This is a derived class from AbstractClient and can be used by embedded devices to handle connections with IBM Watson IoT Platform.
  */
 public class DeviceClient extends AbstractClient implements MqttCallbackExtended {
 	private static final Logger LOG = LoggerFactory.getLogger(DeviceClient.class);
@@ -86,17 +85,6 @@ public class DeviceClient extends AbstractClient implements MqttCallbackExtended
 	public void connect() throws MqttException, KeyManagementException, NoSuchAlgorithmException {
 		super.connect();
 		if (!config.getOrgId().equals("quickstart")) {
-			subscribeToCommands();
-		}
-	}
-	
-	
-	/*
-	 * This method reconnects when the connection is lost due to n/w interruption
-	 */
-	protected void reconnect() throws MqttException, KeyManagementException, NoSuchAlgorithmException {
-		super.connect();
-		if (!config.getOrgId().equals("quickstart") && config.isCleanSession()) {
 			subscribeToCommands();
 		}
 	}
