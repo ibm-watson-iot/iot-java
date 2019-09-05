@@ -263,17 +263,8 @@ public abstract class AbstractClient {
 	}
 
 	
-	public void pahoDump() {
-		pahoDump(true, true, true, true, true);
-	}
-
-	public void pahoDump(boolean baseDebug, boolean clientComms, boolean clientDebug, boolean clientState, boolean conOptions) {
-		Debug debug = this.mqttAsyncClient.getDebug();
-		if (baseDebug) debug.dumpBaseDebug();
-		if (clientComms) debug.dumpClientComms();
-		if (clientDebug) debug.dumpClientDebug();
-		if (clientState) debug.dumpClientState();
-		if (conOptions) debug.dumpConOptions();
+	public Debug getPahoDebug() {
+		return this.mqttAsyncClient.getDebug();
 	}
 
 }
