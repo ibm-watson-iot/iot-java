@@ -55,6 +55,7 @@ public class ApplicationConfig implements AbstractConfig {
 		return cfg;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static ApplicationConfig generateFromConfig(String fileName) throws FileNotFoundException {
 		Yaml yaml = new Yaml();
 		InputStream inputStream = new FileInputStream(fileName);
@@ -67,7 +68,6 @@ public class ApplicationConfig implements AbstractConfig {
 					ApplicationConfigIdentity.generateFromConfig((Map<String, Object>) yamlContents.get("identity")), 
 					ApplicationConfigAuth.generateFromConfig((Map<String, Object>) yamlContents.get("auth")), 
 					ApplicationConfigOptions.generateFromConfig((Map<String, Object>) yamlContents.get("options")));
-					//potential green underlined type safety warning here but the casts are checked by the if statements
 					return cfg;
 				}
 				//else options is missing or in the wrong format			

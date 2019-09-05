@@ -23,6 +23,8 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.eclipse.paho.client.mqttv3.util.Debug;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -258,6 +260,11 @@ public abstract class AbstractClient {
 	 */
 	public String toString() {
 		return "[" + config.getClientId() + "] Connected = " + String.valueOf(isConnected());
+	}
+
+	
+	public Debug getPahoDebug() {
+		return this.mqttAsyncClient.getDebug();
 	}
 
 }
