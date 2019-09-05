@@ -33,6 +33,7 @@ public class GatewayConfig extends DeviceConfig {
 		return cfg;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static GatewayConfig generateFromConfig(String fileName) throws FileNotFoundException {
 		Yaml yaml = new Yaml();
 		InputStream inputStream = new FileInputStream(fileName);
@@ -45,7 +46,6 @@ public class GatewayConfig extends DeviceConfig {
 					DeviceConfigIdentity.generateFromConfig((Map<String, Object>) yamlContents.get("identity")), 
 					DeviceConfigAuth.generateFromConfig((Map<String, Object>) yamlContents.get("auth")), 
 					DeviceConfigOptions.generateFromConfig((Map<String, Object>) yamlContents.get("options")));
-					//potential green underlined type safety warning here but the casts are checked by the if statements
 					return cfg;
 				}
 				//else options is missing or in the wrong format			
