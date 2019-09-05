@@ -39,6 +39,7 @@ public class ApplicationConfigOptions {
 		return options;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static ApplicationConfigOptions generateFromConfig(Map<String, Object> yamlOptions) {
 		ApplicationConfigOptions options = new ApplicationConfigOptions();
 		

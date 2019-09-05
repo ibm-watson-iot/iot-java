@@ -37,6 +37,7 @@ public class DeviceConfigOptions {
 		return options;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static DeviceConfigOptions generateFromConfig(Map<String, Object> yamlOptions) {
 		DeviceConfigOptions options = new DeviceConfigOptions();
 		
