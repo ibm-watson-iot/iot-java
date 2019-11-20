@@ -129,6 +129,8 @@ public abstract class AbstractClient {
 	                throw e;
 	            }
 				e.printStackTrace();
+				/* workaround eclipse mqtt paho connect loop problem (resets connection state in paho client) */
+				mqttAsyncClient.disconnectForcibly(0, 0, false);
 			}
 			
 			if (mqttAsyncClient.isConnected()) {
