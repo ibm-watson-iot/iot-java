@@ -1,15 +1,15 @@
 {
-        "$schema": "http://json-schema.org/draft-04/schema#",
-        "type": "object",
-        "title": "Environment Sensor Schema",
-        "description": "Schema to represent a canonical environment sensor device",
-        "properties": {
-                "temperature": {
-                        "description": "temperature in degrees Celsius",
-                        "type": "number",
-                        "minimum": -273.15,
-                        "default": 0.0
-                }
-        },
-        "required": ["temperature"]
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "Environment Sensor Schema",
+  "description": "Schema to represent a canonical environment sensor device",
+  "properties": {
+    "temperature": {
+      "description": "temperature in degrees Celsius",
+      "type": "number",
+      "minimum": -273.15,
+      "default": 0.0
+    }
+  },
+  "required": ["temperature"]
 }
