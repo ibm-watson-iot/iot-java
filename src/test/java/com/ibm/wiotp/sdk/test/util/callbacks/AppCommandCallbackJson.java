@@ -14,7 +14,7 @@ public class AppCommandCallbackJson implements CommandCallback<JsonObject> {
 
 	Command<JsonObject> command = null;
 	ArrayList<Command<JsonObject>> allCommands = null;
-	
+
 	@Override
 	public void processCommand(Command<JsonObject> cmd) {
 		command = cmd;
@@ -22,16 +22,22 @@ public class AppCommandCallbackJson implements CommandCallback<JsonObject> {
 			allCommands = new ArrayList<Command<JsonObject>>();
 		}
 		allCommands.add(command);
-		LOG.info("Received command, name = "+cmd.getCommandId() + ", format = " + cmd.getFormat() + ", Payload = "+cmd.getData().toString());
+		LOG.info("Received command, name = " + cmd.getCommandId() + ", format = " + cmd.getFormat() + ", Payload = "
+				+ cmd.getData().toString());
 	}
 
 	public void clear() {
 		command = null;
 		allCommands = null;
 	}
-	
-	public Command<JsonObject> getCommand() { return command; }
-	public ArrayList<Command<JsonObject>> getAllCommands() { return allCommands; }
+
+	public Command<JsonObject> getCommand() {
+		return command;
+	}
+
+	public ArrayList<Command<JsonObject>> getAllCommands() {
+		return allCommands;
+	}
 
 	@Override
 	public Class<JsonObject> getMessageClass() {

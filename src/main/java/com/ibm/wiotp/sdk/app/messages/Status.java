@@ -20,9 +20,9 @@ import org.joda.time.format.ISODateTimeFormat;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-
 /**
- * This is an abstract class which is inherited by application status and device status
+ * This is an abstract class which is inherited by application status and device
+ * status
  *
  */
 public abstract class Status {
@@ -38,17 +38,16 @@ public abstract class Status {
 	private String connectTime;
 	private int port = 0;
 	private DateTime time;
-	
+
 	// Additional "Disconnect" status properties
 	private int writeMsg = 0;
 	private int readMsg = 0;
 	private int readBytes = 0;
 	private int writeBytes = 0;
 	private String reason;
-	
+
 	private String payload;
-	
-	
+
 	public String getClientAddr() {
 		return clientAddr;
 	}
@@ -102,15 +101,17 @@ public abstract class Status {
 	}
 
 	/**
-	 * This class does not have a default constructor and has a single argument constructor
+	 * This class does not have a default constructor and has a single argument
+	 * constructor
+	 * 
 	 * @param msg The MQTT message
 	 * @throws UnsupportedEncodingException Failure when the Format is not UTF-8
 	 */
-	public Status(MqttMessage msg) throws UnsupportedEncodingException{
+	public Status(MqttMessage msg) throws UnsupportedEncodingException {
 		this.payload = new String(msg.getPayload(), "UTF8");
-		
+
 		JsonObject payloadJson = JSON_PARSER.parse(payload).getAsJsonObject();
-		
+
 		// Common attributes
 		if (payloadJson.has("ClientAddr"))
 			clientAddr = payloadJson.get("ClientAddr").getAsString();
@@ -134,7 +135,7 @@ public abstract class Status {
 			action = new String();
 		if (payloadJson.has("Port"))
 			port = payloadJson.get("Port").getAsInt();
-		
+
 		if (action.equals("Disconnect")) {
 			if (payloadJson.has("User"))
 				user = payloadJson.get("User").getAsString();
@@ -157,7 +158,7 @@ public abstract class Status {
 			else
 				reason = new String();
 		}
-		
+
 	}
 
 	public String getPayload() {
@@ -166,13 +167,13 @@ public abstract class Status {
 
 	/**
 	 * 
-	 * Provides a human readable String representation of status, including timestamp, client id, action and (possibly) reason.
-	 */		
+	 * Provides a human readable String representation of status, including
+	 * timestamp, client id, action and (possibly) reason.
+	 */
 	public String toString() {
 		if (action.equals("Disconnect")) {
 			return "Status [" + time.toString() + "] " + clientId + ":" + action + " (" + reason + ")";
-		}
-		else {
+		} else {
 			return "Status [" + time.toString() + "] " + clientId + ":" + action;
 		}
 	}

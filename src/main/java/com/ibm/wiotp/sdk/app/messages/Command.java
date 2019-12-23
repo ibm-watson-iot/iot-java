@@ -14,7 +14,6 @@ import org.joda.time.DateTime;
 
 import com.ibm.wiotp.sdk.MessageInterface;
 
-
 public class Command<T> implements CommandInterface<T> {
 
 	private String typeId;
@@ -22,22 +21,19 @@ public class Command<T> implements CommandInterface<T> {
 	private String commandId;
 	private String format;
 	private MessageInterface<T> message;
-	
+
 	/**
 	 * Note that this class does not have a default constructor
-	 * @param typeId
-	 * 			Object of String which denotes command type
-	 * @param deviceId
-	 * 			Object of String which denotes command id
-	 * @param commandId
-	 * 			Object of String which denotes actual command type
-	 * @param format
-	 * 			Object of String which denotes command format, say json
-	 * @param message
-	 * 			Object implementing MessageInterface
-	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
 	 * 
-	 */	
+	 * @param typeId    Object of String which denotes command type
+	 * @param deviceId  Object of String which denotes command id
+	 * @param commandId Object of String which denotes actual command type
+	 * @param format    Object of String which denotes command format, say json
+	 * @param message   Object implementing MessageInterface
+	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho
+	 *      Client Library</a>
+	 * 
+	 */
 	public Command(String typeId, String deviceId, String commandId, String format, MessageInterface<T> message) {
 		this.typeId = typeId;
 		this.deviceId = deviceId;
@@ -45,9 +41,10 @@ public class Command<T> implements CommandInterface<T> {
 		this.format = format;
 		this.message = message;
 	}
-	
+
 	/**
 	 * Returns the device type
+	 * 
 	 * @return Returns the device type
 	 */
 	public String getTypeId() {
@@ -56,24 +53,26 @@ public class Command<T> implements CommandInterface<T> {
 
 	/**
 	 * Returns the device Id
+	 * 
 	 * @return Returns the device Id
 	 */
 	public String getDeviceId() {
 		return deviceId;
 	}
-	
+
 	/**
 	 * Returns the name of the command
+	 * 
 	 * @return Returns the name of the command
 	 */
 	public String getCommandId() {
 		return commandId;
 	}
-	
+
 	public String getFormat() {
 		return format;
 	}
-	
+
 	@Override
 	public T getData() {
 		return message.getData();

@@ -13,21 +13,27 @@ public class AppEventCallbackUtf8 implements EventCallback<String> {
 
 	Event<String> event = null;
 	ArrayList<Event<String>> allEvents = new ArrayList<Event<String>>();
-	
+
 	@Override
 	public void processEvent(Event<String> evt) {
 		event = evt;
 		allEvents.add(event);
-		LOG.info("Received event, name = "+evt.getEventId() + ", format = " + evt.getFormat() + ", Payload = "+evt.getData());
+		LOG.info("Received event, name = " + evt.getEventId() + ", format = " + evt.getFormat() + ", Payload = "
+				+ evt.getData());
 	}
 
 	public void clear() {
 		event = null;
 		allEvents = null;
 	}
-	
-	public Event<String> getEvent() { return event; }
-	public ArrayList<Event<String>> getAllEvents() { return allEvents; }
+
+	public Event<String> getEvent() {
+		return event;
+	}
+
+	public ArrayList<Event<String>> getAllEvents() {
+		return allEvents;
+	}
 
 	@Override
 	public Class<String> getMessageClass() {

@@ -11,9 +11,9 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.ibm.wiotp.sdk.exceptions.MalformedMessageException;
 
-public class JsonCodec implements MessageCodec<JsonObject>{
+public class JsonCodec implements MessageCodec<JsonObject> {
 	private final static JsonParser JSON_PARSER = new JsonParser();
-	
+
 	@Override
 	public byte[] encode(JsonObject data, DateTime timestamp) {
 		if (data != null) {
@@ -26,11 +26,10 @@ public class JsonCodec implements MessageCodec<JsonObject>{
 	@Override
 	public JsonMessage decode(MqttMessage msg) throws MalformedMessageException {
 		JsonObject data;
-		
+
 		if (msg.getPayload().length == 0) {
 			data = null;
-		}
-		else {
+		} else {
 			try {
 				final String payloadInString = new String(msg.getPayload(), "UTF8");
 				data = JSON_PARSER.parse(payloadInString).getAsJsonObject();
@@ -38,7 +37,7 @@ public class JsonCodec implements MessageCodec<JsonObject>{
 				throw new MalformedMessageException("Unable to parse JSON: " + e.toString());
 			}
 		}
-		
+
 		return new JsonMessage(data, null);
 	}
 
@@ -51,6 +50,5 @@ public class JsonCodec implements MessageCodec<JsonObject>{
 	public String getMessageFormat() {
 		return "json";
 	}
-	
-	
+
 }

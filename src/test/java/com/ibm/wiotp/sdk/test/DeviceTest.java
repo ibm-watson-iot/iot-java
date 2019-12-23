@@ -41,18 +41,18 @@ import com.ibm.wiotp.sdk.test.util.AbstractTest;
 import com.ibm.wiotp.sdk.test.util.callbacks.AppEventCallbackJson;
 
 public class DeviceTest extends AbstractTest {
-	
+
 	private final static String TYPE_ID = "AppCmdSubTestType1";
 	private final String DEVICE_ID = UUID.randomUUID().toString();
-	
+
 	private ApplicationClient app1Client;
 	private DeviceClient device1Client;
-	
+
 	@Before
 	public void setupClient() throws Exception {
 		app1Client = new ApplicationClient();
 	}
-	
+
 	@After
 	public void cleanupClient() {
 		if (app1Client != null && app1Client.isConnected()) {
@@ -64,122 +64,125 @@ public class DeviceTest extends AbstractTest {
 			assertTrue("Client is not connected", !device1Client.isConnected());
 		}
 	}
-	
+
 	private DeviceConfig registerDeviceAndSaveCfg() throws ApiException {
 		// This is temporary until fully integrate swaggergen client into the library
 		ApiClient defaultClient = Configuration.getDefaultApiClient();
 		defaultClient.setBasePath(app1Client.getConfig().getHttpApiBasePath());
-		
-        HttpBasicAuth ApiKey = (HttpBasicAuth) defaultClient.getAuthentication("ApiKey");
-        ApiKey.setUsername(System.getenv("WIOTP_API_KEY"));
-        ApiKey.setPassword(System.getenv("WIOTP_API_TOKEN"));
 
-        DeviceConfigurationApi deviceApi = new DeviceConfigurationApi();
+		HttpBasicAuth ApiKey = (HttpBasicAuth) defaultClient.getAuthentication("ApiKey");
+		ApiKey.setUsername(System.getenv("WIOTP_API_KEY"));
+		ApiKey.setPassword(System.getenv("WIOTP_API_TOKEN"));
 
-        // Device device = deviceApi.deviceTypesTypeIdDevicesDeviceIdGet(TYPE_ID, DEVICE_ID, null);
-        
-        DeviceAdditionRequest daRequest = new DeviceAdditionRequest();
-        daRequest.setDeviceId(DEVICE_ID);
-        DeviceAdditionResponse daResponse = deviceApi.deviceTypesTypeIdDevicesPost(TYPE_ID, daRequest);
-        
-        String authToken = daResponse.getAuthToken();
-        
-        DeviceConfigIdentity cfgIdentity = new DeviceConfigIdentity(app1Client.getConfig().getOrgId(), TYPE_ID, DEVICE_ID);
-        DeviceConfigAuth cfgAuth = new DeviceConfigAuth(authToken);
-        DeviceConfigOptions cfgOptions= new DeviceConfigOptions();
-        DeviceConfig cfg = new DeviceConfig(cfgIdentity, cfgAuth, cfgOptions);
-        
-        return cfg;
+		DeviceConfigurationApi deviceApi = new DeviceConfigurationApi();
+
+		// Device device = deviceApi.deviceTypesTypeIdDevicesDeviceIdGet(TYPE_ID,
+		// DEVICE_ID, null);
+
+		DeviceAdditionRequest daRequest = new DeviceAdditionRequest();
+		daRequest.setDeviceId(DEVICE_ID);
+		DeviceAdditionResponse daResponse = deviceApi.deviceTypesTypeIdDevicesPost(TYPE_ID, daRequest);
+
+		String authToken = daResponse.getAuthToken();
+
+		DeviceConfigIdentity cfgIdentity = new DeviceConfigIdentity(app1Client.getConfig().getOrgId(), TYPE_ID,
+				DEVICE_ID);
+		DeviceConfigAuth cfgAuth = new DeviceConfigAuth(authToken);
+		DeviceConfigOptions cfgOptions = new DeviceConfigOptions();
+		DeviceConfig cfg = new DeviceConfig(cfgIdentity, cfgAuth, cfgOptions);
+
+		return cfg;
 	}
-	
-	
+
 	@Test
 	public void testPublishEvent() throws Exception {
 		logTestStart("testConnect");
 		app1Client.connect();
 		assertTrue("Client is connected", app1Client.isConnected());
-		
-        DeviceConfig cfg = registerDeviceAndSaveCfg();
-        
-        device1Client = new DeviceClient(cfg);
-        device1Client.registerCodec(new JsonCodec());
-        device1Client.connect();
+
+		DeviceConfig cfg = registerDeviceAndSaveCfg();
+
+		device1Client = new DeviceClient(cfg);
+		device1Client.registerCodec(new JsonCodec());
+		device1Client.connect();
 		assertTrue("Client is connected", device1Client.isConnected());
-		
+
 		// Create the subscription
 		AppEventCallbackJson evtCallback = new AppEventCallbackJson();
 		app1Client.registerCodec(new JsonCodec());
 		app1Client.registerEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(TYPE_ID, DEVICE_ID);
-		
+
 		// Send an event
 		JsonObject data = new JsonObject();
 		data.addProperty("distance", 10);
 		boolean success = device1Client.publishEvent("run", data, 1);
 		assertTrue("Publish was a success", success);
-		
+
 		int count = 0;
 		Event<JsonObject> evt = evtCallback.getEvent();
-		while( evt == null && count++ <= 10) {
+		while (evt == null && count++ <= 10) {
 			try {
 				evt = evtCallback.getEvent();
 				Thread.sleep(1000);
-			} catch(InterruptedException e) {}
+			} catch (InterruptedException e) {
+			}
 		}
-		
+
 		assertTrue("Event is received by application", (evt != null));
 		assertEquals(10, evt.getData().get("distance").getAsInt());
 		assertNull(evt.getTimestamp());
-		
+
 	}
-	
+
 	@Test
 	public void testMissingEncoder() throws Exception {
 		logTestStart("testMissingEncoder");
-        DeviceConfig cfg = registerDeviceAndSaveCfg();
+		DeviceConfig cfg = registerDeviceAndSaveCfg();
 
-        device1Client = new DeviceClient(cfg);
-        device1Client.connect();
+		device1Client = new DeviceClient(cfg);
+		device1Client.connect();
 		assertTrue("Client is connected", device1Client.isConnected());
 
 		// Send an event (without registering a codec)
 		boolean success = device1Client.publishEvent("run", new JsonObject());
 		assertFalse("Publish without a known codec failed", success);
 	}
-	
+
 	@Test
 	public void testMissingDecoderInApp() throws Exception {
 		logTestStart("testMissingDecoderInApp");
 		app1Client.connect();
 		assertTrue("Client is connected", app1Client.isConnected());
-		
-        DeviceConfig cfg = registerDeviceAndSaveCfg();
-        
-        device1Client = new DeviceClient(cfg);
-        device1Client.registerCodec(new JsonCodec());
-        device1Client.connect();
+
+		DeviceConfig cfg = registerDeviceAndSaveCfg();
+
+		device1Client = new DeviceClient(cfg);
+		device1Client.registerCodec(new JsonCodec());
+		device1Client.connect();
 		assertTrue("Client is connected", device1Client.isConnected());
-		
+
 		// Create the subscription
 		AppEventCallbackJson evtCallback = new AppEventCallbackJson();
 		app1Client.registerEventCallback(evtCallback);
 		app1Client.subscribeToDeviceEvents(TYPE_ID, DEVICE_ID);
-		
+
 		// Send an event
 		JsonObject data = new JsonObject();
 		data.addProperty("distance", 10);
 		boolean success = device1Client.publishEvent("run", data, 1);
 		assertTrue("Publish was a success", success);
-		
+
 		int count = 0;
 		Event<JsonObject> evt = evtCallback.getEvent();
-		while( evt == null && count++ <= 10) {
+		while (evt == null && count++ <= 10) {
 			try {
 				evt = evtCallback.getEvent();
 				Thread.sleep(1000);
-			} catch(InterruptedException e) {}
+			} catch (InterruptedException e) {
+			}
 		}
 		assertEquals(null, evt);
 	}
-	
+
 }

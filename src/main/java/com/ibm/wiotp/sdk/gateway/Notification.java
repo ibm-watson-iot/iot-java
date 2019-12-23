@@ -15,31 +15,29 @@ import java.io.UnsupportedEncodingException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * The Notification class  
+ * The Notification class
  */
 public class Notification {
 
 	private String type;
 	private String id;
 	private MqttMessage message;
-	
+
 	/**
 	 * Note that this class does not have a default constructor
-	 * @param type
-	 * 			Object of String which denotes command type
-	 * @param id
-	 * 			Object of String which denotes command id
-	 * @param msg
-	 * 			Object of MqttMessage which denotes actual message
-	 * @throws UnsupportedEncodingException When the format is not UTF-8 
 	 * 
-	 */	
-	public Notification(String type, String id, MqttMessage msg) throws UnsupportedEncodingException{
+	 * @param type Object of String which denotes command type
+	 * @param id   Object of String which denotes command id
+	 * @param msg  Object of MqttMessage which denotes actual message
+	 * @throws UnsupportedEncodingException When the format is not UTF-8
+	 * 
+	 */
+	public Notification(String type, String id, MqttMessage msg) throws UnsupportedEncodingException {
 		this.type = type;
 		this.id = id;
 		this.message = msg;
 	}
-	
+
 	public String getDeviceType() {
 		return type;
 	}
@@ -51,6 +49,5 @@ public class Notification {
 	public MqttMessage getMessage() {
 		return message;
 	}
-	
-	
+
 }

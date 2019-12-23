@@ -14,21 +14,27 @@ public class AppEventCallbackJson implements EventCallback<JsonObject> {
 
 	Event<JsonObject> event = null;
 	ArrayList<Event<JsonObject>> allEvents = new ArrayList<Event<JsonObject>>();
-	
+
 	@Override
 	public void processEvent(Event<JsonObject> evt) {
 		event = evt;
 		allEvents.add(event);
-		LOG.info("Received event, name = "+evt.getEventId() + ", format = " + evt.getFormat() + ", Payload = "+evt.getData().toString());
+		LOG.info("Received event, name = " + evt.getEventId() + ", format = " + evt.getFormat() + ", Payload = "
+				+ evt.getData().toString());
 	}
 
 	public void clear() {
 		event = null;
 		allEvents = null;
 	}
-	
-	public Event<JsonObject> getEvent() { return event; }
-	public ArrayList<Event<JsonObject>> getAllEvents() { return allEvents; }
+
+	public Event<JsonObject> getEvent() {
+		return event;
+	}
+
+	public ArrayList<Event<JsonObject>> getAllEvents() {
+		return allEvents;
+	}
 
 	@Override
 	public Class<JsonObject> getMessageClass() {

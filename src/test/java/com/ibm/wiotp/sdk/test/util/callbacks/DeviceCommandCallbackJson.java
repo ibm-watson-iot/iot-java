@@ -16,21 +16,26 @@ public class DeviceCommandCallbackJson implements CommandCallback<JsonObject> {
 	public void processCommand(Command<JsonObject> cmd) {
 		commandReceived = true;
 		command = cmd;
-		LOG.info("Received command, name = "+cmd.getCommandId() + ", format = " + cmd.getFormat() + ", Payload = "+cmd.getData().toString());
+		LOG.info("Received command, name = " + cmd.getCommandId() + ", format = " + cmd.getFormat() + ", Payload = "
+				+ cmd.getData().toString());
 	}
-	
+
 	public void clear() {
 		commandReceived = false;
 		command = null;
 	}
-	
-	public boolean commandReceived() { return this.commandReceived; }
 
-	public Command<JsonObject> getCommand() { return this.command; }
+	public boolean commandReceived() {
+		return this.commandReceived;
+	}
+
+	public Command<JsonObject> getCommand() {
+		return this.command;
+	}
 
 	@Override
 	public Class<JsonObject> getMessageClass() {
 		return JsonObject.class;
 	}
-	
+
 }

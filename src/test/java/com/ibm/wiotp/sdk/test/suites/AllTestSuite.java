@@ -7,9 +7,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import com.ibm.wiotp.sdk.test.ApplicationTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ 
-	ApplicationTest.class
-})
+@SuiteClasses({ ApplicationTest.class })
 public class AllTestSuite {
 
 }

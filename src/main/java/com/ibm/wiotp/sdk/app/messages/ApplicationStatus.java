@@ -15,21 +15,22 @@ import java.io.UnsupportedEncodingException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * Class that handles application status, of applications using IBM Watson IoT Platform
+ * Class that handles application status, of applications using IBM Watson IoT
+ * Platform
  */
 public class ApplicationStatus extends Status {
 
 	private String id;
-	
+
 	/**
 	 * Maintains the status of application
-	 * @param id
-	 * 					An object of the class String which denotes the appId
-	 * @param msg
-	 * 					An object of the class MqttMessage
-	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho Client Library</a> 
+	 * 
+	 * @param id  An object of the class String which denotes the appId
+	 * @param msg An object of the class MqttMessage
+	 * @see <a href="http://www.eclipse.org/paho/files/javadoc/index.html">Paho
+	 *      Client Library</a>
 	 * @throws UnsupportedEncodingException When the encoding format is not UTF-8
-	 */	
+	 */
 	public ApplicationStatus(String id, MqttMessage msg) throws UnsupportedEncodingException {
 		super(msg);
 		this.id = id;

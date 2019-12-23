@@ -26,19 +26,14 @@ public class Event<T> implements EventInterface<T> {
 	private String eventId;
 	private String format;
 	private MessageInterface<T> message;
-	
+
 	/**
 	 * 
-	 * @param typeId
-	 * 			object of String which denotes event type
-	 * @param deviceId
-	 * 			object of String which denotes the event id
-	 * @param eventId
-	 * 			object of String which denotes the event 
-	 * @param format 
-	 * 			Format (encoding) of the event
-	 * @param message
-	 * 			Object implementing MessageInterface
+	 * @param typeId   object of String which denotes event type
+	 * @param deviceId object of String which denotes the event id
+	 * @param eventId  object of String which denotes the event
+	 * @param format   Format (encoding) of the event
+	 * @param message  Object implementing MessageInterface
 	 */
 	public Event(String typeId, String deviceId, String eventId, String format, MessageInterface<T> message) {
 		this.typeId = typeId;
@@ -47,9 +42,10 @@ public class Event<T> implements EventInterface<T> {
 		this.message = message;
 		this.format = format;
 	}
-	
+
 	/**
 	 * Returns the device type
+	 * 
 	 * @return Returns the device type
 	 */
 	public String getTypeId() {
@@ -58,14 +54,16 @@ public class Event<T> implements EventInterface<T> {
 
 	/**
 	 * Returns the device id
+	 * 
 	 * @return Returns the device id
 	 */
 	public String getDeviceId() {
 		return deviceId;
 	}
-	
+
 	/**
 	 * Returns the name of the event
+	 * 
 	 * @return Returns the name of the event
 	 */
 	public String getEventId() {
@@ -75,7 +73,7 @@ public class Event<T> implements EventInterface<T> {
 	public String getFormat() {
 		return format;
 	}
-	
+
 	@Override
 	public T getData() {
 		return message.getData();

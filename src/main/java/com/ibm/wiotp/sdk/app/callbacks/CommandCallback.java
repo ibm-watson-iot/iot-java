@@ -18,11 +18,10 @@ public interface CommandCallback<T> {
 	 * 
 	 * process the command received
 	 * 
-	 * @param cmd
-	 *               Application subscribes to this command on the behalf of a device
-	 */	
+	 * @param cmd Application subscribes to this command on the behalf of a device
+	 */
 
 	public void processCommand(Command<T> cmd);
-	
+
 	public Class<T> getMessageClass();
 }

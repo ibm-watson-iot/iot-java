@@ -31,14 +31,12 @@ public class DeviceStatus extends Status {
 
 	private String deviceType;
 	private String deviceId;
-	
+
 	/**
 	 * 
-	 * @param typeId
-	 * 			String of device type
-	 * @param deviceId
-	 * 			String of device id
-	 * @param msg the mqtt message
+	 * @param typeId   String of device type
+	 * @param deviceId String of device id
+	 * @param msg      the mqtt message
 	 * @throws UnsupportedEncodingException When encoding is not UTF-8
 	 */
 	public DeviceStatus(String typeId, String deviceId, MqttMessage msg) throws UnsupportedEncodingException {

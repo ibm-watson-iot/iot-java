@@ -8,8 +8,8 @@ import org.joda.time.DateTime;
 
 import com.ibm.wiotp.sdk.exceptions.MalformedMessageException;
 
-public class Utf8Codec implements MessageCodec<String>{
-	
+public class Utf8Codec implements MessageCodec<String> {
+
 	@Override
 	public byte[] encode(String data, DateTime timestamp) {
 		if (data != null) {
@@ -39,6 +39,5 @@ public class Utf8Codec implements MessageCodec<String>{
 	public String getMessageFormat() {
 		return "utf8";
 	}
-	
-	
+
 }

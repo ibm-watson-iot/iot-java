@@ -18,24 +18,12 @@ import org.yaml.snakeyaml.Yaml;
 
 public class DeviceConfig implements AbstractConfig {
 
-/*
-	identity:
-	orgId: myOrg
-	typeId: myType
-	deviceId: myDevice
-	auth:
-	token: myToken
-	options:
-	domain: internetofthings.ibmcloud.com
-	logLevel: info
-	mqtt:
-		port: 8883
-		transport: tcp
-		cleanStart: true
-		sessionExpiry: 3600
-		keepAlive: 60
-		caFile: myPath
-*/
+	/*
+	 * identity: orgId: myOrg typeId: myType deviceId: myDevice auth: token: myToken
+	 * options: domain: internetofthings.ibmcloud.com logLevel: info mqtt: port:
+	 * 8883 transport: tcp cleanStart: true sessionExpiry: 3600 keepAlive: 60
+	 * caFile: myPath
+	 */
 
 	public DeviceConfigIdentity identity;
 	public DeviceConfigAuth auth;
@@ -55,10 +43,8 @@ public class DeviceConfig implements AbstractConfig {
 	}
 
 	public static DeviceConfig generateFromEnv() {
-		DeviceConfig cfg = new DeviceConfig(
-			DeviceConfigIdentity.generateFromEnv(), 
-			DeviceConfigAuth.generateFromEnv(),
-			DeviceConfigOptions.generateFromEnv());
+		DeviceConfig cfg = new DeviceConfig(DeviceConfigIdentity.generateFromEnv(), DeviceConfigAuth.generateFromEnv(),
+				DeviceConfigOptions.generateFromEnv());
 		return cfg;
 	}
 
@@ -66,48 +52,48 @@ public class DeviceConfig implements AbstractConfig {
 	public static DeviceConfig generateFromConfig(String fileName) throws FileNotFoundException {
 		Yaml yaml = new Yaml();
 		InputStream inputStream = new FileInputStream(fileName);
-		Map<String, Object> yamlContents = yaml.load(inputStream);	
+		Map<String, Object> yamlContents = yaml.load(inputStream);
 
-		if(yamlContents.get("identity") instanceof Map<?, ?>) {
-			if(yamlContents.get("auth") instanceof Map<?, ?>) {
-				if(yamlContents.get("options") instanceof Map<?, ?>) {
+		if (yamlContents.get("identity") instanceof Map<?, ?>) {
+			if (yamlContents.get("auth") instanceof Map<?, ?>) {
+				if (yamlContents.get("options") instanceof Map<?, ?>) {
 					DeviceConfig cfg = new DeviceConfig(
-					DeviceConfigIdentity.generateFromConfig((Map<String, Object>) yamlContents.get("identity")), 
-					DeviceConfigAuth.generateFromConfig((Map<String, Object>) yamlContents.get("auth")), 
-					DeviceConfigOptions.generateFromConfig((Map<String, Object>) yamlContents.get("options")));
+							DeviceConfigIdentity.generateFromConfig((Map<String, Object>) yamlContents.get("identity")),
+							DeviceConfigAuth.generateFromConfig((Map<String, Object>) yamlContents.get("auth")),
+							DeviceConfigOptions.generateFromConfig((Map<String, Object>) yamlContents.get("options")));
 					return cfg;
 				}
-				//else options is missing or in the wrong format			
-			}		
-			//else auth is missing or in the wrong format			
+				// else options is missing or in the wrong format
+			}
+			// else auth is missing or in the wrong format
 		}
-		//else identity is missing or in the wrong format			
+		// else identity is missing or in the wrong format
 		return null;
 	}
 
 	public MqttConnectOptions getMqttConnectOptions() throws NoSuchAlgorithmException, KeyManagementException {
 		MqttConnectOptions connectOptions = new MqttConnectOptions();
-		
+
 		connectOptions.setConnectionTimeout(DEFAULT_CONNECTION_TIMEMOUT);
-		
+
 		if (getMqttPassword() != null) {
 			connectOptions.setUserName(getMqttUsername());
 			connectOptions.setPassword(getMqttPassword().toCharArray());
 		}
-		
+
 		connectOptions.setCleanSession(this.options.mqtt.cleanStart);
 		connectOptions.setKeepAliveInterval(this.options.mqtt.keepAlive);
 		connectOptions.setMaxInflight(DEFAULT_MAX_INFLIGHT_MESSAGES);
 		connectOptions.setAutomaticReconnect(true);
-		
-		if (! Arrays.asList(1883, 80).contains(options.mqtt.port)) {
+
+		if (!Arrays.asList(1883, 80).contains(options.mqtt.port)) {
 			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
 			sslContext.init(null, null, null);
-			
+
 			connectOptions.setSocketFactory(sslContext.getSocketFactory());
 		}
-		
-		return connectOptions; 
+
+		return connectOptions;
 	}
 
 	@Override

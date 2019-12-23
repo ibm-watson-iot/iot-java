@@ -40,32 +40,34 @@ import com.ibm.wiotp.sdk.app.messages.Event;
 import com.ibm.wiotp.sdk.codecs.MessageCodec;
 
 /**
- * A client, used by application, that handles connections with the IBM Watson IoT Platform. <br>
+ * A client, used by application, that handles connections with the IBM Watson
+ * IoT Platform. <br>
  * 
- * This is a derived class from AbstractClient and can be used by end-applications to handle connections with IBM Watson IoT Platform.
+ * This is a derived class from AbstractClient and can be used by
+ * end-applications to handle connections with IBM Watson IoT Platform.
  */
 public class ApplicationClient extends AbstractClient implements MqttCallbackExtended {
 	private static final Logger LOG = LoggerFactory.getLogger(ApplicationClient.class);
-	
+
 	private static final Pattern DEVICE_EVENT_PATTERN = Pattern.compile("iot-2/type/(.+)/id/(.+)/evt/(.+)/fmt/(.+)");
 	private static final Pattern DEVICE_STATUS_PATTERN = Pattern.compile("iot-2/type/(.+)/id/(.+)/mon");
 	private static final Pattern APP_STATUS_PATTERN = Pattern.compile("iot-2/app/(.+)/mon");
 	private static final Pattern DEVICE_COMMAND_PATTERN = Pattern.compile("iot-2/type/(.+)/id/(.+)/cmd/(.+)/fmt/(.+)");
-	
+
 	private StatusCallback statusCallback = null;
-	
+
 	private HashMap<String, Integer> subscriptions = new HashMap<String, Integer>();
-	
+
 	@SuppressWarnings("rawtypes")
 	private Map<Class, MessageCodec> messageCodecs = new HashMap<Class, MessageCodec>();
 	@SuppressWarnings("rawtypes")
 	private Map<String, MessageCodec> messageCodecsByFormat = new HashMap<String, MessageCodec>();
-	
+
 	@SuppressWarnings("rawtypes")
 	private Map<Class, CommandCallback> commandCallbacks = new HashMap<Class, CommandCallback>();
 	@SuppressWarnings("rawtypes")
 	private Map<Class, EventCallback> eventCallbacks = new HashMap<Class, EventCallback>();
-	
+
 	public ApplicationClient() throws Exception {
 		this(ApplicationConfig.generateFromEnv());
 	}
@@ -73,36 +75,31 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	public ApplicationClient(String fileName) throws Exception {
 		this(ApplicationConfig.generateFromConfig(fileName));
 	}
-		
+
 	/**
-	 * Create an application client for the IBM Watson IoT Platform. 
-	 * Connecting to specific org on IBM Watson IoT Platform
+	 * Create an application client for the IBM Watson IoT Platform. Connecting to
+	 * specific org on IBM Watson IoT Platform
 	 * 
 	 * @param config Configuration object for the client
 	 * 
-	 * @throws Exception Failure in parsing the properties 
+	 * @throws Exception Failure in parsing the properties
 	 */
 	public ApplicationClient(ApplicationConfig config) throws Exception {
 		super(config);
 		configureMqttClient(this);
 	}
-	
-	
+
 	/**
-	 * Publish event, on the behalf of a device, to the IBM Watson IoT Platform. <br>
+	 * Publish event, on the behalf of a device, to the IBM Watson IoT Platform.
+	 * <br>
 	 * This method will attempt to create a JSON obejct out of the payload
 	 * 
-	 * @param typeId
-	 *            object of String which denotes deviceType 
-	 * @param deviceId
-	 *            object of String which denotes deviceId
-	 * @param eventId
-	 *            object of String which denotes event
-	 * @param data
-	 *            Payload data
-	 * @param qos
-	 *            Quality of Service, in int - can have values 0,1,2
-	 *            
+	 * @param typeId   object of String which denotes deviceType
+	 * @param deviceId object of String which denotes deviceId
+	 * @param eventId  object of String which denotes event
+	 * @param data     Payload data
+	 * @param qos      Quality of Service, in int - can have values 0,1,2
+	 * 
 	 * @return Whether the send was successful.
 	 */
 	@SuppressWarnings("unchecked")
@@ -110,25 +107,26 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		if (data == null) {
 			throw new NullPointerException("Data object for event publish can not be null");
 		}
-		
+
 		// Find the codec for the data class
 		@SuppressWarnings("rawtypes")
 		MessageCodec codec = messageCodecs.get(data.getClass());
-		
+
 		// Check that a codec is registered
 		if (codec == null) {
 			LOG.warn("Unable to encode event data of class " + data.getClass().getName());
 			return false;
 		}
-		
+
 		byte[] payload = codec.encode(data, new DateTime());
-		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/" + codec.getMessageFormat();
+		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/"
+				+ codec.getMessageFormat();
 		LOG.debug("Publishing event to " + topic);
-		
+
 		MqttMessage msg = new MqttMessage(payload);
 		msg.setQos(qos);
 		msg.setRetained(false);
-		
+
 		try {
 			mqttAsyncClient.publish(topic, msg);
 		} catch (MqttException e) {
@@ -137,27 +135,21 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		}
 		return true;
 	}
-	
+
 	public boolean publishEvent(String typeId, String deviceId, String eventId, Object data) {
 		return publishEvent(typeId, deviceId, eventId, data, 0);
 	}
-
 
 	/**
 	 * Publish command to the IBM Watson IoT Platform. <br>
 	 * This method will attempt to create a JSON obejct out of the payload
 	 * 
-	 * @param typeId
-	 *            object of String which denotes deviceType 
-	 * @param deviceId
-	 *            object of String which denotes deviceId
-	 * @param commandId
-	 *            object of String which denotes command
-	 * @param data
-	 *            Payload data
-	 * @param qos
-	 *            Quality of Service, in int - can have values 0,1,2
-	 *            
+	 * @param typeId    object of String which denotes deviceType
+	 * @param deviceId  object of String which denotes deviceId
+	 * @param commandId object of String which denotes command
+	 * @param data      Payload data
+	 * @param qos       Quality of Service, in int - can have values 0,1,2
+	 * 
 	 * @return Whether the send was successful.
 	 */
 	@SuppressWarnings("unchecked")
@@ -165,25 +157,26 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		if (data == null) {
 			throw new NullPointerException("Data object for event publish can not be null");
 		}
-		
+
 		// Find the codec for the data class
 		@SuppressWarnings("rawtypes")
 		MessageCodec codec = messageCodecs.get(data.getClass());
-		
+
 		// Check that a codec is registered
 		if (codec == null) {
 			LOG.warn("Unable to encode command data of class " + data.getClass().getName());
 			return false;
 		}
-		
+
 		byte[] payload = codec.encode(data, new DateTime());
-		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/" + codec.getMessageFormat();
+		String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/"
+				+ codec.getMessageFormat();
 		LOG.debug("Publishing command to " + topic);
 
 		MqttMessage msg = new MqttMessage(payload);
 		msg.setQos(qos);
 		msg.setRetained(false);
-				
+
 		try {
 			mqttAsyncClient.publish(topic, msg);
 		} catch (MqttException e) {
@@ -192,24 +185,19 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		}
 		return true;
 	}
-	
+
 	public boolean publishCommand(String typeId, String deviceId, String commandId, Object data) {
 		return publishCommand(typeId, deviceId, commandId, data, 1);
 	}
-	
+
 	/**
 	 * Subscribe to device events of the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param typeId
-	 *            object of String which denotes deviceType 
-	 * @param deviceId
-	 *            object of String which denotes deviceId
-	 * @param eventId
-	 *            object of String which denotes event
-	 * @param format
-	 *            object of String which denotes format
-	 * @param qos
-	 *            Quality of Service, in int - can have values 0,1,2
+	 * @param typeId   object of String which denotes deviceType
+	 * @param deviceId object of String which denotes deviceId
+	 * @param eventId  object of String which denotes event
+	 * @param format   object of String which denotes format
+	 * @param qos      Quality of Service, in int - can have values 0,1,2
 	 */
 	public void subscribeToDeviceEvents(String typeId, String deviceId, String eventId, String format, int qos) {
 		String newTopic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/" + format;
@@ -222,37 +210,37 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void subscribeToDeviceEvents(String typeId, String deviceId, String eventId, String format) {
 		subscribeToDeviceEvents(typeId, deviceId, eventId, format, 0);
 	}
+
 	public void subscribeToDeviceEvents(String typeId, String deviceId, String eventId) {
 		subscribeToDeviceEvents(typeId, deviceId, eventId, "+");
 	}
+
 	public void subscribeToDeviceEvents(String typeId, String deviceId) {
 		subscribeToDeviceEvents(typeId, deviceId, "+");
 	}
+
 	public void subscribeToDeviceEvents(String typeId) {
 		subscribeToDeviceEvents(typeId, "+");
 	}
+
 	public void subscribeToDeviceEvents() {
 		subscribeToDeviceEvents("+");
 	}
-	
-	
+
 	/**
 	 * Unsubscribe from device events of the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param typeId
-	 *            object of String which denotes deviceType 
-	 * @param deviceId
-	 *            object of String which denotes deviceId
-	 * @param eventId
-	 *            object of String which denotes event
+	 * @param typeId   object of String which denotes deviceType
+	 * @param deviceId object of String which denotes deviceId
+	 * @param eventId  object of String which denotes event
 	 */
 	public void unsubscribeFromDeviceEvents(String typeId, String deviceId, String eventId) {
 		try {
-			String topic = "iot-2/type/"+typeId+"/id/"+deviceId+"/evt/"+eventId+"/fmt/json";
+			String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/evt/" + eventId + "/fmt/json";
 			subscriptions.remove(topic);
 			mqttAsyncClient.unsubscribe(topic).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
 		} catch (MqttException e) {
@@ -263,26 +251,24 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	public void unsubscribeFromDeviceEvents(String typeId, String deviceId) {
 		unsubscribeFromDeviceEvents(typeId, deviceId, "+");
 	}
+
 	public void unsubscribeFromDeviceEvents(String typeId) {
 		unsubscribeFromDeviceEvents(typeId, "+");
 	}
+
 	public void unsubscribeFromDeviceEvents() {
 		unsubscribeFromDeviceEvents("+");
 	}
 
 	/**
-	 * Subscribe to device commands, on the behalf of a device, of the IBM Watson IoT Platform. <br>
+	 * Subscribe to device commands, on the behalf of a device, of the IBM Watson
+	 * IoT Platform. <br>
 	 * 
-	 * @param typeId
-	 *            object of String which denotes deviceType 
-	 * @param deviceId
-	 *            object of String which denotes deviceId
-	 * @param commandId
-	 *            object of String which denotes command
-	 * @param format
-	 *            object of String which denotes format
-	 * @param qos
-	 *            Quality of Service, in int - can have values 0,1,2
+	 * @param typeId    object of String which denotes deviceType
+	 * @param deviceId  object of String which denotes deviceId
+	 * @param commandId object of String which denotes command
+	 * @param format    object of String which denotes format
+	 * @param qos       Quality of Service, in int - can have values 0,1,2
 	 */
 	public void subscribeToDeviceCommands(String typeId, String deviceId, String commandId, String format, int qos) {
 		String newTopic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/" + format;
@@ -294,34 +280,33 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void subscribeToDeviceCommands(String typeId, String deviceId, String commandId, String format) {
 		subscribeToDeviceCommands(typeId, deviceId, commandId, format, 1);
 	}
+
 	public void subscribeToDeviceCommands(String typeId, String deviceId, String commandId) {
 		subscribeToDeviceCommands(typeId, deviceId, commandId, "+");
 	}
+
 	public void subscribeToDeviceCommands(String typeId, String deviceId) {
 		subscribeToDeviceCommands(typeId, deviceId, "+");
 	}
+
 	public void subscribeToDeviceCommands(String typeId) {
 		subscribeToDeviceCommands(typeId, "+");
 	}
 
-
 	/**
 	 * Unsubscribe from device commands of the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param typeId
-	 *            object of String which denotes deviceType 
-	 * @param deviceId
-	 *            object of String which denotes deviceId
-	 * @param commandId
-	 *            object of String which denotes command
+	 * @param typeId    object of String which denotes deviceType
+	 * @param deviceId  object of String which denotes deviceId
+	 * @param commandId object of String which denotes command
 	 */
 	public void unsubscribeFromDeviceCommands(String typeId, String deviceId, String commandId) {
 		try {
-			String topic = "iot-2/type/"+typeId+"/id/"+deviceId+"/cmd/"+commandId+"/fmt/json";
+			String topic = "iot-2/type/" + typeId + "/id/" + deviceId + "/cmd/" + commandId + "/fmt/json";
 			subscriptions.remove(topic);
 			mqttAsyncClient.unsubscribe(topic).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
 		} catch (MqttException e) {
@@ -332,9 +317,11 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	public void unsubscribeFromDeviceCommands(String typeId, String commandId) {
 		unsubscribeFromDeviceCommands(typeId, commandId, "+");
 	}
+
 	public void unsubscribeFromDeviceCommands(String typeId) {
 		unsubscribeFromDeviceCommands(typeId, "+");
 	}
+
 	public void unsubscribeFromDeviceCommands() {
 		unsubscribeFromDeviceCommands("+");
 	}
@@ -342,32 +329,30 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	/**
 	 * Subscribe to device status of the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param typeId
-	 *            object of String which denotes deviceType 
-	 * @param deviceId
-	 *            object of String which denotes deviceId
+	 * @param typeId   object of String which denotes deviceType
+	 * @param deviceId object of String which denotes deviceId
 	 */
 	public void subscribeToDeviceStatus(String typeId, String deviceId) {
 		try {
-			String newTopic = "iot-2/type/"+typeId+"/id/"+deviceId+"/mon";
-			subscriptions.put(newTopic, new Integer(0));			
-			mqttAsyncClient.subscribe(newTopic, 0).waitForCompletion(DEFAULT_ACTION_TIMEOUT);;
+			String newTopic = "iot-2/type/" + typeId + "/id/" + deviceId + "/mon";
+			subscriptions.put(newTopic, new Integer(0));
+			mqttAsyncClient.subscribe(newTopic, 0).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
+			;
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
 	}
 
-	
 	/**
 	 * Subscribe to application status of the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param appId 
-	 * 		object of String which denotes the application uniquely in the organization
+	 * @param appId object of String which denotes the application uniquely in the
+	 *              organization
 	 */
 	public void subscribeToApplicationStatus(String appId) {
 		try {
-			String newTopic = "iot-2/app/"+appId+"/mon";
-			subscriptions.put(newTopic, new Integer(0));			
+			String newTopic = "iot-2/app/" + appId + "/mon";
+			subscriptions.put(newTopic, new Integer(0));
 			mqttAsyncClient.subscribe(newTopic, 0).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
 		} catch (MqttException e) {
 			e.printStackTrace();
@@ -377,64 +362,64 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 	/**
 	 * Unsubscribe from application status of the IBM Watson IoT Platform. <br>
 	 * 
-	 * @param appId 
-	 * 		object of String which denotes the application uniquely in the organization
+	 * @param appId object of String which denotes the application uniquely in the
+	 *              organization
 	 */
 	public void unSubscribeFromApplicationStatus(String appId) {
 		try {
-			String topic = "iot-2/app/"+appId+"/mon";
+			String topic = "iot-2/app/" + appId + "/mon";
 			mqttAsyncClient.unsubscribe(topic).waitForCompletion(DEFAULT_ACTION_TIMEOUT);
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
 	}
 
-	
 	/**
 	 * Simply log error when connection is lost
 	 */
 	public void connectionLost(Throwable e) {
 		if (e instanceof MqttException) {
 			MqttException e2 = (MqttException) e;
-			LOG.warn("Connection lost: Reason Code: " + e2.getReasonCode() + " Cause: " + ExceptionUtils.getRootCauseMessage(e2));
+			LOG.warn("Connection lost: Reason Code: " + e2.getReasonCode() + " Cause: "
+					+ ExceptionUtils.getRootCauseMessage(e2));
 		} else {
 			LOG.warn("Connection lost: " + e.getMessage());
 		}
-		
+
 	}
-	
+
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
 		if (reconnect) {
-			LOG.info("Reconnected to " + serverURI );
+			LOG.info("Reconnected to " + serverURI);
 			if (config.isCleanSession() == true) {
-			    Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
-			    while (iterator.hasNext()) {
-			        Entry<String, Integer> pairs = iterator.next();
-			        String topic = pairs.getKey();
-			        Integer qos = pairs.getValue();
-			        LOG.debug("Resubscribing topic(" +topic + ") QoS:" + qos);
-			        try {
-			        	mqttAsyncClient.subscribe(topic, qos.intValue());
+				Iterator<Entry<String, Integer>> iterator = subscriptions.entrySet().iterator();
+				while (iterator.hasNext()) {
+					Entry<String, Integer> pairs = iterator.next();
+					String topic = pairs.getKey();
+					Integer qos = pairs.getValue();
+					LOG.debug("Resubscribing topic(" + topic + ") QoS:" + qos);
+					try {
+						mqttAsyncClient.subscribe(topic, qos.intValue());
 					} catch (NumberFormatException | MqttException e1) {
 						e1.printStackTrace();
 					}
-			    }
+				}
 			}
-			
+
 		}
 	}
-	
-	
-	public void deliveryComplete(IMqttDeliveryToken token) {}
-	
+
+	public void deliveryComplete(IMqttDeliveryToken token) {
+	}
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void messageArrived(String topic, MqttMessage msg) {
-		if (! eventCallbacks.isEmpty()) {
-			/* Only check whether the message is a device event if a callback 
-			 * has been defined for events, otherwise it is a waste of time
-			 * as without a callback there is nothing to process the generated
-			 * event.
+		if (!eventCallbacks.isEmpty()) {
+			/*
+			 * Only check whether the message is a device event if a callback has been
+			 * defined for events, otherwise it is a waste of time as without a callback
+			 * there is nothing to process the generated event.
 			 */
 			Matcher matcher = DEVICE_EVENT_PATTERN.matcher(topic);
 			if (matcher.matches()) {
@@ -442,59 +427,61 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 				String id = matcher.group(2);
 				String event = matcher.group(3);
 				String format = matcher.group(4);
-				
+
 				MessageCodec codec = messageCodecsByFormat.get(format);
 				if (codec == null) {
 					LOG.warn("Unable to decode event of format " + format);
-					// We don't throw an exception, as doing so will cause the underlying MQTT Paho client to disconnect.
+					// We don't throw an exception, as doing so will cause the underlying MQTT Paho
+					// client to disconnect.
 					return;
 				}
 				MessageInterface message = codec.decode(msg);
 				Event evt = new Event(type, id, event, format, message);
 
 				LOG.debug("Event received: " + evt.toString());
-				
+
 				EventCallback callback = eventCallbacks.get(codec.getMessageClass());
 				if (callback != null) {
 					callback.processEvent(evt);
 				}
 				return;
-		    }
+			}
 		}
-		
-		if (! commandCallbacks.isEmpty()) {
+
+		if (!commandCallbacks.isEmpty()) {
 			Matcher matcher = DEVICE_COMMAND_PATTERN.matcher(topic);
 			if (matcher.matches()) {
 				String type = matcher.group(1);
 				String id = matcher.group(2);
 				String command = matcher.group(3);
 				String format = matcher.group(4);
-				
+
 				MessageCodec codec = messageCodecsByFormat.get(format);
 				if (codec == null) {
 					LOG.warn("Unable to decode command of format " + format);
-					// We don't throw an exception, as doing so will cause the underlying MQTT Paho client to disconnect.
+					// We don't throw an exception, as doing so will cause the underlying MQTT Paho
+					// client to disconnect.
 					return;
 				}
 				MessageInterface message = codec.decode(msg);
 				Command cmd = new Command(type, id, command, format, message);
 
 				LOG.debug("Command received: " + cmd.toString());
-				
+
 				CommandCallback callback = commandCallbacks.get(codec.getMessageClass());
 				if (callback != null) {
 					callback.processCommand(cmd);
 				}
 				return;
-		    }
+			}
 
 		}
-		
+
 		if (statusCallback != null) {
-			/* Only check whether the message is a status event if a callback 
-			 * has been defined for status events, otherwise it is a waste of time
-			 * as without a callback there is nothing to process the generated
-			 * event.
+			/*
+			 * Only check whether the message is a status event if a callback has been
+			 * defined for status events, otherwise it is a waste of time as without a
+			 * callback there is nothing to process the generated event.
 			 */
 			Matcher matcher = DEVICE_STATUS_PATTERN.matcher(topic);
 			if (matcher.matches()) {
@@ -508,8 +495,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-		    }
-			
+			}
+
 			matcher = APP_STATUS_PATTERN.matcher(topic);
 			if (matcher.matches()) {
 				String id = matcher.group(1);
@@ -521,7 +508,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-		    }
+			}
 		}
 	}
 
@@ -530,7 +517,7 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		this.messageCodecs.put(codec.getMessageClass(), codec);
 		this.messageCodecsByFormat.put(codec.getMessageFormat(), codec);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public void registerCommandCallback(CommandCallback callback) {
 		this.commandCallbacks.put(callback.getMessageClass(), callback);
@@ -541,9 +528,8 @@ public class ApplicationClient extends AbstractClient implements MqttCallbackExt
 		this.eventCallbacks.put(callback.getMessageClass(), callback);
 	}
 
-
 	public void setStatusCallback(StatusCallback callback) {
-		this.statusCallback  = callback;
+		this.statusCallback = callback;
 	}
-	
+
 }

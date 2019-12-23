@@ -19,18 +19,17 @@ import com.ibm.wiotp.sdk.app.messages.DeviceStatus;
  */
 public interface StatusCallback {
 
-	
 	/**
 	 * This method processes the application status
-	 * @param status
-	 * 			an object of ApplicationStatus
+	 * 
+	 * @param status an object of ApplicationStatus
 	 */
 	public void processApplicationStatus(ApplicationStatus status);
-	
+
 	/**
 	 * This method processes device status
-	 * @param status
-	 * 			an object of DeviceStatus
+	 * 
+	 * @param status an object of DeviceStatus
 	 */
 	public void processDeviceStatus(DeviceStatus status);
 }

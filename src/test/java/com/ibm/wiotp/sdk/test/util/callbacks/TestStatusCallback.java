@@ -5,7 +5,7 @@ import com.ibm.wiotp.sdk.app.messages.ApplicationStatus;
 import com.ibm.wiotp.sdk.app.messages.DeviceStatus;
 
 public class TestStatusCallback implements StatusCallback {
-	
+
 	private ApplicationStatus appStatus = null;
 	private DeviceStatus devStatus = null;
 
@@ -18,10 +18,14 @@ public class TestStatusCallback implements StatusCallback {
 	public void processDeviceStatus(DeviceStatus status) {
 		this.devStatus = status;
 	}
-	
-	public ApplicationStatus getAppStatus() { return this.appStatus; }
-	public DeviceStatus getDeviceStatus() { return this.devStatus; }
-	
+
+	public ApplicationStatus getAppStatus() {
+		return this.appStatus;
+	}
+
+	public DeviceStatus getDeviceStatus() {
+		return this.devStatus;
+	}
 
 	public void clear() {
 		appStatus = null;
