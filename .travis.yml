@@ -14,3 +14,6 @@ script:
   # Login to Docker Hub so that we can publish the sample docker image
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin  
   - bash ./buildDockerImages.sh
+
+notifications:
+  webhooks: https://coveralls.io/webhook
