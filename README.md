@@ -10,7 +10,7 @@
 ## Overview
 
 - Logging powered by [SLF4J](https://www.slf4j.org/manual.html)
-- HTTP API support is provided by [swagger-codegen](https://github.com/swagger-api/swagger-codegen). See [com.ibm.wiotp.sdk.swagger](https://github.ibm.com/ibm-watson-iot/swagger-java)
+- HTTP API support is provided by [swagger-codegen](https://github.com/swagger-api/swagger-codegen). See [com.ibm.wiotp.sdk.swagger](https://github.com/ibm-watson-iot/swagger-java)
 
 
 ## Documentation
