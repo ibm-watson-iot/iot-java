@@ -26,7 +26,7 @@ Add a dependency on `com.ibm.wiotp.sdk` to your project's `pom.xml`:
 <dependency>
   <groupId>com.ibm.wiotp</groupId>
   <artifactId>com.ibm.wiotp.sdk</artifactId>
-  <version>0.3.0</version>
+  <version>0.4.1</version>
 </dependency>
 ```
 

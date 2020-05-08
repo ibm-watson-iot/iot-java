@@ -96,8 +96,8 @@ Installation across all OS's is pretty much the same:
 - Run the sample
 
 ```
-$ wget https://repo1.maven.org/maven2/com/ibm/wiotp/com.ibm.wiotp.samples.oshi/1.0.0/com.ibm.wiotp.samples.oshi-1.0.0-jar-with-dependencies.jar
-$ java -jar com.ibm.wiotp.samples.oshi-1.0.0-jar-with-dependencies.jar --quickstart
+$ wget https://repo1.maven.org/maven2/com/ibm/wiotp/com.ibm.wiotp.samples.oshi/1.0.4/com.ibm.wiotp.samples.oshi-1.0.4-jar-with-dependencies.jar
+$ java -jar com.ibm.wiotp.samples.oshi-1.0.4-jar-with-dependencies.jar --quickstart
 ```
 
 Note: Set the same environment variables detailed in the Docker section of this README (above) and ommit the `--quickstart` argument to connect to IBM Watson IoT Platform as a registered device.

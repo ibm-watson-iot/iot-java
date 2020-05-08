@@ -5,7 +5,7 @@
 	
 	<groupId>com.ibm.wiotp</groupId>
 	<artifactId>com.ibm.wiotp.samples.oshi</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<packaging>jar</packaging>
 	
 	<!--
@@ -29,7 +29,7 @@
 		<args4j-version>2.33</args4j-version>
 		<slf4j-version>1.7.29</slf4j-version>
 		<gson-version>2.8.1</gson-version>
-		<wiotp-sdk-version>0.4.0</wiotp-sdk-version>
+		<wiotp-sdk-version>0.4.1</wiotp-sdk-version>
 		<oshi-version>3.13.2</oshi-version>
 		
 		<junit-version>4.12</junit-version>
