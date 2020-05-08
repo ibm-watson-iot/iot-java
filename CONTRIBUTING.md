@@ -1,4 +1,4 @@
-# Contributing to # Java for IBM Watson IoT Platform
+# Contributing to Java for IBM Watson IoT Platform
 
 ## Running the Tests
 ```
