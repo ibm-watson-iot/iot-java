@@ -35,7 +35,7 @@ The easiest way to test out the sample is via the [wiotp/oshi](https://cloud.doc
 The resource requirements for this container are relatively small, if you use the accompanying helm chart it is by default configured with a request of 4m CPU + 64Mi memory, and limits set to 8m cpu + 96Mi memory.
 
 ```
-$ docker run -d --name psutil wiotp/oshi --quickstart
+$ docker run -d --name oshi wiotp/oshi --quickstart
 oshi
 $ docker logs -tf oshi
 2019-05-30 10:52:36 INFO  OshiDevice           IBM Watson IoT Platform OSHI Device Client
