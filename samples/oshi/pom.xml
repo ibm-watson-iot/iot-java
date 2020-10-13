@@ -32,7 +32,7 @@
 		<wiotp-sdk-version>0.4.1</wiotp-sdk-version>
 		<oshi-version>3.13.2</oshi-version>
 		
-		<junit-version>4.12</junit-version>
+		<junit-version>4.13.1</junit-version>
 		<runSuite>**/AllTestSuite.class</runSuite>
 	</properties>
 	
