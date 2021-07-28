@@ -7,6 +7,10 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.ibm.wiotp/com.ibm.wiotp.sdk.svg)](https://search.maven.org/search?q=g:com.ibm.wiotp)
 
 
+## Product Withdrawal Notice
+Per the September 8, 2020 [announcement](https://www-01.ibm.com/common/ssi/cgi-bin/ssialias?subtype=ca&infotype=an&appname=iSource&supplier=897&letternum=ENUS920-136#rprodnx) IBM Watson IoT Platform (5900-A0N) has been withdrawn from marketing effective **December 9, 2020**.  As a result, updates to this project will be limited.
+
+
 ## Overview
 
 - Logging powered by [SLF4J](https://www.slf4j.org/manual.html)
